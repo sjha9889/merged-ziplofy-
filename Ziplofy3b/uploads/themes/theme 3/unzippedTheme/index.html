@@ -1,0 +1,823 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Shop Top &mdash; Trendy Fashion, Best Prices</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta name="description" content="Shop men's, women's and kids' fashion with fast shipping and easy returns. New arrivals weekly.">
+    <link rel="canonical" href="/">
+    <meta property="og:title" content="Shop Top &mdash; Trendy Fashion, Best Prices">
+    <meta property="og:description" content="Shop men's, women's and kids' fashion with fast shipping and easy returns.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="/">
+    <meta property="og:image" content="assets/img/carousel-1.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Favicon -->
+    <link href="assets/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">  
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="assets/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link rel="preload" href="assets/css/style.min.css" as="style">
+    <link href="assets/css/style.min.css" rel="stylesheet">
+    <link href="assets/css/drawers.css" rel="stylesheet">
+    <style>
+        .flash-sale-wrapper {
+            background: linear-gradient(135deg, #1f2124 0%, #2b3238 55%, var(--primary) 110%);
+        }
+        .flash-sale-box {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            backdrop-filter: blur(8px);
+            padding: 2.5rem;
+            color: #fff;
+        }
+        .flash-sale-badge {
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 999px;
+            letter-spacing: 0.08em;
+            font-size: 0.75rem;
+            padding: 0.35rem 1rem;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+        .flash-sale-countdown {
+            gap: 1rem;
+        }
+        .flash-sale-countdown .countdown-item {
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 16px;
+            padding: 0.75rem 1.25rem;
+            min-width: 80px;
+            text-align: center;
+        }
+        .flash-sale-countdown .countdown-item span {
+            display: block;
+            font-size: 1.75rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .flash-sale-product {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 24px 48px rgba(61, 70, 77, 0.25);
+            overflow: hidden;
+        }
+        .flash-sale-product .sale-tag {
+            background: var(--primary);
+            color: var(--dark);
+            font-weight: 600;
+            padding: 0.35rem 0.85rem;
+            border-radius: 0 0.75rem 0.75rem 0;
+            position: absolute;
+            top: 1rem;
+            left: 0;
+        }
+        .flash-sale-product img {
+            object-fit: cover;
+            height: 220px;
+        }
+        .flash-sale-product .price {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .flash-sale-product .text-muted del {
+            color: rgba(61, 70, 77, 0.5) !important;
+        }
+        .subscribe-form input[type="email"] {
+            padding-right: 130px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+            font-size: 0.95rem;
+        }
+        .subscribe-form .subscribe-btn-desktop {
+            position: absolute;
+            top: 0;
+            right: 7px;
+            padding: 0.55rem 1.35rem;
+            font-size: 0.9rem;
+        }
+        .subscribe-form .subscribe-btn-mobile {
+            display: none;
+        }
+        @media (max-width: 767.98px) {
+            .flash-sale-box {
+                padding: 2rem 1.5rem;
+                text-align: center;
+            }
+            .flash-sale-countdown {
+                justify-content: center;
+            }
+            .flash-sale-product img {
+                height: 200px;
+            }
+            .subscribe-form input[type="email"] {
+                padding-right: 1.25rem;
+            }
+            .subscribe-form .subscribe-btn-desktop {
+                display: none !important;
+            }
+            .subscribe-form .subscribe-btn-mobile {
+                display: block !important;
+                font-size: 0.95rem;
+                width: 100%;
+                margin-top: 0.75rem;
+            }
+        }
+        .navbar-area {
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            transition: box-shadow 0.3s ease, background-color 0.3s ease;
+        }
+        .navbar-area.is-sticky {
+            box-shadow: 0 16px 30px rgba(0, 0, 0, 0.12);
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+        .flash-message {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            padding: 0.85rem 1.1rem;
+            border-radius: 12px;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+            background: #fff;
+            color: var(--dark);
+            border-left: 4px solid var(--primary);
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            z-index: 2000;
+            pointer-events: none;
+        }
+        .flash-message.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .flash-message.flash-info {
+            border-left-color: var(--info);
+        }
+        .flash-message.flash-success {
+            border-left-color: var(--success);
+        }
+        .flash-message.flash-warning {
+            border-left-color: var(--warning);
+        }
+        .product-img .product-action {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(10px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+        .product-item:hover .product-action {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        .product-action-btn {
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .quick-view-modal .modal-content {
+            border-radius: 20px;
+            border: none;
+            overflow: hidden;
+        }
+        .quick-view-modal .modal-body {
+            padding: 2rem;
+        }
+        .quick-view-modal .quick-view-image {
+            border-radius: 16px;
+            object-fit: cover;
+            width: 100%;
+            height: 280px;
+        }
+        .quick-view-modal .badge-discount {
+            background: rgba(255, 211, 51, 0.2);
+            color: var(--dark);
+            border-radius: 999px;
+            padding: 0.35rem 0.9rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        .quick-view-modal .price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .quick-view-modal .old-price {
+            color: rgba(61, 70, 77, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Announcement Bar -->
+    <div class="container-fluid bg-primary text-dark text-center py-1">
+        <small><strong>Diwali Sale:</strong> Up to 50% off + Free Shipping over $50</small>
+    </div>
+    <!-- Topbar Start -->
+    <div class="container-fluid">
+        <div class="row bg-secondary py-1 px-xl-5">
+            <div class="col-lg-6 d-none d-lg-block">
+                <div class="d-inline-flex align-items-center h-100">
+                    <a class="text-body mr-3" href="">About</a>
+                    <a class="text-body mr-3" href="">Contact</a>
+                    <a class="text-body mr-3" href="">Help</a>
+                    <a class="text-body mr-3" href="">FAQs</a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center text-lg-right">
+                <div class="d-inline-flex align-items-center">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">My Account</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <button class="dropdown-item" type="button" onclick="window.location.href='login.html'">Sign in</button>
+                            <button class="dropdown-item" type="button" onclick="window.location.href='signup.html'">Sign up</button>
+                        </div>
+                    </div>
+                    <div class="btn-group mx-2">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">USD</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <button class="dropdown-item" type="button">EUR</button>
+                            <button class="dropdown-item" type="button">GBP</button>
+                            <button class="dropdown-item" type="button">CAD</button>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">EN</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <button class="dropdown-item" type="button">FR</button>
+                            <button class="dropdown-item" type="button">AR</button>
+                            <button class="dropdown-item" type="button">RU</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-inline-flex align-items-center d-block d-lg-none">
+                    <a href="" class="btn px-0 ml-2">
+                        <i class="fas fa-heart text-dark"></i>
+                        <span class="badge text-dark border border-dark rounded-circle" style="padding-bottom: 2px;" data-count-target="wishlist">0</span>
+                    </a>
+                    <button type="button" class="btn px-0 ml-2" id="cart-drawer-trigger-mobile" aria-label="View cart" onclick="if(window.openCartDrawer){window.openCartDrawer();}">
+                        <i class="fas fa-shopping-cart text-dark"></i>
+                        <span class="badge text-dark border border-dark rounded-circle" style="padding-bottom: 2px;" data-count-target="cart">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="row align-items-center bg-light py-3 px-xl-5 d-none d-lg-flex">
+            <div class="col-lg-4">
+                <a href="" class="text-decoration-none">
+                    <span class="h1 text-uppercase text-primary bg-dark px-2">Shop</span>
+                    <span class="h1 text-uppercase text-dark bg-primary px-2 ml-n1">Top</span>
+                </a>
+            </div>
+            <div class="col-lg-4 col-6 text-left">
+                <form action="/search" role="search">
+                    <div class="input-group">
+                        <label for="site-search" class="sr-only">Search products</label>
+                        <input id="site-search" name="q" type="search" class="form-control" placeholder="Search for products" autocomplete="off">
+                        <div class="input-group-append">
+                            <button class="input-group-text bg-transparent text-primary" type="submit" aria-label="Search">
+                                <i class="fa fa-search" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-4 col-6 text-right">
+                <p class="m-0">Customer Service</p>
+                <h5 class="m-0">+012 345 6789</h5>
+            </div>
+        </div>
+    </div>
+    <!-- Topbar End -->
+
+
+    <!-- Navbar Start -->
+    <div class="container-fluid bg-dark mb-30 navbar-area">
+        <nav class="navbar navbar-expand-lg bg-dark navbar-dark py-3 py-lg-0 px-0">
+            <a href="" class="text-decoration-none d-block d-lg-none">
+                <span class="h1 text-uppercase text-dark bg-light px-2">Shop</span>
+                <span class="h1 text-uppercase text-light bg-primary px-2 ml-n1">Top</span>
+            </a>
+            <button type="button" class="navbar-toggler" id="mobile-nav-toggler" aria-label="Toggle navigation" onclick="if(window.openNavDrawer){window.openNavDrawer();}">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
+                        <div class="navbar-nav mr-auto py-0">
+                            <a href="index.html" class="nav-item nav-link active">Home</a>
+                            <a href="shop.html" class="nav-item nav-link">Shop</a>
+                            <div class="nav-item dropdown">
+                                <a href="category.html?cat=dresses" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dresses</a>
+                                <div class="dropdown-menu rounded-0 border-0 m-0">
+                                    <a href="category.html?cat=men-dresses" class="dropdown-item">Men's Dresses</a>
+                                    <a href="category.html?cat=women-dresses" class="dropdown-item">Women's Dresses</a>
+                                    <a href="category.html?cat=baby-dresses" class="dropdown-item">Baby's Dresses</a>
+                                </div>
+                            </div>
+                            <a href="category.html?cat=shirts" class="nav-item nav-link">Shirts</a>
+                            <a href="category.html?cat=jeans" class="nav-item nav-link">Jeans</a>
+                            <a href="category.html?cat=swimwear" class="nav-item nav-link">Swimwear</a>
+                            <a href="category.html?cat=sleepwear" class="nav-item nav-link">Sleepwear</a>
+                            <a href="category.html?cat=sportswear" class="nav-item nav-link">Sportswear</a>
+                            <a href="category.html?cat=jumpsuits" class="nav-item nav-link">Jumpsuits</a>
+                            <a href="category.html?cat=blazers" class="nav-item nav-link">Blazers</a>
+                            <a href="category.html?cat=jackets" class="nav-item nav-link">Jackets</a>
+                            <a href="category.html?cat=shoes" class="nav-item nav-link">Shoes</a>
+                        </div>
+                <div class="navbar-nav ml-auto py-0 d-none d-lg-block">
+                    <a href="" class="btn px-0" aria-label="View wishlist">
+                        <i class="fas fa-heart text-primary" aria-hidden="true"></i>
+                        <span class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;" data-count-target="wishlist">0</span>
+                    </a>
+                    <button type="button" class="btn px-0 ml-3" id="cart-drawer-trigger" aria-label="View cart" onclick="if(window.openCartDrawer){window.openCartDrawer();}">
+                        <i class="fas fa-shopping-cart text-primary" aria-hidden="true"></i>
+                        <span class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;" data-count-target="cart">0</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <!-- Navbar End -->
+
+
+    <!-- Carousel Start -->
+    <div class="container-fluid mb-3">
+        
+        <div id="header-carousel" class="carousel slide carousel-fade mb-30 mb-lg-0" data-ride="carousel">
+            <ol class="carousel-indicators">
+                <li data-target="#header-carousel" data-slide-to="0" class="active"></li>
+                <li data-target="#header-carousel" data-slide-to="1"></li>
+                <li data-target="#header-carousel" data-slide-to="2"></li>
+            </ol>
+            <div class="carousel-inner">
+                <div class="carousel-item position-relative active" style="height: 430px;">
+                    <img class="position-absolute w-100 h-100" src="assets/img/carousel-1.jpg" style="object-fit: cover;" alt="Men fashion collection" width="1200" height="430">
+                    <div class="carousel-caption d-flex flex-column align-items-center justify-content-center">
+                        <div class="p-3" style="max-width: 700px;">
+                            <h1 class="display-4 text-white mb-3 animate__animated animate__fadeInDown">Men Fashion</h1>
+                            <p class="mx-md-5 px-5 animate__animated animate__bounceIn">Lorem rebum magna amet lorem magna erat diam stet. Sadips duo stet amet amet ndiam elitr ipsum diam</p>
+                            <a class="btn btn-primary py-2 px-4 mt-3 animate__animated animate__fadeInUp mr-2" href="shop.html">Shop Now</a>
+                            <a class="btn btn-outline-light py-2 px-4 mt-3 animate__animated animate__fadeInUp" href="detail.html">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item position-relative" style="height: 430px;">
+                    <img class="position-absolute w-100 h-100" src="assets/img/carousel-2.jpg" style="object-fit: cover;" alt="Women fashion collection" width="1200" height="430">
+                    <div class="carousel-caption d-flex flex-column align-items-center justify-content-center">
+                        <div class="p-3" style="max-width: 700px;">
+                            <h1 class="display-4 text-white mb-3 animate__animated animate__fadeInDown">Women Fashion</h1>
+                            <p class="mx-md-5 px-5 animate__animated animate__bounceIn">Lorem rebum magna amet lorem magna erat diam stet. Sadips duo stet amet amet ndiam elitr ipsum diam</p>
+                            <a class="btn btn-primary py-2 px-4 mt-3 animate__animated animate__fadeInUp mr-2" href="shop.html">Shop Now</a>
+                            <a class="btn btn-outline-light py-2 px-4 mt-3 animate__animated animate__fadeInUp" href="detail.html">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item position-relative" style="height: 430px;">
+                    <img class="position-absolute w-100 h-100" src="assets/img/carousel-3.jpg" style="object-fit: cover;" alt="Kids fashion collection" width="1200" height="430">
+                    <div class="carousel-caption d-flex flex-column align-items-center justify-content-center">
+                        <div class="p-3" style="max-width: 700px;">
+                            <h1 class="display-4 text-white mb-3 animate__animated animate__fadeInDown">Kids Fashion</h1>
+                            <p class="mx-md-5 px-5 animate__animated animate__bounceIn">Lorem rebum magna amet lorem magna erat diam stet. Sadips duo stet amet amet ndiam elitr ipsum diam</p>
+                            <a class="btn btn-primary py-2 px-4 mt-3 animate__animated animate__fadeInUp mr-2" href="shop.html">Shop Now</a>
+                            <a class="btn btn-outline-light py-2 px-4 mt-3 animate__animated animate__fadeInUp" href="detail.html">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+       
+    </div>
+    <!-- Carousel End -->
+
+
+    <!-- Featured Start -->
+    <div class="container-fluid pt-5">
+        <div class="row px-xl-5 pb-3">
+            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
+                <div class="d-flex align-items-center bg-light mb-4" style="padding: 30px;">
+                    <h1 class="fa fa-check text-primary m-0 mr-3"></h1>
+                    <h5 class="font-weight-semi-bold m-0">Quality Product</h5>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
+                <div class="d-flex align-items-center bg-light mb-4" style="padding: 30px;">
+                    <h1 class="fa fa-shipping-fast text-primary m-0 mr-2"></h1>
+                    <h5 class="font-weight-semi-bold m-0">Free Shipping</h5>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
+                <div class="d-flex align-items-center bg-light mb-4" style="padding: 30px;">
+                    <h1 class="fas fa-exchange-alt text-primary m-0 mr-3"></h1>
+                    <h5 class="font-weight-semi-bold m-0">14-Day Return</h5>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 col-sm-12 pb-1">
+                <div class="d-flex align-items-center bg-light mb-4" style="padding: 30px;">
+                    <h1 class="fa fa-phone-volume text-primary m-0 mr-3"></h1>
+                    <h5 class="font-weight-semi-bold m-0">24/7 Support</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Featured End -->
+
+
+    <!-- Categories Start -->
+    <div class="container-fluid pt-5">
+        <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4"><span class="bg-secondary pr-3">Categories</span></h2>
+        <div class="row px-xl-5 pb-3" id="categories-grid">
+            <div class="col-12 text-center py-5 text-muted">
+                <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
+                Loading categories...
+            </div>
+        </div>
+    </div>
+    <!-- Categories End -->
+
+
+    <!-- Products Start -->
+    <div class="container-fluid pt-5 pb-3">
+        <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4"><span class="bg-secondary pr-3">Recent Products</span></h2>
+        <div class="row px-xl-5" id="recent-products-grid" data-products-section="recent">
+            <div class="col-12 text-center py-5 text-muted">
+                <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
+                Loading recent products...
+                        </div>
+                    </div>
+                        </div>
+    <!-- Products End -->
+
+    <!-- Flash Sale Start -->
+    <section class="flash-sale-wrapper py-5">
+        <div class="container px-xl-5">
+            <div class="flash-sale-box">
+                <div class="row align-items-center">
+                    <div class="col-lg-5 mb-4 mb-lg-0">
+                        <span class="flash-sale-badge">Limited Time</span>
+                        <h2 class="display-4 font-weight-bold text-white mt-3 mb-3">Flash Sale</h2>
+                        <p class="mb-4 text-white-50">Grab the hottest deals before they disappear. Exclusive prices on our bestsellers with free express shipping.</p>
+                        <div class="d-flex flex-wrap flash-sale-countdown justify-content-lg-start justify-content-center mt-4">
+                            <div class="countdown-item">
+                                <span>12</span>
+                                <small>Hours</small>
+                        </div>
+                            <div class="countdown-item">
+                                <span>45</span>
+                                <small>Minutes</small>
+                    </div>
+                            <div class="countdown-item">
+                                <span>18</span>
+                                <small>Seconds</small>
+                </div>
+            </div>
+                        </div>
+                    <div class="col-lg-7">
+                        <div class="flash-sale-product position-relative">
+                            <span class="sale-tag">Deal of the Day</span>
+                            <div class="row no-gutters align-items-center">
+                                <div class="col-md-6">
+                                    <img src="assets/img/product-5.jpg" class="img-fluid w-100" alt="Sony WH-1000XM5 Flash Sale" loading="lazy">
+                    </div>
+                                <div class="col-md-6 p-4 p-md-5">
+                                    <h3 class="font-weight-bold mb-2 text-dark">Sony WH-1000XM5</h3>
+                                    <p class="text-muted mb-3">Industry-leading noise cancellation with 30 hours of battery life and ultra-soft fit.</p>
+                                    <div class="d-flex align-items-end mb-3">
+                                        <span class="price mr-3">₹19,990</span>
+                                        <span class="text-muted"><del>₹39,990</del></span>
+                        </div>
+                                    <a class="btn btn-primary btn-block py-2" href="product-detail.html?id=sony-wh-1000xm5">Shop Now</a>
+                                    <small class="d-block mt-3 text-muted">Offer valid while stocks last. Free same-day dispatch.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                        </div>
+                    </div>
+                        </div>
+    </section>
+    <!-- Flash Sale End -->
+
+    <!-- Quick View Modal -->
+    <div class="modal fade quick-view-modal" id="quickViewModal" tabindex="-1" role="dialog" aria-labelledby="quickViewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <button type="button" class="close position-absolute text-dark" data-dismiss="modal" aria-label="Close" style="right: 1rem; top: 1rem; z-index: 2;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-lg-6 mb-4 mb-lg-0">
+                            <img id="quickViewImage" src="" alt="Product image" class="quick-view-image w-100" loading="lazy">
+                        </div>
+                        <div class="col-lg-6">
+                            <span class="badge badge-discount mb-3 d-inline-block" id="quickViewBadge" style="display: none;"></span>
+                            <h3 class="font-weight-bold mb-2" id="quickViewTitle">Product Title</h3>
+                            <div class="d-flex align-items-center mb-3">
+                                <span class="price mr-3" id="quickViewPrice">₹0</span>
+                                <span class="old-price" id="quickViewOldPrice" style="display: none;"><del>₹0</del></span>
+                    </div>
+                            <p class="text-muted mb-3" id="quickViewDescription">Product short description will appear here.</p>
+                            <ul class="list-unstyled mb-4" id="quickViewFeatures"></ul>
+                            <div class="d-flex flex-wrap">
+                                <button type="button" class="btn btn-primary mr-2 mb-2" id="quickViewAddToCart"><i class="fa fa-shopping-cart mr-2"></i>Add to Cart</button>
+                                <button type="button" class="btn btn-outline-dark mb-2" id="quickViewAddToWishlist"><i class="far fa-heart mr-2"></i>Wishlist</button>
+                                <a href="#" class="btn btn-link text-dark mb-2 ml-lg-2" id="quickViewDetailLink">View full details</a>
+                </div>
+            </div>
+                        </div>
+                    </div>
+                        </div>
+                        </div>
+                    </div>
+    <!-- Quick View Modal End -->
+
+
+    <!-- Offer Start -->
+    <div class="container-fluid pt-5 pb-3">
+        <div class="row px-xl-5">
+            <div class="col-md-6">
+                <div class="product-offer mb-30" style="height: 300px;">
+                    <img class="img-fluid" src="assets/img/offer-1.jpg" alt="">
+                    <div class="offer-text">
+                        <h6 class="text-white text-uppercase">Save 20%</h6>
+                        <h3 class="text-white mb-3">Special Offer</h3>
+                        <a href="" class="btn btn-primary">Shop Now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="product-offer mb-30" style="height: 300px;">
+                    <img class="img-fluid" src="assets/img/offer-2.jpg" alt="">
+                    <div class="offer-text">
+                        <h6 class="text-white text-uppercase">Save 20%</h6>
+                        <h3 class="text-white mb-3">Special Offer</h3>
+                        <a href="" class="btn btn-primary">Shop Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Offer End -->
+
+
+    <!-- Products Start -->
+    <div class="container-fluid pt-5 pb-3">
+        <h2 class="section-title position-relative text-uppercase mx-xl-5 mb-4"><span class="bg-secondary pr-3">Featured Products</span></h2>
+        <div class="row px-xl-5" id="featured-products-grid" data-products-section="featured">
+            <div class="col-12 text-center py-5 text-muted">
+                <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
+                Loading featured products...
+            </div>
+        </div>
+    </div>
+    <!-- Products End -->
+
+
+    <!-- Vendor Start -->
+    <div class="container-fluid py-5">
+        <div class="row px-xl-5">
+            <div class="col">
+                <div class="owl-carousel vendor-carousel">
+                    <div class="bg-light p-4">
+                        <img src="assets/img/vendor-1.jpg" alt="Vendor logo" loading="lazy" width="120" height="60">
+                    </div>
+                    <div class="bg-light p-4">
+                        <img src="assets/img/vendor-2.jpg" alt="Vendor logo" loading="lazy" width="120" height="60">
+                    </div>
+                    <div class="bg-light p-4">
+                        <img src="assets/img/vendor-3.jpg" alt="Vendor logo" loading="lazy" width="120" height="60">
+                    </div>
+                    <div class="bg-light p-4">
+                        <img src="assets/img/vendor-4.jpg" alt="Vendor logo" loading="lazy" width="120" height="60">
+                    </div>
+                    <div class="bg-light p-4">
+                        <img src="assets/img/vendor-5.jpg" alt="Vendor logo" loading="lazy" width="120" height="60">
+                    </div>
+                    <div class="bg-light p-4">
+                        <img src="assets/img/vendor-6.jpg" alt="Vendor logo" loading="lazy" width="120" height="60">
+                    </div>
+                    <div class="bg-light p-4">
+                        <img src="assets/img/vendor-7.jpg" alt="Vendor logo" loading="lazy" width="120" height="60">
+                    </div>
+                    <div class="bg-light p-4">
+                        <img src="assets/img/vendor-8.jpg" alt="Vendor logo" loading="lazy" width="120" height="60">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Vendor End -->
+
+
+    <!-- Subscribe Start -->
+    <section class="container-fluid mt-5 py-5" style="background: linear-gradient(120deg, #13171a 0%, #1f252b 60%, #2b3238 100%);">
+        <div class="container px-xl-5">
+            <div class="row align-items-center bg-white text-dark rounded-lg shadow px-4 py-5 py-md-4">
+                <div class="col-lg-7 mb-4 mb-lg-0">
+                    <span class="badge badge-primary text-uppercase mb-2">Stay Updated</span>
+                    <h3 class="font-weight-bold text-uppercase mb-2">Join Our Insider Club</h3>
+                    <p class="mb-0 text-muted">Be the first to know about flash sales, new drops, and exclusive coupons curated for you.</p>
+                </div>
+                <div class="col-lg-5">
+                    <form class="subscribe-form position-relative" action="newsletter.html" method="post">
+                        <label class="sr-only" for="subscribe-email">Email address</label>
+                        <input id="subscribe-email" type="email" class="form-control form-control-lg border-0 rounded-pill pr-lg-5" placeholder="Enter your email" required>
+                        <button class="btn btn-dark btn-lg rounded-pill align-items-center justify-content-center subscribe-btn-desktop" type="submit">Subscribe</button>
+                        <button class="btn btn-dark btn-lg rounded-pill btn-block mt-3 d-md-none subscribe-btn-mobile" type="submit">Subscribe</button>
+                    </form>
+                    <small class="d-block mt-3 text-muted">We respect your inbox. Unsubscribe anytime.</small>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Subscribe End -->
+
+
+    <!-- Footer Start -->
+    <div class="container-fluid bg-dark text-secondary pt-5">
+        <div class="row px-xl-5 pt-5">
+            <div class="col-lg-4 col-md-12 mb-5 pr-3 pr-xl-5">
+                <h5 class="text-secondary text-uppercase mb-4">Get In Touch</h5>
+                <p class="mb-4">No dolore ipsum accusam no lorem. Invidunt sed clita kasd clita et et dolor sed dolor. Rebum tempor no vero est magna amet no</p>
+                <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>123 Street, New York, USA</p>
+                <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>info@example.com</p>
+                <p class="mb-0"><i class="fa fa-phone-alt text-primary mr-3"></i>+012 345 67890</p>
+            </div>
+            <div class="col-lg-8 col-md-12">
+                <div class="row">
+                    <div class="col-md-4 mb-5">
+                        <h5 class="text-secondary text-uppercase mb-4">Quick Shop</h5>
+                        <div class="d-flex flex-column justify-content-start">
+                            <a class="text-secondary mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Home</a>
+                            <a class="text-secondary mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Our Shop</a>
+                            <a class="text-secondary mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Shop Detail</a>
+                            <a class="text-secondary mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Shopping Cart</a>
+                            <a class="text-secondary mb-2" href="#"><i class="fa fa-angle-right mr-2"></i>Checkout</a>
+                            <a class="text-secondary" href="#"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-5">
+                        <h5 class="text-secondary text-uppercase mb-4">My Account</h5>
+                        <div class="d-flex flex-column justify-content-start">
+                            <a class="text-secondary mb-2" href="about.html"><i class="fa fa-angle-right mr-2"></i>About</a>
+                            <a class="text-secondary mb-2" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
+                            <a class="text-secondary mb-2" href="login.html"><i class="fa fa-angle-right mr-2"></i>My Account</a>
+                            <a class="text-secondary mb-2" href="track-order.html"><i class="fa fa-angle-right mr-2"></i>Track Order</a>
+                            <a class="text-secondary mb-2" href="privacy-policy.html"><i class="fa fa-angle-right mr-2"></i>Privacy Policy</a>
+                            <a class="text-secondary mb-2" href="terms-conditions.html"><i class="fa fa-angle-right mr-2"></i>Terms & Conditions</a>
+                            <a class="text-secondary" href="refund-policy.html"><i class="fa fa-angle-right mr-2"></i>Refund & Return Policy</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-5">
+                        <h5 class="text-secondary text-uppercase mb-4">Newsletter</h5>
+                        <p>Duo stet tempor ipsum sit amet magna ipsum tempor est</p>
+                        <form action="">
+                            <div class="input-group">
+                                <input id="newsletter-email" name="email" type="email" class="form-control" placeholder="Your email address" required>
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-primary" aria-label="Sign up to newsletter">Sign Up</button>
+                                </div>
+                            </div>
+                        </form>
+                        <h6 class="text-secondary text-uppercase mt-4 mb-3">Follow Us</h6>
+                        <div class="d-flex">
+                            <a class="btn btn-primary btn-square mr-2" href="#"><i class="fab fa-twitter"></i></a>
+                            <a class="btn btn-primary btn-square mr-2" href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a class="btn btn-primary btn-square mr-2" href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a class="btn btn-primary btn-square" href="#"><i class="fab fa-instagram"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row border-top mx-xl-5 py-4" style="border-color: rgba(256, 256, 256, .1) !important;">
+            <div class="col-md-6 px-xl-0">
+                <p class="mb-md-0 text-center text-md-left text-secondary">
+                    &copy; 2025 <a class="text-primary" href="/">Shop Top</a>. All Rights Reserved. Designed by ziplofy
+                </p>
+            </div>
+            <div class="col-md-6 px-xl-0 text-center text-md-right">
+                <img class="img-fluid" src="assets/img/payments.png" alt="">
+            </div>
+        </div>
+    </div>
+    <!-- Footer End -->
+
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
+    
+    <!-- Flash Message -->
+    <div id="flash-message" class="flash-message" role="alert"></div>
+
+    <!-- Cart Drawer -->
+    <div class="offcanvas-overlay" id="cart-drawer-overlay" style="display: none !important;"></div>
+    <div class="offcanvas-panel cart-panel" id="cart-drawer" style="display: none !important;">
+        <div class="offcanvas-header">
+            <div class="offcanvas-title">Shopping Cart</div>
+            <button type="button" class="offcanvas-close" id="cart-drawer-close" aria-label="Close cart">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+        <div class="offcanvas-body" id="cart-drawer-body">
+            <div class="text-center py-5 text-muted">
+                <i class="fas fa-shopping-cart fa-3x mb-3"></i>
+                <p>Your cart is empty</p>
+            </div>
+        </div>
+        <div class="offcanvas-footer" id="cart-drawer-footer" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <strong>Total:</strong>
+                <strong id="cart-drawer-total">₹0</strong>
+            </div>
+            <a href="checkout.html" class="btn btn-primary btn-block">Proceed to Checkout</a>
+            <a href="cart.html" class="btn btn-outline-dark btn-block mt-2">View Cart</a>
+        </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div class="offcanvas-overlay" id="nav-drawer-overlay" style="display: none !important;"></div>
+    <div class="offcanvas-panel nav-panel" id="nav-drawer" style="display: none !important;">
+        <div class="offcanvas-header">
+            <div class="offcanvas-title">Menu</div>
+            <button type="button" class="offcanvas-close" id="nav-drawer-close" aria-label="Close menu">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+        <div class="offcanvas-body" id="nav-drawer-body">
+            <nav class="nav flex-column">
+                <a class="nav-link" href="index.html">Home</a>
+                <a class="nav-link" href="shop.html">Shop</a>
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navDrawerDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Dresses
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navDrawerDropdown">
+                        <a class="dropdown-item" href="category.html?cat=men-dresses">Men's Dresses</a>
+                        <a class="dropdown-item" href="category.html?cat=women-dresses">Women's Dresses</a>
+                        <a class="dropdown-item" href="category.html?cat=baby-dresses">Baby's Dresses</a>
+                    </div>
+                </div>
+                <a class="nav-link" href="category.html?cat=shirts">Shirts</a>
+                <a class="nav-link" href="category.html?cat=jeans">Jeans</a>
+                <a class="nav-link" href="category.html?cat=swimwear">Swimwear</a>
+                <a class="nav-link" href="category.html?cat=sleepwear">Sleepwear</a>
+                <a class="nav-link" href="category.html?cat=sportswear">Sportswear</a>
+                <a class="nav-link" href="category.html?cat=jumpsuits">Jumpsuits</a>
+                <a class="nav-link" href="category.html?cat=blazers">Blazers</a>
+                <a class="nav-link" href="category.html?cat=jackets">Jackets</a>
+                <a class="nav-link" href="category.html?cat=shoes">Shoes</a>
+                <a class="nav-link" href="contact.html">Contact</a>
+            </nav>
+        </div>
+    </div>
+
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/lib/easing/easing.min.js"></script>
+    <script src="assets/lib/owlcarousel/owl.carousel.min.js"></script>
+
+    <!-- Contact Javascript removed on home page (kept on contact.html) -->
+
+    <!-- Data & Template Rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/liquidjs@10/dist/liquid.browser.min.js"></script>
+    <script src="constants/products.js"></script>
+    <script src="assets/js/products.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="assets/js/main.js"></script>
+    
+    <!-- Drawer Functionality -->
+    <script src="assets/js/drawers.js"></script>
+</body>
+
+</html>
+
+

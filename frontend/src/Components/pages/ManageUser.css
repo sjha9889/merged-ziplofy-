@@ -1,0 +1,102 @@
+.manage-user {
+  padding: 20px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.filter-select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: white;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.role-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.role-admin {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.role-manager {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.role-user {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.status-select {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  font-size: 12px;
+}
+
+.status-active {
+  background: #e8f5e8;
+  border-color: #4caf50;
+}
+
+.status-inactive {
+  background: #fff3e0;
+  border-color: #ff9800;
+}
+
+.status-suspended {
+  background: #ffebee;
+  border-color: #f44336;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.btn.small {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.btn.danger {
+  background: #ffebee;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+}
+
+.btn.danger:hover {
+  background: #ffcdd2;
+}
+
+.empty {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.empty-text {
+  font-size: 16px;
+}

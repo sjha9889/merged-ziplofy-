@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - Ornativa Jewelry</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <h1>ORNATIVA</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="category.html">Shop</a></li>
+                    <li><a href="category.html">Collections</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <div class="nav-icons">
+                        <a href="#search"><i class="fas fa-search"></i></a>
+                        <a href="#cart"><i class="fas fa-shopping-bag"></i></a>
+                        <a href="account.html"><i class="fas fa-user"></i></a>
+                    </div>
+                </ul>
+                <!-- <div class="nav-icons desktop-only">
+                    <a href="#search"><i class="fas fa-search"></i></a>
+                    <a href="#cart"><i class="fas fa-shopping-bag"></i></a>
+                    <a href="account.html"><i class="fas fa-user"></i></a>
+                </div> -->
+                <div class="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Account Page -->
+    <main class="account-page">
+        <div class="container">
+            <div class="account-layout">
+                <!-- Sidebar Navigation -->
+                <aside class="account-sidebar">
+                    <div class="sidebar-header">
+                        <div class="user-avatar">
+                            <img src="https://via.placeholder.com/80x80/d4af37/ffffff?text=JD" alt="User Avatar">
+                        </div>
+                        <div class="user-info">
+                            <h3>John Doe</h3>
+                            <p>john.doe@email.com</p>
+                        </div>
+                    </div>
+
+                    <nav class="sidebar-nav">
+                        <ul class="account-nav-menu">
+                            <li class="nav-item active" data-section="profile">
+                                <a href="#profile">
+                                    <i class="fas fa-user"></i>
+                                    <span>Profile Information</span>
+                                </a>
+                            </li>
+                            <li class="nav-item" data-section="addresses">
+                                <a href="#addresses">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>Saved Addresses</span>
+                                </a>
+                            </li>
+                            <li class="nav-item" data-section="payment">
+                                <a href="#payment">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Payment Methods</span>
+                                </a>
+                            </li>
+                            <li class="nav-item" data-section="orders">
+                                <a href="#orders">
+                                    <i class="fas fa-shopping-bag"></i>
+                                    <span>Orders & Returns</span>
+                                </a>
+                            </li>
+                            <li class="nav-item" data-section="insider">
+                                <a href="#insider">
+                                    <i class="fas fa-crown"></i>
+                                    <span>Insider & Wallet</span>
+                                </a>
+                            </li>
+                            <li class="nav-item" data-section="coupons">
+                                <a href="#coupons">
+                                    <i class="fas fa-ticket-alt"></i>
+                                    <span>Coupons & Loyalty</span>
+                                </a>
+                            </li>
+                            <li class="nav-item" data-section="settings">
+                                <a href="#settings">
+                                    <i class="fas fa-cog"></i>
+                                    <span>Account Settings</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </aside>
+
+                <!-- Main Content Area -->
+                <div class="account-content">
+                    <!-- Profile Information Section -->
+                    <section id="profile-section" class="content-section active">
+                        <div class="section-header">
+                            <h2>Profile Information</h2>
+                            <p>Manage your personal details and preferences</p>
+                        </div>
+
+                        <div class="profile-form">
+                            <form id="profileForm">
+                                <div class="form-row">
+                                    <div class="account-form-group">
+                                        <label for="fullName">Full Name</label>
+                                        <input type="text" id="fullName" name="fullName" value="John Doe" readonly>
+                                    </div>
+                                    <div class="account-form-group">
+                                        <label for="email">Email Address</label>
+                                        <input type="email" id="email" name="email" value="john.doe@email.com" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="account-form-group">
+                                        <label for="phone">Phone Number</label>
+                                        <input type="tel" id="phone" name="phone" value="+1 (555) 123-4567" readonly>
+                                    </div>
+                                    <div class="account-form-group">
+                                        <label for="dob">Date of Birth</label>
+                                        <input type="date" id="dob" name="dob" value="1990-05-15" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="account-form-group">
+                                    <label>Gender</label>
+                                    <div class="radio-group">
+                                        <label class="radio-label">
+                                            <input type="radio" name="gender" value="male" checked readonly>
+                                            <span class="radio-custom"></span>
+                                            Male
+                                        </label>
+                                        <label class="radio-label">
+                                            <input type="radio" name="gender" value="female" readonly>
+                                            <span class="radio-custom"></span>
+                                            Female
+                                        </label>
+                                        <label class="radio-label">
+                                            <input type="radio" name="gender" value="other" readonly>
+                                            <span class="radio-custom"></span>
+                                            Other
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-outline" id="editProfile">Edit Profile</button>
+                                    <button type="submit" class="btn btn-primary" id="saveProfile"
+                                        style="display: none;">Save Changes</button>
+                                </div>
+                            </form>
+                        </div>
+                    </section>
+
+                    <!-- Saved Addresses Section -->
+                    <section id="addresses-section" class="content-section">
+                        <div class="section-header">
+                            <h2>Saved Addresses</h2>
+                            <p>Manage your delivery addresses</p>
+                        </div>
+
+                        <div class="addresses-grid">
+                            <div class="address-card default">
+                                <div class="address-header">
+                                    <h4>Home Address</h4>
+                                    <span class="default-badge">Default</span>
+                                </div>
+                                <div class="address-details">
+                                    <p><strong>John Doe</strong></p>
+                                    <p>+1 (555) 123-4567</p>
+                                    <p>123 Main Street, Apt 4B</p>
+                                    <p>New York, NY 10001</p>
+                                </div>
+                                <div class="address-actions">
+                                    <button class="btn btn-outline btn-sm">Edit</button>
+                                    <button class="btn btn-danger btn-sm">Delete</button>
+                                </div>
+                            </div>
+
+                            <div class="address-card">
+                                <div class="address-header">
+                                    <h4>Office Address</h4>
+                                </div>
+                                <div class="address-details">
+                                    <p><strong>John Doe</strong></p>
+                                    <p>+1 (555) 123-4567</p>
+                                    <p>456 Business Ave, Floor 12</p>
+                                    <p>New York, NY 10002</p>
+                                </div>
+                                <div class="address-actions">
+                                    <button class="btn btn-outline btn-sm">Edit</button>
+                                    <button class="btn btn-outline btn-sm">Set Default</button>
+                                    <button class="btn btn-danger btn-sm">Delete</button>
+                                </div>
+                            </div>
+
+                            <div class="add-address-card">
+                                <div class="add-address-content">
+                                    <i class="fas fa-plus"></i>
+                                    <h4>Add New Address</h4>
+                                    <p>Add a new delivery address</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Payment Methods Section -->
+                    <section id="payment-section" class="content-section">
+                        <div class="section-header">
+                            <h2>Payment Methods</h2>
+                            <p>Manage your saved payment methods</p>
+                        </div>
+
+                        <div class="payment-methods">
+                            <div class="payment-card">
+                                <div class="card-info">
+                                    <div class="account-card-icon">
+                                        <i class="fab fa-cc-visa"></i>
+                                    </div>
+                                    <div class="card-details">
+                                        <h4>John Doe</h4>
+                                        <p>**** **** **** 1234</p>
+                                        <p>Expires 12/25</p>
+                                    </div>
+                                </div>
+                                <div class="card-actions">
+                                    <span class="secure-badge">
+                                        <i class="fas fa-lock"></i>
+                                        SSL Secure
+                                    </span>
+                                    <button class="btn btn-danger btn-sm">Remove</button>
+                                </div>
+                            </div>
+
+                            <div class="payment-card">
+                                <div class="card-info">
+                                    <div class="account-card-icon">
+                                        <i class="fab fa-cc-mastercard"></i>
+                                    </div>
+                                    <div class="card-details">
+                                        <h4>John Doe</h4>
+                                        <p>**** **** **** 5678</p>
+                                        <p>Expires 08/26</p>
+                                    </div>
+                                </div>
+                                <div class="card-actions">
+                                    <span class="secure-badge">
+                                        <i class="fas fa-lock"></i>
+                                        SSL Secure
+                                    </span>
+                                    <button class="btn btn-danger btn-sm">Remove</button>
+                                </div>
+                            </div>
+
+                            <div class="add-payment-card">
+                                <div class="add-payment-content">
+                                    <i class="fas fa-plus"></i>
+                                    <h4>Add New Payment Method</h4>
+                                    <p>Add a new credit/debit card</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Orders & Returns Section -->
+                    <section id="orders-section" class="content-section">
+                        <div class="section-header">
+                            <h2>Orders & Returns</h2>
+                            <p>Track your orders and manage returns</p>
+                        </div>
+
+                        <div class="orders-list">
+                            <div class="order-card">
+                                <div class="order-image">
+                                    <img src="https://via.placeholder.com/80x80/d4af37/ffffff?text=Ring" alt="Product">
+                                </div>
+                                <div class="order-details">
+                                    <h4>Diamond Engagement Ring</h4>
+                                    <p class="order-price">$2,499.00</p>
+                                    <p class="order-date">Ordered on Dec 15, 2023</p>
+                                    <span class="order-status delivered">Delivered</span>
+                                </div>
+                                <div class="order-actions">
+                                    <button class="btn btn-outline btn-sm">Track Order</button>
+                                    <button class="btn btn-outline btn-sm">Return/Exchange</button>
+                                    <button class="btn btn-primary btn-sm">Buy Again</button>
+                                </div>
+                            </div>
+
+                            <div class="order-card">
+                                <div class="order-image">
+                                    <img src="https://via.placeholder.com/80x80/d4af37/ffffff?text=Necklace"
+                                        alt="Product">
+                                </div>
+                                <div class="order-details">
+                                    <h4>Pearl Necklace Set</h4>
+                                    <p class="order-price">$899.00</p>
+                                    <p class="order-date">Ordered on Dec 10, 2023</p>
+                                    <span class="order-status processing">Processing</span>
+                                </div>
+                                <div class="order-actions">
+                                    <button class="btn btn-outline btn-sm">Track Order</button>
+                                    <button class="btn btn-outline btn-sm">Return/Exchange</button>
+                                    <button class="btn btn-primary btn-sm">Buy Again</button>
+                                </div>
+                            </div>
+
+                            <div class="order-card">
+                                <div class="order-image">
+                                    <img src="https://via.placeholder.com/80x80/d4af37/ffffff?text=Earrings"
+                                        alt="Product">
+                                </div>
+                                <div class="order-details">
+                                    <h4>Gold Earrings</h4>
+                                    <p class="order-price">$599.00</p>
+                                    <p class="order-date">Ordered on Nov 28, 2023</p>
+                                    <span class="order-status returned">Returned</span>
+                                </div>
+                                <div class="order-actions">
+                                    <button class="btn btn-outline btn-sm">Track Order</button>
+                                    <button class="btn btn-outline btn-sm">Return/Exchange</button>
+                                    <button class="btn btn-primary btn-sm">Buy Again</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Insider & Wallet Section -->
+                    <section id="insider-section" class="content-section">
+                        <div class="section-header">
+                            <h2>Insider & Wallet</h2>
+                            <p>Your loyalty status and wallet balance</p>
+                        </div>
+
+                        <div class="insider-content">
+                            <div class="insider-card">
+                                <div class="insider-header">
+                                    <div class="insider-icon">
+                                        <i class="fas fa-crown"></i>
+                                    </div>
+                                    <div class="insider-info">
+                                        <h3>Gold Insider</h3>
+                                        <p>You're a valued Gold member</p>
+                                    </div>
+                                </div>
+                                <div class="progress-section">
+                                    <div class="progress-label">
+                                        <span>Points to Platinum</span>
+                                        <span>2,500 / 5,000</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 50%"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="wallet-card">
+                                <div class="wallet-header">
+                                    <h3>Wallet Balance</h3>
+                                    <div class="wallet-amount">$125.50</div>
+                                </div>
+                                <div class="wallet-actions">
+                                    <button class="btn btn-primary">Add Money</button>
+                                    <button class="btn btn-outline">View Transactions</button>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Coupons & Loyalty Section -->
+                    <section id="coupons-section" class="content-section">
+                        <div class="section-header">
+                            <h2>Coupons & Loyalty</h2>
+                            <p>Your active coupons and loyalty offers</p>
+                        </div>
+
+                        <div class="coupons-grid">
+                            <div class="coupon-card active">
+                                <div class="coupon-header">
+                                    <h4>20% Off</h4>
+                                    <span class="coupon-code">SAVE20</span>
+                                </div>
+                                <div class="coupon-details">
+                                    <p>Get 20% off on orders above $500</p>
+                                    <p class="expiry">Expires: Jan 15, 2024</p>
+                                </div>
+                                <div class="coupon-actions">
+                                    <button class="btn btn-primary btn-sm">Apply Coupon</button>
+                                </div>
+                            </div>
+
+                            <div class="coupon-card active">
+                                <div class="coupon-header">
+                                    <h4>Free Shipping</h4>
+                                    <span class="coupon-code">FREESHIP</span>
+                                </div>
+                                <div class="coupon-details">
+                                    <p>Free shipping on all orders</p>
+                                    <p class="expiry">Expires: Feb 28, 2024</p>
+                                </div>
+                                <div class="coupon-actions">
+                                    <button class="btn btn-primary btn-sm">Apply Coupon</button>
+                                </div>
+                            </div>
+
+                            <div class="coupon-card expired">
+                                <div class="coupon-header">
+                                    <h4>15% Off</h4>
+                                    <span class="coupon-code">WELCOME15</span>
+                                </div>
+                                <div class="coupon-details">
+                                    <p>Welcome offer - 15% off first order</p>
+                                    <p class="expiry expired">Expired: Dec 1, 2023</p>
+                                </div>
+                                <div class="coupon-actions">
+                                    <button class="btn btn-outline btn-sm" disabled>Expired</button>
+                                </div>
+                            </div>
+
+                            <div class="explore-offers-card">
+                                <div class="explore-content">
+                                    <i class="fas fa-gift"></i>
+                                    <h4>Explore More Offers</h4>
+                                    <p>Discover exclusive deals and discounts</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Account Settings Section -->
+                    <section id="settings-section" class="content-section">
+                        <div class="section-header">
+                            <h2>Account Settings</h2>
+                            <p>Manage your account preferences and security</p>
+                        </div>
+
+                        <div class="settings-content">
+                            <div class="settings-group">
+                                <h3>Security</h3>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <h4>Change Password</h4>
+                                        <p>Update your account password</p>
+                                    </div>
+                                    <button class="btn btn-outline">Change</button>
+                                </div>
+
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <h4>Two-Factor Authentication</h4>
+                                        <p>Add an extra layer of security</p>
+                                    </div>
+                                    <button class="btn btn-outline">Enable</button>
+                                </div>
+                            </div>
+
+                            <div class="settings-group">
+                                <h3>Communication</h3>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <h4>Email Notifications</h4>
+                                        <p>Manage your email preferences</p>
+                                    </div>
+                                    <button class="btn btn-outline">Manage</button>
+                                </div>
+
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <h4>SMS Notifications</h4>
+                                        <p>Control SMS alerts and updates</p>
+                                    </div>
+                                    <button class="btn btn-outline">Manage</button>
+                                </div>
+                            </div>
+
+                            <div class="settings-group">
+                                <h3>Account Management</h3>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <h4>Download Data</h4>
+                                        <p>Download your account data</p>
+                                    </div>
+                                    <button class="btn btn-outline">Download</button>
+                                </div>
+
+                                <div class="setting-item danger">
+                                    <div class="setting-info">
+                                        <h4>Delete Account</h4>
+                                        <p>Permanently delete your account</p>
+                                    </div>
+                                    <button class="btn btn-danger">Delete</button>
+                                </div>
+                            </div>
+
+                            <div class="security-tips">
+                                <div class="tips-header">
+                                    <i class="fas fa-shield-alt"></i>
+                                    <h4>Security Tips</h4>
+                                </div>
+                                <ul class="tips-list">
+                                    <li>Use a strong, unique password</li>
+                                    <li>Enable two-factor authentication</li>
+                                    <li>Keep your contact information updated</li>
+                                    <li>Log out from shared devices</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="category.html">Shop</a></li>
+                        <li><a href="category.html">Collections</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Policies</h3>
+                    <ul>
+                        <li><a href="shipping.html">Shipping Policy</a></li>
+                        <li><a href="return.html">Returns & Exchanges</a></li>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="t&c.html">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Connect With Us</h3>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-pinterest"></i></a>
+                    </div>
+                    <div class="contact-info">
+                        <p>Email: info@ornativa.com</p>
+                        <p>Phone: (555) 123-4567</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 ORNATIVA. All rights reserved. | Crafted with love for jewelry enthusiasts worldwide.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/script.js"></script>
+    <script>
+        // Account Page JavaScript
+        document.addEventListener('DOMContentLoaded', function () {
+            // Sidebar Navigation
+            const navItems = document.querySelectorAll('.nav-item');
+            const contentSections = document.querySelectorAll('.content-section');
+
+            navItems.forEach(item => {
+                item.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    // Remove active class from all items
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    contentSections.forEach(section => section.classList.remove('active'));
+
+                    // Add active class to clicked item
+                    this.classList.add('active');
+
+                    // Show corresponding content section
+                    const sectionId = this.getAttribute('data-section') + '-section';
+                    const targetSection = document.getElementById(sectionId);
+                    if (targetSection) {
+                        targetSection.classList.add('active');
+                    }
+                });
+            });
+
+            // Profile Form Edit/Save
+            const editProfileBtn = document.getElementById('editProfile');
+            const saveProfileBtn = document.getElementById('saveProfile');
+            const profileForm = document.getElementById('profileForm');
+            const profileInputs = profileForm.querySelectorAll('input');
+
+            editProfileBtn.addEventListener('click', function () {
+                profileInputs.forEach(input => {
+                    input.removeAttribute('readonly');
+                });
+                editProfileBtn.style.display = 'none';
+                saveProfileBtn.style.display = 'inline-block';
+            });
+
+            saveProfileBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                profileInputs.forEach(input => {
+                    input.setAttribute('readonly', 'readonly');
+                });
+                editProfileBtn.style.display = 'inline-block';
+                saveProfileBtn.style.display = 'none';
+
+                // Show success notification
+                showNotification('Profile updated successfully!', 'success');
+            });
+
+            // Mobile Sidebar Toggle
+            const mobileToggle = document.querySelector('.mobile-menu-toggle');
+            const sidebar = document.querySelector('.account-sidebar');
+
+            if (mobileToggle) {
+                mobileToggle.addEventListener('click', function () {
+                    sidebar.classList.toggle('mobile-open');
+                });
+            }
+
+            // Add Address Card Click
+            const addAddressCard = document.querySelector('.add-address-card');
+            if (addAddressCard) {
+                addAddressCard.addEventListener('click', function () {
+                    showNotification('Add address form would open here', 'info');
+                });
+            }
+
+            // Add Payment Card Click
+            const addPaymentCard = document.querySelector('.add-payment-card');
+            if (addPaymentCard) {
+                addPaymentCard.addEventListener('click', function () {
+                    showNotification('Add payment method form would open here', 'info');
+                });
+            }
+
+            // Explore Offers Card Click
+            const exploreOffersCard = document.querySelector('.explore-offers-card');
+            if (exploreOffersCard) {
+                exploreOffersCard.addEventListener('click', function () {
+                    showNotification('Explore offers page would open here', 'info');
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

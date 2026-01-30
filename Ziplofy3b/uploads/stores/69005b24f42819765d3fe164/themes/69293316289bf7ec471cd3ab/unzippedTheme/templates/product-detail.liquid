@@ -1,0 +1,262 @@
+{% comment %}
+Product Detail Template
+Inputs:
+- product: normalized product (see render.js normalizeProduct)
+- images: array of image URLs
+- specifications: product.specifications object
+{% endcomment %}
+
+<div class="row g-4">
+  <div class="col-lg-6 gallery-col">
+    <div class="product-gallery">
+      <div class="main-image w-100 mb-3">
+        <img src="{{ images[0] | default: product.image }}" alt="{{ product.title }}" class="img-fluid" id="mainImage">
+      </div>
+      {% if images and images.size > 1 %}
+      <div class="thumbnail-images mt-3">
+        <div class="row">
+          {% for img in images %}
+          <div class="col-3 col-md-2">
+            <div class="thumbnail{% if forloop.first %} active{% endif %}" data-main="{{ img }}">
+              <img src="{{ img }}" alt="{{ product.title }} thumbnail" class="img-fluid">
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="product-info">
+      <div class="title-actions mb-2">
+        <h1 class="product-title m-0">{{ product.name | default: product.title }}</h1>
+        <button class="wishlist-icon-btn add-to-wishlist" data-product-id="{{ product.id }}" aria-label="Add to wishlist">
+          <i class="fas fa-heart"></i>
+        </button>
+      </div>
+
+      <div class="product-rating mb-2">
+        <div class="stars">
+          {% for _ in (1..product.starsFull) %}<i class="fas fa-star"></i>{% endfor %}
+          {% if product.starsHalf == 1 %}<i class="fas fa-star-half-alt"></i>{% endif %}
+          {% for _ in (1..product.starsEmpty) %}<i class="far fa-star"></i>{% endfor %}
+        </div>
+        <span class="rating-text">{{ product.rating }} ({{ product.reviewCount }} reviews)</span>
+      </div>
+
+      <div class="product-price fk-price-block mb-3">
+        <div class="d-flex align-items-baseline gap-2">
+          <span class="current-price">{{ product.priceDisplay }}</span>
+          {% if product.hasDiscount %}
+            <span class="original-price">{{ product.originalPriceDisplay }}</span>
+            <span class="discount">{{ product.discount }}% OFF</span>
+          {% endif %}
+        </div>
+        <div class="tax-line text-success small fw-semibold mt-1">Inclusive of all taxes</div>
+      </div>
+
+      {% if product.badges.size > 0 %}
+      <div class="product-badges mb-3">
+        {% for badge in product.badges %}
+          <span class="badge bg-{{ badge.colorClass }} me-2">{{ badge.label }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="offers-card mb-3">
+        <div class="fw-bold mb-2"><i class="fas fa-bolt text-warning me-2"></i>Available Offers</div>
+        <ul class="list-unstyled mb-0 fk-offers">
+          <li class="mb-1"><i class="fas fa-tag me-2 text-success"></i>Bank Offer: 10% off on select cards</li>
+          <li class="mb-1"><i class="fas fa-undo me-2 text-primary"></i>7-Day Return/Replacement</li>
+          <li class="mb-1"><i class="fas fa-shield-alt me-2 text-info"></i>1 Year Brand Warranty</li>
+        </ul>
+      </div>
+
+      <div class="delivery-card mb-4">
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <i class="fas fa-map-marker-alt text-danger"></i>
+          <input type="text" class="form-control form-control-sm" style="max-width:160px;" placeholder="Enter pincode">
+          <button class="btn btn-sm btn-outline-secondary">Check</button>
+          <span class="text-muted small">Delivery by Tue, Free</span>
+        </div>
+      </div>
+
+      <div class="product-options mb-4">
+        <div class="row g-3 align-items-center">
+          {% if product.colorOptions and product.colorOptions.size > 0 %}
+          <div class="col-sm-6">
+            <div class="option-group m-0">
+              <label class="form-label mb-2">Color:</label>
+              <div class="color-options">
+                {% for color in product.colorOptions %}
+                  <button class="color-option{% if forloop.first %} active{% endif %}" data-color="{{ color.value | downcase }}" {% if color.style %}style="{{ color.style }}"{% endif %} title="{{ color.label }}"></button>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          {% if product.sizes and product.sizes.size > 0 %}
+          <div class="col-sm-6">
+            <div class="option-group m-0">
+              <label class="form-label mb-2">Size:</label>
+              <div class="size-options">
+                {% for size in product.sizes %}
+                  <button class="size-option{% if forloop.first %} active{% endif %}" data-size="{{ size | downcase }}">{{ size }}</button>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="quantity-selector mt-3">
+          <label class="form-label mb-2 d-block">Quantity:</label>
+          <div class="quantity-controls">
+            <button class="quantity-btn" data-action="decrease">-</button>
+            <input type="text" class="quantity-input" value="1">
+            <button class="quantity-btn" data-action="increase">+</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="product-actions mb-4">
+        <div class="cta-bar">
+          <button class="btn btn-add-cart add-to-cart" data-product-id="{{ product.id }}">
+            <i class="fas fa-shopping-cart me-2"></i>Add To Cart
+          </button>
+          <button class="btn btn-buy-now buy-now" data-product-id="{{ product.id }}">
+            Buy Now
+          </button>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4 fk-services-row">
+        <div class="col-6 col-md-4"><div class="fk-service"><i class="fas fa-truck me-2"></i>Free Delivery</div></div>
+        <div class="col-6 col-md-4"><div class="fk-service"><i class="fas fa-hand-holding-usd me-2"></i>Pay on Delivery</div></div>
+        <div class="col-6 col-md-4"><div class="fk-service"><i class="fas fa-shield-alt me-2"></i>Warranty</div></div>
+      </div>
+
+      <div class="stock-status mb-3">
+        {% if product.inStock %}
+          <span class="text-success"><i class="fas fa-check"></i> In Stock</span>
+        {% else %}
+          <span class="text-danger"><i class="fas fa-times"></i> Out of Stock</span>
+        {% endif %}
+      </div>
+
+      <div class="product-description mb-4">
+        <p>{{ product.description | default: product.shortDescription }}</p>
+      </div>
+
+      {% if product.features and product.features.size > 0 %}
+      <div class="product-features">
+        <h6>Key Features:</h6>
+        <ul class="feature-list">
+          {% for feature in product.features %}
+            <li><i class="fas fa-check text-success me-2"></i>{{ feature }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="product-tabs-section py-5 bg-light mt-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">
+        <ul class="nav nav-tabs" id="productTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#tab-description" type="button" role="tab">
+              Description
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="specifications-tab" data-bs-toggle="tab" data-bs-target="#tab-specifications" type="button" role="tab">
+              Specifications
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#tab-reviews" type="button" role="tab">
+              Reviews
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#tab-shipping" type="button" role="tab">
+              Shipping & Returns
+            </button>
+          </li>
+        </ul>
+        <div class="tab-content" id="productTabsContent">
+          <div class="tab-pane fade show active" id="tab-description" role="tabpanel">
+            <h5>Product Description</h5>
+            <p>{{ product.description }}</p>
+          </div>
+          <div class="tab-pane fade" id="tab-specifications" role="tabpanel">
+            <h5>Technical Specifications</h5>
+            {% if specifications and specifications.size > 0 %}
+            <div class="row">
+              {% assign spec_total = specifications.size %}
+              {% assign spec_half = spec_total | divided_by: 2 | ceil %}
+              <div class="col-md-6">
+                <table class="table table-striped">
+                  {% for spec in specifications limit:spec_half %}
+                  <tr>
+                    <td><strong>{{ spec[0] }}</strong></td>
+                    <td>{{ spec[1] }}</td>
+                  </tr>
+                  {% endfor %}
+                </table>
+              </div>
+              <div class="col-md-6">
+                <table class="table table-striped">
+                  {% for spec in specifications offset:spec_half %}
+                  <tr>
+                    <td><strong>{{ spec[0] }}</strong></td>
+                    <td>{{ spec[1] }}</td>
+                  </tr>
+                  {% endfor %}
+                </table>
+              </div>
+            </div>
+            {% else %}
+            <p>No specifications available.</p>
+            {% endif %}
+          </div>
+          <div class="tab-pane fade" id="tab-reviews" role="tabpanel">
+            <h5>Customer Reviews</h5>
+            <p>No reviews yet.</p>
+          </div>
+          <div class="tab-pane fade" id="tab-shipping" role="tabpanel">
+            <h5>Shipping & Returns</h5>
+            <div class="row">
+              <div class="col-md-6">
+                <h6>Shipping Information</h6>
+                <ul>
+                  <li>Free shipping on orders over $50</li>
+                  <li>Standard shipping: 3-5 business days</li>
+                  <li>Express shipping: 1-2 business days</li>
+                  <li>International shipping available</li>
+                </ul>
+              </div>
+              <div class="col-md-6">
+                <h6>Return Policy</h6>
+                <ul>
+                  <li>30-day return policy</li>
+                  <li>Items must be in original condition</li>
+                  <li>Free return shipping</li>
+                  <li>Full refund within 5-7 business days</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop - ShoppingMart</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/cart-sidebar.css">
+    <link rel="stylesheet" href="assets/css/shop.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header id="masthead" class="site-header">
+        <div class="header-wrap">
+            <!-- Top Header Bar -->
+            <div class="top-header">
+                <div class="top-bar">
+                    <div class="container">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="widget-contact">
+                                    <ul class="list-inline mb-0">
+                                        <li class="list-inline-item">
+                                            <i class="fas fa-phone"></i>
+                                            <a href="tel:+1234567890">+1 (234) 567-890</a>
+                                        </li>
+                                        <li class="list-inline-item">
+                                            <i class="fas fa-envelope"></i>
+                                            <a href="mailto:info@shoppingcart.com">info@shoppingcart.com</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="right-top-bar">
+                                    <div class="social-links">
+                                        <a href="#" class="me-2"><i class="fab fa-facebook"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-instagram"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-pinterest"></i></a>
+                                    </div>
+                                    <div class="user-account">
+                                        <a href="login.html" class="account-link me-3">
+                                            <i class="fas fa-user me-1"></i>Login
+                                        </a>
+                                        <a href="register.html" class="account-link">
+                                            <i class="fas fa-user-plus me-1"></i>Register
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Site Branding -->
+            <div id="site-branding">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <div class="site-logo">
+                                <a href="index.html">
+                                    <h1 class="site-title">ShoppingMart</h1>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="search-box">
+                                <form class="search-form">
+                                    <div class="input-group">
+                                        <input type="search" class="form-control" placeholder="Search products...">
+                                        <button class="btn btn-primary" type="submit">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="header-right">
+                                <div class="cart-wishlist">
+                                    <a href="cart.html" class="cart-btn me-3">
+                                        <i class="fas fa-shopping-cart"></i>
+                                        <span class="cart-count">0</span>
+                                        <span class="cart-text">Cart</span>
+                                    </a>
+                                    <a href="wishlist.html" class="wishlist-btn">
+                                        <i class="fas fa-heart"></i>
+                                        <span class="wishlist-count">0</span>
+                                        <span class="wishlist-text">Wishlist</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Navigation -->
+            <nav id="sticky-header" class="main-navigation">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="main-header">
+                                <nav class="navbar navbar-expand-lg">
+                                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                                        <span class="navbar-toggler-icon"></span>
+                                    </button>
+                                    <div class="collapse navbar-collapse" id="navbarNav">
+                                        <ul class="navbar-nav me-auto">
+                                            <li class="nav-item">
+                                                <a class="nav-link active" href="index.html">Home</a>
+                                            </li>
+                                            <li class="nav-item dropdown">
+                                                <a class="nav-link" href="shop.html" role="button">Shop</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="about.html">About</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="contact.html">Contact</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="blog.html">Blog</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <section class="page-header bg-light py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1 class="page-title">Shop</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                            <li class="breadcrumb-item active">Shop</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cart Sidebar -->
+    <div id="cart-sidebar" class="cart-sidebar">
+        <div class="cart-sidebar-header">
+            <h3>Shopping Cart</h3>
+            <button class="cart-close-btn" id="cart-close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-sidebar-content">
+            <div class="cart-items" id="cart-items">
+                <!-- Cart items will be added here dynamically -->
+                <div class="empty-cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <p>Your cart is empty</p>
+                    <a href="shop.html" class="btn btn-primary">Continue Shopping</a>
+                </div>
+            </div>
+        </div>
+        <div class="cart-sidebar-footer">
+            <div class="cart-total">
+                <div class="total-row">
+                    <span>Subtotal:</span>
+                    <span id="cart-subtotal">$0.00</span>
+                </div>
+                <div class="total-row">
+                    <span>Shipping:</span>
+                    <span id="cart-shipping">$0.00</span>
+                </div>
+                <div class="total-row total-final">
+                    <span>Total:</span>
+                    <span id="cart-total">$0.00</span>
+                </div>
+            </div>
+            <div class="cart-actions">
+                <a href="cart.html" class="btn btn-outline-primary">View Cart</a>
+                <a href="checkout.html" class="btn btn-primary">Checkout</a>
+            </div>
+        </div>
+    </div>
+    <!-- End Cart Sidebar -->
+
+    <!-- Cart Sidebar Overlay -->
+    <div class="cart-sidebar-overlay"></div>
+
+    <!-- Main Content -->
+    <div id="content" class="site-content">
+        <div class="container">
+            <div class="row">
+                <!-- Sidebar Filters -->
+                <div class="col-lg-3">
+                    <div class="shop-sidebar">
+                        <!-- Categories Filter -->
+                        <div class="widget mb-4">
+                            <h3 class="widget-title">Categories</h3>
+                            <ul class="category-filter">
+                                <li><a href="shop.html" class="active">All Products</a></li>
+                                <li><a href="shop.html?category=electronics">Electronics</a></li>
+                                <li><a href="shop.html?category=fashion">Fashion</a></li>
+                                <li><a href="shop.html?category=home">Home & Garden</a></li>
+                                <li><a href="shop.html?category=sports">Sports</a></li>
+                                <li><a href="shop.html?category=books">Books</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- Price Filter -->
+                        <div class="widget mb-4">
+                            <h3 class="widget-title">Price Range</h3>
+                            <div class="price-filter">
+                                <div class="price-range-slider">
+                                    <input type="range" class="form-range" min="0" max="1000" value="500" id="priceRange">
+                                    <div class="price-display">
+                                        <span id="minPrice">$0</span> - <span id="maxPrice">$500</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Brand Filter -->
+                        <div class="widget mb-4">
+                            <h3 class="widget-title">Brands</h3>
+                            <div class="brand-filter">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="apple" id="brandApple">
+                                    <label class="form-check-label" for="brandApple">Apple</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="samsung" id="brandSamsung">
+                                    <label class="form-check-label" for="brandSamsung">Samsung</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="sony" id="brandSony">
+                                    <label class="form-check-label" for="brandSony">Sony</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="nike" id="brandNike">
+                                    <label class="form-check-label" for="brandNike">Nike</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rating Filter -->
+                        <div class="widget mb-4">
+                            <h3 class="widget-title">Customer Rating</h3>
+                            <div class="rating-filter">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="5" id="rating5">
+                                    <label class="form-check-label" for="rating5">
+                                        <div class="stars">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                        </div>
+                                        & Up
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="4" id="rating4">
+                                    <label class="form-check-label" for="rating4">
+                                        <div class="stars">
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="fas fa-star"></i>
+                                            <i class="far fa-star"></i>
+                                        </div>
+                                        & Up
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products Grid -->
+                <div class="col-lg-9">
+                    <!-- Shop Controls -->
+                    <div class="shop-controls mb-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="results-info">
+                                    <span class="results-count">Showing 1-12 of 48 products</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="shop-controls-right">
+                                    <div class="view-options">
+                                        <button class="btn btn-outline-secondary active" data-view="grid">
+                                            <i class="fas fa-th"></i>
+                                        </button>
+                                        <button class="btn btn-outline-secondary" data-view="list">
+                                            <i class="fas fa-list"></i>
+                                        </button>
+                                    </div>
+                                    <div class="sort-options">
+                                        <select class="form-select" id="sortBy">
+                                            <option value="default">Default Sorting</option>
+                                            <option value="price-low">Price: Low to High</option>
+                                            <option value="price-high">Price: High to Low</option>
+                                            <option value="name-asc">Name: A to Z</option>
+                                            <option value="name-desc">Name: Z to A</option>
+                                            <option value="rating">Customer Rating</option>
+                                            <option value="newest">Newest First</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Products Grid -->
+                    <div class="products-grid" id="productsGrid">
+                        <div class="row">
+                            <!-- Products will be loaded dynamically from product-data.js -->
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav aria-label="Products pagination" class="mt-5">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">Previous</a>
+                            </li>
+                            <li class="page-item active">
+                                <a class="page-link" href="#">1</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">2</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">3</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">4</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="colophon" class="site-footer">
+        <div class="widget-wrap">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="widget">
+                            <h3 class="widget-title">About Us</h3>
+                            <p>We are a leading e-commerce platform offering the best products at competitive prices. Our mission is to provide exceptional shopping experiences.</p>
+                            <div class="social-links">
+                                <a href="#" class="me-2"><i class="fab fa-facebook"></i></a>
+                                <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
+                                <a href="#" class="me-2"><i class="fab fa-instagram"></i></a>
+                                <a href="#" class="me-2"><i class="fab fa-pinterest"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="widget">
+                            <h3 class="widget-title">Quick Links</h3>
+                            <ul class="list-unstyled">
+                                <li><a href="index.html">Home</a></li>
+                                <li><a href="about.html">About Us</a></li>
+                                <li><a href="shop.html">Products</a></li>
+                                <li><a href="contact.html">Contact</a></li>
+                                <li><a href="blog.html">Blog</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="widget">
+                            <h3 class="widget-title">Customer Service</h3>
+                            <ul class="list-unstyled">
+                                <li><a href="#">Help Center</a></li>
+                                <li><a href="#">Returns</a></li>
+                                <li><a href="#">Shipping Info</a></li>
+                                <li><a href="#">Size Guide</a></li>
+                                <li><a href="#">Track Order</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="widget">
+                            <h3 class="widget-title">Contact Info</h3>
+                            <p><i class="fas fa-map-marker-alt me-2"></i>123 Shopping Street, City, State 12345</p>
+                            <p><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</p>
+                            <p><i class="fas fa-envelope me-2"></i>info@shoppingcart.com</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <p class="copyright">&copy; 2024 ShoppingCart. All rights reserved.</p>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="payment-cards text-end">
+                            <i class="fab fa-cc-visa fa-2x me-2"></i>
+                            <i class="fab fa-cc-mastercard fa-2x me-2"></i>
+                            <i class="fab fa-cc-paypal fa-2x me-2"></i>
+                            <i class="fab fa-cc-amex fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Go to Top Button -->
+    <button type="button" class="go-to-top" id="goToTop">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Custom JS -->
+    <script src="constants/products.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/liquidjs/dist/liquid.browser.umd.js"></script>
+    <script src="js/render.js"></script>
+    <script src="assets/js/dynamic-products.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/cart-sidebar.js"></script>
+    <script src="assets/js/wishlist.js"></script>
+    <script src="assets/js/shop.js"></script>
+</body>
+</html>
+                                        

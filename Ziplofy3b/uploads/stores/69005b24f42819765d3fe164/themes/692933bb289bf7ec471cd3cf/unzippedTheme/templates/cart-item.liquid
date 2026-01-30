@@ -1,0 +1,22 @@
+<div class="cart-item" data-product-id="{{ item.id }}">
+  <div class="d-flex align-items-center">
+    <img src="{{ item.image }}" alt="{{ item.title }}">
+    <div class="ml-10">
+      <div class="cart-title"><a href="product.html?id={{ item.id }}">{{ item.title }}</a></div>
+      <div class="cart-meta">Qty: {{ item.quantity }}</div>
+    </div>
+  </div>
+  <div>{{ item.priceFormatted }}</div>
+  <div>
+    <div class="qty">
+      <button class="btn-qty" data-action="decrease" data-product-id="{{ item.id }}">-</button>
+      <input type="number" value="{{ item.quantity }}" min="1" data-product-id="{{ item.id }}" class="cart-qty-input">
+      <button class="btn-qty" data-action="increase" data-product-id="{{ item.id }}">+</button>
+    </div>
+  </div>
+  <div class="cart-price">{{ item.lineTotalFormatted }}</div>
+  <div>
+    <span class="cart-remove" data-action="remove" data-product-id="{{ item.id }}">×</span>
+  </div>
+</div>
+

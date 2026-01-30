@@ -1,0 +1,41 @@
+<a href="product-details.html?id={{ product.id }}" class="product-card-link">
+    <div class="product-card">
+        <div class="product-image">
+            <img src="{{ product.image }}" alt="{{ product.title }}" onerror="this.src='https://via.placeholder.com/300x300?text=No+Image'">
+            {% if product.badge %}
+            <div class="product-badge {% if product.badge == 'New Arrival' %}new{% elsif product.badge == 'Best Seller' %}{% else %}sale{% endif %}">{{ product.badge }}</div>
+            {% endif %}
+            <div class="product-actions">
+                <button class="action-btn" type="button" aria-label="Toggle wishlist" data-product="{{ product.id }}" data-product-action="wishlist">
+                    <i class="fa fa-heart"></i>
+                </button>
+                <button class="action-btn" type="button" aria-label="Quick view" data-product="{{ product.id }}" data-product-action="quick-view">
+                    <i class="fa fa-eye"></i>
+                </button>
+            </div>
+        </div>
+        <div class="product-info">
+            <h3>{{ product.title }}</h3>
+            <div class="product-rating">
+                <div class="stars">
+                    {% assign rating = product.rating | round %}
+                    {% if rating >= 4.5 %}★★★★★
+                    {% elsif rating >= 3.5 %}★★★★☆
+                    {% elsif rating >= 2.5 %}★★★☆☆
+                    {% elsif rating >= 1.5 %}★★☆☆☆
+                    {% else %}★☆☆☆☆
+                    {% endif %}
+                </div>
+                <span class="rating-count">({{ product.reviewCount }})</span>
+            </div>
+            <div class="product-price">
+                <span class="current-price">₹{{ product.price }}</span>
+                {% if product.originalPrice %}
+                <span class="original-price">₹{{ product.originalPrice }}</span>
+                {% endif %}
+            </div>
+            <button class="add-to-cart-btn" data-product="{{ product.id }}">Add to Cart</button>
+        </div>
+    </div>
+</a>
+

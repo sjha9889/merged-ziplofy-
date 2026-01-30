@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Checkout - ShopHub Premium Ecommerce Store</title>
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <meta content="Checkout, Payment, Address, ShopHub" name="keywords">
+        <meta content="Provide your address and complete your order" name="description">
+        <link href="assets/img/favicon.ico" rel="icon">
+        <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@1,600;1,700;1,800&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+        <link href="assets/lib/animate/animate.min.css" rel="stylesheet">
+        <link href="assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+        <link href="assets/css/style.css" rel="stylesheet">
+        <link href="assets/css/shop.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="wrapper">
+            <div class="mobile-header d-lg-none"><div class="container-fluid"><div class="mh-row"><button class="mh-btn" id="mobileMenuBtn" aria-label="Menu"><span class="mh-bar"></span><span class="mh-bar"></span><span class="mh-bar"></span></button><a href="index.html" class="mh-logo">ShopHub</a><div class="mh-actions"><a href="#" class="mh-action" aria-label="Search"><i class="fas fa-search"></i></a><a href="cart.html" class="mh-action" aria-label="Cart"><i class="fas fa-shopping-cart"></i><span class="mh-badge">0</span></a></div></div></div><div class="mobile-drawer" id="mobileDrawer"><div class="md-inner"><div class="md-search"><input type="text" placeholder="Search for products..." class="md-input"><button class="md-search-btn"><i class="fas fa-search"></i></button></div><nav class="md-nav"><a href="index.html">Home</a><a href="shop.html">Shop</a><a href="category.html?category=All">Categories</a><a href="blog.html">Blog</a><a href="contact.html">Contact</a></nav><div class="md-meta"><a href="#">My Account</a><a href="#">Wishlist</a><a href="#">Help & FAQs</a></div></div></div><div class="mobile-backdrop" id="mobileBackdrop"></div></div>
+            <div class="top-bar"><div class="container-fluid"><div class="row align-items-center"><div class="col-lg-3"><div class="logo"><a href="index.html"><h1>ShopHub</h1></a></div></div><div class="col-lg-6"><div class="search-bar"><div class="input-group"><input type="text" class="form-control" placeholder="Search for products, brands and more..."><div class="input-group-append"><button class="btn btn-search" type="button"><i class="fas fa-search"></i></button></div></div></div></div><div class="col-lg-3"><div class="top-bar-right"><div class="user-actions"><a href="login.html" class="action-item"><i class="fas fa-user"></i><span>Account</span></a><a href="wishlist.html" class="action-item"><i class="fas fa-heart"></i><span>Wishlist</span></a><a href="cart.html" class="action-item cart-item"><i class="fas fa-shopping-cart"></i><span>Cart</span><span class="cart-count">0</span></a></div></div></div></div></div></div>
+            <div class="nav-bar"><div class="container-fluid"><nav class="navbar navbar-expand-lg navbar-light"><button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse"><span class="navbar-toggler-icon"></span></button><div class="collapse navbar-collapse" id="navbarCollapse"><div class="navbar-nav"><div class="nav-item dropdown mega-menu"><a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown"><i class="fas fa-bars"></i> All Categories</a><div class="dropdown-menu mega-dropdown"><div class="row"><div class="col-md-3"><h6>Electronics</h6><a href="category.html?category=Electronics" class="dropdown-item">Smartphones</a><a href="category.html?category=Electronics" class="dropdown-item">Laptops</a><a href="category.html?category=Electronics" class="dropdown-item">Headphones</a><a href="category.html?category=Electronics" class="dropdown-item">Cameras</a></div><div class="col-md-3"><h6>Fashion</h6><a href="category.html?category=Fashion" class="dropdown-item">Men's Clothing</a><a href="category.html?category=Fashion" class="dropdown-item">Women's Clothing</a><a href="category.html?category=Fashion" class="dropdown-item">Shoes</a><a href="category.html?category=Fashion" class="dropdown-item">Accessories</a></div><div class="col-md-3"><h6>Home & Garden</h6><a href="category.html?category=Home%20%26%20Garden" class="dropdown-item">Furniture</a><a href="category.html?category=Home%20%26%20Garden" class="dropdown-item">Kitchen</a><a href="category.html?category=Home%20%26%20Garden" class="dropdown-item">Garden</a><a href="category.html?category=Home%20%26%20Garden" class="dropdown-item">Decor</a></div><div class="col-md-3"><h6>Sports</h6><a href="category.html?category=Sports" class="dropdown-item">Fitness</a><a href="category.html?category=Sports" class="dropdown-item">Outdoor</a><a href="category.html?category=Sports" class="dropdown-item">Sports Gear</a><a href="category.html?category=Sports" class="dropdown-item">Equipment</a></div></div></div></div><a href="index.html" class="nav-item nav-link">Home</a><a href="shop.html" class="nav-item nav-link">Shop</a><a href="category.html?category=Dresses" class="nav-item nav-link">Dresses</a><a href="category.html?category=Shirts" class="nav-item nav-link">Shirts</a><a href="category.html?category=Jeans" class="nav-item nav-link">Jeans</a><a href="category.html?category=Jackets" class="nav-item nav-link">Jackets</a><a href="category.html?category=Shoes" class="nav-item nav-link">Shoes</a></div></div></nav></div></div>
+
+            <div class="page-header"><div class="container"><div class="row"><div class="col-12"><h2>Checkout</h2></div><div class="col-12"><a href="index.html">Home</a><a href="checkout.html">Checkout</a></div></div></div></div>
+
+            <!-- Checkout Start -->
+            <div class="container-fluid">
+                <div class="row px-xl-5">
+                    <div class="col-lg-8">
+                        <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Billing Address</span></h5>
+                        <div class="bg-light p-30 mb-5 card-elevated" style="border-radius:12px;">
+                            <form id="checkout-form" novalidate>
+                                <div class="row">
+                                    <div class="col-md-6 form-group">
+                                        <label for="firstName">First Name <span class="text-danger">*</span></label>
+                                        <input class="form-control" type="text" id="firstName" name="firstName" placeholder="John" required>
+                                        <div class="invalid-feedback">Please enter your first name.</div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label for="lastName">Last Name <span class="text-danger">*</span></label>
+                                        <input class="form-control" type="text" id="lastName" name="lastName" placeholder="Doe" required>
+                                        <div class="invalid-feedback">Please enter your last name.</div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label for="email">E-mail <span class="text-danger">*</span></label>
+                                        <input class="form-control" type="email" id="email" name="email" placeholder="example@email.com" required>
+                                        <div class="invalid-feedback">Please enter a valid email address.</div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label for="mobile">Mobile No <span class="text-danger">*</span></label>
+                                        <input class="form-control" type="tel" id="mobile" name="mobile" placeholder="+123 456 789" required>
+                                        <div class="invalid-feedback">Please enter your mobile number.</div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label for="address1">Address Line 1 <span class="text-danger">*</span></label>
+                                        <input class="form-control" type="text" id="address1" name="address1" placeholder="123 Street" required>
+                                        <div class="invalid-feedback">Please enter your address.</div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label for="address2">Address Line 2</label>
+                                        <input class="form-control" type="text" id="address2" name="address2" placeholder="Apartment, suite, etc. (optional)">
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label for="country">Country <span class="text-danger">*</span></label>
+                                        <select class="custom-select" id="country" name="country" required>
+                                            <option value="">Select Country</option>
+                                            <option value="US" selected>United States</option>
+                                            <option value="IN">India</option>
+                                            <option value="CA">Canada</option>
+                                            <option value="UK">United Kingdom</option>
+                                            <option value="AU">Australia</option>
+                                            <option value="DE">Germany</option>
+                                            <option value="FR">France</option>
+                                            <option value="IT">Italy</option>
+                                            <option value="ES">Spain</option>
+                                            <option value="BR">Brazil</option>
+                                        </select>
+                                        <div class="invalid-feedback">Please select your country.</div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label for="city">City <span class="text-danger">*</span></label>
+                                        <input class="form-control" type="text" id="city" name="city" placeholder="New York" required>
+                                        <div class="invalid-feedback">Please enter your city.</div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label for="state">State/Province <span class="text-danger">*</span></label>
+                                        <input class="form-control" type="text" id="state" name="state" placeholder="New York" required>
+                                        <div class="invalid-feedback">Please enter your state.</div>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label for="zipCode">ZIP/Postal Code <span class="text-danger">*</span></label>
+                                        <input class="form-control" type="text" id="zipCode" name="zipCode" placeholder="12345" required>
+                                        <div class="invalid-feedback">Please enter your ZIP code.</div>
+                                    </div>
+                                    <div class="col-md-12 form-group">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="newaccount">
+                                            <label class="custom-control-label" for="newaccount">Create an account</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="custom-control custom-checkbox">
+                                            <input type="checkbox" class="custom-control-input" id="shipto">
+                                            <label class="custom-control-label" for="shipto" data-toggle="collapse" data-target="#shipping-address">Ship to different address</label>
+                                        </div>
+                                    </div> 
+                                </div>
+                            </form>
+                        </div>
+                        <div class="collapse mb-5" id="shipping-address">
+                            <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Shipping Address</span></h5>
+                            <div class="bg-light p-30 card-elevated" style="border-radius:12px;">
+                                <div class="row">
+                                    <div class="col-md-6 form-group"><label>First Name</label><input class="form-control" type="text" placeholder="John"></div>
+                                    <div class="col-md-6 form-group"><label>Last Name</label><input class="form-control" type="text" placeholder="Doe"></div>
+                                    <div class="col-md-6 form-group"><label>E-mail</label><input class="form-control" type="text" placeholder="example@email.com"></div>
+                                    <div class="col-md-6 form-group"><label>Mobile No</label><input class="form-control" type="text" placeholder="+123 456 789"></div>
+                                    <div class="col-md-6 form-group"><label>Address Line 1</label><input class="form-control" type="text" placeholder="123 Street"></div>
+                                    <div class="col-md-6 form-group"><label>Address Line 2</label><input class="form-control" type="text" placeholder="Apartment, suite, etc."></div>
+                                    <div class="col-md-6 form-group"><label>Country</label><select class="custom-select"><option selected>United States</option><option>India</option><option>Canada</option></select></div>
+                                    <div class="col-md-6 form-group"><label>City</label><input class="form-control" type="text" placeholder="New York"></div>
+                                    <div class="col-md-6 form-group"><label>State</label><input class="form-control" type="text" placeholder="New York"></div>
+                                    <div class="col-md-6 form-group"><label>ZIP Code</label><input class="form-control" type="text" placeholder="123"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Order Total</span></h5>
+                        <div class="bg-light p-30 mb-5 card-elevated" style="border-radius:12px;">
+                            <div class="border-bottom">
+                                <h6 class="mb-3">Products</h6>
+                                <div class="d-flex justify-content-between"><p>Wireless Headphones</p><p>$99.99</p></div>
+                                <div class="d-flex justify-content-between"><p>Smart Watch</p><p>$199.99</p></div>
+                            </div>
+                            <div class="border-bottom pt-3 pb-2">
+                                <div class="d-flex justify-content-between mb-3"><h6>Subtotal</h6><h6>$299.98</h6></div>
+                                <div class="d-flex justify-content-between"><h6 class="font-weight-medium">Shipping</h6><h6 class="font-weight-medium">$0.00</h6></div>
+                            </div>
+                            <div class="pt-2">
+                                <div class="d-flex justify-content-between mt-2"><h5>Total</h5><h5>$299.98</h5></div>
+                            </div>
+                        </div>
+                        <div class="mb-5">
+                            <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Payment</span></h5>
+                            <div class="bg-light p-30 card-elevated" style="border-radius:12px;">
+                                <div class="form-group">
+                                    <div class="custom-control custom-radio"><input type="radio" class="custom-control-input" name="payment" id="creditcard" value="creditcard" checked><label class="custom-control-label" for="creditcard"><i class="fab fa-cc-visa text-primary mr-2"></i><i class="fab fa-cc-mastercard text-primary mr-2"></i><i class="fab fa-cc-amex text-primary mr-2"></i>Credit/Debit Card</label></div>
+                                </div>
+                                <div class="form-group"><div class="custom-control custom-radio"><input type="radio" class="custom-control-input" name="payment" id="paypal" value="paypal"><label class="custom-control-label" for="paypal"><i class="fab fa-paypal text-primary mr-2"></i>PayPal</label></div></div>
+                                <div class="form-group"><div class="custom-control custom-radio"><input type="radio" class="custom-control-input" name="payment" id="upiPay" value="upiPay"><label class="custom-control-label" for="upiPay"><i class="fas fa-university text-primary mr-2"></i>UPI / Net Banking</label></div></div>
+                                <div id="credit-card-details" class="mt-3">
+                                    <div class="form-group"><label for="cardNumber">Card Number <span class="text-danger">*</span></label><input class="form-control" type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19"></div>
+                                    <div class="row"><div class="col-md-6 form-group"><label for="expiryDate">Expiry Date <span class="text-danger">*</span></label><input class="form-control" type="text" id="expiryDate" name="expiryDate" placeholder="MM/YY" maxlength="5"></div><div class="col-md-6 form-group"><label for="cvv">CVV <span class="text-danger">*</span></label><input class="form-control" type="text" id="cvv" name="cvv" placeholder="123" maxlength="4"></div></div>
+                                    <div class="form-group"><label for="cardName">Name on Card <span class="text-danger">*</span></label><input class="form-control" type="text" id="cardName" name="cardName" placeholder="John Doe"></div>
+                                </div>
+                                <div class="form-group mb-3"><div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="saveCard" name="saveCard"><label class="custom-control-label" for="saveCard">Save card for future purchases</label></div></div>
+                                <div class="form-group mb-3"><div class="custom-control custom-checkbox"><input type="checkbox" class="custom-control-input" id="terms" name="terms" required><label class="custom-control-label" for="terms">I agree to the <a href="#" class="text-primary">Terms and Conditions</a> and <a href="#" class="text-primary">Privacy Policy</a> <span class="text-danger">*</span></label><div class="invalid-feedback">You must agree to the terms and conditions.</div></div></div>
+                                <button type="submit" class="btn btn-theme-primary btn-block font-weight-bold py-3" id="place-order-btn"><i class="fas fa-lock mr-2"></i>Place Order Securely</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Checkout End -->
+
+            <div class="footer">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-6 col-lg-4">
+                            <div class="footer-about">
+                                <h2>About ShopHub</h2>
+                                <p>
+                                    ShopHub is your premier online destination for quality products and exceptional shopping experiences. We offer a wide range of products from trusted brands with fast shipping and excellent customer service.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-8">
+                            <div class="row">
+                        <div class="col-md-6 col-lg-4">
+                            <div class="footer-link">
+                                <h2>Product Categories</h2>
+                                <a href="">Electronics</a>
+                                <a href="">Fashion</a>
+                                <a href="">Home & Garden</a>
+                                <a href="">Sports & Fitness</a>
+                                <a href="">Books & Media</a>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-4">
+                            <div class="footer-link">
+                                <h2>Customer Service</h2>
+                                <a href="about.html">About Us</a>
+                                <a href="contact.html">Contact Us</a>
+                                <a href="shipping-info.html">Shipping Info</a>
+                                <a href="returns.html">Returns</a>
+                                <a href="faqs.html">FAQs</a>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-4">
+                            <div class="footer-contact">
+                                <h2>Get In Touch</h2>
+                                <p><i class="fa fa-map-marker-alt"></i>123 Street, New York, USA</p>
+                                <p><i class="fa fa-phone-alt"></i>+012 345 67890</p>
+                                <p><i class="fa fa-envelope"></i>info@example.com</p>
+                                <div class="footer-social">
+                                    <a href=""><i class="fab fa-twitter"></i></a>
+                                    <a href=""><i class="fab fa-facebook-f"></i></a>
+                                    <a href=""><i class="fab fa-youtube"></i></a>
+                                    <a href=""><i class="fab fa-instagram"></i></a>
+                                    <a href=""><i class="fab fa-linkedin-in"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                <div class="container footer-menu">
+                    <div class="f-menu">
+                        <a href="terms-of-use.html">Terms of use</a>
+                        <a href="privacy-policy.html">Privacy policy</a>
+                        <a href="">Cookies</a>
+                        <a href="help.html">Help</a>
+                        <a href="faqs.html">FQAs</a>
+                    </div>
+                </div>
+                <div class="container copyright">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p>&copy; <a href="#">ShopHub</a>, All Right Reserved.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <!-- credit -->
+                            <p>Designed By <a href="#">ziplofy</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a href="#" class="back-to-top"><i class="fa fa-chevron-up"></i></a>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+        <script src="assets/lib/easing/easing.min.js"></script>
+        <script src="assets/lib/owlcarousel/owl.carousel.min.js"></script>
+        <script src="assets/js/main.js"></script>
+        <script src="assets/js/shop.js"></script>
+    </body>
+</html>

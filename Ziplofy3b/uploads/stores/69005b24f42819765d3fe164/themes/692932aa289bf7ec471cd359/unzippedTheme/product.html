@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELECTRO - Cyberpunk E-Commerce Store</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/templatemo-electric-xtra.css" rel="stylesheet">
+    <link href="assets/css/ecommerce.css" rel="stylesheet">
+    <link href="assets/css/additional.css" rel="stylesheet">
+    <link href="assets/css/cart-slider.css" rel="stylesheet">
+    <link href="assets/css/product.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Animated Grid Background -->
+    <div class="grid-bg"></div>
+    <div class="gradient-overlay"></div>
+    <div class="scanlines"></div>
+
+    <!-- Animated Shapes -->
+    <div class="shapes-container">
+        <div class="shape shape-circle"></div>
+        <div class="shape shape-triangle"></div>
+        <div class="shape shape-square"></div>
+    </div>
+
+    <!-- Floating Particles -->
+    <div id="particles"></div>
+
+    <!-- Top Info Bar -->
+    <div class="top-info-bar">
+        <div class="container">
+            <div class="top-info-content">
+                <div class="top-info-left">
+                    <div class="info-items">
+                        <span class="info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>ELECTRO Store, Mumbai, Maharashtra</span>
+                        </span>
+                        <span class="info-item">
+                            <i class="fas fa-phone"></i>
+                            <span>+91 98765 43210</span>
+                        </span>
+                        <span class="info-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>info@electro.com</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="top-info-right">
+                    <div class="social-links">
+                        <a href="#" class="social-link" title="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="social-link" title="Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-link" title="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-link" title="YouTube">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    </div>
+                    <div class="account-links">
+                        <a href="my-account.html" class="account-link">
+                            <i class="fas fa-user"></i>
+                            <span>My Account</span>
+                        </a>
+                        <a href="login.html" class="account-link">
+                            <i class="fas fa-lock"></i>
+                            <span>Login</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-left">
+            <a href="index.html" class="logo-link">
+                        <div class="logo-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="logo-text">
+                            <h1>ELECTRO</h1>
+                            <p>BUILD YOUR DREAM TECH STORE</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="header-center">
+                    <div class="search-container">
+                        <input type="text" placeholder="Search products..." class="search-input">
+                        <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                        </button>
+                </div>
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <div class="action-item">
+                            <a href="wishlist.html" class="action-link">
+                                <i class="fas fa-heart"></i>
+                                <span class="action-count">0</span>
+                            </a>
+                            <span class="action-label">Wishlist</span>
+                        </div>
+                        <div class="action-item">
+                            <a href="#" class="action-link cart-icon" id="cartIcon">
+                    <i class="fas fa-shopping-cart"></i>
+                                <span class="action-count cart-count">0</span>
+                            </a>
+                            <span class="action-label">Cart</span>
+                </div>
+                </div>
+                    
+        </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav id="navbar" class="sticky-nav">
+        <div class="container">
+            <ul class="nav-links" id="navLinks">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link active">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="categories.html" class="nav-link">
+                        <i class="fas fa-th-large"></i>
+                        <span>Sections</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="shop.html" class="nav-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Shop</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-blog"></i>
+                        <span>Blog</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="contact.html" class="nav-link">
+                        <i class="fas fa-envelope"></i>
+                        <span>Contact Us</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+</nav> 
+
+    <!-- Product Detail Section (Rendered via Liquid) -->
+    <div id="productDetailContainer"></div>
+
+    <!-- Electro Cart Slider -->
+    <div class="electro-cart-slider" id="electroCartSlider">
+        <div class="electro-cart-header">
+            <div class="electro-cart-title">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Shopping Cart</span>
+            </div>
+            <button class="electro-close-cart" id="electroCloseCart">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="electro-cart-content" id="electroCartItems">
+            <div class="electro-empty-cart">
+                <i class="fas fa-shopping-cart"></i>
+                <h3>Your cart is empty</h3>
+                <p>Add some products to get started</p>
+        </div>
+            </div>
+        
+        <div class="electro-cart-footer">
+            <div class="electro-cart-total">
+                <span class="electro-total-label">Total:</span>
+                <span class="electro-total-amount">₹<span id="electroCartTotal">0.00</span></span>
+            </div>
+            <div class="electro-cart-actions">
+                <a href="cart.html" class="electro-btn-view-cart">
+                    <i class="fas fa-eye"></i>
+                    View Cart
+                </a>
+                <button class="electro-btn-checkout">
+                    <i class="fas fa-credit-card"></i>
+                    Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-widgets">
+        <div class="container">
+                <div class="footer-grid">
+                    <!-- Shop Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Shop</h4>
+                        <ul class="footer-links">
+                            <li><a href="category.html?cat=smartphones">True Wireless Earbuds</a></li>
+                            <li><a href="category.html?cat=audio">Wireless Headphones</a></li>
+                            <li><a href="category.html?cat=audio">Wired Headphones</a></li>
+                            <li><a href="category.html?cat=audio">Wireless Speakers</a></li>
+                            <li><a href="category.html?cat=audio">Home Audio</a></li>
+                            <li><a href="category.html?cat=accessories">Mobile Accessories</a></li>
+                            <li><a href="category.html?cat=wearables">Smart Watches</a></li>
+                            <li><a href="category.html?cat=gaming">Gaming Series</a></li>
+                </ul>
+            </div>
+            
+                    <!-- Help Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Help</h4>
+                        <ul class="footer-links">
+                            <li><a href="#">Track Your Order</a></li>
+                            <li><a href="#">Warranty & Support</a></li>
+                            <li><a href="#">Return Policy</a></li>
+                            <li><a href="#">Service Centers</a></li>
+                            <li><a href="#">Bulk Orders</a></li>
+                            <li><a href="#">Why Buy Direct</a></li>
+                </ul>
+            </div>
+                
+                    <!-- Company Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Company</h4>
+                        <ul class="footer-links">
+                            <li><a href="about.html">About ELECTRO</a></li>
+                            <li><a href="#">News</a></li>
+                            <li><a href="#">Read Our Blog</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">Security</a></li>
+                            <li><a href="#">Investor Relations</a></li>
+                            <li><a href="#">Social Responsibility</a></li>
+                        </ul>
+                </div>
+                
+                    <!-- Company Info Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Company Info</h4>
+                        <ul class="footer-links">
+                            <li><a href="#">About ELECTRO</a></li>
+                            <li><a href="#">Our Mission</a></li>
+                            <li><a href="#">Leadership Team</a></li>
+                            <li><a href="#">Investor Relations</a></li>
+                            <li><a href="#">Press Releases</a></li>
+                            <li><a href="#">Awards & Recognition</a></li>
+                        </ul>
+                        <div class="social-icons">
+                            <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+            </div>
+        </div>
+                </div>
+                
+                <!-- Newsletter Section - Separate -->
+                <div class="newsletter-section">
+                    <div class="newsletter-content">
+                        <h4 class="newsletter-title">Join the Tribe</h4>
+                        <p class="newsletter-text">Subscribe to email alerts. We promise not to spam your inbox.</p>
+                        <div class="newsletter-form">
+                            <input type="email" placeholder="Enter your email" class="newsletter-input">
+                            <button class="newsletter-btn">Subscribe</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Site Info -->
+        <div class="site-info">
+        <div class="container">
+                <div class="site-info-content">
+                    <div class="site-description">
+                        <p>India's fastest growing tech & electronics brand. The most incredible range of smartphones, laptops, gaming gear, and home audio. From work to adventures, ELECTRO will get you powered!</p>
+            </div>
+                    
+                    <!-- 4 Column Footer Info -->
+                    <div class="footer-info-grid">
+                        <div class="footer-info-column">
+                            <h5>Company Info</h5>
+                            <p>&copy; 2025 ELECTRO.<br>All Rights Reserved.</p>
+        </div>
+                        
+                        <div class="footer-info-column">
+                            <h5>Contact Details</h5>
+                            <p>Manager, ELECTRO<br>
+                            Unit no. 204 & 205, 2nd floor</p>
+        </div>
+                        
+                        <div class="footer-info-column">
+                            <h5>Address</h5>
+                            <p>D-wing & E-wing,<br>
+                            Corporate Avenue,<br>
+                            Andheri Ghatkopar Link Road</p>
+            </div>
+                        
+                        <div class="footer-info-column">
+                            <h5>Location</h5>
+                            <p>Mumbai, Maharashtra<br>
+                            400093, India</p>
+        </div>
+    </div>
+
+        <div class="footer-bottom">
+                        <div class="footer-bottom-content">
+                                <p>&copy; 2025 ELECTRO. All rights reserved.</p>
+                            <div class="footer-links-bottom">
+                                <a href="privacy-policy.html">Privacy Policy</a>
+                                <a href="terms-of-use.html">Terms of Use</a>
+                                <a href="warranty-policy.html">Warranty Policy</a>
+                    </div>
+            </div>
+            </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Load data and scripts -->
+    <script src="constants/products.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/liquidjs@10/dist/liquid.browser.min.js"></script>
+    <script src="js/render.js"></script>
+    <script src="assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - ELECTRO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/templatemo-electric-xtra.css" rel="stylesheet">
+    <link href="assets/css/ecommerce.css" rel="stylesheet">
+    <link href="assets/css/additional.css" rel="stylesheet">
+    <link href="assets/css/cart-slider.css" rel="stylesheet">
+    <link href="assets/css/checkout.css" rel="stylesheet">
+</head>
+<body class="checkout-page">
+    <!-- Animated Grid Background -->
+    <div class="grid-bg"></div>
+    <div class="gradient-overlay"></div>
+    <div class="scanlines"></div>
+
+    <!-- Animated Shapes -->
+    <div class="shapes-container">
+        <div class="shape shape-circle"></div>
+        <div class="shape shape-triangle"></div>
+        <div class="shape shape-square"></div>
+    </div>
+
+    <!-- Floating Particles -->
+    <div id="particles"></div>
+
+    <!-- Top Info Bar -->
+    <div class="top-info-bar">
+        <div class="container">
+            <div class="top-info-content">
+                <div class="top-info-left">
+                    <div class="info-items">
+                        <span class="info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>ELECTRO Store, Mumbai, Maharashtra</span>
+                        </span>
+                        <span class="info-item">
+                            <i class="fas fa-phone"></i>
+                            <span>+91 98765 43210</span>
+                        </span>
+                        <span class="info-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>info@electro.com</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="top-info-right">
+                    <div class="social-links">
+                        <a href="#" class="social-link" title="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="social-link" title="Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-link" title="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-link" title="YouTube">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    </div>
+                    <div class="account-links">
+                        <a href="my-account.html" class="account-link">
+                            <i class="fas fa-user"></i>
+                            <span>My Account</span>
+                        </a>
+                        <a href="login.html" class="account-link">
+                            <i class="fas fa-lock"></i>
+                            <span>Login</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-left">
+                    <a href="index.html" class="logo-link">
+                        <div class="logo-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="logo-text">
+                            <h1>ELECTRO</h1>
+                            <p>BUILD YOUR DREAM TECH STORE</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="header-center">
+                    <div class="search-container">
+                        <input type="text" placeholder="Search products..." class="search-input">
+                        <button class="search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <div class="action-item">
+                            <a href="wishlist.html" class="action-link">
+                                <i class="fas fa-heart"></i>
+                                <span class="action-count">0</span>
+                            </a>
+                            <span class="action-label">Wishlist</span>
+                        </div>
+                        <div class="action-item">
+                            <a href="#" class="action-link cart-icon" id="cartIcon">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span class="action-count cart-count">0</span>
+                            </a>
+                            <span class="action-label">Cart</span>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav id="navbar" class="sticky-nav">
+        <div class="container">
+            <ul class="nav-links" id="navLinks">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="categories.html" class="nav-link">
+                        <i class="fas fa-th-large"></i>
+                        <span>Sections</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="shop.html" class="nav-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Shop</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-blog"></i>
+                        <span>Blog</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="contact.html" class="nav-link">
+                        <i class="fas fa-envelope"></i>
+                        <span>Contact Us</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+
+    <!-- Checkout Container -->
+    <div class="checkout-container">
+        <div class="checkout-header">
+            <h1 class="checkout-title">Secure Checkout</h1>
+            <p class="checkout-subtitle">Complete your purchase with confidence</p>
+            
+            <!-- Progress Steps -->
+            <div class="checkout-progress">
+                <div class="progress-step">
+                    <div class="step-number active">1</div>
+                    <span class="step-label">Information</span>
+                        </div>
+                <div class="step-connector"></div>
+                <div class="progress-step">
+                    <div class="step-number">2</div>
+                    <span class="step-label">Shipping</span>
+                                </div>
+                <div class="step-connector"></div>
+                <div class="progress-step">
+                    <div class="step-number">3</div>
+                    <span class="step-label">Payment</span>
+                </div>
+                <div class="step-connector"></div>
+                <div class="progress-step">
+                    <div class="step-number">4</div>
+                    <span class="step-label">Review</span>
+                                </div>
+                            </div>
+                        </div>
+
+        <!-- Checkout Layout -->
+        <div class="checkout-layout">
+            <!-- Checkout Form -->
+            <div class="checkout-form">
+                <form id="checkoutForm">
+                    <!-- Contact Information -->
+                        <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-user"></i>
+                            Contact Information
+                        </h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="firstName">First Name *</label>
+                                    <input type="text" id="firstName" name="firstName" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="lastName">Last Name *</label>
+                                    <input type="text" id="lastName" name="lastName" required>
+                                </div>
+                            </div>
+                        <div class="form-group">
+                            <label for="email">Email Address *</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone Number *</label>
+                            <input type="tel" id="phone" name="phone" required>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Address -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-shipping-fast"></i>
+                            Shipping Address
+                        </h3>
+                            <div class="form-group">
+                                <label for="address">Street Address *</label>
+                                <input type="text" id="address" name="address" required>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="city">City *</label>
+                                    <input type="text" id="city" name="city" required>
+                                </div>
+                                <div class="form-group">
+                                <label for="state">State *</label>
+                                    <select id="state" name="state" required>
+                                        <option value="">Select State</option>
+                                    <option value="Maharashtra">Maharashtra</option>
+                                    <option value="Delhi">Delhi</option>
+                                    <option value="Karnataka">Karnataka</option>
+                                    <option value="Tamil Nadu">Tamil Nadu</option>
+                                    <option value="Gujarat">Gujarat</option>
+                                    </select>
+                                </div>
+                        </div>
+                        <div class="form-row">
+                                <div class="form-group">
+                                    <label for="zipCode">ZIP Code *</label>
+                                    <input type="text" id="zipCode" name="zipCode" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="country">Country *</label>
+                                <select id="country" name="country" required>
+                                    <option value="India">India</option>
+                                    <option value="USA">USA</option>
+                                    <option value="UK">UK</option>
+                                </select>
+                            </div>
+                            </div>
+                        </div>
+
+                    <!-- Shipping Options -->
+                        <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-truck"></i>
+                            Shipping Method
+                        </h3>
+                            <div class="shipping-options">
+                                <label class="shipping-option">
+                                    <input type="radio" name="shipping" value="standard" checked>
+                                    <div class="option-content">
+                                    <div>
+                                        <div class="option-name">Standard Delivery</div>
+                                        <div class="option-description">5-7 business days</div>
+                                    </div>
+                                    <div class="option-price">₹99</div>
+                                    </div>
+                                </label>
+                                <label class="shipping-option">
+                                    <input type="radio" name="shipping" value="express">
+                                    <div class="option-content">
+                                    <div>
+                                        <div class="option-name">Express Delivery</div>
+                                        <div class="option-description">2-3 business days</div>
+                                    </div>
+                                    <div class="option-price">₹199</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method -->
+                        <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-credit-card"></i>
+                            Payment Method
+                        </h3>
+                            <div class="payment-methods">
+                                <label class="payment-option">
+                                    <input type="radio" name="payment" value="card" checked>
+                                    <div class="option-content">
+                                        <i class="fas fa-credit-card"></i>
+                                    <span>Card</span>
+                                    </div>
+                                </label>
+                                <label class="payment-option">
+                                <input type="radio" name="payment" value="upi">
+                                    <div class="option-content">
+                                    <i class="fab fa-google-pay"></i>
+                                    <span>UPI</span>
+                                    </div>
+                                </label>
+                                <label class="payment-option">
+                                <input type="radio" name="payment" value="netbanking">
+                                    <div class="option-content">
+                                    <i class="fas fa-university"></i>
+                                    <span>Net Banking</span>
+                                    </div>
+                                </label>
+                        </div>
+                            </div>
+                            
+                    <!-- Card Details -->
+                    <div class="form-section" id="cardDetails">
+                        <h3 class="section-title">
+                            <i class="fas fa-lock"></i>
+                            Card Details
+                        </h3>
+                                    <div class="form-group">
+                                        <label for="cardNumber">Card Number *</label>
+                            <input type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="expiryDate">Expiry Date *</label>
+                                <input type="text" id="expiryDate" name="expiryDate" placeholder="MM/YY">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="cvv">CVV *</label>
+                                <input type="text" id="cvv" name="cvv" placeholder="123">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="cardName">Name on Card *</label>
+                                    <input type="text" id="cardName" name="cardName">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="order-summary">
+                        <div class="summary-header">
+                    <h3 class="summary-title">
+                        <i class="fas fa-shopping-bag"></i>
+                        Order Summary
+                    </h3>
+                    <div class="status-badge">Secure</div>
+                        </div>
+                        
+                        <div class="order-items" id="orderItems">
+                    <!-- Cart items will be populated here -->
+                        </div>
+                        
+                        <div class="summary-totals">
+                            <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>₹<span id="subtotal">0</span></span>
+                            </div>
+                            <div class="summary-row">
+                        <span>Shipping</span>
+                        <span>₹<span id="shipping">99</span></span>
+                            </div>
+                            <div class="summary-row">
+                        <span>Tax</span>
+                        <span>₹<span id="tax">0</span></span>
+                            </div>
+                            <div class="summary-row total">
+                        <span>Total</span>
+                        <span>₹<span id="total">0</span></span>
+                            </div>
+                        </div>
+                        
+                        <div class="security-info">
+                            <div class="security-item">
+                                <i class="fas fa-shield-alt"></i>
+                        <span>SSL Encrypted</span>
+                            </div>
+                            <div class="security-item">
+                                <i class="fas fa-lock"></i>
+                        <span>Secure Payment</span>
+                    </div>
+                    <div class="security-item">
+                        <i class="fas fa-undo"></i>
+                        <span>30-Day Returns</span>
+                            </div>
+                        </div>
+                        
+                <div class="checkout-actions">
+                    <button type="button" class="btn-checkout" id="placeOrderBtn">
+                        <i class="fas fa-lock"></i>
+                        Place Order
+                    </button>
+                    <button type="button" class="btn-secondary" onclick="window.location.href='shop.html'">
+                        <i class="fas fa-arrow-left"></i>
+                        Continue Shopping
+                        </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Electro Cart Slider -->
+    <div class="electro-cart-slider" id="electroCartSlider">
+        <div class="electro-cart-header">
+            <div class="electro-cart-title">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Shopping Cart</span>
+            </div>
+            <button class="electro-close-cart" id="electroCloseCart">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="electro-cart-content" id="electroCartItems">
+            <div class="electro-empty-cart">
+                <i class="fas fa-shopping-cart"></i>
+                <h3>Your cart is empty</h3>
+                <p>Add some products to get started</p>
+            </div>
+        </div>
+        
+        <div class="electro-cart-footer">
+            <div class="electro-cart-total">
+                <span class="electro-total-label">Total:</span>
+                <span class="electro-total-amount">₹<span id="electroCartTotal">0.00</span></span>
+            </div>
+            <div class="electro-cart-actions">
+                <a href="cart.html" class="electro-btn-view-cart">
+                    <i class="fas fa-eye"></i>
+                    View Cart
+                </a>
+                <button class="electro-btn-checkout">
+                    <i class="fas fa-credit-card"></i>
+                    Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-widgets">
+            <div class="container">
+                <div class="footer-grid">
+                    <!-- Shop Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Shop</h4>
+                        <ul class="footer-links">
+                            <li><a href="category.html?cat=smartphones">True Wireless Earbuds</a></li>
+                            <li><a href="category.html?cat=audio">Wireless Headphones</a></li>
+                            <li><a href="category.html?cat=audio">Wired Headphones</a></li>
+                            <li><a href="category.html?cat=audio">Wireless Speakers</a></li>
+                            <li><a href="category.html?cat=audio">Home Audio</a></li>
+                            <li><a href="category.html?cat=accessories">Mobile Accessories</a></li>
+                            <li><a href="category.html?cat=wearables">Smart Watches</a></li>
+                            <li><a href="category.html?cat=gaming">Gaming Series</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Help Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Help</h4>
+                        <ul class="footer-links">
+                            <li><a href="#">Track Your Order</a></li>
+                            <li><a href="#">Warranty & Support</a></li>
+                            <li><a href="#">Return Policy</a></li>
+                            <li><a href="#">Service Centers</a></li>
+                            <li><a href="#">Bulk Orders</a></li>
+                            <li><a href="#">Why Buy Direct</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Company Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Company</h4>
+                        <ul class="footer-links">
+                            <li><a href="about.html">About ELECTRIC XTRA</a></li>
+                            <li><a href="#">News</a></li>
+                            <li><a href="#">Read Our Blog</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">Security</a></li>
+                            <li><a href="#">Investor Relations</a></li>
+                            <li><a href="#">Social Responsibility</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Company Info Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Company Info</h4>
+                        <ul class="footer-links">
+                            <li><a href="#">About ELECTRIC XTRA</a></li>
+                            <li><a href="#">Our Mission</a></li>
+                            <li><a href="#">Leadership Team</a></li>
+                            <li><a href="#">Investor Relations</a></li>
+                            <li><a href="#">Press Releases</a></li>
+                            <li><a href="#">Awards & Recognition</a></li>
+                        </ul>
+                        <div class="social-icons">
+                            <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Newsletter Section - Separate -->
+                <div class="newsletter-section">
+                    <div class="newsletter-content">
+                        <h4 class="newsletter-title">Join the Tribe</h4>
+                        <p class="newsletter-text">Subscribe to email alerts. We promise not to spam your inbox.</p>
+                        <div class="newsletter-form">
+                            <input type="email" placeholder="Enter your email" class="newsletter-input">
+                            <button class="newsletter-btn">Subscribe</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Site Info -->
+        <div class="site-info">
+            <div class="container">
+                <div class="site-info-content">
+                    <div class="site-description">
+                        <p>India's fastest growing tech & electronics brand. The most incredible range of smartphones, laptops, gaming gear, and home audio. From work to adventures, ELECTRIC XTRA will get you powered!</p>
+                    </div>
+                    
+                    <!-- 4 Column Footer Info -->
+                    <div class="footer-info-grid">
+                        <div class="footer-info-column">
+                            <h5>Company Info</h5>
+                            <p>&copy; 2025 ELECTRIC XTRA.<br>All Rights Reserved.</p>
+                        </div>
+                        
+                        <div class="footer-info-column">
+                            <h5>Contact Details</h5>
+                            <p>Manager, ELECTRIC XTRA<br>
+                            Unit no. 204 & 205, 2nd floor</p>
+                        </div>
+                        
+                        <div class="footer-info-column">
+                            <h5>Address</h5>
+                            <p>D-wing & E-wing,<br>
+                            Corporate Avenue,<br>
+                            Andheri Ghatkopar Link Road</p>
+                        </div>
+                        
+                        <div class="footer-info-column">
+                            <h5>Location</h5>
+                            <p>Mumbai, Maharashtra<br>
+                            400093, India</p>
+                        </div>
+                    </div>
+                    
+                    <div class="footer-bottom">
+                        <div class="footer-bottom-content">
+                                <p>&copy; 2025 ELECTRIC XTRA. All rights reserved.</p>
+                            <div class="footer-links-bottom">
+                                <a href="privacy-policy.html">Privacy Policy</a>
+                                <a href="terms-of-use.html">Terms of Use</a>
+                                <a href="warranty-policy.html">Warranty Policy</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/app.js"></script>
+    <script src="assets/js/ecommerce.js"></script>
+</body>
+</html>

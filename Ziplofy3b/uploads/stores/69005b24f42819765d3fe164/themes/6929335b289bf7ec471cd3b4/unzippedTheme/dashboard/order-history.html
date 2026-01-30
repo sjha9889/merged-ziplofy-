@@ -1,0 +1,651 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Order History - Shop Top</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta name="description" content="View your complete order history and track your purchases at Shop Top.">
+    <link rel="canonical" href="/order-history.html">
+    <meta property="og:title" content="Order History - Shop Top">
+    <meta property="og:description" content="View your complete order history and track your purchases.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="/order-history.html">
+    <meta property="og:image" content="../assets/img/carousel-1.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Favicon -->
+    <link href="../assets/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">  
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="../assets/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="../assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link rel="preload" href="../assets/css/style.min.css" as="style">
+    <link href="../assets/css/style.min.css" rel="stylesheet">
+
+    <style>
+        .dashboard-sidebar {
+            background: linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%);
+            min-height: 100vh;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        .dashboard-card {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        .sidebar-link {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            padding: 1rem 1.5rem;
+            display: block;
+            border-radius: 10px;
+            margin: 0.5rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .sidebar-link:hover, .sidebar-link.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            transform: translateX(5px);
+        }
+        .order-card {
+            border: 1px solid #e9ecef;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+        .order-card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-processing { background: #cce5ff; color: #004085; }
+        .status-shipped { background: #d4edda; color: #155724; }
+        .status-delivered { background: #d1ecf1; color: #0c5460; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        .filter-btn {
+            border-radius: 25px;
+            padding: 0.5rem 1.5rem;
+            margin: 0.25rem;
+            transition: all 0.3s ease;
+        }
+        .filter-btn.active {
+            background: linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%);
+            color: white;
+            border: none;
+        }
+        .product-item {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 1rem 0;
+        }
+        .product-item:last-child {
+            border-bottom: none;
+        }
+        .tracking-step {
+            position: relative;
+            padding-left: 2rem;
+        }
+        .tracking-step::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0.5rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dee2e6;
+        }
+        .tracking-step.completed::before {
+            background: #28a745;
+        }
+        .tracking-step.active::before {
+            background: #007bff;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Topbar Start -->
+    <div class="container-fluid">
+        <div class="row bg-secondary py-1 px-xl-5">
+            <div class="col-lg-6 d-none d-lg-block">
+                <div class="d-inline-flex align-items-center h-100">
+                    <a class="text-body mr-3" href="about.html">About</a>
+                    <a class="text-body mr-3" href="contact.html">Contact</a>
+                    <a class="text-body mr-3" href="">Help</a>
+                    <a class="text-body mr-3" href="">FAQs</a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center text-lg-right">
+                <div class="d-inline-flex align-items-center">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">My Account</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <button class="dropdown-item" type="button" onclick="window.location.href='login.html'">Sign in</button>
+                            <button class="dropdown-item" type="button" onclick="window.location.href='signup.html'">Sign up</button>
+                        </div>
+                    </div>
+                    <div class="btn-group mx-2">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">USD</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <button class="dropdown-item" type="button">EUR</button>
+                            <button class="dropdown-item" type="button">GBP</button>
+                            <button class="dropdown-item" type="button">CAD</button>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">EN</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <button class="dropdown-item" type="button">FR</button>
+                            <button class="dropdown-item" type="button">AR</button>
+                            <button class="dropdown-item" type="button">RU</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row align-items-center bg-light py-3 px-xl-5 d-none d-lg-flex">
+            <div class="col-lg-4">
+                <a href="index.html" class="text-decoration-none">
+                    <span class="h1 text-uppercase text-primary bg-dark px-2">Shop</span>
+                    <span class="h1 text-uppercase text-dark bg-primary px-2 ml-n1">Top</span>
+                </a>
+            </div>
+            <div class="col-lg-4 col-6 text-left">
+                <form action="/search" role="search">
+                    <div class="input-group">
+                        <label for="site-search" class="sr-only">Search products</label>
+                        <input id="site-search" name="q" type="search" class="form-control" placeholder="Search for products" autocomplete="off">
+                        <div class="input-group-append">
+                            <button class="input-group-text bg-transparent text-primary" type="submit" aria-label="Search">
+                                <i class="fa fa-search" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-4 col-6 text-right">
+                <p class="m-0">Customer Service</p>
+                <h5 class="m-0">+012 345 6789</h5>
+            </div>
+        </div>
+    </div>
+    <!-- Topbar End -->
+
+    <!-- Navbar Start -->
+    <div class="container-fluid bg-dark mb-30 navbar-area">
+        <nav class="navbar navbar-expand-lg bg-dark navbar-dark py-3 py-lg-0 px-0">
+            <a href="index.html" class="text-decoration-none d-block d-lg-none">
+                <span class="h1 text-uppercase text-dark bg-light px-2">Shop</span>
+                <span class="h1 text-uppercase text-light bg-primary px-2 ml-n1">Top</span>
+            </a>
+            <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
+                <div class="navbar-nav mr-auto py-0">
+                    <a href="index.html" class="nav-item nav-link">Home</a>
+                    <a href="shop.html" class="nav-item nav-link">Shop</a>
+                    <div class="nav-item dropdown">
+                        <a href="category.html?cat=dresses" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dresses</a>
+                        <div class="dropdown-menu rounded-0 border-0 m-0">
+                            <a href="category.html?cat=men-dresses" class="dropdown-item">Men's Dresses</a>
+                            <a href="category.html?cat=women-dresses" class="dropdown-item">Women's Dresses</a>
+                            <a href="category.html?cat=baby-dresses" class="dropdown-item">Baby's Dresses</a>
+                        </div>
+                    </div>
+                    <a href="category.html?cat=shirts" class="nav-item nav-link">Shirts</a>
+                    <a href="category.html?cat=jeans" class="nav-item nav-link">Jeans</a>
+                    <a href="category.html?cat=swimwear" class="nav-item nav-link">Swimwear</a>
+                    <a href="category.html?cat=sleepwear" class="nav-item nav-link">Sleepwear</a>
+                    <a href="category.html?cat=sportswear" class="nav-item nav-link">Sportswear</a>
+                    <a href="category.html?cat=jumpsuits" class="nav-item nav-link">Jumpsuits</a>
+                    <a href="category.html?cat=blazers" class="nav-item nav-link">Blazers</a>
+                    <a href="category.html?cat=jackets" class="nav-item nav-link">Jackets</a>
+                    <a href="category.html?cat=shoes" class="nav-item nav-link">Shoes</a>
+                </div>
+                <div class="navbar-nav ml-auto py-0 d-none d-lg-block">
+                    <a href="" class="btn px-0" aria-label="View wishlist">
+                        <i class="fas fa-heart text-primary" aria-hidden="true"></i>
+                        <span class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;">0</span>
+                    </a>
+                    <a href="" class="btn px-0 ml-3" aria-label="View cart">
+                        <i class="fas fa-shopping-cart text-primary" aria-hidden="true"></i>
+                        <span class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;">0</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <!-- Navbar End -->
+
+    <!-- Order History Start -->
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-3 col-md-4">
+                <div class="dashboard-sidebar">
+                    <div class="p-4">
+                        <div class="text-center mb-4">
+                            <img src="../assets/img/user.jpg" alt="User Avatar" class="rounded-circle mb-3" style="width: 80px; height: 80px; object-fit: cover;">
+                            <h5 class="text-white mb-1">John Doe</h5>
+                            <p class="text-white-50 mb-0">Premium Member</p>
+                        </div>
+                        <nav class="nav flex-column">
+                            <a href="dashboard.html" class="sidebar-link">
+                                <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                            </a>
+                            <a href="order-history.html" class="sidebar-link active">
+                                <i class="fas fa-shopping-bag mr-2"></i>Order History
+                            </a>
+                            <a href="profile.html" class="sidebar-link">
+                                <i class="fas fa-user mr-2"></i>Profile Settings
+                            </a>
+                            <a href="wishlist.html" class="sidebar-link">
+                                <i class="fas fa-heart mr-2"></i>Wishlist
+                            </a>
+                            <a href="addresses.html" class="sidebar-link">
+                                <i class="fas fa-map-marker-alt mr-2"></i>Addresses
+                            </a>
+                            <a href="notifications.html" class="sidebar-link">
+                                <i class="fas fa-bell mr-2"></i>Notifications
+                            </a>
+                            <a href="support.html" class="sidebar-link">
+                                <i class="fas fa-headset mr-2"></i>Support
+                            </a>
+                            <a href="login.html" class="sidebar-link">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-9 col-md-8">
+                <div class="p-4">
+                    <!-- Header -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h2 class="mb-2">Order History</h2>
+                            <p class="text-muted">Track and manage all your orders in one place.</p>
+                        </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="dashboard-card p-4 mb-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <h5 class="mb-0">Filter Orders</h5>
+                            </div>
+                            <div class="col-md-6 text-right">
+                                <button class="btn filter-btn active" data-filter="all">All Orders</button>
+                                <button class="btn filter-btn" data-filter="pending">Pending</button>
+                                <button class="btn filter-btn" data-filter="processing">Processing</button>
+                                <button class="btn filter-btn" data-filter="shipped">Shipped</button>
+                                <button class="btn filter-btn" data-filter="delivered">Delivered</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Orders List -->
+                    <div class="row">
+                        <div class="col-12">
+                            <!-- Order 1 -->
+                            <div class="order-card" data-status="delivered">
+                                <div class="row align-items-center">
+                                    <div class="col-md-2">
+                                        <img src="../assets/img/product-1.jpg" alt="Product" class="img-fluid rounded" style="width: 80px; height: 80px; object-fit: cover;">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h6 class="mb-1">Order #ST-001</h6>
+                                        <p class="text-muted mb-1">Elegant Dress - Size M</p>
+                                        <small class="text-muted">Placed on Jan 15, 2025</small>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <span class="status-badge status-delivered">Delivered</span>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <h6 class="mb-0">$299.00</h6>
+                                        <small class="text-muted">1 item</small>
+                                    </div>
+                                    <div class="col-md-2 text-right">
+                                        <button class="btn btn-outline-primary btn-sm mb-2" data-toggle="modal" data-target="#orderModal1">View Details</button>
+                                        <br>
+                                        <button class="btn btn-outline-secondary btn-sm">Reorder</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Order 2 -->
+                            <div class="order-card" data-status="shipped">
+                                <div class="row align-items-center">
+                                    <div class="col-md-2">
+                                        <img src="../assets/img/product-2.jpg" alt="Product" class="img-fluid rounded" style="width: 80px; height: 80px; object-fit: cover;">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h6 class="mb-1">Order #ST-002</h6>
+                                        <p class="text-muted mb-1">Summer Shirt - Size L</p>
+                                        <small class="text-muted">Placed on Jan 12, 2025</small>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <span class="status-badge status-shipped">Shipped</span>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <h6 class="mb-0">$189.00</h6>
+                                        <small class="text-muted">1 item</small>
+                                    </div>
+                                    <div class="col-md-2 text-right">
+                                        <button class="btn btn-outline-primary btn-sm mb-2" data-toggle="modal" data-target="#orderModal2">Track Order</button>
+                                        <br>
+                                        <button class="btn btn-outline-secondary btn-sm">Reorder</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Order 3 -->
+                            <div class="order-card" data-status="processing">
+                                <div class="row align-items-center">
+                                    <div class="col-md-2">
+                                        <img src="../assets/img/product-3.jpg" alt="Product" class="img-fluid rounded" style="width: 80px; height: 80px; object-fit: cover;">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h6 class="mb-1">Order #ST-003</h6>
+                                        <p class="text-muted mb-1">Casual Jeans - Size 32</p>
+                                        <small class="text-muted">Placed on Jan 10, 2025</small>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <span class="status-badge status-processing">Processing</span>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <h6 class="mb-0">$450.00</h6>
+                                        <small class="text-muted">2 items</small>
+                                    </div>
+                                    <div class="col-md-2 text-right">
+                                        <button class="btn btn-outline-primary btn-sm mb-2" data-toggle="modal" data-target="#orderModal3">View Details</button>
+                                        <br>
+                                        <button class="btn btn-outline-secondary btn-sm">Reorder</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Order 4 -->
+                            <div class="order-card" data-status="pending">
+                                <div class="row align-items-center">
+                                    <div class="col-md-2">
+                                        <img src="../assets/img/product-4.jpg" alt="Product" class="img-fluid rounded" style="width: 80px; height: 80px; object-fit: cover;">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h6 class="mb-1">Order #ST-004</h6>
+                                        <p class="text-muted mb-1">Sports Shoes - Size 10</p>
+                                        <small class="text-muted">Placed on Jan 8, 2025</small>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <span class="status-badge status-pending">Pending</span>
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <h6 class="mb-0">$199.00</h6>
+                                        <small class="text-muted">1 item</small>
+                                    </div>
+                                    <div class="col-md-2 text-right">
+                                        <button class="btn btn-outline-primary btn-sm mb-2" data-toggle="modal" data-target="#orderModal4">View Details</button>
+                                        <br>
+                                        <button class="btn btn-outline-danger btn-sm">Cancel Order</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <nav aria-label="Order pagination">
+                                <ul class="pagination justify-content-center">
+                                    <li class="page-item disabled">
+                                        <a class="page-link" href="#" tabindex="-1">Previous</a>
+                                    </li>
+                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="#">Next</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Order History End -->
+
+    <!-- Order Details Modal -->
+    <div class="modal fade" id="orderModal1" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Order Details - #ST-001</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Order Information</h6>
+                            <p><strong>Order Date:</strong> Jan 15, 2025</p>
+                            <p><strong>Status:</strong> <span class="status-badge status-delivered">Delivered</span></p>
+                            <p><strong>Total:</strong> $299.00</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Shipping Address</h6>
+                            <p>John Doe<br>
+                            123 Main Street<br>
+                            New York, NY 10001<br>
+                            United States</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <h6>Order Items</h6>
+                    <div class="product-item">
+                        <div class="row align-items-center">
+                            <div class="col-md-2">
+                                <img src="../assets/img/product-1.jpg" alt="Product" class="img-fluid rounded">
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Elegant Dress</h6>
+                                <p class="text-muted mb-0">Size: M, Color: Black</p>
+                            </div>
+                            <div class="col-md-2 text-center">
+                                <span>1</span>
+                            </div>
+                            <div class="col-md-2 text-right">
+                                <span>$299.00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Tracking Information</h6>
+                            <div class="tracking-step completed">
+                                <strong>Order Placed</strong><br>
+                                <small class="text-muted">Jan 15, 2025 at 2:30 PM</small>
+                            </div>
+                            <div class="tracking-step completed">
+                                <strong>Processing</strong><br>
+                                <small class="text-muted">Jan 16, 2025 at 10:00 AM</small>
+                            </div>
+                            <div class="tracking-step completed">
+                                <strong>Shipped</strong><br>
+                                <small class="text-muted">Jan 17, 2025 at 3:15 PM</small>
+                            </div>
+                            <div class="tracking-step completed">
+                                <strong>Delivered</strong><br>
+                                <small class="text-muted">Jan 19, 2025 at 11:30 AM</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Order Summary</h6>
+                            <div class="d-flex justify-content-between">
+                                <span>Subtotal:</span>
+                                <span>$299.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Shipping:</span>
+                                <span>Free</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Tax:</span>
+                                <span>$0.00</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <strong>Total:</strong>
+                                <strong>$299.00</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Reorder</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Start -->
+    <div class="container-fluid bg-dark text-secondary mt-5 pt-5">
+        <div class="row px-xl-5 pt-5">
+            <div class="col-lg-4 col-md-12 mb-5 pr-3 pr-xl-5">
+                <h5 class="text-secondary text-uppercase mb-4">Get In Touch</h5>
+                <p class="mb-4">No dolore ipsum accusam no lorem. Invidunt sed clita kasd clita et et dolor sed dolor. Rebum tempor no vero est magna amet no</p>
+                <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>123 Street, New York, USA</p>
+                <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>info@example.com</p>
+                <p class="mb-0"><i class="fa fa-phone-alt text-primary mr-3"></i>+012 345 67890</p>
+            </div>
+            <div class="col-lg-8 col-md-12">
+                <div class="row">
+                    <div class="col-md-4 mb-5">
+                        <h5 class="text-secondary text-uppercase mb-4">Quick Shop</h5>
+                        <div class="d-flex flex-column justify-content-start">
+                            <a class="text-secondary mb-2" href="index.html"><i class="fa fa-angle-right mr-2"></i>Home</a>
+                            <a class="text-secondary mb-2" href="shop.html"><i class="fa fa-angle-right mr-2"></i>Our Shop</a>
+                            <a class="text-secondary mb-2" href="product-detail.html"><i class="fa fa-angle-right mr-2"></i>Shop Detail</a>
+                            <a class="text-secondary mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Shopping Cart</a>
+                            <a class="text-secondary mb-2" href="checkout.html"><i class="fa fa-angle-right mr-2"></i>Checkout</a>
+                            <a class="text-secondary" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-5">
+                        <h5 class="text-secondary text-uppercase mb-4">My Account</h5>
+                        <div class="d-flex flex-column justify-content-start">
+                            <a class="text-secondary mb-2" href="about.html"><i class="fa fa-angle-right mr-2"></i>About</a>
+                            <a class="text-secondary mb-2" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
+                            <a class="text-secondary mb-2" href="login.html"><i class="fa fa-angle-right mr-2"></i>My Account</a>
+                            <a class="text-secondary mb-2" href="privacy-policy.html"><i class="fa fa-angle-right mr-2"></i>Privacy Policy</a>
+                            <a class="text-secondary mb-2" href="terms-conditions.html"><i class="fa fa-angle-right mr-2"></i>Terms & Conditions</a>
+                            <a class="text-secondary" href="refund-policy.html"><i class="fa fa-angle-right mr-2"></i>Refund & Return Policy</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-5">
+                        <h5 class="text-secondary text-uppercase mb-4">Newsletter</h5>
+                        <p>Duo stet tempor ipsum sit amet magna ipsum tempor est</p>
+                        <form action="">
+                            <div class="input-group">
+                                <input id="newsletter-email" name="email" type="email" class="form-control" placeholder="Your email address" required>
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-primary" aria-label="Sign up to newsletter">Sign Up</button>
+                                </div>
+                            </div>
+                        </form>
+                        <h6 class="text-secondary text-uppercase mt-4 mb-3">Follow Us</h6>
+                        <div class="d-flex">
+                            <a class="btn btn-primary btn-square mr-2" href="#"><i class="fab fa-twitter"></i></a>
+                            <a class="btn btn-primary btn-square mr-2" href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a class="btn btn-primary btn-square mr-2" href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a class="btn btn-primary btn-square" href="#"><i class="fab fa-instagram"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row border-top mx-xl-5 py-4" style="border-color: rgba(256, 256, 256, .1) !important;">
+            <div class="col-md-6 px-xl-0">
+                <p class="mb-md-0 text-center text-md-left text-secondary">
+                    &copy; 2025 <a class="text-primary" href="/">Shop Top</a>. All Rights Reserved. Designed by ziplofy
+                </p>
+            </div>
+            <div class="col-md-6 px-xl-0 text-center text-md-right">
+                <img class="img-fluid" src="../assets/img/payments.png" alt="">
+            </div>
+        </div>
+    </div>
+    <!-- Footer End -->
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/lib/easing/easing.min.js"></script>
+    <script src="../assets/lib/owlcarousel/owl.carousel.min.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="../assets/js/main.js"></script>
+
+    <script>
+        // Filter functionality
+        $(document).ready(function() {
+            $('.filter-btn').click(function() {
+                $('.filter-btn').removeClass('active');
+                $(this).addClass('active');
+                
+                var filter = $(this).data('filter');
+                
+                if (filter === 'all') {
+                    $('.order-card').show();
+                } else {
+                    $('.order-card').hide();
+                    $('.order-card[data-status="' + filter + '"]').show();
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
+

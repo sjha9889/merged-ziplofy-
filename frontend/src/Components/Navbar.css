@@ -1,0 +1,347 @@
+.navbar {
+  width: 100%;
+  height: 60px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* Left Section */
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navbar-logo {
+  width: 130px;
+  height: 71px;
+}
+
+.navbar-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333333;
+}
+
+/* Search Bar */
+.navbar-search {
+  flex: 1;
+  max-width: 500px;
+  margin: 0 16px;
+  display: flex;
+  align-items: center;
+  background-color: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 4px 8px;
+}
+
+.search-icon {
+  color: #9ca3af;
+  margin-right: 8px;
+}
+
+.search-input {
+  border: none;
+  outline: none;
+  flex: 1;
+  background: transparent;
+  font-size: 14px;
+}
+
+/* Right Section */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Icon tiles */
+.icon-tile {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  color: #374151;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease,
+    border-color 0.2s ease;
+  position: relative;
+  font-size: 16px;
+}
+
+.icon-tile:hover {
+  background-color: #eef2ff;
+  color: #2563eb;
+  border-color: #c7d2fe;
+}
+
+.icon-tile.active {
+  background-color: #e8f5e9;
+  border-color: #a7f3d0;
+  color: #16a34a;
+}
+
+/* More colorful plan tile to match screenshot */
+.plan-tile {
+  background: linear-gradient(180deg, #d1fae5 0%, #bbf7d0 100%);
+  border-color: #34d399;
+  color: #047857;
+}
+
+.plan-tile:hover {
+  background: linear-gradient(180deg, #a7f3d0 0%, #86efac 100%);
+  color: #065f46;
+  border-color: #10b981;
+}
+
+.plan-icon {
+  display: block;
+}
+
+/* Colorful variants for right-side tiles */
+.tile-blue {
+  background: linear-gradient(180deg, #e0f2fe 0%, #bfdbfe 100%);
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+.tile-blue:hover {
+  background: linear-gradient(180deg, #bae6fd 0%, #93c5fd 100%);
+  color: #1e40af;
+  border-color: #60a5fa;
+}
+
+.tile-purple {
+  background: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 100%);
+  border-color: #c4b5fd;
+  color: #6d28d9;
+}
+.tile-purple:hover {
+  background: linear-gradient(180deg, #ddd6fe 0%, #c4b5fd 100%);
+  color: #5b21b6;
+  border-color: #a78bfa;
+}
+
+.tile-yellow {
+  background: linear-gradient(180deg, #fef9c3 0%, #fde68a 100%);
+  border-color: #fcd34d;
+  color: #a16207;
+}
+.tile-yellow:hover {
+  background: linear-gradient(180deg, #fde68a 0%, #fcd34d 100%);
+  color: #854d0e;
+  border-color: #fbbf24;
+}
+
+.tile-indigo {
+  background: linear-gradient(180deg, #e0e7ff 0%, #c7d2fe 100%);
+  border-color: #a5b4fc;
+  color: #4338ca;
+}
+.tile-indigo:hover {
+  background: linear-gradient(180deg, #c7d2fe 0%, #a5b4fc 100%);
+  color: #3730a3;
+  border-color: #818cf8;
+}
+
+.tile-slate {
+  background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
+  border-color: #cbd5e1;
+  color: #334155;
+}
+.tile-slate:hover {
+  background: linear-gradient(180deg, #e2e8f0 0%, #cbd5e1 100%);
+  color: #1f2937;
+  border-color: #94a3b8;
+}
+
+/* Dark theme tweaks for colorful tiles */
+.navbar.dark .tile-blue {
+  color: #93c5fd;
+}
+.navbar.dark .tile-purple {
+  color: #c4b5fd;
+}
+.navbar.dark .tile-yellow {
+  color: #facc15;
+}
+.navbar.dark .tile-indigo {
+  color: #a5b4fc;
+}
+.navbar.dark .tile-slate {
+  color: #e2e8f0;
+}
+
+.theme-toggle {
+  display: inline-flex;
+  gap: 8px;
+}
+
+/* Badges */
+.has-badge {
+  padding: 0;
+}
+.badge-count {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9999px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+  border: 2px solid #ffffff;
+}
+
+/* Timer pill and status */
+.pill {
+  height: 36px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e5e7eb;
+  border-radius: 10px;
+  color: #374151;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  background: #22c55e;
+  border-radius: 9999px;
+  margin-left: 4px;
+  border: 3px solid #e5e7eb;
+}
+
+/* Dark theme */
+.navbar.dark {
+  background-color: #0f172a;
+  border-bottom: 1px solid #1f2937;
+}
+
+.navbar.dark .navbar-title {
+  color: #e5e7eb;
+}
+
+.navbar.dark .navbar-search {
+  background-color: #111827;
+  border-color: #374151;
+}
+
+.navbar.dark .search-icon {
+  color: #9ca3af;
+}
+.navbar.dark .search-input {
+  color: #e5e7eb;
+}
+
+.navbar.dark .icon-tile {
+  background-color: #111827;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
+.navbar.dark .icon-tile:hover {
+  background-color: #1f2937;
+  color: #60a5fa;
+  border-color: #334155;
+}
+
+.navbar.dark .icon-tile.active {
+  background-color: #172554;
+  border-color: #1d4ed8;
+  color: #93c5fd;
+}
+
+.navbar.dark .pill {
+  background-color: #1f2937;
+  color: #e5e7eb;
+}
+
+.navbar.dark .status-dot {
+  border-color: #1f2937;
+}
+.navbar.dark .badge-count {
+  border-color: #0f172a;
+}
+
+/* Dark theme colorful tile overrides for better contrast */
+.navbar.dark .tile-blue {
+  background: linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
+  border-color: #1e3a8a;
+  color: #93c5fd;
+}
+.navbar.dark .tile-blue:hover {
+  background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+  color: #60a5fa;
+  border-color: #1d4ed8;
+}
+
+.navbar.dark .tile-purple {
+  background: linear-gradient(180deg, #171129 0%, #1e1636 100%);
+  border-color: #5b21b6;
+  color: #c4b5fd;
+}
+.navbar.dark .tile-purple:hover {
+  background: linear-gradient(180deg, #1e1636 0%, #24194a 100%);
+  color: #a78bfa;
+  border-color: #6d28d9;
+}
+
+.navbar.dark .tile-yellow {
+  background: linear-gradient(180deg, #1a1507 0%, #211a09 100%);
+  border-color: #a16207;
+  color: #fde68a;
+}
+.navbar.dark .tile-yellow:hover {
+  background: linear-gradient(180deg, #211a09 0%, #2a2210 100%);
+  color: #facc15;
+  border-color: #b45309;
+}
+
+.navbar.dark .tile-indigo {
+  background: linear-gradient(180deg, #121433 0%, #161942 100%);
+  border-color: #3730a3;
+  color: #a5b4fc;
+}
+.navbar.dark .tile-indigo:hover {
+  background: linear-gradient(180deg, #161942 0%, #1a1e54 100%);
+  color: #93c5fd;
+  border-color: #4338ca;
+}
+
+.navbar.dark .tile-slate {
+  background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+  border-color: #374151;
+  color: #e2e8f0;
+}
+.navbar.dark .tile-slate:hover {
+  background: linear-gradient(180deg, #111827 0%, #1f2937 100%);
+  color: #f1f5f9;
+  border-color: #475569;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .navbar-search {
+    display: none; /* hide search on small screens */
+  }
+}

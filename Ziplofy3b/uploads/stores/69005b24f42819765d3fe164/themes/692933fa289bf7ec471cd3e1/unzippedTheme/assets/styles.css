@@ -1,0 +1,17 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: #111; }
+.container { max-width: 1100px; margin: 0 auto; padding: 16px; }
+.site-header, .site-footer { background: #111; color: #fff; }
+.site-header a, .site-footer a { color: #fff; text-decoration: none; }
+.brand { font-weight: 700; }
+.nav a { margin-left: 16px; }
+.hero { padding: 32px 0; }
+.grid { display: grid; gap: 16px; }
+.products { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.product-card { border: 1px solid #eee; border-radius: 8px; padding: 12px; background: #fff; display: flex; flex-direction: column; }
+.product-card .thumb { display: block; border-radius: 6px; overflow: hidden; }
+.product-card img { width: 100%; height: auto; display: block; }
+.price { font-weight: 600; }
+.btn { display: inline-block; background: #111; color: #fff; border: 0; padding: 10px 12px; border-radius: 6px; cursor: pointer; }
+.btn:focus { outline: 2px solid #555; outline-offset: 2px; }
+

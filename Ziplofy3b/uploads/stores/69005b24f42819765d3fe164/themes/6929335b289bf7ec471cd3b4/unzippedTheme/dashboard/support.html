@@ -1,0 +1,646 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Support - Shop Top</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta name="description" content="Get help and support for your Shop Top account and orders.">
+    <link rel="canonical" href="/dashboard/support.html">
+    <meta property="og:title" content="Support - Shop Top">
+    <meta property="og:description" content="Get help and support for your account and orders.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="/dashboard/support.html">
+    <meta property="og:image" content="../assets/img/carousel-1.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Favicon -->
+    <link href="../assets/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">  
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="../assets/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="../assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link rel="preload" href="../assets/css/style.min.css" as="style">
+    <link href="../assets/css/style.min.css" rel="stylesheet">
+
+    <style>
+        .dashboard-sidebar {
+            background: linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%);
+            min-height: 100vh;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        .dashboard-card {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        .sidebar-link {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            padding: 1rem 1.5rem;
+            display: block;
+            border-radius: 10px;
+            margin: 0.5rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .sidebar-link:hover, .sidebar-link.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            transform: translateX(5px);
+        }
+        .support-card {
+            border: 1px solid #e9ecef;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+        .support-card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .support-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .support-icon.primary {
+            background: linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%);
+            color: white;
+        }
+        .support-icon.success {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+        }
+        .support-icon.warning {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            color: white;
+        }
+        .support-icon.info {
+            background: linear-gradient(135deg, #17a2b8 0%, #6f42c1 100%);
+            color: white;
+        }
+        .ticket-card {
+            border-left: 4px solid #0d6efd;
+            transition: all 0.3s ease;
+        }
+        .ticket-card:hover {
+            border-left-color: #6f42c1;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .status-open { background: #d4edda; color: #155724; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-resolved { background: #d1ecf1; color: #0c5460; }
+        .status-closed { background: #f8d7da; color: #721c24; }
+        .priority-high { border-left-color: #dc3545 !important; }
+        .priority-medium { border-left-color: #ffc107 !important; }
+        .priority-low { border-left-color: #28a745 !important; }
+        .faq-item {
+            border-bottom: 1px solid #e9ecef;
+            padding: 1rem 0;
+        }
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+        .contact-form {
+            background: linear-gradient(135deg, rgba(13, 110, 253, 0.05) 0%, rgba(111, 66, 193, 0.05) 100%);
+            border-radius: 15px;
+            padding: 2rem;
+        }
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Topbar Start -->
+    <div class="container-fluid">
+        <div class="row bg-secondary py-1 px-xl-5">
+            <div class="col-lg-6 d-none d-lg-block">
+                <div class="d-inline-flex align-items-center h-100">
+                    <a class="text-body mr-3" href="../about.html">About</a>
+                    <a class="text-body mr-3" href="../contact.html">Contact</a>
+                    <a class="text-body mr-3" href="">Help</a>
+                    <a class="text-body mr-3" href="">FAQs</a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center text-lg-right">
+                <div class="d-inline-flex align-items-center">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">My Account</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <button class="dropdown-item" type="button" onclick="window.location.href='../login.html'">Sign in</button>
+                            <button class="dropdown-item" type="button" onclick="window.location.href='../signup.html'">Sign up</button>
+                        </div>
+                    </div>
+                    <div class="btn-group mx-2">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">USD</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <button class="dropdown-item" type="button">EUR</button>
+                            <button class="dropdown-item" type="button">GBP</button>
+                            <button class="dropdown-item" type="button">CAD</button>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">EN</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <button class="dropdown-item" type="button">FR</button>
+                            <button class="dropdown-item" type="button">AR</button>
+                            <button class="dropdown-item" type="button">RU</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row align-items-center bg-light py-3 px-xl-5 d-none d-lg-flex">
+            <div class="col-lg-4">
+                <a href="../index.html" class="text-decoration-none">
+                    <span class="h1 text-uppercase text-primary bg-dark px-2">Shop</span>
+                    <span class="h1 text-uppercase text-dark bg-primary px-2 ml-n1">Top</span>
+                </a>
+            </div>
+            <div class="col-lg-4 col-6 text-left">
+                <form action="/search" role="search">
+                    <div class="input-group">
+                        <label for="site-search" class="sr-only">Search products</label>
+                        <input id="site-search" name="q" type="search" class="form-control" placeholder="Search for products" autocomplete="off">
+                        <div class="input-group-append">
+                            <button class="input-group-text bg-transparent text-primary" type="submit" aria-label="Search">
+                                <i class="fa fa-search" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-4 col-6 text-right">
+                <p class="m-0">Customer Service</p>
+                <h5 class="m-0">+012 345 6789</h5>
+            </div>
+        </div>
+    </div>
+    <!-- Topbar End -->
+
+    <!-- Navbar Start -->
+    <div class="container-fluid bg-dark mb-30 navbar-area">
+        <nav class="navbar navbar-expand-lg bg-dark navbar-dark py-3 py-lg-0 px-0">
+            <a href="../index.html" class="text-decoration-none d-block d-lg-none">
+                <span class="h1 text-uppercase text-dark bg-light px-2">Shop</span>
+                <span class="h1 text-uppercase text-light bg-primary px-2 ml-n1">Top</span>
+            </a>
+            <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
+                <div class="navbar-nav mr-auto py-0">
+                    <a href="../index.html" class="nav-item nav-link">Home</a>
+                    <a href="../shop.html" class="nav-item nav-link">Shop</a>
+                    <div class="nav-item dropdown">
+                        <a href="../category.html?cat=dresses" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dresses</a>
+                        <div class="dropdown-menu rounded-0 border-0 m-0">
+                            <a href="../category.html?cat=men-dresses" class="dropdown-item">Men's Dresses</a>
+                            <a href="../category.html?cat=women-dresses" class="dropdown-item">Women's Dresses</a>
+                            <a href="../category.html?cat=baby-dresses" class="dropdown-item">Baby's Dresses</a>
+                        </div>
+                    </div>
+                    <a href="../category.html?cat=shirts" class="nav-item nav-link">Shirts</a>
+                    <a href="../category.html?cat=jeans" class="nav-item nav-link">Jeans</a>
+                    <a href="../category.html?cat=swimwear" class="nav-item nav-link">Swimwear</a>
+                    <a href="../category.html?cat=sleepwear" class="nav-item nav-link">Sleepwear</a>
+                    <a href="../category.html?cat=sportswear" class="nav-item nav-link">Sportswear</a>
+                    <a href="../category.html?cat=jumpsuits" class="nav-item nav-link">Jumpsuits</a>
+                    <a href="../category.html?cat=blazers" class="nav-item nav-link">Blazers</a>
+                    <a href="../category.html?cat=jackets" class="nav-item nav-link">Jackets</a>
+                    <a href="../category.html?cat=shoes" class="nav-item nav-link">Shoes</a>
+                </div>
+                <div class="navbar-nav ml-auto py-0 d-none d-lg-block">
+                    <a href="" class="btn px-0" aria-label="View wishlist">
+                        <i class="fas fa-heart text-primary" aria-hidden="true"></i>
+                        <span class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;">0</span>
+                    </a>
+                    <a href="" class="btn px-0 ml-3" aria-label="View cart">
+                        <i class="fas fa-shopping-cart text-primary" aria-hidden="true"></i>
+                        <span class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;">0</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <!-- Navbar End -->
+
+    <!-- Support Start -->
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-3 col-md-4">
+                <div class="dashboard-sidebar">
+                    <div class="p-4">
+                        <div class="text-center mb-4">
+                            <img src="../assets/img/user.jpg" alt="User Avatar" class="rounded-circle mb-3" style="width: 80px; height: 80px; object-fit: cover;">
+                            <h5 class="text-white mb-1">John Doe</h5>
+                            <p class="text-white-50 mb-0">Premium Member</p>
+                        </div>
+                        <nav class="nav flex-column">
+                            <a href="dashboard.html" class="sidebar-link">
+                                <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                            </a>
+                            <a href="order-history.html" class="sidebar-link">
+                                <i class="fas fa-shopping-bag mr-2"></i>Order History
+                            </a>
+                            <a href="profile.html" class="sidebar-link">
+                                <i class="fas fa-user mr-2"></i>Profile Settings
+                            </a>
+                            <a href="wishlist.html" class="sidebar-link">
+                                <i class="fas fa-heart mr-2"></i>Wishlist
+                            </a>
+                            <a href="addresses.html" class="sidebar-link">
+                                <i class="fas fa-map-marker-alt mr-2"></i>Addresses
+                            </a>
+                            <a href="notifications.html" class="sidebar-link">
+                                <i class="fas fa-bell mr-2"></i>Notifications
+                            </a>
+                            <a href="support.html" class="sidebar-link active">
+                                <i class="fas fa-headset mr-2"></i>Support
+                            </a>
+                            <a href="../login.html" class="sidebar-link">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-9 col-md-8">
+                <div class="p-4">
+                    <!-- Header -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h2 class="mb-2">Support Center</h2>
+                            <p class="text-muted">Get help with your account, orders, and more.</p>
+                        </div>
+                    </div>
+
+                    <!-- Support Options -->
+                    <div class="row mb-4">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="support-card text-center">
+                                <div class="support-icon primary mx-auto">
+                                    <i class="fas fa-ticket-alt"></i>
+                                </div>
+                                <h6 class="mb-2">Create Ticket</h6>
+                                <p class="text-muted mb-3">Submit a support request for any issues</p>
+                                <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#createTicketModal">
+                                    Create Ticket
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="support-card text-center">
+                                <div class="support-icon success mx-auto">
+                                    <i class="fas fa-phone"></i>
+                                </div>
+                                <h6 class="mb-2">Call Support</h6>
+                                <p class="text-muted mb-3">Speak directly with our support team</p>
+                                <a href="tel:+0123456789" class="btn btn-success btn-sm">
+                                    Call Now
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="support-card text-center">
+                                <div class="support-icon warning mx-auto">
+                                    <i class="fas fa-comments"></i>
+                                </div>
+                                <h6 class="mb-2">Live Chat</h6>
+                                <p class="text-muted mb-3">Chat with our support team instantly</p>
+                                <button class="btn btn-warning btn-sm">
+                                    Start Chat
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="support-card text-center">
+                                <div class="support-icon info mx-auto">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <h6 class="mb-2">Email Support</h6>
+                                <p class="text-muted mb-3">Send us an email for detailed help</p>
+                                <a href="mailto:support@shoptop.com" class="btn btn-info btn-sm">
+                                    Send Email
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Recent Tickets -->
+                        <div class="col-lg-8 mb-4">
+                            <div class="dashboard-card p-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="mb-0">Recent Support Tickets</h5>
+                                    <button class="btn btn-outline-primary btn-sm" data-toggle="modal" data-target="#createTicketModal">
+                                        <i class="fas fa-plus mr-1"></i>New Ticket
+                                    </button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Ticket ID</th>
+                                                <th>Subject</th>
+                                                <th>Status</th>
+                                                <th>Priority</th>
+                                                <th>Date</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="ticket-card priority-high">
+                                                <td>#ST-001</td>
+                                                <td>Order delivery issue</td>
+                                                <td><span class="status-badge status-open">Open</span></td>
+                                                <td><span class="badge badge-danger">High</span></td>
+                                                <td>Jan 15, 2025</td>
+                                                <td><a href="#" class="btn btn-sm btn-outline-primary">View</a></td>
+                                            </tr>
+                                            <tr class="ticket-card priority-medium">
+                                                <td>#ST-002</td>
+                                                <td>Account password reset</td>
+                                                <td><span class="status-badge status-resolved">Resolved</span></td>
+                                                <td><span class="badge badge-warning">Medium</span></td>
+                                                <td>Jan 12, 2025</td>
+                                                <td><a href="#" class="btn btn-sm btn-outline-primary">View</a></td>
+                                            </tr>
+                                            <tr class="ticket-card priority-low">
+                                                <td>#ST-003</td>
+                                                <td>Product return request</td>
+                                                <td><span class="status-badge status-pending">Pending</span></td>
+                                                <td><span class="badge badge-success">Low</span></td>
+                                                <td>Jan 10, 2025</td>
+                                                <td><a href="#" class="btn btn-sm btn-outline-primary">View</a></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FAQ -->
+                        <div class="col-lg-4 mb-4">
+                            <div class="dashboard-card p-4">
+                                <h5 class="mb-3">Frequently Asked Questions</h5>
+                                <div class="faq-item">
+                                    <h6 class="mb-2">How do I track my order?</h6>
+                                    <p class="text-muted small">You can track your order by going to Order History and clicking on the order number.</p>
+                                </div>
+                                <div class="faq-item">
+                                    <h6 class="mb-2">What is your return policy?</h6>
+                                    <p class="text-muted small">We offer 30-day returns for unused items in original packaging.</p>
+                                </div>
+                                <div class="faq-item">
+                                    <h6 class="mb-2">How can I change my password?</h6>
+                                    <p class="text-muted small">Go to Profile Settings and click on "Change Password" to update your password.</p>
+                                </div>
+                                <div class="faq-item">
+                                    <h6 class="mb-2">Do you offer international shipping?</h6>
+                                    <p class="text-muted small">Yes, we ship to over 50 countries worldwide with tracking included.</p>
+                                </div>
+                                <div class="faq-item">
+                                    <h6 class="mb-2">How do I contact customer service?</h6>
+                                    <p class="text-muted small">You can reach us via phone, email, or live chat. All contact information is available above.</p>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <a href="#" class="btn btn-outline-primary btn-sm">View All FAQs</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Form -->
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="dashboard-card">
+                                <div class="contact-form">
+                                    <h5 class="mb-3">Contact Support</h5>
+                                    <form>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="supportSubject" class="form-label">Subject</label>
+                                                <input type="text" class="form-control" id="supportSubject" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="supportCategory" class="form-label">Category</label>
+                                                <select class="form-control" id="supportCategory" required>
+                                                    <option value="">Select Category</option>
+                                                    <option value="order">Order Issues</option>
+                                                    <option value="account">Account Problems</option>
+                                                    <option value="payment">Payment Issues</option>
+                                                    <option value="shipping">Shipping & Delivery</option>
+                                                    <option value="returns">Returns & Refunds</option>
+                                                    <option value="technical">Technical Support</option>
+                                                    <option value="other">Other</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-12 mb-3">
+                                                <label for="supportMessage" class="form-label">Message</label>
+                                                <textarea class="form-control" id="supportMessage" rows="5" required placeholder="Please describe your issue in detail..."></textarea>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="supportPriority" class="form-label">Priority</label>
+                                                <select class="form-control" id="supportPriority" required>
+                                                    <option value="low">Low</option>
+                                                    <option value="medium" selected>Medium</option>
+                                                    <option value="high">High</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="supportEmail" class="form-label">Email</label>
+                                                <input type="email" class="form-control" id="supportEmail" value="john.doe@example.com" required>
+                                            </div>
+                                            <div class="col-12">
+                                                <button type="submit" class="btn btn-primary">
+                                                    <i class="fas fa-paper-plane mr-2"></i>Submit Support Request
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Support End -->
+
+    <!-- Create Ticket Modal -->
+    <div class="modal fade" id="createTicketModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Support Ticket</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="ticketSubject" class="form-label">Subject</label>
+                                <input type="text" class="form-control" id="ticketSubject" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="ticketCategory" class="form-label">Category</label>
+                                <select class="form-control" id="ticketCategory" required>
+                                    <option value="">Select Category</option>
+                                    <option value="order">Order Issues</option>
+                                    <option value="account">Account Problems</option>
+                                    <option value="payment">Payment Issues</option>
+                                    <option value="shipping">Shipping & Delivery</option>
+                                    <option value="returns">Returns & Refunds</option>
+                                    <option value="technical">Technical Support</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="ticketMessage" class="form-label">Description</label>
+                                <textarea class="form-control" id="ticketMessage" rows="4" required placeholder="Please describe your issue in detail..."></textarea>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="ticketPriority" class="form-label">Priority</label>
+                                <select class="form-control" id="ticketPriority" required>
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="ticketOrder" class="form-label">Related Order (Optional)</label>
+                                <input type="text" class="form-control" id="ticketOrder" placeholder="Order ID">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary">Create Ticket</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Start -->
+    <div class="container-fluid bg-dark text-secondary mt-5 pt-5">
+        <div class="row px-xl-5 pt-5">
+            <div class="col-lg-4 col-md-12 mb-5 pr-3 pr-xl-5">
+                <h5 class="text-secondary text-uppercase mb-4">Get In Touch</h5>
+                <p class="mb-4">No dolore ipsum accusam no lorem. Invidunt sed clita kasd clita et et dolor sed dolor. Rebum tempor no vero est magna amet no</p>
+                <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>123 Street, New York, USA</p>
+                <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>info@example.com</p>
+                <p class="mb-0"><i class="fa fa-phone-alt text-primary mr-3"></i>+012 345 67890</p>
+            </div>
+            <div class="col-lg-8 col-md-12">
+                <div class="row">
+                    <div class="col-md-4 mb-5">
+                        <h5 class="text-secondary text-uppercase mb-4">Quick Shop</h5>
+                        <div class="d-flex flex-column justify-content-start">
+                            <a class="text-secondary mb-2" href="../index.html"><i class="fa fa-angle-right mr-2"></i>Home</a>
+                            <a class="text-secondary mb-2" href="../shop.html"><i class="fa fa-angle-right mr-2"></i>Our Shop</a>
+                            <a class="text-secondary mb-2" href="../product-detail.html"><i class="fa fa-angle-right mr-2"></i>Shop Detail</a>
+                            <a class="text-secondary mb-2" href="../cart.html"><i class="fa fa-angle-right mr-2"></i>Shopping Cart</a>
+                            <a class="text-secondary mb-2" href="../checkout.html"><i class="fa fa-angle-right mr-2"></i>Checkout</a>
+                            <a class="text-secondary" href="../contact.html"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-5">
+                        <h5 class="text-secondary text-uppercase mb-4">My Account</h5>
+                        <div class="d-flex flex-column justify-content-start">
+                            <a class="text-secondary mb-2" href="../about.html"><i class="fa fa-angle-right mr-2"></i>About</a>
+                            <a class="text-secondary mb-2" href="../contact.html"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
+                            <a class="text-secondary mb-2" href="../login.html"><i class="fa fa-angle-right mr-2"></i>My Account</a>
+                            <a class="text-secondary mb-2" href="../privacy-policy.html"><i class="fa fa-angle-right mr-2"></i>Privacy Policy</a>
+                            <a class="text-secondary mb-2" href="../terms-conditions.html"><i class="fa fa-angle-right mr-2"></i>Terms & Conditions</a>
+                            <a class="text-secondary" href="../refund-policy.html"><i class="fa fa-angle-right mr-2"></i>Refund & Return Policy</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-5">
+                        <h5 class="text-secondary text-uppercase mb-4">Newsletter</h5>
+                        <p>Duo stet tempor ipsum sit amet magna ipsum tempor est</p>
+                        <form action="">
+                            <div class="input-group">
+                                <input id="newsletter-email" name="email" type="email" class="form-control" placeholder="Your email address" required>
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-primary" aria-label="Sign up to newsletter">Sign Up</button>
+                                </div>
+                            </div>
+                        </form>
+                        <h6 class="text-secondary text-uppercase mt-4 mb-3">Follow Us</h6>
+                        <div class="d-flex">
+                            <a class="btn btn-primary btn-square mr-2" href="#"><i class="fab fa-twitter"></i></a>
+                            <a class="btn btn-primary btn-square mr-2" href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a class="btn btn-primary btn-square mr-2" href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a class="btn btn-primary btn-square" href="#"><i class="fab fa-instagram"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row border-top mx-xl-5 py-4" style="border-color: rgba(256, 256, 256, .1) !important;">
+            <div class="col-md-6 px-xl-0">
+                <p class="mb-md-0 text-center text-md-left text-secondary">
+                    &copy; 2025 <a class="text-primary" href="/">Shop Top</a>. All Rights Reserved. Designed by ziplofy
+                </p>
+            </div>
+            <div class="col-md-6 px-xl-0 text-center text-md-right">
+                <img class="img-fluid" src="../assets/img/payments.png" alt="">
+            </div>
+        </div>
+    </div>
+    <!-- Footer End -->
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/lib/easing/easing.min.js"></script>
+    <script src="../assets/lib/owlcarousel/owl.carousel.min.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="../assets/js/main.js"></script>
+</body>
+
+</html>
+

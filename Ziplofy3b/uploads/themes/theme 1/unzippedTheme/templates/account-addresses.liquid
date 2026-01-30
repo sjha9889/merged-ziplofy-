@@ -1,0 +1,15 @@
+{% for address in addresses %}
+<div class="address-card" data-address-id="{{ address.id }}">
+  <div class="address-header">
+    <h4>{{ address.title }}</h4>
+    <div class="address-actions">
+      <button class="edit-btn account-edit-address-btn" data-account-address-edit="{{ address.id }}">Edit</button>
+      <button class="delete-btn account-delete-address-btn" data-account-address-delete="{{ address.id }}">Delete</button>
+    </div>
+  </div>
+  <div class="address-content">
+    <p>{{ address.address }}</p>
+    <p>Phone: {{ address.phone }}</p>
+  </div>
+</div>
+{% endfor %}

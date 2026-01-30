@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>FAQs - ShopHub Premium Ecommerce Store</title>
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <meta content="FAQs, Questions, Help, ShopHub" name="keywords">
+        <meta content="Frequently asked questions at ShopHub" name="description">
+        <link href="assets/img/favicon.ico" rel="icon">
+        <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@1,600;1,700;1,800&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+        <link href="assets/lib/animate/animate.min.css" rel="stylesheet">
+        <link href="assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+        <link href="assets/css/style.css" rel="stylesheet">
+        <style>
+            /* FAQs Page Enhanced Styles */
+            .faqs-hero {
+                background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+                color: #fff;
+                padding: 60px 0;
+                text-align: center;
+                margin-bottom: 50px;
+            }
+            .faqs-hero h1 {
+                font-size: 42px;
+                font-weight: 700;
+                margin-bottom: 15px;
+            }
+            .faqs-hero p {
+                font-size: 18px;
+                opacity: 0.9;
+            }
+            .faq-section-title {
+                font-size: 28px;
+                font-weight: 600;
+                color: #212121;
+                margin: 40px 0 25px 0;
+                padding-bottom: 15px;
+                border-bottom: 3px solid #4facfe;
+                display: flex;
+                align-items: center;
+            }
+            .faq-section-title i {
+                margin-right: 15px;
+                color: #4facfe;
+            }
+            .faq-item {
+                background: #fff;
+                border-radius: 10px;
+                padding: 25px;
+                margin-bottom: 20px;
+                box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+                transition: all 0.3s ease;
+                border-left: 4px solid #4facfe;
+            }
+            .faq-item:hover {
+                box-shadow: 0 5px 25px rgba(0,0,0,0.12);
+                transform: translateX(5px);
+            }
+            .faq-item h4 {
+                color: #212121;
+                font-size: 20px;
+                font-weight: 600;
+                margin-bottom: 12px;
+                display: flex;
+                align-items: center;
+            }
+            .faq-item h4 i {
+                color: #4facfe;
+                margin-right: 12px;
+                font-size: 18px;
+            }
+            .faq-item p {
+                color: #666;
+                line-height: 1.8;
+                margin: 0;
+            }
+            .faq-search-box {
+                background: #fff;
+                border-radius: 12px;
+                padding: 30px;
+                margin-bottom: 40px;
+                box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+                text-align: center;
+            }
+            .faq-search-box input {
+                width: 100%;
+                max-width: 600px;
+                padding: 15px 20px;
+                border: 2px solid #e0e0e0;
+                border-radius: 50px;
+                font-size: 16px;
+                transition: all 0.3s ease;
+            }
+            .faq-search-box input:focus {
+                outline: none;
+                border-color: #4facfe;
+                box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+            }
+            @media (max-width: 768px) {
+                .faqs-hero h1 {
+                    font-size: 32px;
+                }
+                .faq-item {
+                    padding: 20px;
+                }
+                .faq-section-title {
+                    font-size: 24px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="wrapper">
+            <div class="mobile-header d-lg-none">
+                <div class="container-fluid">
+                    <div class="mh-row">
+                        <button class="mh-btn" id="mobileMenuBtn" aria-label="Menu">
+                            <span class="mh-bar"></span>
+                            <span class="mh-bar"></span>
+                            <span class="mh-bar"></span>
+                        </button>
+                        <a href="index.html" class="mh-logo">ShopHub</a>
+                        <div class="mh-actions">
+                            <a href="#" class="mh-action" aria-label="Search"><i class="fas fa-search"></i></a>
+                            <a href="cart.html" class="mh-action" aria-label="Cart"><i class="fas fa-shopping-cart"></i><span class="mh-badge">0</span></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="mobile-drawer" id="mobileDrawer">
+                    <div class="md-inner">
+                        <div class="md-search">
+                            <input type="text" placeholder="Search for products..." class="md-input">
+                            <button class="md-search-btn"><i class="fas fa-search"></i></button>
+                        </div>
+                        <nav class="md-nav">
+                            <a href="index.html">Home</a>
+                            <a href="shop.html">Shop</a>
+                            <a href="category.html?category=All">Categories</a>
+                            <a href="blog.html">Blog</a>
+                            <a href="contact.html">Contact</a>
+                        </nav>
+                        <div class="md-meta">
+                            <a href="#">My Account</a>
+                            <a href="#">Wishlist</a>
+                            <a href="#">Help & FAQs</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="mobile-backdrop" id="mobileBackdrop"></div>
+            </div>
+
+            <div class="top-bar">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-lg-3">
+                            <div class="logo">
+                                <a href="index.html">
+                                    <h1>ShopHub</h1>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="search-bar">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Search for products, brands and more...">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-search" type="button"><i class="fas fa-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="top-bar-right">
+                                <div class="user-actions">
+                                    <a href="login.html" class="action-item"><i class="fas fa-user"></i><span>Account</span></a>
+                                    <a href="wishlist.html" class="action-item"><i class="fas fa-heart"></i><span>Wishlist</span></a>
+                                    <a href="cart.html" class="action-item cart-item"><i class="fas fa-shopping-cart"></i><span>Cart</span><span class="cart-count">0</span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-bar">
+                <div class="container-fluid">
+                    <nav class="navbar navbar-expand-lg navbar-light">
+                        <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse" id="navbarCollapse">
+                            <div class="navbar-nav">
+                                <div class="nav-item dropdown mega-menu">
+                                    <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+                                        <i class="fas fa-bars"></i> All Categories
+                                    </a>
+                                    <div class="dropdown-menu mega-dropdown">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <h6>Electronics</h6>
+                                                <a href="category.html?category=Electronics" class="dropdown-item">Smartphones</a>
+                                                <a href="category.html?category=Electronics" class="dropdown-item">Laptops</a>
+                                                <a href="category.html?category=Electronics" class="dropdown-item">Headphones</a>
+                                                <a href="category.html?category=Electronics" class="dropdown-item">Cameras</a>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <h6>Fashion</h6>
+                                                <a href="category.html?category=Fashion" class="dropdown-item">Men's Clothing</a>
+                                                <a href="category.html?category=Fashion" class="dropdown-item">Women's Clothing</a>
+                                                <a href="category.html?category=Fashion" class="dropdown-item">Shoes</a>
+                                                <a href="category.html?category=Fashion" class="dropdown-item">Accessories</a>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <h6>Home & Garden</h6>
+                                                <a href="category.html?category=Home%20%26%20Garden" class="dropdown-item">Furniture</a>
+                                                <a href="category.html?category=Home%20%26%20Garden" class="dropdown-item">Kitchen</a>
+                                                <a href="category.html?category=Home%20%26%20Garden" class="dropdown-item">Garden</a>
+                                                <a href="category.html?category=Home%20%26%20Garden" class="dropdown-item">Decor</a>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <h6>Sports</h6>
+                                                <a href="category.html?category=Sports" class="dropdown-item">Fitness</a>
+                                                <a href="category.html?category=Sports" class="dropdown-item">Outdoor</a>
+                                                <a href="category.html?category=Sports" class="dropdown-item">Sports Gear</a>
+                                                <a href="category.html?category=Sports" class="dropdown-item">Equipment</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a href="index.html" class="nav-item nav-link">Home</a>
+                                <a href="shop.html" class="nav-item nav-link">Shop</a>
+                                <a href="category.html?category=Dresses" class="nav-item nav-link">Dresses</a>
+                                <a href="category.html?category=Shirts" class="nav-item nav-link">Shirts</a>
+                                <a href="category.html?category=Jeans" class="nav-item nav-link">Jeans</a>
+                                <a href="category.html?category=Jackets" class="nav-item nav-link">Jackets</a>
+                                <a href="category.html?category=Shoes" class="nav-item nav-link">Shoes</a>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="page-header">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12">
+                            <h2>Frequently Asked Questions</h2>
+                        </div>
+                        <div class="col-12">
+                            <a href="index.html">Home</a>
+                            <a href="faqs.html">FAQs</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faqs-hero">
+                <div class="container">
+                    <h1><i class="fas fa-question-circle"></i> Frequently Asked Questions</h1>
+                    <p>Find quick answers to common questions about shopping at ShopHub</p>
+                </div>
+            </div>
+
+            <div class="single">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-10 mx-auto">
+                            <div class="faq-search-box">
+                                <input type="text" placeholder="Search for questions..." id="faqSearch">
+                            </div>
+                            
+                            <div class="faq-section">
+                                <h3 class="faq-section-title">
+                                    <i class="fas fa-shopping-cart"></i> Ordering & Payment
+                                </h3>
+                                <div class="faq-item">
+                                    <h4><i class="fas fa-shopping-bag"></i> How do I place an order?</h4>
+                                    <p>Simply browse our products, add items to your cart, and proceed to checkout. You can pay using credit/debit cards, UPI, net banking, or cash on delivery.</p>
+                                </div>
+                                <div class="faq-item">
+                                    <h4><i class="fas fa-credit-card"></i> What payment methods do you accept?</h4>
+                                    <p>We accept all major credit/debit cards, UPI, net banking, digital wallets, and cash on delivery (COD) for eligible orders.</p>
+                                </div>
+                                <div class="faq-item">
+                                    <h4><i class="fas fa-shield-alt"></i> Is my payment information secure?</h4>
+                                    <p>Yes, all payments are processed through secure, encrypted payment gateways. We never store your complete payment details.</p>
+                                </div>
+                                <div class="faq-item">
+                                    <h4><i class="fas fa-receipt"></i> Will I receive an invoice?</h4>
+                                    <p>Yes, you'll receive a detailed invoice via email after your order is confirmed. You can also download it from your account.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-section">
+                                <h3 class="faq-section-title">
+                                    <i class="fas fa-truck"></i> Shipping & Delivery
+                                </h3>
+                                <div class="faq-item">
+                                    <h4><i class="fas fa-clock"></i> How long does shipping take?</h4>
+                                    <p>Standard shipping takes 5-7 business days. Express shipping (2-3 days) and same-day delivery options are also available in select areas.</p>
+                                </div>
+                                <div class="faq-item">
+                                    <h4><i class="fas fa-globe"></i> Do you ship internationally?</h4>
+                                    <p>Currently, we ship to all major cities in India. International shipping is available for select products. Please contact us for more details.</p>
+                                </div>
+                                <div class="faq-item">
+                                    <h4><i class="fas fa-map-marked-alt"></i> How can I track my order?</h4>
+                                    <p>Once your order is shipped, you'll receive a tracking number via email and SMS. You can track your order in real-time through our website or mobile app.</p>
+                                </div>
+                                <div class="faq-item">
+                                    <h4><i class="fas fa-shipping-fast"></i> What are the shipping charges?</h4>
+                                    <p>Standard shipping is free on orders above ₹500. Express shipping costs ₹99, and same-day delivery costs ₹199 in select cities.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-section">
+                                <h3 class="faq-section-title">
+                                    <i class="fas fa-undo"></i> Returns & Refunds
+                                </h3>
+                                <div class="faq-item">
+                                    <h4><i class="fas fa-undo-alt"></i> What is your return policy?</h4>
+                                    <p>You can return most items within 7 days of delivery. Products must be unused, in original packaging with tags attached. Free returns available for orders above ₹500.</p>
+                                </div>
+                                <div class="faq-item">
+                                    <h4><i class="fas fa-money-bill-wave"></i> How long does it take to process a refund?</h4>
+                                    <p>Refunds are processed within 5-7 business days after we receive and inspect the returned item. The amount will be credited to your original payment method.</p>
+                                </div>
+                                <div class="faq-item">
+                                    <h4><i class="fas fa-exchange-alt"></i> Can I exchange a product?</h4>
+                                    <p>Yes, we offer exchanges for size, color, or style within 7 days of delivery. Exchanges are subject to product availability.</p>
+                                </div>
+                            </div>
+
+                            <div class="faq-section">
+                                <h3 class="faq-section-title">
+                                    <i class="fas fa-user"></i> Account & Support
+                                </h3>
+                                <div class="faq-item">
+                                    <h4><i class="fas fa-user-plus"></i> How do I create an account?</h4>
+                                    <p>Click on "Account" in the top menu, then select "Register" to create a new account. You can also sign up during checkout.</p>
+                                </div>
+                                <div class="faq-item">
+                                    <h4><i class="fas fa-key"></i> I forgot my password. What should I do?</h4>
+                                    <p>Click on "Forgot Password" on the login page and enter your email. You'll receive instructions to reset your password.</p>
+                                </div>
+                                <div class="faq-item">
+                                    <h4><i class="fas fa-headset"></i> How can I contact customer support?</h4>
+                                    <p>You can reach us via email at info@example.com, call us at +012 345 67890, or use the contact form on our Contact Us page. We're available 24/7 to assist you.</p>
+                                </div>
+                                <div class="faq-item">
+                                    <h4><i class="fas fa-heart"></i> How do I add items to my wishlist?</h4>
+                                    <p>Simply click the heart icon on any product page or product card to add it to your wishlist. You can view all wishlist items from the "Wishlist" link in the top menu.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <script>
+            // Simple FAQ search functionality
+            document.getElementById('faqSearch').addEventListener('input', function(e) {
+                var searchTerm = e.target.value.toLowerCase();
+                var faqItems = document.querySelectorAll('.faq-item');
+                faqItems.forEach(function(item) {
+                    var text = item.textContent.toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+            </script>
+
+            <div class="footer">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-6 col-lg-4">
+                            <div class="footer-about">
+                                <h2>About ShopHub</h2>
+                                <p>ShopHub is your premier online destination for quality products and exceptional shopping experiences. We offer a wide range of products from trusted brands with fast shipping and excellent customer service.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-8">
+                            <div class="row">
+                                <div class="col-6 col-md-6 col-lg-4">
+                                    <div class="footer-link">
+                                        <h2>Product Categories</h2>
+                                        <a href="">Electronics</a>
+                                        <a href="">Fashion</a>
+                                        <a href="">Home & Garden</a>
+                                        <a href="">Sports & Fitness</a>
+                                        <a href="">Books & Media</a>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6 col-lg-4">
+                                    <div class="footer-link">
+                                        <h2>Customer Service</h2>
+                                        <a href="about.html">About Us</a>
+                                        <a href="contact.html">Contact Us</a>
+                                        <a href="shipping-info.html">Shipping Info</a>
+                                        <a href="returns.html">Returns</a>
+                                        <a href="faqs.html">FAQs</a>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <div class="footer-contact">
+                                        <h2>Get In Touch</h2>
+                                        <p><i class="fa fa-map-marker-alt"></i>123 Street, New York, USA</p>
+                                        <p><i class="fa fa-phone-alt"></i>+012 345 67890</p>
+                                        <p><i class="fa fa-envelope"></i>info@example.com</p>
+                                        <div class="footer-social">
+                                            <a href=""><i class="fab fa-twitter"></i></a>
+                                            <a href=""><i class="fab fa-facebook-f"></i></a>
+                                            <a href=""><i class="fab fa-youtube"></i></a>
+                                            <a href=""><i class="fab fa-instagram"></i></a>
+                                            <a href=""><i class="fab fa-linkedin-in"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="container footer-menu">
+                    <div class="f-menu">
+                        <a href="terms-of-use.html">Terms of use</a>
+                        <a href="privacy-policy.html">Privacy policy</a>
+                        <a href="">Cookies</a>
+                        <a href="help.html">Help</a>
+                        <a href="faqs.html">FQAs</a>
+                    </div>
+                </div>
+                <div class="container copyright">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p>&copy; <a href="#">ShopHub</a>, All Right Reserved.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p>Designed By <a href="#">ziplofy</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <a href="#" class="back-to-top"><i class="fa fa-chevron-up"></i></a>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+        <script src="assets/lib/easing/easing.min.js"></script>
+        <script src="assets/lib/owlcarousel/owl.carousel.min.js"></script>
+        <script src="assets/js/main.js"></script>
+        <script src="assets/js/shop.js"></script>
+        <script>
+        (function(){
+            var btn = document.getElementById('mobileMenuBtn');
+            var drawer = document.getElementById('mobileDrawer');
+            var backdrop = document.getElementById('mobileBackdrop');
+            if(btn && drawer && backdrop && !btn.__inlineBound){
+                btn.addEventListener('click', function(e){ e.preventDefault(); drawer.classList.add('open'); backdrop.classList.add('show'); });
+                backdrop.addEventListener('click', function(){ drawer.classList.remove('open'); backdrop.classList.remove('show'); });
+                btn.__inlineBound = true;
+            }
+        })();
+        </script>
+    </body>
+</html>
+

@@ -1,0 +1,38 @@
+/* Shared content styles for Help/Track/Returns pages */
+.page-wrapper{background:linear-gradient(135deg,#0a0a0a 0%,#1a1a2e 100%)}
+.page-hero{padding:50px 0;background:radial-gradient(1200px 400px at 50% -10%,rgba(224,163,255,.25),transparent),radial-gradient(900px 300px at 80% 0,rgba(0,255,255,.15),transparent)}
+.page-hero .container{max-width:1200px;margin:0 auto;padding:0 20px}
+.page-title{font-size:2rem;font-weight:900;margin:0;background:linear-gradient(135deg,#00ffff,#e0a3ff,#ff69b4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.page-sub{color:#cfd6dd;margin:8px 0 0}
+
+.page-content{padding:30px 0}
+.page-container{max-width:1200px;margin:0 auto;padding:0 20px;display:grid;grid-template-columns:1fr 360px;gap:24px}
+.page-main,.page-aside{display:grid;gap:16px}
+.card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:18px;backdrop-filter:blur(10px)}
+.card h2{margin:0 0 10px;color:#fff;font-size:1.2rem}
+.card p,.card li,.card span{color:#cfd6dd}
+
+.form-grid{display:grid;gap:12px}
+.input{height:46px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;padding:0 12px}
+.btn-gradient{height:46px;border:none;border-radius:12px;background:linear-gradient(135deg,#e0a3ff,#ff69b4);color:#fff;font-weight:900;cursor:pointer}
+.list{list-style:disc;padding-left:20px}
+
+@media(max-width:1000px){.page-container{grid-template-columns:1fr}}
+
+/* Mobile styles for page-hero to prevent hiding behind fixed header */
+@media(max-width:768px){
+  .page-hero{
+    margin-top:90px;
+    padding-top:30px;
+    padding-bottom:30px
+  }
+}
+
+@media(max-width:480px){
+  .page-hero{
+    margin-top:80px;
+    padding-top:25px;
+    padding-bottom:25px
+  }
+}
+

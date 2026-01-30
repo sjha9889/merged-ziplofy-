@@ -1,0 +1,320 @@
+import React, { useCallback, useState } from "react";
+import { ChevronDownIcon, FunnelIcon, Squares2X2Icon } from "@heroicons/react/24/outline";
+import GridBackgroundWrapper from "../components/GridBackgroundWrapper";
+
+const MarketingAttributionPage: React.FC = () => {
+  const [isChannelsMenuOpen, setIsChannelsMenuOpen] = useState(false);
+  const [isGranularityMenuOpen, setIsGranularityMenuOpen] = useState(false);
+  const [isAttributionMenuOpen, setIsAttributionMenuOpen] = useState(false);
+  const [isMetricsMenuOpen, setIsMetricsMenuOpen] = useState(false);
+
+  const [selectedChannels, setSelectedChannels] = useState<string>('Channels');
+  const [selectedGranularity, setSelectedGranularity] = useState<string>('Daily');
+  const [selectedAttribution, setSelectedAttribution] = useState<string>('Last non-direct click');
+  const [selectedMetric, setSelectedMetric] = useState<string>('Sessions by top 5 channels over time');
+
+  const handleChannelsClick = useCallback(() => {
+    setIsChannelsMenuOpen((prev) => !prev);
+  }, []);
+
+  const handleChannelsClose = useCallback(() => {
+    setIsChannelsMenuOpen(false);
+  }, []);
+
+  const handleGranularityClick = useCallback(() => {
+    setIsGranularityMenuOpen((prev) => !prev);
+  }, []);
+
+  const handleGranularityClose = useCallback(() => {
+    setIsGranularityMenuOpen(false);
+  }, []);
+
+  const handleAttributionClick = useCallback(() => {
+    setIsAttributionMenuOpen((prev) => !prev);
+  }, []);
+
+  const handleAttributionClose = useCallback(() => {
+    setIsAttributionMenuOpen(false);
+  }, []);
+
+  const handleMetricsClick = useCallback(() => {
+    setIsMetricsMenuOpen((prev) => !prev);
+  }, []);
+
+  const handleMetricsClose = useCallback(() => {
+    setIsMetricsMenuOpen(false);
+  }, []);
+
+  const handleChannelsSelect = useCallback((value: string) => {
+    setSelectedChannels(value);
+    setIsChannelsMenuOpen(false);
+  }, []);
+
+  const handleGranularitySelect = useCallback((value: string) => {
+    setSelectedGranularity(value);
+    setIsGranularityMenuOpen(false);
+  }, []);
+
+  const handleAttributionSelect = useCallback((value: string) => {
+    setSelectedAttribution(value);
+    setIsAttributionMenuOpen(false);
+  }, []);
+
+  const handleMetricSelect = useCallback((value: string) => {
+    setSelectedMetric(value);
+    setIsMetricsMenuOpen(false);
+  }, []);
+
+  const channelsOptions = ['Channels', 'Campaign activities'];
+  const granularityOptions = ['Daily', 'Hourly', 'Weekly'];
+  const attributionOptions = ['Last non-direct click', 'Last click', 'First click', 'Any click', 'Linear'];
+  const metricOptions = [
+    'Sessions by top 5 channels over time',
+    'Sales by top 5 channels over time',
+    'Orders by top 5 channels over time',
+    'AOV by top 5 channels over time',
+    'Orders from new customers by top 5 channels over time',
+    'Orders from returning customers by top 5 channels over time'
+  ];
+
+  return (
+    <GridBackgroundWrapper>
+      <div className="min-h-screen">
+        {/* Header */}
+        <div className="border-b border-gray-200 px-4 py-3">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between mb-3">
+              <h1 className="text-xl font-medium text-gray-900">Attribution</h1>
+            </div>
+
+            {/* Controls */}
+            <div className="flex gap-2 items-center flex-wrap">
+              <div className="relative">
+                <button
+                  className="flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+                  onClick={handleChannelsClick}
+                >
+                  {selectedChannels}
+                  <ChevronDownIcon className="w-3.5 h-3.5" />
+                </button>
+
+                {/* Channels menu */}
+                {isChannelsMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={handleChannelsClose}
+                    />
+                    <div className="absolute top-full left-0 mt-1 w-[220px] bg-white border border-gray-200 shadow-lg z-20">
+                      <div className="px-3 py-2 border-b border-gray-200">
+                        <p className="text-sm font-medium text-gray-900">Channels</p>
+                      </div>
+                      {channelsOptions.map((opt) => (
+                        <button
+                          key={opt}
+                          onClick={() => handleChannelsSelect(opt)}
+                          className={`w-full text-left px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${
+                            selectedChannels === opt
+                              ? 'bg-gray-100 text-gray-900'
+                              : 'text-gray-700'
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <button className="px-3 py-1.5 bg-gray-900 text-white rounded hover:bg-gray-800 transition-colors text-sm font-medium">
+                Last 30 days
+              </button>
+
+              <div className="relative">
+                <button
+                  className="flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+                  onClick={handleGranularityClick}
+                >
+                  {selectedGranularity}
+                  <ChevronDownIcon className="w-3.5 h-3.5" />
+                </button>
+
+                {/* Granularity menu */}
+                {isGranularityMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={handleGranularityClose}
+                    />
+                    <div className="absolute top-full left-0 mt-1 w-[220px] bg-white border border-gray-200 shadow-lg z-20">
+                      {granularityOptions.map((opt) => (
+                        <button
+                          key={opt}
+                          onClick={() => handleGranularitySelect(opt)}
+                          className={`w-full text-left px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${
+                            selectedGranularity === opt
+                              ? 'bg-gray-100 text-gray-900'
+                              : 'text-gray-700'
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              <button className="px-3 py-1.5 bg-white text-gray-700 border border-gray-200 rounded hover:bg-gray-50 transition-colors text-sm font-medium">
+                Print
+              </button>
+              <button className="px-3 py-1.5 bg-white text-gray-700 border border-gray-200 rounded hover:bg-gray-50 transition-colors text-sm font-medium">
+                Export
+              </button>
+
+              <div className="relative">
+                <button
+                  className="flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+                  onClick={handleAttributionClick}
+                >
+                  {selectedAttribution}
+                  <ChevronDownIcon className="w-3.5 h-3.5" />
+                </button>
+
+                {/* Attribution model menu */}
+                {isAttributionMenuOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={handleAttributionClose}
+                    />
+                    <div className="absolute top-full left-0 mt-1 w-[260px] bg-white border border-gray-200 shadow-lg z-20">
+                      <div className="px-3 py-2 border-b border-gray-200">
+                        <p className="text-sm font-medium text-gray-900">Attribution model</p>
+                      </div>
+                      {attributionOptions.map((opt) => (
+                        <button
+                          key={opt}
+                          onClick={() => handleAttributionSelect(opt)}
+                          className={`w-full text-left px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${
+                            selectedAttribution === opt
+                              ? 'bg-gray-100 text-gray-900'
+                              : 'text-gray-700'
+                          }`}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                      <div className="px-3 py-2 border-t border-gray-200">
+                        <p className="text-xs text-gray-600">
+                          A 30-day attribution window applies.{' '}
+                          <button className="text-gray-700 hover:text-gray-900 underline">
+                            Learn more
+                          </button>
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="max-w-7xl mx-auto py-6 px-4">
+          <div className="flex flex-col gap-4">
+
+            {/* Metrics segment */}
+            <div className="p-4 border border-gray-200 bg-white">
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center">
+                  <div className="relative">
+                    <button
+                      className="flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+                      onClick={handleMetricsClick}
+                    >
+                      {selectedMetric}
+                      <ChevronDownIcon className="w-3.5 h-3.5" />
+                    </button>
+
+                    {/* Metrics menu */}
+                    {isMetricsMenuOpen && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-10"
+                          onClick={handleMetricsClose}
+                        />
+                        <div className="absolute top-full left-0 mt-1 w-[400px] bg-white border border-gray-200 shadow-lg z-20">
+                          {metricOptions.map((opt) => (
+                            <button
+                              key={opt}
+                              onClick={() => handleMetricSelect(opt)}
+                              className={`w-full text-left px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${
+                                selectedMetric === opt
+                                  ? 'bg-gray-100 text-gray-900'
+                                  : 'text-gray-700'
+                              }`}
+                            >
+                              {opt}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+                
+                <p className="text-sm text-gray-600">
+                  No data found for the date range selected. Please select a different period.
+                </p>
+              </div>
+            </div>
+
+            {/* Additional empty cards to mirror UI structure */}
+            <div className="border border-gray-200 bg-white">
+              <div className="flex items-center justify-between px-2 py-2">
+                <button className="p-1 text-gray-600 hover:bg-gray-100 rounded transition-colors">
+                  <FunnelIcon className="w-4 h-4" />
+                </button>
+                <button className="p-1 text-gray-600 hover:bg-gray-100 rounded transition-colors">
+                  <Squares2X2Icon className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="px-4 pb-4">
+                <p className="text-center mt-8 mb-1.5 text-sm font-medium text-gray-900">
+                  No data found for the date range selected
+                </p>
+                <p className="text-center text-sm text-gray-600">
+                  Please select a different period
+                </p>
+              </div>
+            </div>
+
+            <div className="border border-gray-200 bg-white">
+              <div className="flex items-center justify-between px-2 py-2">
+                <button className="p-1 text-gray-600 hover:bg-gray-100 rounded transition-colors">
+                  <FunnelIcon className="w-4 h-4" />
+                </button>
+                <button className="p-1 text-gray-600 hover:bg-gray-100 rounded transition-colors">
+                  <Squares2X2Icon className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="px-4 pb-4">
+                <p className="text-center mt-8 mb-1.5 text-sm font-medium text-gray-900">
+                  No data found for the date range selected
+                </p>
+                <p className="text-center text-sm text-gray-600">
+                  Please select a different period
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </GridBackgroundWrapper>
+  );
+};
+
+export default MarketingAttributionPage;

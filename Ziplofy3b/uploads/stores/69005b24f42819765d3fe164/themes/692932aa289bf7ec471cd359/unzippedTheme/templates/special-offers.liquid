@@ -1,0 +1,43 @@
+<!-- Special Offers Section -->
+<section class="special-offers">
+    <div class="container">
+        <div class="offers-header">
+            <div class="offers-tabs">
+                {% for tab in offer_tabs %}
+                <button class="tab-btn {% if forloop.first %}active{% endif %}" data-tab="{{ tab.key }}">{{ tab.label }}</button>
+                {% endfor %}
+            </div>
+            <div class="offers-controls">
+                <button class="offers-prev" id="offersPrev">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="offers-next" id="offersNext">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="offers-carousel" id="offersCarousel">
+            <div class="offers-slider" id="offersSlider">
+                {% for offer in special_offers %}
+                <div class="offer-card" data-product-id="{{ offer.productId }}">
+                    <div class="offer-image">
+                        <img src="{{ offer.image }}" alt="{{ offer.title }}">
+                        <div class="discount-badge">-{{ offer.discount }}%</div>
+                    </div>
+                    <div class="offer-content">
+                        <h3 class="offer-title">{{ offer.title }}</h3>
+                        <p class="offer-category">{{ offer.category }}</p>
+                        <div class="offer-price">
+                            <span class="original-price">₹{{ offer.original_price }}</span>
+                            <span class="discounted-price">₹{{ offer.discounted_price }}</span>
+                        </div>
+                        <button class="offer-btn" onclick="addToCart({{ offer.id }})">ADD TO CART</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+

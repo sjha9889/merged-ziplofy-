@@ -1,0 +1,65 @@
+import React, { useCallback, useState } from 'react';
+import DropdownMenu from './DropdownMenu';
+import DropdownMenuItem from './DropdownMenuItem';
+import LocationMenuItem from './LocationMenuItem';
+
+interface DefaultLocationChangeButtonProps {
+  otherLocations: Array<{
+    _id: string;
+    name: string;
+    address?: string;
+    apartment?: string;
+    city?: string;
+  }>;
+  onSelect: (locationId: string) => void;
+}
+
+const DefaultLocationChangeButton: React.FC<DefaultLocationChangeButtonProps> = ({
+  otherLocations,
+  onSelect,
+}) => {
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const open = Boolean(anchorEl);
+
+  const handleOpen = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(e.currentTarget);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    setAnchorEl(null);
+  }, []);
+
+  const handleSelect = useCallback(
+    (locId: string) => {
+      onSelect(locId);
+      handleClose();
+    },
+    [onSelect, handleClose]
+  );
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="px-2 py-0.5 text-xs font-medium text-gray-700 bg-gray-100">
+        Default
+      </span>
+      <button
+        onClick={handleOpen}
+        className="cursor-pointer px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+      >
+        Change
+      </button>
+      <DropdownMenu anchorEl={anchorEl} open={open} onClose={handleClose}>
+        {otherLocations.length === 0 ? (
+          <DropdownMenuItem disabled>No other locations</DropdownMenuItem>
+        ) : (
+          otherLocations.map((loc) => (
+            <LocationMenuItem key={loc._id} location={loc} onSelect={handleSelect} />
+          ))
+        )}
+      </DropdownMenu>
+    </div>
+  );
+};
+
+export default DefaultLocationChangeButton;
+

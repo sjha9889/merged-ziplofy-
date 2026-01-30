@@ -1,0 +1,33 @@
+<div class="product-row" data-product-id="{{ item.id }}">
+  <div class="product-thumbnail">
+    <img src="{{ item.image }}" alt="{{ item.title }}" loading="lazy" onerror="this.src='https://via.placeholder.com/110x110?text=No+Image'">
+  </div>
+  <div class="product-info">
+    <h3><a href="product-details.html?id={{ item.id }}">{{ item.title }}</a></h3>
+    <p class="product-category-name">{{ item.category }}</p>
+    <div class="product-rating-display">
+      <span class="star-icons">{{ item.ratingStars }}</span>
+      <span class="review-number">({{ item.reviewCount }})</span>
+    </div>
+  </div>
+  <div class="qty-controls">
+    <button class="qty-btn minus" data-cart-action="decrement" data-product-id="{{ item.id }}">-</button>
+    <span class="qty-value">{{ item.quantity }}</span>
+    <button class="qty-btn plus" data-cart-action="increment" data-product-id="{{ item.id }}">+</button>
+  </div>
+  <div class="product-total-price">
+    <span class="price-now">{{ item.lineTotalFormatted }}</span>
+    {% if item.originalLineTotalFormatted %}
+    <span class="price-old">{{ item.originalLineTotalFormatted }}</span>
+    {% endif %}
+  </div>
+  <div class="product-controls">
+    <button class="btn-delete-item" data-cart-action="remove" data-product-id="{{ item.id }}">
+      <i class="fas fa-trash"></i>
+    </button>
+    <button class="btn-move-wishlist" data-cart-action="wishlist" data-product-id="{{ item.id }}">
+      <i class="far fa-heart"></i>
+    </button>
+  </div>
+</div>
+

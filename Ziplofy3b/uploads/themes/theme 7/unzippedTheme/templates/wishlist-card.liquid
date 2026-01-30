@@ -1,0 +1,57 @@
+<div class="wishlist-card" data-product-id="{{ product.id }}">
+  <div class="wishlist-thumb">
+    <a href="product-details.html?id={{ product.id }}">
+      <img src="{{ product.image }}" alt="{{ product.title }}" loading="lazy" onerror="this.src='https://via.placeholder.com/320x220?text=No+Image'">
+    </a>
+    {% if product.badge %}
+      <span class="wishlist-badge {{ product.badgeClass }}">{{ product.badge }}</span>
+    {% endif %}
+  </div>
+
+  <div class="wishlist-info">
+    <div class="wishlist-row">
+      <div>
+        <a href="product-details.html?id={{ product.id }}" class="wishlist-title">{{ product.title }}</a>
+        <p class="wishlist-category">{{ product.category }}</p>
+      </div>
+      <button class="icon-btn remove" type="button" aria-label="Remove from wishlist" data-wishlist-action="remove" data-product-id="{{ product.id }}">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="wishlist-meta">
+      <div class="wishlist-rating">
+        <span class="stars">{{ product.ratingStars }}</span>
+        <span class="rating-count">({{ product.reviewCount }})</span>
+      </div>
+        <span class="wishlist-availability">{{ product.availability }}</span>
+    </div>
+
+    {% if product.shortDescription %}
+      <p class="wishlist-description">{{ product.shortDescription }}</p>
+    {% endif %}
+
+    <div class="wishlist-footer">
+      <div class="wishlist-price">
+        <span class="current">{{ product.priceFormatted }}</span>
+        {% if product.originalPriceFormatted %}
+          <span class="original">{{ product.originalPriceFormatted }}</span>
+        {% endif %}
+        {% if product.discountLabel %}
+          <span class="discount">{{ product.discountLabel }}</span>
+        {% endif %}
+      </div>
+      <div class="wishlist-actions">
+        <button class="cta-btn primary" type="button" data-wishlist-action="add-to-cart" data-product-id="{{ product.id }}">
+          <i class="fas fa-shopping-cart"></i>
+          Add to cart
+        </button>
+        <a class="cta-btn ghost" href="product-details.html?id={{ product.id }}">
+          <i class="fas fa-arrow-right"></i>
+          View details
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+

@@ -1,0 +1,35 @@
+<article class="product-card">
+  {% if product.badge %}
+  <span class="badge badge-light">{{ product.badge }}</span>
+  {% endif %}
+  <div class="quick-actions">
+    <a href="#" title="Wishlist" class="wishlist-toggle" data-action="toggle-wishlist" data-product-id="{{ product.id }}"><i class="fa fa-heart-o"></i></a>
+  </div>
+  <div class="thumb">
+    <img src="{{ product.image }}" alt="{{ product.title }}">
+  </div>
+  <div class="product-card-body">
+    <h3><a href="product.html?id={{ product.id }}">{{ product.title }}</a></h3>
+    {% if product.priceFormatted %}
+    <p class="price">
+      {{ product.priceFormatted }}
+      {% if product.originalPriceFormatted %}
+      <span class="price-original">{{ product.originalPriceFormatted }}</span>
+      {% endif %}
+    </p>
+    {% endif %}
+    {% if product.discountLabel %}
+    <p class="price-discount">{{ product.discountLabel }}</p>
+    {% endif %}
+    <div class="product-card-actions product-card-actions--single">
+      <button
+        class="btn-pill btn-solid"
+        type="button"
+        data-action="buy-now"
+        data-product-id="{{ product.id }}"
+      >
+        Buy Now
+      </button>
+    </div>
+  </div>
+</article>

@@ -1,0 +1,9 @@
+<div class="suggested-item">
+  <img src="{{ product.image }}" alt="{{ product.title }}" loading="lazy" onerror="this.src='https://via.placeholder.com/70x70?text=No+Image'">
+  <div class="suggested-info">
+    <h5>{{ product.title }}</h5>
+    <p class="suggested-price">{{ product.priceFormatted }}</p>
+    <button class="btn-add-suggested" data-suggest-action="add" data-product-id="{{ product.id }}">Add</button>
+  </div>
+</div>
+

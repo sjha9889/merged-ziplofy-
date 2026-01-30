@@ -1,0 +1,46 @@
+<div class="col-lg-3 col-md-4 col-sm-6 pb-1">
+  <div class="product-item bg-light mb-4">
+    <div class="product-img position-relative overflow-hidden">
+      {% if product.badge %}
+        <span class="badge badge-primary position-absolute m-2">{{ product.badge }}</span>
+      {% endif %}
+      <img class="img-fluid w-100" src="{{ product.image }}" alt="{{ product.title }}" loading="lazy" width="300" height="300">
+      <div class="product-action">
+        <button type="button" class="btn btn-outline-dark btn-square product-action-btn" data-action="cart" data-product-id="{{ product.id }}" aria-label="Add {{ product.title }} to cart">
+          <i class="fa fa-shopping-cart"></i>
+        </button>
+        <button type="button" class="btn btn-outline-dark btn-square product-action-btn" data-action="wishlist" data-product-id="{{ product.id }}" aria-label="Add {{ product.title }} to wishlist">
+          <i class="far fa-heart"></i>
+        </button>
+        <button type="button" class="btn btn-outline-dark btn-square product-action-btn" data-action="compare" data-product-id="{{ product.id }}" aria-label="Compare {{ product.title }}">
+          <i class="fa fa-sync-alt"></i>
+        </button>
+        <button type="button" class="btn btn-outline-dark btn-square product-action-btn" data-action="quickview" data-product-id="{{ product.id }}" aria-label="Quick view {{ product.title }}">
+          <i class="fa fa-eye"></i>
+        </button>
+      </div>
+    </div>
+    <div class="text-center py-4">
+      <a class="h6 text-decoration-none text-truncate d-block px-2" href="{{ product.detailUrl }}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">{{ product.title }}</a>
+      <div class="d-flex align-items-center justify-content-center mt-2">
+        <h5>{{ product.priceFormatted }}</h5>
+        {% if product.originalPriceFormatted %}
+          <h6 class="text-muted ml-2"><del>{{ product.originalPriceFormatted }}</del></h6>
+        {% endif %}
+      </div>
+      <div class="d-flex align-items-center justify-content-center mb-1">
+        {% for star in product.stars %}
+          {% if star == 'full' %}
+            <small class="fa fa-star text-primary mr-1"></small>
+          {% elsif star == 'half' %}
+            <small class="fa fa-star-half-alt text-primary mr-1"></small>
+          {% else %}
+            <small class="far fa-star text-primary mr-1"></small>
+          {% endif %}
+        {% endfor %}
+        <small>({{ product.reviewCount }})</small>
+      </div>
+    </div>
+  </div>
+</div>
+

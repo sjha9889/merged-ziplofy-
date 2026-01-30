@@ -1,0 +1,19 @@
+{% for product in products %}
+<div class="product-card" data-product-id="{{ product.id }}">
+    <div class="product-image">
+        <img src="{{ product.image }}" alt="{{ product.name | default: product.title | default: 'Product' }}" loading="lazy" onerror="this.src='https://via.placeholder.com/400x300/1a1a1a/FF5E00?text=No+Image'">
+        <div class="discount-badge">15% OFF</div>
+        <div class="wishlist-icon" onclick="toggleWishlist({{ product.id }})">
+            <i class="fas fa-heart"></i>
+        </div>
+    </div>
+    <h3 class="product-title">{{ product.name | default: product.title | default: 'Product' }}</h3>
+    <div class="product-price">₹{{ product.price }}</div>
+    <div class="product-actions">
+        <button class="add-to-cart-btn" onclick="addToCart({{ product.id }})">
+            ADD TO CART
+        </button>
+    </div>
+</div>
+{% endfor %}
+

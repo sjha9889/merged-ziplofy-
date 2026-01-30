@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORNATIVA - Rings Collection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand mx-auto" href="index.html">ORNATIVA</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="shop.html">Collections</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="shop.html">New Arrivals</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="about.html">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contact.html">Contact</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-3">
+                    <a href="account.html" class="nav-icon active">
+                        <i class="fas fa-user"></i>
+                    </a>
+                    <a href="cart.html" class="nav-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span class="badge">2</span>
+                    </a>
+                    <a href="shop.html" class="btn btn-outline-gold">Shop Now</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="shop-hero-section d-flex align-items-center justify-content-center text-center text-white">
+        <div class="overlay"></div>
+        <div class="container position-relative">
+            <h1 class="display-3 fw-bold">Rings Collection</h1>
+            <p class="lead gold-accent">Explore our curated designs for every occasion</p>
+        </div>
+    </section>
+
+    <!-- Breadcrumbs -->
+    <div class="container py-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                <li class="breadcrumb-item"><a href="shop.html">Collections</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Rings</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Main Content: Filters and Product Grid -->
+    <div class="container py-5">
+        <div class="row">
+            <!-- Filters Sidebar -->
+            <div class="col-lg-3 col-md-4 mb-4">
+                <div class="card filters-card">
+                    <div class="card-header d-lg-none">
+                        <button class="btn btn-link w-100 text-start" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#filtersCollapse" aria-expanded="false" aria-controls="filtersCollapse">
+                            <i class="fas fa-filter"></i> Filters
+                        </button>
+                    </div>
+                    <div class="collapse show d-lg-block" id="filtersCollapse">
+                        <div class="card-body">
+                            <h5 class="mb-3">Filters</h5>
+
+                            <!-- Price Range -->
+                            <div class="mb-4">
+                                <h6 class="filter-title">Price Range</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="price1">
+                                    <label class="form-check-label" for="price1">Under ₹10,000</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="price2">
+                                    <label class="form-check-label" for="price2">₹10,000 - ₹25,000</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="price3">
+                                    <label class="form-check-label" for="price3">₹25,000 - ₹50,000</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="price4">
+                                    <label class="form-check-label" for="price4">Over ₹50,000</label>
+                                </div>
+                            </div>
+
+                            <!-- Material -->
+                            <div class="mb-4">
+                                <h6 class="filter-title">Material</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="material1">
+                                    <label class="form-check-label" for="material1">Gold</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="material2">
+                                    <label class="form-check-label" for="material2">Silver</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="material3">
+                                    <label class="form-check-label" for="material3">Diamond</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="material4">
+                                    <label class="form-check-label" for="material4">Platinum</label>
+                                </div>
+                            </div>
+
+                            <!-- Occasion -->
+                            <div class="mb-4">
+                                <h6 class="filter-title">Occasion</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="occasion1">
+                                    <label class="form-check-label" for="occasion1">Wedding</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="occasion2">
+                                    <label class="form-check-label" for="occasion2">Daily</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="occasion3">
+                                    <label class="form-check-label" for="occasion3">Festive</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="occasion4">
+                                    <label class="form-check-label" for="occasion4">Party</label>
+                                </div>
+                            </div>
+
+                            <!-- Sort By -->
+                            <div class="mb-4">
+                                <h6 class="filter-title">Sort By</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="sortBy" id="sort1" checked>
+                                    <label class="form-check-label" for="sort1">Price (low-high)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="sortBy" id="sort2">
+                                    <label class="form-check-label" for="sort2">Popularity</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="sortBy" id="sort3">
+                                    <label class="form-check-label" for="sort3">Newest</label>
+                                </div>
+                            </div>
+
+                            <button class="btn gold-bg-btn w-100">Apply Filters</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div class="col-lg-9 col-md-8">
+                <div class="row g-4" id="productGrid">
+                    <!-- Product cards will be dynamically loaded here by JavaScript -->
+                </div>
+
+                <!-- Pagination -->
+                <nav aria-label="Page navigation example" class="mt-5">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Promotional Banner (Mid-section) -->
+    <section class="promo-banner py-5 mb-5">
+        <div class="container text-center">
+            <h2 class="display-5 fw-bold mb-3">Festive Sale – Up to 25% Off on Gold Jewelry</h2>
+            <p class="lead mb-4">Limited time offer! Don't miss out on exquisite designs.</p>
+            <a href="shop.html" class="btn gold-bordered-btn-white btn-lg">Shop Now</a>
+        </div>
+    </section>
+
+    <!-- Newsletter CTA -->
+    <section class="newsletter-cta py-5">
+        <div class="container text-center">
+            <h2 class="ornativa-heading mb-3">Get Exclusive Offers</h2>
+            <p class="lead mb-4">Subscribe for exclusive offers & new arrivals</p>
+            <form class="newsletter-form mx-auto" style="max-width: 500px;">
+                <div class="mb-3">
+                    <input type="email" class="form-control newsletter-input" placeholder="Your Email" required>
+                </div>
+                <button type="submit" class="btn gold-bg-btn">Subscribe</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Quick View Modal -->
+    <div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <img src="https://via.placeholder.com/400/f8f5f0/b8860b?text=Product+Image"
+                                class="img-fluid" alt="Product Image" id="modalProductImage">
+                        </div>
+                        <div class="col-md-6">
+                            <h3 id="modalProductTitle">Product Title</h3>
+                            <p class="text-muted" id="modalProductPrice">₹XX,XXX</p>
+                            <p id="modalProductDescription">Product Description</p>
+                            <button class="btn gold-bg-btn w-100 mt-3">Add to Bag</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer py-5 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h4 class="ornativa-logo mb-3">ORNATIVA</h4>
+                    <p class="text-muted">Timeless Luxury, Crafted for You.</p>
+                </div>
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h5 class="mb-3">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="shop.html" class="text-muted text-decoration-none">Shop</a></li>
+                        <li><a href="about.html" class="text-muted text-decoration-none">About</a></li>
+                        <li><a href="contact.html" class="text-muted text-decoration-none">Contact</a></li>
+                        <li><a href="#policies" class="text-muted text-decoration-none">Faq</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h5 class="mb-3">Policies</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="privacy.html" class="text-muted text-decoration-none">Privacy Policy</a></li>
+                        <li><a href="return.html" class="text-muted text-decoration-none">Return Policy</a></li>
+                        <li><a href="shipping.html" class="text-muted text-decoration-none">Shipping Policy</a></li>
+                        <li><a href="t&c.html" class="text-muted text-decoration-none">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5 class="mb-3">Connect With Us</h5>
+                    <div class="social-links">
+                        <a href="#instagram" class="text-muted me-3"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#facebook" class="text-muted me-3"><i class="fab fa-facebook-f fa-lg"></i></a>
+                        <a href="#whatsapp" class="text-muted"><i class="fab fa-whatsapp fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="text-center text-muted small">
+                © 2025 ORNATIVA. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <script src="assets/js/script.js"></script>
+</body>
+
+</html>

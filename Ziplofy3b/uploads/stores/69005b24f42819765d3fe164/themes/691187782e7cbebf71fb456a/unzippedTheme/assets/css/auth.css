@@ -1,0 +1,64 @@
+/* Auth (Login/Register) - isolated enhancements */
+.auth-wrapper{min-height:100vh;display:grid;place-items:center;position:relative;padding:40px 16px}
+.auth-card{width:100%;max-width:460px;border-radius:16px;background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.18);box-shadow:0 10px 30px rgba(0,0,0,.3);padding:26px}
+.auth-title{margin:0 0 6px 0;font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#00ffff,#e0a3ff,#ff69b4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.auth-sub{margin:0 0 18px 0;color:#cfd6dd}
+.auth-form{display:grid;gap:12px}
+.auth-input{height:46px;border-radius:10px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:#fff;padding:0 12px}
+.auth-input::placeholder{color:#9aa4b2}
+.auth-btn{height:46px;border:none;border-radius:12px;font-weight:900;color:#fff;background:linear-gradient(135deg,#e0a3ff,#ff69b4);cursor:pointer}
+.auth-alt{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.auth-link{color:#00ffff;text-decoration:none;font-weight:700}
+.auth-note{color:#9aa4b2;font-size:.9rem}
+
+/* Make background like index */
+.neural-background,.geometric-shapes,.neural-lines{position:fixed;inset:0;pointer-events:none}
+.auth-wrapper .neural-background{z-index:-3}
+.auth-wrapper .geometric-shapes{z-index:-2}
+.auth-wrapper .neural-lines{z-index:-1}
+
+/* New split layout (Flipkart/Myntra style) */
+.auth-page{padding:40px 0}
+.auth-container{max-width:1100px;margin:0 auto;padding:0 16px}
+.auth-layout{display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:stretch}
+.auth-left{border-radius:16px;background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.18);padding:26px;display:flex;flex-direction:column;justify-content:center}
+.auth-left .brand{font-weight:900;font-size:1.4rem;color:#fff;margin-bottom:10px}
+.auth-perks{display:grid;gap:10px;margin-top:8px}
+.auth-perk{display:flex;gap:10px;align-items:flex-start;color:#cfd6dd}
+.auth-perk .icon{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;background:rgba(255,255,255,.08)}
+.auth-right{border-radius:16px;background:#fff;color:#0f172a;padding:26px}
+.auth-right .auth-title{background:unset;-webkit-text-fill-color:unset;color:#0f172a}
+.auth-right .auth-sub{color:#475569}
+.auth-right .auth-input{background:#fff;border:1px solid #e5e7eb;color:#0f172a}
+.auth-right .auth-input::placeholder{color:#94a3b8}
+.auth-right .auth-btn{background:linear-gradient(135deg,#00bcd4,#00aaff)}
+.auth-divider{display:flex;align-items:center;gap:12px;margin:14px 0;color:#64748b}
+.auth-divider::before,.auth-divider::after{content:"";flex:1;height:1px;background:#e5e7eb}
+.social-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.social-btn{height:44px;border:1px solid #e5e7eb;border-radius:10px;background:#fff;color:#0f172a;font-weight:600;cursor:pointer}
+.otp-toggle{display:flex;gap:10px;align-items:center;margin:8px 0;color:#475569}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.help-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.help-link{color:#0ea5e9;font-weight:600;text-decoration:none}
+
+@media (max-width: 900px){
+  .auth-layout{grid-template-columns:1fr}
+}
+
+/* Mobile styles for auth-page to prevent hiding behind fixed header */
+@media(max-width:768px){
+  .auth-page{
+    margin-top:90px;
+    padding-top:30px;
+    padding-bottom:30px
+  }
+}
+
+@media(max-width:480px){
+  .auth-page{
+    margin-top:80px;
+    padding-top:25px;
+    padding-bottom:25px
+  }
+}
+

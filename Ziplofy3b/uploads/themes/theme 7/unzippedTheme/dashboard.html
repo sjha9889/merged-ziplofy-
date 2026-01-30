@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CosmicStore</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="assets/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <canvas id="starfield"></canvas>
+
+    <!-- Header -->
+    <header class="main-header" id="navbar">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="index.html" class="logo">
+                        <div class="logo-icon">
+                            <svg width="45" height="45" viewBox="0 0 45 45" fill="none">
+                                <circle cx="22.5" cy="22.5" r="20" stroke="url(#logoGradient1)" stroke-width="2.5"/>
+                                <path d="M15 22.5L21 28.5L30 15" stroke="url(#logoGradient2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <defs>
+                                    <linearGradient id="logoGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#8B5CF6"/>
+                                        <stop offset="100%" style="stop-color:#F59E0B"/>
+                                    </linearGradient>
+                                    <linearGradient id="logoGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#F59E0B"/>
+                                        <stop offset="100%" style="stop-color:#EC4899"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <div class="logo-text">
+                            <h1>ELECTRO</h1>
+                            <p>Tech & Electronics</p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="search-section">
+                    <div class="search-box">
+                        <input type="text" placeholder="Search for products, brands and more..." class="search-input">
+                        <button class="search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <a href="account.html" class="action-item">
+                        <div class="action-icon">
+                            <i class="fas fa-heart"></i>
+                            <span class="badge">0</span>
+                        </div>
+                        <span class="action-text">Wishlist</span>
+                    </a>
+                    <a href="cart.html" class="action-item">
+                        <div class="action-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="badge">0</span>
+                        </div>
+                        <span class="action-text">Cart</span>
+                    </a>
+                    <a href="account.html" class="action-item">
+                        <div class="action-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span class="action-text">Account</span>
+                    </a>
+                </div>
+
+                <div class="mobile-menu-toggle" id="mobile-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+
+            <nav class="main-nav" id="nav-menu">
+                <ul class="nav-list">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="products.html" class="nav-link">Products</a></li>
+                    <li><a href="categories.html" class="nav-link">Categories</a></li>
+                    <li><a href="about.html" class="nav-link">About</a></li>
+                    <li><a href="contact.html" class="nav-link">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Dashboard Header -->
+    <section class="dashboard-header">
+        <div class="container">
+            <div class="welcome-section">
+                <h1>Welcome back, John!</h1>
+                <p>Here's what's happening with your account</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Content -->
+    <section class="dashboard-section">
+        <div class="container">
+            <div class="dashboard-layout">
+                <!-- Sidebar -->
+                <aside class="dashboard-sidebar">
+                    <div class="user-profile">
+                        <div class="profile-avatar">
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face" alt="Profile">
+                        </div>
+                        <div class="profile-info">
+                            <h3>John Doe</h3>
+                            <p>john.doe@email.com</p>
+                        </div>
+                    </div>
+                    
+                    <nav class="dashboard-nav">
+                        <a href="#overview" class="nav-item active">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
+                            </svg>
+                            Overview
+                        </a>
+                        <a href="#orders" class="nav-item">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                            </svg>
+                            Orders
+                        </a>
+                        <a href="#wishlist" class="nav-item">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            </svg>
+                            Wishlist
+                        </a>
+                        <a href="#addresses" class="nav-item">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                            </svg>
+                            Addresses
+                        </a>
+                        <a href="#profile" class="nav-item">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                            </svg>
+                            Profile
+                        </a>
+                        <a href="#settings" class="nav-item">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+                            </svg>
+                            Settings
+                        </a>
+                    </nav>
+                </aside>
+                
+                <!-- Main Content -->
+                <main class="dashboard-main">
+                    <!-- Overview Tab -->
+                    <div class="dashboard-tab active" id="overview">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M7 18c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12L8.1 13h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1zm16 16c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                                    </svg>
+                                </div>
+                                <div class="stat-content">
+                                    <h3>12</h3>
+                                    <p>Total Orders</p>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                    </svg>
+                                </div>
+                                <div class="stat-content">
+                                    <h3>8</h3>
+                                    <p>Wishlist Items</p>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                                    </svg>
+                                </div>
+                                <div class="stat-content">
+                                    <h3>3</h3>
+                                    <p>Pending Orders</p>
+                                </div>
+                            </div>
+                            
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                    </svg>
+                                </div>
+                                <div class="stat-content">
+                                    <h3>$2,450</h3>
+                                    <p>Total Spent</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="recent-orders">
+                            <h3>Recent Orders</h3>
+                            <div class="orders-list">
+                                <div class="order-item">
+                                    <div class="order-info">
+                                        <h4>Order #12345</h4>
+                                        <p>Premium Wireless Headphones</p>
+                                        <span class="order-date">Dec 15, 2024</span>
+                                    </div>
+                                    <div class="order-status">
+                                        <span class="status delivered">Delivered</span>
+                                        <span class="order-total">$299.99</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="order-item">
+                                    <div class="order-info">
+                                        <h4>Order #12344</h4>
+                                        <p>Smart Fitness Watch</p>
+                                        <span class="order-date">Dec 10, 2024</span>
+                                    </div>
+                                    <div class="order-status">
+                                        <span class="status shipped">Shipped</span>
+                                        <span class="order-total">$199.99</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="order-item">
+                                    <div class="order-info">
+                                        <h4>Order #12343</h4>
+                                        <p>Gaming Laptop Pro</p>
+                                        <span class="order-date">Dec 5, 2024</span>
+                                    </div>
+                                    <div class="order-status">
+                                        <span class="status processing">Processing</span>
+                                        <span class="order-total">$1,299.99</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Orders Tab -->
+                    <div class="dashboard-tab" id="orders">
+                        <div class="tab-header">
+                            <h2>Order History</h2>
+                            <div class="filter-options">
+                                <select class="status-filter">
+                                    <option value="all">All Orders</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="shipped">Shipped</option>
+                                    <option value="delivered">Delivered</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="orders-table">
+                            <div class="table-header">
+                                <div class="col">Order ID</div>
+                                <div class="col">Date</div>
+                                <div class="col">Items</div>
+                                <div class="col">Total</div>
+                                <div class="col">Status</div>
+                                <div class="col">Actions</div>
+                            </div>
+                            
+                            <div class="table-row">
+                                <div class="col order-id">#12345</div>
+                                <div class="col order-date">Dec 15, 2024</div>
+                                <div class="col order-items">1 item</div>
+                                <div class="col order-total">$299.99</div>
+                                <div class="col order-status">
+                                    <span class="status delivered">Delivered</span>
+                                </div>
+                                <div class="col order-actions">
+                                    <button class="action-btn view">View</button>
+                                    <button class="action-btn reorder">Reorder</button>
+                                </div>
+                            </div>
+                            
+                            <div class="table-row">
+                                <div class="col order-id">#12344</div>
+                                <div class="col order-date">Dec 10, 2024</div>
+                                <div class="col order-items">2 items</div>
+                                <div class="col order-total">$449.98</div>
+                                <div class="col order-status">
+                                    <span class="status shipped">Shipped</span>
+                                </div>
+                                <div class="col order-actions">
+                                    <button class="action-btn view">View</button>
+                                    <button class="action-btn track">Track</button>
+                                </div>
+                            </div>
+                            
+                            <div class="table-row">
+                                <div class="col order-id">#12343</div>
+                                <div class="col order-date">Dec 5, 2024</div>
+                                <div class="col order-items">1 item</div>
+                                <div class="col order-total">$1,299.99</div>
+                                <div class="col order-status">
+                                    <span class="status processing">Processing</span>
+                                </div>
+                                <div class="col order-actions">
+                                    <button class="action-btn view">View</button>
+                                    <button class="action-btn cancel">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Wishlist Tab -->
+                    <div class="dashboard-tab" id="wishlist">
+                        <div class="tab-header">
+                            <h2>My Wishlist</h2>
+                            <span class="item-count">8 items</span>
+                        </div>
+                        
+                        <div class="wishlist-grid">
+                            <div class="wishlist-item">
+                                <div class="item-image">
+                                    <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=150&h=150&fit=crop" alt="Wireless Headphones">
+                                </div>
+                                <div class="item-details">
+                                    <h4>Premium Wireless Headphones</h4>
+                                    <div class="item-rating">
+                                        <div class="stars">★★★★★</div>
+                                        <span class="rating-count">(128)</span>
+                                    </div>
+                                    <div class="item-price">
+                                        <span class="current-price">$299.99</span>
+                                        <span class="original-price">$399.99</span>
+                                    </div>
+                                </div>
+                                <div class="item-actions">
+                                    <button class="action-btn add-to-cart">Add to Cart</button>
+                                    <button class="action-btn remove">Remove</button>
+                                </div>
+                            </div>
+                            
+                            <div class="wishlist-item">
+                                <div class="item-image">
+                                    <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=150&h=150&fit=crop" alt="Smart Watch">
+                                </div>
+                                <div class="item-details">
+                                    <h4>Smart Fitness Watch</h4>
+                                    <div class="item-rating">
+                                        <div class="stars">★★★★☆</div>
+                                        <span class="rating-count">(89)</span>
+                                    </div>
+                                    <div class="item-price">
+                                        <span class="current-price">$199.99</span>
+                                        <span class="original-price">$249.99</span>
+                                    </div>
+                                </div>
+                                <div class="item-actions">
+                                    <button class="action-btn add-to-cart">Add to Cart</button>
+                                    <button class="action-btn remove">Remove</button>
+                                </div>
+                            </div>
+                            
+                            <div class="wishlist-item">
+                                <div class="item-image">
+                                    <img src="https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=150&h=150&fit=crop" alt="Gaming Laptop">
+                                </div>
+                                <div class="item-details">
+                                    <h4>Gaming Laptop Pro</h4>
+                                    <div class="item-rating">
+                                        <div class="stars">★★★★☆</div>
+                                        <span class="rating-count">(67)</span>
+                                    </div>
+                                    <div class="item-price">
+                                        <span class="current-price">$1,299.99</span>
+                                    </div>
+                                </div>
+                                <div class="item-actions">
+                                    <button class="action-btn add-to-cart">Add to Cart</button>
+                                    <button class="action-btn remove">Remove</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Profile Tab -->
+                    <div class="dashboard-tab" id="profile">
+                        <div class="tab-header">
+                            <h2>Profile Information</h2>
+                        </div>
+                        
+                        <div class="profile-form">
+                            <div class="form-section">
+                                <h3>Personal Information</h3>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>First Name</label>
+                                        <input type="text" value="John" class="form-input">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Last Name</label>
+                                        <input type="text" value="Doe" class="form-input">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Email Address</label>
+                                    <input type="email" value="john.doe@email.com" class="form-input">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Phone Number</label>
+                                    <input type="tel" value="+1 (555) 123-4567" class="form-input">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Date of Birth</label>
+                                    <input type="date" value="1990-01-15" class="form-input">
+                                </div>
+                            </div>
+                            
+                            <div class="form-section">
+                                <h3>Change Password</h3>
+                                <div class="form-group">
+                                    <label>Current Password</label>
+                                    <input type="password" class="form-input">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>New Password</label>
+                                    <input type="password" class="form-input">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Confirm New Password</label>
+                                    <input type="password" class="form-input">
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button class="save-btn">Save Changes</button>
+                                <button class="cancel-btn">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-widgets">
+            <div class="container">
+                <div class="footer-grid">
+                    <!-- Shop Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Shop</h4>
+                        <ul class="footer-links">
+                            <li><a href="categories.html?cat=electronics">Electronics</a></li>
+                            <li><a href="categories.html?cat=fashion">Fashion</a></li>
+                            <li><a href="categories.html?cat=home">Home & Garden</a></li>
+                            <li><a href="categories.html?cat=sports">Sports & Fitness</a></li>
+                            <li><a href="categories.html?cat=beauty">Beauty & Health</a></li>
+                            <li><a href="categories.html?cat=books">Books & Media</a></li>
+                            <li><a href="categories.html?cat=toys">Toys & Games</a></li>
+                            <li><a href="categories.html?cat=automotive">Automotive</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Help Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Help</h4>
+                        <ul class="footer-links">
+                            <li><a href="contact.html">Track Your Order</a></li>
+                            <li><a href="contact.html">Warranty & Support</a></li>
+                            <li><a href="contact.html">Return Policy</a></li>
+                            <li><a href="contact.html">Service Centers</a></li>
+                            <li><a href="contact.html">Bulk Orders</a></li>
+                            <li><a href="about.html">Why Buy Direct</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Company Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Company</h4>
+                        <ul class="footer-links">
+                            <li><a href="about.html">About CosmicStore</a></li>
+                            <li><a href="contact.html">News</a></li>
+                            <li><a href="contact.html">Read Our Blog</a></li>
+                            <li><a href="contact.html">Careers</a></li>
+                            <li><a href="contact.html">Security</a></li>
+                            <li><a href="contact.html">Investor Relations</a></li>
+                            <li><a href="contact.html">Social Responsibility</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Company Info Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Company Info</h4>
+                        <ul class="footer-links">
+                            <li><a href="about.html">About CosmicStore</a></li>
+                            <li><a href="about.html">Our Mission</a></li>
+                            <li><a href="about.html">Leadership Team</a></li>
+                            <li><a href="contact.html">Investor Relations</a></li>
+                            <li><a href="contact.html">Press Releases</a></li>
+                            <li><a href="about.html">Awards & Recognition</a></li>
+                        </ul>
+                        <div class="social-icons">
+                            <a href="#" class="social-link" aria-label="Facebook">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                </svg>
+                            </a>
+                            <a href="#" class="social-link" aria-label="Twitter">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                                </svg>
+                            </a>
+                            <a href="#" class="social-link" aria-label="Instagram">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987s11.987-5.367 11.987-11.987C24.004 5.367 18.637.001 12.017.001zM8.449 16.988c-1.297 0-2.448-.49-3.323-1.297C4.198 14.895 3.708 13.744 3.708 12.447s.49-2.448 1.297-3.323c.875-.807 2.026-1.297 3.323-1.297s2.448.49 3.323 1.297c.807.875 1.297 2.026 1.297 3.323s-.49 2.448-1.297 3.323c-.875.807-2.026 1.297-3.323 1.297zm7.718-1.297c-.875.807-2.026 1.297-3.323 1.297s-2.448-.49-3.323-1.297c-.807-.875-1.297-2.026-1.297-3.323s.49-2.448 1.297-3.323c.875-.807 2.026-1.297 3.323-1.297s2.448.49 3.323 1.297c.807.875 1.297 2.026 1.297 3.323s-.49 2.448-1.297 3.323c-.875.807-2.026 1.297-3.323 1.297z"/>
+                                </svg>
+                            </a>
+                            <a href="#" class="social-link" aria-label="YouTube">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Newsletter Section - Separate -->
+                <div class="newsletter-section">
+                    <div class="newsletter-content">
+                        <h4 class="newsletter-title">Join the Tribe</h4>
+                        <p class="newsletter-text">Subscribe to email alerts. We promise not to spam your inbox.</p>
+                        <div class="newsletter-form">
+                            <input type="email" placeholder="Enter your email" class="newsletter-input">
+                            <button class="newsletter-btn">Subscribe</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Site Info -->
+        <div class="site-info">
+            <div class="container">
+                <div class="site-info-content">
+                    <div class="site-description">
+                        <p>India's fastest growing tech & electronics brand. The most incredible range of smartphones, laptops, gaming gear, and home audio. From work to adventures, CosmicStore will get you powered!</p>
+                    </div>
+                    
+                    <!-- 4 Column Footer Info -->
+                    <div class="footer-info-grid">
+                        <div class="footer-info-column">
+                            <h5>Company Info</h5>
+                            <p>&copy; 2025 CosmicStore.<br>All Rights Reserved.</p>
+                        </div>
+                        
+                        <div class="footer-info-column">
+                            <h5>Contact Details</h5>
+                            <p>Manager, CosmicStore<br>
+                            Unit no. 204 & 205, 2nd floor</p>
+                        </div>
+                        
+                        <div class="footer-info-column">
+                            <h5>Address</h5>
+                            <p>D-wing & E-wing,<br>
+                            Corporate Avenue,<br>
+                            Andheri Ghatkopar Link Road</p>
+                        </div>
+                        
+                        <div class="footer-info-column">
+                            <h5>Location</h5>
+                            <p>Mumbai, Maharashtra<br>
+                            400093, India</p>
+                        </div>
+                    </div>
+                    
+                    <div class="footer-bottom">
+                        <div class="footer-bottom-content">
+                            <p>&copy; 2025 CosmicStore. All rights reserved.</p>
+                            <div class="footer-links-bottom">
+                                <a href="contact.html">Privacy Policy</a>
+                                <a href="contact.html">Terms of Use</a>
+                                <a href="contact.html">Warranty Policy</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/script.js"></script>
+</body>
+</html>

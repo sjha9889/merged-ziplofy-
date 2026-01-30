@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - Ornativa</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <!-- Font Awesome CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav id="main-nav" class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><img src="assets/images/logo.png" alt=""></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="shop.html">Collections</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="about.html">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contact.html">Contact</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <a href="login.html" class="nav-link"><i class="bi bi-person-circle"></i></a>
+                    <a href="cart.html" class="nav-link"><i class="bi bi-cart"></i></a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Breadcrumb Section -->
+    <section class="breadcrumb-section py-3" style="margin-top: 70px; background-color: #f8f9fa;">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="h3 mb-0">My Account</h1>
+                </div>
+                <div class="col-md-6">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0 justify-content-md-end">
+                            <li class="breadcrumb-item"><a href="index.html" class="text-decoration-none">Home</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Account</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Account Page Content -->
+    <section class="account-section py-5">
+        <div class="container">
+            <div class="row">
+                <!-- Mobile Navigation Toggle -->
+                <div class="col-12 d-lg-none mb-3">
+                    <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#accountSidebar" aria-expanded="false" aria-controls="accountSidebar">
+                        <i class="bi bi-list me-2"></i>Account Menu
+                    </button>
+                </div>
+
+                <!-- Left Sidebar Navigation -->
+                <div class="col-lg-3 mb-4">
+                    <div class="collapse d-lg-block" id="accountSidebar">
+                        <div class="account-sidebar card shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                <div class="d-flex align-items-center">
+                                    <div class="profile-avatar me-3">
+                                        <i class="bi bi-person-circle fs-2"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0">John Doe</h6>
+                                        <small class="opacity-75">john.doe@email.com</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <nav class="account-nav">
+                                    <a href="#" class="nav-item active" data-section="profile">
+                                        <i class="bi bi-person me-3"></i>Profile Info
+                                    </a>
+                                    <a href="#" class="nav-item" data-section="orders">
+                                        <i class="bi bi-bag me-3"></i>My Orders
+                                        <span class="badge bg-primary ms-auto">3</span>
+                                    </a>
+                                    <a href="#" class="nav-item" data-section="wishlist">
+                                        <i class="bi bi-heart me-3"></i>Wishlist
+                                        <span class="badge bg-danger ms-auto">5</span>
+                                    </a>
+                                    <a href="#" class="nav-item" data-section="addresses">
+                                        <i class="bi bi-geo-alt me-3"></i>Addresses
+                                    </a>
+                                    <a href="#" class="nav-item" data-section="payment">
+                                        <i class="bi bi-credit-card me-3"></i>Payment Methods
+                                    </a>
+                                    <a href="#" class="nav-item" data-section="coupons">
+                                        <i class="bi bi-gift me-3"></i>Coupons & Rewards
+                                        <span class="badge bg-success ms-auto">2</span>
+                                    </a>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Content Panel -->
+                <div class="col-lg-9">
+                    <!-- Profile Section -->
+                    <div class="content-panel active" id="profile-panel">
+                        <div class="card shadow-sm">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-person me-2"></i>Profile Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <form class="profile-form">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="firstName" class="form-label">First Name</label>
+                                            <input type="text" class="form-control" id="firstName" value="John">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="lastName" class="form-label">Last Name</label>
+                                            <input type="text" class="form-control" id="lastName" value="Doe">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="email" class="form-label">Email</label>
+                                            <input type="email" class="form-control" id="email"
+                                                value="john.doe@email.com">
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="phone" class="form-label">Phone Number</label>
+                                            <input type="tel" class="form-control" id="phone" value="+1 (555) 123-4567">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="gender" class="form-label">Gender</label>
+                                            <select class="form-select" id="gender">
+                                                <option value="male" selected>Male</option>
+                                                <option value="female">Female</option>
+                                                <option value="other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="dob" class="form-label">Date of Birth</label>
+                                            <input type="date" class="form-control" id="dob" value="1990-01-15">
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                                        <button type="button" class="btn btn-outline-secondary">Cancel</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Orders Section -->
+                    <div class="content-panel" id="orders-panel">
+                        <div class="card shadow-sm">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-bag me-2"></i>My Orders</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Order Item 1 -->
+                                <div class="order-item mb-4 p-3 border rounded">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2">
+                                            <img src="assets/images/product1.jpg" alt="Product"
+                                                class="img-fluid rounded">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="mb-1">Elegant Diamond Ring</h6>
+                                            <p class="text-muted mb-1">Order #ORN2024001</p>
+                                            <p class="mb-1">Ordered on: March 15, 2024</p>
+                                            <p class="mb-0 fw-bold">$2,599.00</p>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <span class="badge bg-success">Delivered</span>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="d-flex flex-column gap-1">
+                                                <button class="btn btn-sm btn-outline-primary">Track Order</button>
+                                                <button class="btn btn-sm btn-primary">Reorder</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Order Item 2 -->
+                                <div class="order-item mb-4 p-3 border rounded">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2">
+                                            <img src="assets/images/product2.jpg" alt="Product"
+                                                class="img-fluid rounded">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="mb-1">Gold Pearl Necklace</h6>
+                                            <p class="text-muted mb-1">Order #ORN2024002</p>
+                                            <p class="mb-1">Ordered on: March 20, 2024</p>
+                                            <p class="mb-0 fw-bold">$1,299.00</p>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <span class="badge bg-warning">Processing</span>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="d-flex flex-column gap-1">
+                                                <button class="btn btn-sm btn-outline-primary">Track Order</button>
+                                                <button class="btn btn-sm btn-outline-danger">Cancel</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Order Item 3 -->
+                                <div class="order-item mb-4 p-3 border rounded">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2">
+                                            <img src="assets/images/product3.jpg" alt="Product"
+                                                class="img-fluid rounded">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="mb-1">Sapphire Earrings</h6>
+                                            <p class="text-muted mb-1">Order #ORN2024003</p>
+                                            <p class="mb-1">Ordered on: February 28, 2024</p>
+                                            <p class="mb-0 fw-bold">$899.00</p>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <span class="badge bg-danger">Cancelled</span>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="d-flex flex-column gap-1">
+                                                <button class="btn btn-sm btn-primary">Reorder</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wishlist Section -->
+                    <div class="content-panel" id="wishlist-panel">
+                        <div class="card shadow-sm">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-heart me-2"></i>My Wishlist</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- Wishlist Item 1 -->
+                                    <div class="col-lg-4 col-md-6 mb-4">
+                                        <div class="card h-100 product-card">
+                                            <div class="position-relative">
+                                                <img src="assets/images/product4.jpg" class="card-img-top"
+                                                    alt="Product">
+                                                <button
+                                                    class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 remove-wishlist">
+                                                    <i class="bi bi-x"></i>
+                                                </button>
+                                            </div>
+                                            <div class="card-body">
+                                                <h6 class="card-title">Emerald Pendant</h6>
+                                                <p class="card-text text-muted">Beautiful emerald pendant with gold
+                                                    chain</p>
+                                                <p class="fw-bold">$1,199.00</p>
+                                                <button class="btn btn-primary btn-sm w-100">Add to Cart</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Wishlist Item 2 -->
+                                    <div class="col-lg-4 col-md-6 mb-4">
+                                        <div class="card h-100 product-card">
+                                            <div class="position-relative">
+                                                <img src="assets/images/product5.jpg" class="card-img-top"
+                                                    alt="Product">
+                                                <button
+                                                    class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 remove-wishlist">
+                                                    <i class="bi bi-x"></i>
+                                                </button>
+                                            </div>
+                                            <div class="card-body">
+                                                <h6 class="card-title">Ruby Bracelet</h6>
+                                                <p class="card-text text-muted">Elegant ruby bracelet in white gold</p>
+                                                <p class="fw-bold">$1,799.00</p>
+                                                <button class="btn btn-primary btn-sm w-100">Add to Cart</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Wishlist Item 3 -->
+                                    <div class="col-lg-4 col-md-6 mb-4">
+                                        <div class="card h-100 product-card">
+                                            <div class="position-relative">
+                                                <img src="assets/images/product6.jpg" class="card-img-top"
+                                                    alt="Product">
+                                                <button
+                                                    class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2 remove-wishlist">
+                                                    <i class="bi bi-x"></i>
+                                                </button>
+                                            </div>
+                                            <div class="card-body">
+                                                <h6 class="card-title">Diamond Tennis Bracelet</h6>
+                                                <p class="card-text text-muted">Classic diamond tennis bracelet</p>
+                                                <p class="fw-bold">$3,299.00</p>
+                                                <button class="btn btn-primary btn-sm w-100">Add to Cart</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Addresses Section -->
+                    <div class="content-panel" id="addresses-panel">
+                        <div class="card shadow-sm">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="bi bi-geo-alt me-2"></i>Saved Addresses</h5>
+                                <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                                    data-bs-target="#addAddressModal">
+                                    <i class="bi bi-plus me-1"></i>Add New Address
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <!-- Address 1 -->
+                                <div class="address-card mb-3 p-3 border rounded">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">Home <span class="badge bg-primary ms-2">Default</span>
+                                            </h6>
+                                            <p class="mb-1">John Doe</p>
+                                            <p class="mb-1">123 Main Street, Apt 4B</p>
+                                            <p class="mb-1">New York, NY 10001</p>
+                                            <p class="mb-0">Phone: +1 (555) 123-4567</p>
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                                                data-bs-toggle="dropdown">
+                                                Actions
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#"><i
+                                                            class="bi bi-pencil me-2"></i>Edit</a></li>
+                                                <li><a class="dropdown-item text-danger" href="#"><i
+                                                            class="bi bi-trash me-2"></i>Delete</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Address 2 -->
+                                <div class="address-card mb-3 p-3 border rounded">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">Office</h6>
+                                            <p class="mb-1">John Doe</p>
+                                            <p class="mb-1">456 Business Ave, Suite 100</p>
+                                            <p class="mb-1">New York, NY 10002</p>
+                                            <p class="mb-0">Phone: +1 (555) 987-6543</p>
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                                                data-bs-toggle="dropdown">
+                                                Actions
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#"><i
+                                                            class="bi bi-pencil me-2"></i>Edit</a></li>
+                                                <li><a class="dropdown-item" href="#"><i class="bi bi-star me-2"></i>Set
+                                                        as Default</a></li>
+                                                <li><a class="dropdown-item text-danger" href="#"><i
+                                                            class="bi bi-trash me-2"></i>Delete</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Methods Section -->
+                    <div class="content-panel" id="payment-panel">
+                        <div class="card shadow-sm">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="bi bi-credit-card me-2"></i>Payment Methods</h5>
+                                <button class="btn btn-primary btn-sm" data-bs-toggle="modal"
+                                    data-bs-target="#addPaymentModal">
+                                    <i class="bi bi-plus me-1"></i>Add New Payment Method
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <!-- Credit Card 1 -->
+                                <div class="payment-card mb-3 p-3 border rounded">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fab fa-cc-visa fs-2 me-3 text-primary"></i>
+                                            <div>
+                                                <h6 class="mb-1">Visa ending in 4242 <span
+                                                        class="badge bg-primary ms-2">Default</span></h6>
+                                                <p class="mb-0 text-muted">Expires 12/25</p>
+                                            </div>
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                                                data-bs-toggle="dropdown">
+                                                Actions
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#"><i
+                                                            class="bi bi-pencil me-2"></i>Edit</a></li>
+                                                <li><a class="dropdown-item text-danger" href="#"><i
+                                                            class="bi bi-trash me-2"></i>Remove</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Credit Card 2 -->
+                                <div class="payment-card mb-3 p-3 border rounded">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <i class="fab fa-cc-mastercard fs-2 me-3 text-warning"></i>
+                                            <div>
+                                                <h6 class="mb-1">Mastercard ending in 8888</h6>
+                                                <p class="mb-0 text-muted">Expires 08/26</p>
+                                            </div>
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                                                data-bs-toggle="dropdown">
+                                                Actions
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#"><i
+                                                            class="bi bi-pencil me-2"></i>Edit</a></li>
+                                                <li><a class="dropdown-item" href="#"><i class="bi bi-star me-2"></i>Set
+                                                        as Default</a></li>
+                                                <li><a class="dropdown-item text-danger" href="#"><i
+                                                            class="bi bi-trash me-2"></i>Remove</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- UPI -->
+                                <div class="payment-card mb-3 p-3 border rounded">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bi bi-phone fs-2 me-3 text-success"></i>
+                                            <div>
+                                                <h6 class="mb-1">UPI - john@paytm</h6>
+                                                <p class="mb-0 text-muted">Linked to +1 (555) 123-4567</p>
+                                            </div>
+                                        </div>
+                                        <div class="dropdown">
+                                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle"
+                                                data-bs-toggle="dropdown">
+                                                Actions
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li><a class="dropdown-item" href="#"><i
+                                                            class="bi bi-pencil me-2"></i>Edit</a></li>
+                                                <li><a class="dropdown-item" href="#"><i class="bi bi-star me-2"></i>Set
+                                                        as Default</a></li>
+                                                <li><a class="dropdown-item text-danger" href="#"><i
+                                                            class="bi bi-trash me-2"></i>Remove</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coupons & Rewards Section -->
+                    <div class="content-panel" id="coupons-panel">
+                        <div class="card shadow-sm">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="bi bi-gift me-2"></i>Coupons & Rewards</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Available Coupons -->
+                                <h6 class="mb-3">Available Coupons</h6>
+
+                                <!-- Coupon 1 -->
+                                <div class="coupon-card mb-3 p-3 border rounded bg-light">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2 text-center">
+                                            <div class="coupon-discount">
+                                                <span class="fs-4 fw-bold text-primary">20%</span>
+                                                <br><small>OFF</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="mb-1">WELCOME20</h6>
+                                            <p class="mb-1">Get 20% off on your first purchase</p>
+                                            <p class="mb-0 text-muted small">Valid till: March 31, 2024</p>
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <button class="btn btn-primary btn-sm">Apply Coupon</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Coupon 2 -->
+                                <div class="coupon-card mb-3 p-3 border rounded bg-light">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-2 text-center">
+                                            <div class="coupon-discount">
+                                                <span class="fs-4 fw-bold text-success">$50</span>
+                                                <br><small>OFF</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6 class="mb-1">SAVE50</h6>
+                                            <p class="mb-1">$50 off on orders above $500</p>
+                                            <p class="mb-0 text-muted small">Valid till: April 15, 2024</p>
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <button class="btn btn-primary btn-sm">Apply Coupon</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Rewards Section -->
+                                <hr class="my-4">
+                                <h6 class="mb-3">Loyalty Rewards</h6>
+                                <div class="rewards-card p-3 border rounded"
+                                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <div class="text-white">
+                                        <h5 class="mb-2">Gold Member</h5>
+                                        <p class="mb-2">You have <strong>2,450 points</strong></p>
+                                        <div class="progress mb-2" style="height: 8px;">
+                                            <div class="progress-bar bg-warning" style="width: 82%"></div>
+                                        </div>
+                                        <p class="mb-0 small">550 more points to reach Platinum level</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTA Section -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="cta-section text-center p-4 rounded" style="background-color: #f8f9fa;">
+                        <h5 class="mb-3">Need Help?</h5>
+                        <div class="d-flex justify-content-center gap-3 flex-wrap">
+                            <a href="shop.html" class="btn btn-primary">Continue Shopping</a>
+                            <a href="contact.html" class="btn btn-outline-primary">Help & Support</a>
+                            <a href="#" class="btn btn-outline-secondary">FAQs</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Add Address Modal -->
+    <div class="modal fade" id="addAddressModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Address</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="addressTitle" class="form-label">Address Title</label>
+                            <input type="text" class="form-control" id="addressTitle" placeholder="e.g., Home, Office">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="addressFirstName" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="addressFirstName">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="addressLastName" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="addressLastName">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="addressLine1" class="form-label">Address Line 1</label>
+                            <input type="text" class="form-control" id="addressLine1">
+                        </div>
+                        <div class="mb-3">
+                            <label for="addressLine2" class="form-label">Address Line 2 (Optional)</label>
+                            <input type="text" class="form-control" id="addressLine2">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="addressCity" class="form-label">City</label>
+                                <input type="text" class="form-control" id="addressCity">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="addressState" class="form-label">State</label>
+                                <input type="text" class="form-control" id="addressState">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="addressZip" class="form-label">ZIP Code</label>
+                                <input type="text" class="form-control" id="addressZip">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="addressPhone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="addressPhone">
+                            </div>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="setDefaultAddress">
+                            <label class="form-check-label" for="setDefaultAddress">
+                                Set as default address
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary">Save Address</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Payment Method Modal -->
+    <div class="modal fade" id="addPaymentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Payment Method</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Payment Type</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentType" id="creditCard"
+                                    value="card" checked>
+                                <label class="form-check-label" for="creditCard">Credit/Debit Card</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentType" id="upi" value="upi">
+                                <label class="form-check-label" for="upi">UPI</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="cardDetails">
+                        <div class="mb-3">
+                            <label for="cardNumber" class="form-label">Card Number</label>
+                            <input type="text" class="form-control" id="cardNumber" placeholder="1234 5678 9012 3456">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="expiryDate" class="form-label">Expiry Date</label>
+                                <input type="text" class="form-control" id="expiryDate" placeholder="MM/YY">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="cvv" class="form-label">CVV</label>
+                                <input type="text" class="form-control" id="cvv" placeholder="123">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="cardholderName" class="form-label">Cardholder Name</label>
+                            <input type="text" class="form-control" id="cardholderName">
+                        </div>
+                    </div>
+
+                    <div id="upiDetails" style="display: none;">
+                        <div class="mb-3">
+                            <label for="upiId" class="form-label">UPI ID</label>
+                            <input type="text" class="form-control" id="upiId" placeholder="username@paytm">
+                        </div>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="setDefaultPayment">
+                        <label class="form-check-label" for="setDefaultPayment">
+                            Set as default payment method
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary">Save Payment Method</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="main-footer" class="bg-dark text-white py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4">Shop Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white-50">Rings</a></li>
+                        <li><a href="#" class="text-white-50">Necklaces</a></li>
+                        <li><a href="#" class="text-white-50">Bracelets</a></li>
+                        <li><a href="#" class="text-white-50">Earrings</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4">Customer Support</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="privacy.html" class="text-white-50">Privacy Policy</a></li>
+                        <li><a href="return.html" class="text-white-50">Returns</a></li>
+                        <li><a href="shipping.html" class="text-white-50">Shipping</a></li>
+                        <li><a href="terms.html" class="text-white-50">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4">About Brand</h5>
+                    <p class="text-white-50">Discover our story, commitment to craftsmanship, and ethical sourcing
+                        practices.</p>
+                    <a href="#" class="btn btn-sm btn-outline-light">Read More</a>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4">Contact Info</h5>
+                    <p class="text-white-50">123 Jewelry Street, Gemstone City, 12345</p>
+                    <p class="text-white-50">Email: info@brand.com</p>
+                    <p class="text-white-50">Phone: +1 (123) 456-7890</p>
+                    <div class="social-icons mt-3">
+                        <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4 border-white-50">
+            <div class="text-center text-white-50">
+                <small>&copy; 2023 Jewelry Brand. All rights reserved.</small>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="assets/js/script.js"></script>
+
+    <script>
+        // Account Page JavaScript
+        document.addEventListener('DOMContentLoaded', function () {
+            // Navigation functionality
+            const navItems = document.querySelectorAll('.account-nav .nav-item');
+            const contentPanels = document.querySelectorAll('.content-panel');
+
+            navItems.forEach(item => {
+                item.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    // Remove active class from all nav items and content panels
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    contentPanels.forEach(panel => panel.classList.remove('active'));
+
+                    // Add active class to clicked nav item
+                    this.classList.add('active');
+
+                    // Show corresponding content panel
+                    const section = this.getAttribute('data-section');
+                    const targetPanel = document.getElementById(section + '-panel');
+                    if (targetPanel) {
+                        targetPanel.classList.add('active');
+                    }
+
+                    // Close mobile sidebar if open
+                    const sidebar = document.getElementById('accountSidebar');
+                    if (sidebar.classList.contains('show')) {
+                        const bsCollapse = new bootstrap.Collapse(sidebar);
+                        bsCollapse.hide();
+                    }
+                });
+            });
+
+            // Payment type toggle in modal
+            const paymentRadios = document.querySelectorAll('input[name="paymentType"]');
+            const cardDetails = document.getElementById('cardDetails');
+            const upiDetails = document.getElementById('upiDetails');
+
+            paymentRadios.forEach(radio => {
+                radio.addEventListener('change', function () {
+                    if (this.value === 'card') {
+                        cardDetails.style.display = 'block';
+                        upiDetails.style.display = 'none';
+                    } else {
+                        cardDetails.style.display = 'none';
+                        upiDetails.style.display = 'block';
+                    }
+                });
+            });
+
+            // Remove wishlist item
+            const removeWishlistBtns = document.querySelectorAll('.remove-wishlist');
+            removeWishlistBtns.forEach(btn => {
+                btn.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    if (confirm('Remove this item from your wishlist?')) {
+                        this.closest('.col-lg-4').remove();
+                    }
+                });
+            });
+
+            // Form submissions (you can add actual form handling here)
+            const profileForm = document.querySelector('.profile-form');
+            if (profileForm) {
+                profileForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    alert('Profile updated successfully!');
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

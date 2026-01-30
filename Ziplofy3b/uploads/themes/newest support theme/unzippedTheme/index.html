@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORNATIVA - Timeless Luxury</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand mx-auto" href="index.html">ORNATIVA</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="shop.html">Collections</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="shop.html">New Arrivals</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="about.html">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contact.html">Contact</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-3">
+                    <a href="login.html" class="nav-icon active">
+                        <i class="fas fa-user"></i>
+                    </a>
+                    <a href="cart.html" class="nav-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span class="badge">2</span>
+                    </a>
+                    <a href="shop.html" class="btn btn-outline-gold">Shop Now</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section d-flex align-items-center justify-content-center text-center text-white">
+        <div class="overlay"></div>
+        <div class="container position-relative">
+            <h1 class="display-3 fw-bold">Timeless Luxury, Crafted for You</h1>
+            <p class="lead gold-accent">Discover our exquisite jewelry collection</p>
+            <a href="shop.html" class="btn btn-gold btn-lg mt-3">Explore Collection</a>
+        </div>
+    </section>
+
+    <!-- Categories Row -->
+    <section class="categories-row py-5">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <a href="shop.html?category=rings" class="category-item text-decoration-none text-dark">
+                        <img src="assets/images/rings.png" alt="Rings" class="img-fluid rounded-circle">
+                        <p class="mt-2">Rings</p>
+                    </a>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <a href="shop.html?category=necklaces" class="category-item text-decoration-none text-dark">
+                        <img src="assets/images/necklaces.png" alt="Necklaces" class="img-fluid rounded-circle">
+                        <p class="mt-2">Necklaces</p>
+                    </a>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <a href="shop.html?category=bracelets" class="category-item text-decoration-none text-dark">
+                        <img src="assets/images/bracelets.png" alt="Bracelets" class="img-fluid rounded-circle">
+                        <p class="mt-2">Bracelets</p>
+                    </a>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-4">
+                    <a href="shop.html?category=earrings" class="category-item text-decoration-none text-dark">
+                        <img src="assets/images/Earrings.png" alt="Earrings" class="img-fluid rounded-circle">
+                        <p class="mt-2">Earrings</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Collection -->
+    <section class="featured-collection py-5">
+        <div class="container">
+            <h2 class="ornativa-heading text-center mb-5">Featured Collection</h2>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <a href="shop.html" class="card bg-dark text-white featured-card large-card text-decoration-none">
+                        <img src="assets/images/featured1.jpg" class="card-img" alt="Statement Jewelry">
+                        <div class="card-img-overlay d-flex flex-column justify-content-center align-items-center">
+                            <h5 class="card-title">Statement Pieces</h5>
+                            <div class="btn btn-outline-light">Shop Now</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-md-6">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <a href="shop.html?category=rings"
+                                class="card bg-dark text-white featured-card small-card text-decoration-none">
+                                <img src="assets/images/featured2.jpg" class="card-img" alt="Rings Collection">
+                                <div
+                                    class="card-img-overlay d-flex flex-column justify-content-center align-items-center">
+                                    <h5 class="card-title">Rings</h5>
+                                    <div class="btn btn-outline-light">Shop Now</div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="shop.html?category=necklaces"
+                                class="card bg-dark text-white featured-card small-card text-decoration-none">
+                                <img src="assets/images/featured3.jpg" class="card-img" alt="Necklaces Collection">
+                                <div
+                                    class="card-img-overlay d-flex flex-column justify-content-center align-items-center">
+                                    <h5 class="card-title">Necklaces</h5>
+                                    <div class="btn btn-outline-light">Shop Now</div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="shop.html?category=bracelets"
+                                class="card bg-dark text-white featured-card small-card text-decoration-none">
+                                <img src="assets/images/featured4.jpg" class="card-img" alt="Bracelets Collection">
+                                <div
+                                    class="card-img-overlay d-flex flex-column justify-content-center align-items-center">
+                                    <h5 class="card-title">Bracelets</h5>
+                                    <div class="btn btn-outline-light">Shop Now</div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="shop.html?category=earrings"
+                                class="card bg-dark text-white featured-card small-card text-decoration-none">
+                                <img src="assets/images/featured5.jpg" class="card-img" alt="Earrings Collection">
+                                <div
+                                    class="card-img-overlay d-flex flex-column justify-content-center align-items-center">
+                                    <h5 class="card-title">Earrings</h5>
+                                    <div class="btn btn-outline-light">Shop Now</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Best Sellers Carousel -->
+    <section class="best-sellers py-5">
+        <div class="container">
+            <h2 class="ornativa-heading text-center mb-5">Best Sellers</h2>
+            <div id="bestSellersCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    <!-- Carousel Item 1 -->
+                    <div class="carousel-item active">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                                <div class="card product-card">
+                                    <img src="assets/images/product1.jpg" class="card-img-top"
+                                        alt="Diamond Solitaire Ring">
+                                    <div class="card-body text-center">
+                                        <h5 class="product-name">Diamond Solitaire Ring</h5>
+                                        <p class="product-price">₹45,000</p>
+                                        <div class="card-overlay">
+                                            <button class="btn gold-bg-btn add-to-bag-btn" data-product-id="1">Add to
+                                                Bag</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                                <div class="card product-card">
+                                    <img src="assets/images/product2.jpg" class="card-img-top"
+                                        alt="Gold Pendant Necklace">
+                                    <div class="card-body text-center">
+                                        <h5 class="product-name">Gold Pendant Necklace</h5>
+                                        <p class="product-price">₹28,000</p>
+                                        <div class="card-overlay">
+                                            <button class="btn gold-bg-btn add-to-bag-btn" data-product-id="2">Add to
+                                                Bag</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                                <div class="card product-card">
+                                    <img src="assets/images/product3.jpg" class="card-img-top"
+                                        alt="Emerald Stud Earrings">
+                                    <div class="card-body text-center">
+                                        <h5 class="product-name">Emerald Stud Earrings</h5>
+                                        <p class="product-price">₹12,000</p>
+                                        <div class="card-overlay">
+                                            <button class="btn gold-bg-btn add-to-bag-btn" data-product-id="3">Add to
+                                                Bag</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                                <div class="card product-card">
+                                    <img src="assets/images/product4.jpg" class="card-img-top"
+                                        alt="Silver Charm Bracelet">
+                                    <div class="card-body text-center">
+                                        <h5 class="product-name">Silver Charm Bracelet</h5>
+                                        <p class="product-price">₹60,000</p>
+                                        <div class="card-overlay">
+                                            <button class="btn gold-bg-btn add-to-bag-btn" data-product-id="4">Add to
+                                                Bag</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Carousel Item 2 -->
+                    <div class="carousel-item">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                                <div class="card product-card">
+                                    <img src="assets/images/product5.jpg" class="card-img-top"
+                                        alt="Pearl Drop Earrings">
+                                    <div class="card-body text-center">
+                                        <h5 class="product-name">Pearl Drop Earrings</h5>
+                                        <p class="product-price">₹35,000</p>
+                                        <div class="card-overlay">
+                                            <button class="btn gold-bg-btn add-to-bag-btn" data-product-id="5">Add to
+                                                Bag</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                                <div class="card product-card">
+                                    <img src="assets/images/product6.jpg" class="card-img-top"
+                                        alt="Platinum Wedding Band">
+                                    <div class="card-body text-center">
+                                        <h5 class="product-name">Platinum Wedding Band</h5>
+                                        <p class="product-price">₹52,000</p>
+                                        <div class="card-overlay">
+                                            <button class="btn gold-bg-btn add-to-bag-btn" data-product-id="6">Add to
+                                                Bag</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                                <div class="card product-card">
+                                    <img src="assets/images/product7.jpg" class="card-img-top" alt="Rose Gold Bangle">
+                                    <div class="card-body text-center">
+                                        <h5 class="product-name">Rose Gold Bangle</h5>
+                                        <p class="product-price">₹75,000</p>
+                                        <div class="card-overlay">
+                                            <button class="btn gold-bg-btn add-to-bag-btn" data-product-id="7">Add to
+                                                Bag</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                                <div class="card product-card">
+                                    <img src="assets/images/product8.jpg" class="card-img-top" alt="Sapphire Pendant">
+                                    <div class="card-body text-center">
+                                        <h5 class="product-name">Sapphire Pendant</h5>
+                                        <p class="product-price">₹22,000</p>
+                                        <div class="card-overlay">
+                                            <button class="btn gold-bg-btn add-to-bag-btn" data-product-id="8">Add to
+                                                Bag</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#bestSellersCarousel"
+                    data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#bestSellersCarousel"
+                    data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Preview -->
+    <section id="about-us" class="about-preview py-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <img src="assets/images/artisan.jpg" alt="Artisan at work" class="img-fluid">
+                </div>
+                <div class="col-md-6">
+                    <h2 class="ornativa-heading display-4 mb-4">Our Story</h2>
+                    <p class="lead">At ORNATIVA, we believe in crafting more than just jewelry; we craft legacies. Each
+                        piece tells a tale of passion, precision, and timeless elegance, brought to life by skilled
+                        artisans.</p>
+                    <a href="#" class="btn btn-gold mt-3">Know More</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter CTA -->
+    <section class="newsletter-cta py-5">
+        <div class="container text-center">
+            <h2 class="ornativa-heading mb-3">Stay Connected</h2>
+            <p class="lead mb-4">Subscribe for exclusive offers & new arrivals</p>
+            <form class="newsletter-form mx-auto" style="max-width: 500px;">
+                <div class="mb-3">
+                    <input type="text" class="form-control newsletter-input" placeholder="Your Name" required>
+                </div>
+                <div class="mb-3">
+                    <input type="email" class="form-control newsletter-input" placeholder="Your Email" required>
+                </div>
+                <button type="submit" class="btn gold-bg-btn">Subscribe</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer py-5 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h4 class="ornativa-logo mb-3">ORNATIVA</h4>
+                    <p class="text-muted">Timeless Luxury, Crafted for You.</p>
+                </div>
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h5 class="mb-3">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="shop.html" class="text-muted text-decoration-none">Shop</a></li>
+                        <li><a href="about.html" class="text-muted text-decoration-none">About</a></li>
+                        <li><a href="contact.html" class="text-muted text-decoration-none">Contact</a></li>
+                        <li><a href="#policies" class="text-muted text-decoration-none">Faq</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h5 class="mb-3">Policies</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="privacy.html" class="text-muted text-decoration-none">Privacy Policy</a></li>
+                        <li><a href="return.html" class="text-muted text-decoration-none">Return Policy</a></li>
+                        <li><a href="shipping.html" class="text-muted text-decoration-none">Shipping Policy</a></li>
+                        <li><a href="t&c.html" class="text-muted text-decoration-none">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5 class="mb-3">Connect With Us</h5>
+                    <div class="social-links">
+                        <a href="#instagram" class="text-muted me-3"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#facebook" class="text-muted me-3"><i class="fab fa-facebook-f fa-lg"></i></a>
+                        <a href="#whatsapp" class="text-muted"><i class="fab fa-whatsapp fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="text-center text-muted small">
+                © 2025 ORNATIVA. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS and Custom JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <script src="assets/js/script.js"></script>
+</body>
+
+</html>

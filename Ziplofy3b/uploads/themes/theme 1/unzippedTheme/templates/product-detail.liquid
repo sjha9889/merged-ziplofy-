@@ -1,0 +1,294 @@
+<div class="product-content">
+    <div class="container">
+        <!-- Product Hero Section -->
+        <div class="product-hero">
+            <div class="product-gallery">
+                <div class="main-image">
+                    <img src="{{ product.primaryImage }}" alt="{{ product.title }}" id="productMainImage">
+                    {% if product.badge %}
+                    <div class="image-badge">
+                        <span class="badge-text">{{ product.badge }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="thumbnail-images">
+                    {% for image in product.images %}
+                    <img src="{{ image }}" data-large="{{ image }}" alt="{{ product.title }} thumbnail {{ forloop.index }}" class="thumbnail {% if forloop.first %}active{% endif %}">
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="product-info-section">
+                <div class="product-breadcrumb">
+                    <a href="index.html">Home</a> / <a href="shop.html">Shop</a> / <span>{{ product.title }}</span>
+                </div>
+
+                <h1 class="product-title" id="productTitle">
+                    {{ product.title }}
+                    <button class="btn-wishlist" id="wishlistBtn">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </h1>
+
+                <div class="product-rating">
+                    <div class="stars">
+                        {% for star in product.ratingStars %}
+                            {% if star == 'full' %}
+                                <i class="fas fa-star"></i>
+                            {% elsif star == 'half' %}
+                                <i class="fas fa-star-half-alt"></i>
+                            {% else %}
+                                <i class="far fa-star"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="rating-text">{{ product.ratingText }}</span>
+                </div>
+
+                <div class="product-price">
+                    <span class="current-price" id="productPrice">{{ product.priceFormatted }}</span>
+                    {% if product.originalPriceFormatted %}
+                        <span class="original-price">{{ product.originalPriceFormatted }}</span>
+                    {% else %}
+                        <span class="original-price" style="display:none;"></span>
+                    {% endif %}
+                    {% if product.savingsFormatted %}
+                        <span class="discount">{{ product.savingsFormatted }}</span>
+                    {% else %}
+                        <span class="discount" style="display:none;"></span>
+                    {% endif %}
+                </div>
+
+                <div class="product-description">
+                    <p>{{ product.description }}</p>
+                </div>
+
+                <div class="product-options">
+                    {% if product.storageOptions.size > 0 %}
+                    <div class="option-group">
+                        <label>Storage:</label>
+                        <div class="option-buttons">
+                            {% for storage in product.storageOptions %}
+                            <button class="option-btn {% if forloop.first %}active{% endif %}" data-value="{{ storage }}">{{ storage }}</button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if product.colors.size > 0 %}
+                    <div class="option-group">
+                        <label>Color:</label>
+                        <div class="color-options">
+                            {% for color in product.colors %}
+                            <button class="color-btn {% if forloop.first %}active{% endif %}" data-color="{{ color.name }}" title="{{ color.name }}" style="background: {{ color.hex }};"></button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="product-actions">
+                    <div class="quantity-cart-row">
+                        <div class="quantity-selector">
+                            <button class="qty-btn minus">-</button>
+                            <input type="number" value="1" min="1" max="10" class="qty-input">
+                            <button class="qty-btn plus">+</button>
+                        </div>
+
+                        <button class="btn-add-cart" id="addToCartBtn">
+                            <i class="fas fa-shopping-cart"></i>
+                            Add to Cart
+                        </button>
+                    </div>
+
+                    <button class="btn-buy-now" id="buyNowBtn">
+                        <i class="fas fa-bolt"></i>
+                        Buy Now
+                    </button>
+                </div>
+
+                <div class="product-features">
+                    <div class="feature-item">
+                        <i class="fas fa-shipping-fast"></i>
+                        <span>Free Shipping</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-undo"></i>
+                        <span>30-Day Returns</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>1 Year Warranty</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-headset"></i>
+                        <span>24/7 Support</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Details Tabs -->
+        <div class="product-tabs">
+            <div class="tab-navigation">
+                <button class="tab-btn active" data-tab="description">Description</button>
+                <button class="tab-btn" data-tab="specifications">Specifications</button>
+                <button class="tab-btn" data-tab="reviews">Reviews</button>
+                <button class="tab-btn" data-tab="shipping">Shipping</button>
+            </div>
+
+            <div class="tab-content">
+                <div class="tab-panel active" id="description">
+                    <h3>Product Description</h3>
+                    <p>{{ product.description }}</p>
+
+                    {% if product.features.size > 0 %}
+                    <h4>Key Features:</h4>
+                    <ul>
+                        {% for feature in product.features %}
+                        <li>{{ feature }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+
+                <div class="tab-panel" id="specifications">
+                    <h3>Technical Specifications</h3>
+                    {% if product.specifications.size > 0 %}
+                    <div class="specs-grid">
+                        {% for spec in product.specifications %}
+                        <div class="spec-item">
+                            <span class="spec-label">{{ spec.label }}</span>
+                            <span class="spec-value">{{ spec.value }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="no-specs">Specifications information will be updated soon.</p>
+                    {% endif %}
+                </div>
+
+                <div class="tab-panel" id="reviews">
+                    <h3>Customer Reviews</h3>
+                    <div class="reviews-summary">
+                        <div class="rating-overview">
+                            <div class="overall-rating">{{ product.ratingValue }}</div>
+                            <div class="stars-large">
+                                {% for star in product.ratingStars %}
+                                    {% if star == 'full' %}
+                                        <i class="fas fa-star"></i>
+                                    {% elsif star == 'half' %}
+                                        <i class="fas fa-star-half-alt"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <p>Based on {{ product.reviewCount }} reviews</p>
+                        </div>
+                        <div class="review-actions">
+                            <button class="btn-write-review">
+                                <i class="fas fa-pen"></i>
+                                Write a Review
+                            </button>
+                            <button class="btn-sort-reviews">
+                                <i class="fas fa-sort"></i>
+                                Sort by Latest
+                            </button>
+                        </div>
+                    </div>
+
+                    {% for review in product.reviews %}
+                    <div class="review-item">
+                        <div class="review-header">
+                            <div class="reviewer-info">
+                                <h4>{{ review.name }}</h4>
+                                <div class="review-rating">
+                                    {% for star in review.ratingStars %}
+                                        {% if star == 'full' %}
+                                            <i class="fas fa-star"></i>
+                                        {% elsif star == 'half' %}
+                                            <i class="fas fa-star-half-alt"></i>
+                                        {% else %}
+                                            <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <span class="review-date">{{ review.date }}</span>
+                        </div>
+                        <p>{{ review.text }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="tab-panel" id="shipping">
+                    <h3>Shipping Information</h3>
+                    <div class="shipping-options">
+                        {% for option in product.shippingOptions %}
+                        <div class="shipping-option">
+                            <i class="{{ option.icon }}"></i>
+                            <div class="shipping-details">
+                                <h4>{{ option.title }}</h4>
+                                <p>{{ option.description }}</p>
+                                <span class="shipping-time">{{ option.time }}</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if product.suggestedProducts.size > 0 %}
+        <!-- Suggested Products Section -->
+        <div class="suggested-products-section">
+            <div class="suggested-header">
+                <h2 class="suggested-title">You Might Also Like</h2>
+                <p class="suggested-subtitle">Discover more amazing products</p>
+            </div>
+
+            <div class="suggested-products-grid">
+                {% for suggestion in product.suggestedProducts %}
+                <div class="suggested-item" data-product-id="{{ suggestion.id }}">
+                    <div class="suggested-image-container">
+                        <img src="{{ suggestion.image }}" alt="{{ suggestion.title }}" class="suggested-image">
+                        {% if suggestion.badge %}
+                        <div class="suggested-badge">{{ suggestion.badge }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="suggested-content">
+                        <h3 class="suggested-name">{{ suggestion.title }}</h3>
+                        <div class="suggested-rating">
+                            <div class="suggested-stars">
+                                {% for star in suggestion.ratingStars %}
+                                    {% if star == 'full' %}
+                                        <i class="fas fa-star"></i>
+                                    {% elsif star == 'half' %}
+                                        <i class="fas fa-star-half-alt"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <span class="suggested-rating-text">({{ suggestion.ratingText }})</span>
+                        </div>
+                        <div class="suggested-price-container">
+                            <span class="suggested-price">{{ suggestion.priceFormatted }}</span>
+                            {% if suggestion.originalPriceFormatted %}
+                            <span class="suggested-original-price">{{ suggestion.originalPriceFormatted }}</span>
+                            {% endif %}
+                        </div>
+                        <button class="suggested-action-btn" data-product-id="{{ suggestion.id }}" data-product-name="{{ suggestion.title }}">
+                            <i class="fas fa-shopping-cart"></i>
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+

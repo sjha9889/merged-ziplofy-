@@ -1,0 +1,40 @@
+{% for product in products %}
+<div class="modern-product-card" data-product-id="{{ product.id }}">
+  <div class="product-image">
+    <img src="{{ product.image }}" alt="{{ product.name | default: product.title | default: 'Product' }}" loading="lazy">
+    <div class="product-badge">New</div>
+    <div class="product-actions">
+      <button class="wishlist-btn" data-category-wishlist-id="{{ product.id }}">
+        <i class="fas fa-heart"></i>
+      </button>
+      <button class="quick-view-btn" data-category-quickview-id="{{ product.id }}">
+        <i class="fas fa-eye"></i>
+      </button>
+    </div>
+  </div>
+  <div class="product-content">
+    <div class="product-brand">{{ product.brand }}</div>
+    <h3 class="product-name">{{ product.name | default: product.title | default: 'Product' }}</h3>
+    <div class="product-rating">
+      {% assign full_stars = product.rating | floor %}
+      {% assign empty_stars = 5 | minus: full_stars %}
+      {% for i in (1..full_stars) %}<i class="fas fa-star"></i>{% endfor %}
+      {% for i in (1..empty_stars) %}<i class="far fa-star"></i>{% endfor %}
+      <span class="rating-text">({{ product.rating }})</span>
+    </div>
+    <div class="product-features">
+      {% for feature in product.features limit:2 %}
+      <span class="feature-tag">{{ feature }}</span>
+      {% endfor %}
+    </div>
+    <div class="product-price">
+      <span class="current-price">₹{{ product.price | plus: 0 | round }}</span>
+      <span class="original-price">₹{{ product.price | plus: 0 | times: 1.2 | round }}</span>
+    </div>
+    <button class="add-to-cart-btn" data-category-add-cart-id="{{ product.id }}">
+      <i class="fas fa-shopping-cart"></i>
+      <span>Add to Cart</span>
+    </button>
+  </div>
+</div>
+{% endfor %}

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ORNATIVA</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body class="login-body">
+
+    <!-- Login Page Container -->
+    <div class="login-container">
+
+        <!-- Left Branding Section (Desktop Only) -->
+        <div class="login-branding">
+            <div class="branding-overlay">
+                <div class="branding-content">
+                    <div class="logo-section">
+                        <h1 class="brand-logo">ORNATIVA</h1>
+                        <p class="brand-tagline">Timeless Luxury, Crafted for You</p>
+                    </div>
+                    <div class="branding-features">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-gem"></i>
+                            </div>
+                            <div class="feature-text">
+                                <h6>Premium Quality</h6>
+                                <p>Handcrafted with finest materials</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="feature-text">
+                                <h6>Lifetime Warranty</h6>
+                                <p>Guaranteed craftsmanship</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-shipping-fast"></i>
+                            </div>
+                            <div class="feature-text">
+                                <h6>Free Shipping</h6>
+                                <p>On orders above ₹25,000</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="branding-footer">
+                        <p>Join thousands of satisfied customers worldwide</p>
+                        <div class="customer-count">
+                            <span class="count-number">50,000+</span>
+                            <span class="count-label">Happy Customers</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Form Section -->
+        <div class="login-form-section">
+            <div class="form-container">
+
+                <!-- Mobile Logo (Mobile Only) -->
+                <div class="mobile-logo d-lg-none">
+                    <h2 class="mobile-brand">ORNATIVA</h2>
+                    <p class="mobile-tagline">Timeless Luxury, Crafted for You</p>
+                </div>
+
+                <!-- Form Card -->
+                <div class="login-card">
+
+                    <!-- Tab Navigation -->
+                    <ul class="nav nav-tabs login-tabs" id="loginTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="login-tab" data-bs-toggle="tab"
+                                data-bs-target="#login-pane" type="button" role="tab" aria-controls="login-pane"
+                                aria-selected="true">Login</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="signup-tab" data-bs-toggle="tab" data-bs-target="#signup-pane"
+                                type="button" role="tab" aria-controls="signup-pane" aria-selected="false">Sign
+                                Up</button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content" id="loginTabContent">
+
+                        <!-- Login Form -->
+                        <div class="tab-pane fade show active" id="login-pane" role="tabpanel"
+                            aria-labelledby="login-tab">
+                            <div class="form-header">
+                                <h3 class="form-title">Welcome Back</h3>
+                                <p class="form-subtitle">Sign in to your account to continue shopping</p>
+                            </div>
+                            <form class="login-form">
+                                <div class="mb-3">
+                                    <label for="loginEmail" class="form-label">Email or Mobile Number</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-envelope"></i>
+                                        </span>
+                                        <input type="text" class="form-control" id="loginEmail"
+                                            placeholder="Enter your email or mobile number" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="loginPassword" class="form-label">Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
+                                        <input type="password" class="form-control" id="loginPassword"
+                                            placeholder="Enter your password" required>
+                                        <span class="input-group-text password-toggle"
+                                            onclick="togglePassword('loginPassword')">
+                                            <i class="fas fa-eye"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="form-options">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="rememberMe">
+                                        <label class="form-check-label" for="rememberMe">
+                                            Remember me
+                                        </label>
+                                    </div>
+                                    <a href="#" class="forgot-password">Forgot Password?</a>
+                                </div>
+                                <button type="submit" class="btn btn-gold w-100 login-btn">
+                                    <i class="fas fa-sign-in-alt me-2"></i>
+                                    Login to Account
+                                </button>
+                                <div class="form-footer">
+                                    <p>Don't have an account?
+                                        <a href="#" class="signup-link" onclick="switchToSignup()">Sign Up</a>
+                                    </p>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Sign Up Form -->
+                        <div class="tab-pane fade" id="signup-pane" role="tabpanel" aria-labelledby="signup-tab">
+                            <div class="form-header">
+                                <h3 class="form-title">Create Account</h3>
+                                <p class="form-subtitle">Join ORNATIVA and discover exquisite jewelry</p>
+                            </div>
+                            <form class="signup-form">
+                                <div class="mb-3">
+                                    <label for="signupName" class="form-label">Full Name</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-user"></i>
+                                        </span>
+                                        <input type="text" class="form-control" id="signupName"
+                                            placeholder="Enter your full name" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="signupEmail" class="form-label">Email Address</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-envelope"></i>
+                                        </span>
+                                        <input type="email" class="form-control" id="signupEmail"
+                                            placeholder="Enter your email address" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="signupMobile" class="form-label">Mobile Number</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-phone"></i>
+                                        </span>
+                                        <input type="tel" class="form-control" id="signupMobile"
+                                            placeholder="Enter your mobile number" required>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="signupPassword" class="form-label">Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
+                                        <input type="password" class="form-control" id="signupPassword"
+                                            placeholder="Create a strong password" required>
+                                        <span class="input-group-text password-toggle"
+                                            onclick="togglePassword('signupPassword')">
+                                            <i class="fas fa-eye"></i>
+                                        </span>
+                                    </div>
+                                    <div class="password-strength">
+                                        <div class="strength-meter">
+                                            <div class="strength-bar"></div>
+                                        </div>
+                                        <small class="strength-text">Password strength: <span
+                                                id="strengthLabel">Weak</span></small>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">
+                                            <i class="fas fa-lock"></i>
+                                        </span>
+                                        <input type="password" class="form-control" id="confirmPassword"
+                                            placeholder="Confirm your password" required>
+                                        <span class="input-group-text password-toggle"
+                                            onclick="togglePassword('confirmPassword')">
+                                            <i class="fas fa-eye"></i>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                                    <label class="form-check-label" for="agreeTerms">
+                                        I agree to the <a href="t&c.html" target="_blank">Terms & Conditions</a>
+                                        and <a href="privacy.html" target="_blank">Privacy Policy</a>
+                                    </label>
+                                </div>
+                                <div class="form-check mb-4">
+                                    <input class="form-check-input" type="checkbox" id="newsletter">
+                                    <label class="form-check-label" for="newsletter">
+                                        Subscribe to exclusive offers and updates
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-gold w-100 signup-btn">
+                                    <i class="fas fa-user-plus me-2"></i>
+                                    Create Account
+                                </button>
+                                <div class="form-footer">
+                                    <p>Already have an account?
+                                        <a href="#" class="login-link" onclick="switchToLogin()">Login</a>
+                                    </p>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Social Login Section -->
+                    <div class="social-login">
+                        <div class="divider">
+                            <span class="divider-text">Or Continue With</span>
+                        </div>
+                        <div class="social-buttons">
+                            <button type="button" class="btn btn-social btn-google">
+                                <i class="fab fa-google"></i>
+                                <span>Google</span>
+                            </button>
+                            <button type="button" class="btn btn-social btn-facebook">
+                                <i class="fab fa-facebook-f"></i>
+                                <span>Facebook</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Additional Links -->
+                <div class="additional-links">
+                    <a href="index.html" class="back-home">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Back to Home
+                    </a>
+                    <div class="help-links">
+                        <a href="contact.html">Need Help?</a>
+                        <span>•</span>
+                        <a href="privacy.html">Privacy Policy</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+
+    <!-- Login Page JavaScript -->
+    <script>
+        // Toggle password visibility
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            const toggle = field.nextElementSibling.querySelector('i');
+
+            if (field.type === 'password') {
+                field.type = 'text';
+                toggle.classList.remove('fa-eye');
+                toggle.classList.add('fa-eye-slash');
+            } else {
+                field.type = 'password';
+                toggle.classList.remove('fa-eye-slash');
+                toggle.classList.add('fa-eye');
+            }
+        }
+
+        // Switch to signup tab
+        function switchToSignup() {
+            const signupTab = document.getElementById('signup-tab');
+            const tab = new bootstrap.Tab(signupTab);
+            tab.show();
+        }
+
+        // Switch to login tab
+        function switchToLogin() {
+            const loginTab = document.getElementById('login-tab');
+            const tab = new bootstrap.Tab(loginTab);
+            tab.show();
+        }
+
+        // Password strength checker
+        document.getElementById('signupPassword').addEventListener('input', function () {
+            const password = this.value;
+            const strengthBar = document.querySelector('.strength-bar');
+            const strengthLabel = document.getElementById('strengthLabel');
+
+            let strength = 0;
+            let label = 'Weak';
+            let color = '#dc3545';
+
+            // Check password criteria
+            if (password.length >= 8) strength++;
+            if (/[a-z]/.test(password)) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+            // Set strength level
+            if (strength >= 4) {
+                label = 'Strong';
+                color = '#28a745';
+            } else if (strength >= 3) {
+                label = 'Medium';
+                color = '#ffc107';
+            } else if (strength >= 1) {
+                label = 'Weak';
+                color = '#fd7e14';
+            }
+
+            // Update UI
+            strengthBar.style.width = (strength * 20) + '%';
+            strengthBar.style.backgroundColor = color;
+            strengthLabel.textContent = label;
+            strengthLabel.style.color = color;
+        });
+
+        // Form validation
+        document.querySelector('.login-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Basic validation
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            if (!email || !password) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            // Here you would typically send the data to your backend
+            // alert('Login functionality would be implemented here.');
+            window.location.href = "account.html";
+        });
+
+        document.querySelector('.signup-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Basic validation
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const mobile = document.getElementById('signupMobile').value;
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const agreeTerms = document.getElementById('agreeTerms').checked;
+
+            if (!name || !email || !mobile || !password || !confirmPassword) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                alert('Passwords do not match.');
+                return;
+            }
+
+            if (!agreeTerms) {
+                alert('Please agree to the Terms & Conditions.');
+                return;
+            }
+
+            // Here you would typically send the data to your backend
+            // alert('Sign up functionality would be implemented here.');
+            window.location.href = "account.html";
+        });
+
+        // Social login handlers
+        document.querySelector('.btn-google').addEventListener('click', function () {
+            // alert('Google OAuth integration would be implemented here.');
+            window.location.href = "account.html";
+        });
+
+        document.querySelector('.btn-facebook').addEventListener('click', function () {
+            // alert('Facebook OAuth integration would be implemented here.');
+            window.location.href = "account.html";
+        });
+    </script>
+</body>
+
+</html>

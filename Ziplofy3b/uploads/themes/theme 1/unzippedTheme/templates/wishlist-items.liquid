@@ -1,0 +1,36 @@
+{% for item in items %}
+<div class="wishlist-item" data-product-id="{{ item.id }}">
+  <div class="wishlist-item-header">
+    <div class="wishlist-item-image">
+      <img src="{{ item.image }}" alt="{{ item.name | default: item.title | default: 'Product' }}" loading="lazy">
+    </div>
+    <button class="wishlist-item-remove" data-wishlist-remove-id="{{ item.id }}" title="Remove from wishlist">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  <div class="wishlist-item-content">
+    <h3>{{ item.name | default: item.title | default: 'Product' }}</h3>
+    <div class="wishlist-item-category">{{ item.category }}</div>
+    <div class="wishlist-item-rating">
+      <div class="stars">
+        {% assign full_stars = item.rating | floor %}
+        {% assign empty_stars = 5 | minus: full_stars %}
+        {% for i in (1..full_stars) %}<i class="fas fa-star"></i>{% endfor %}
+        {% for i in (1..empty_stars) %}<i class="far fa-star"></i>{% endfor %}
+      </div>
+      <span class="rating-text">({{ item.rating }})</span>
+    </div>
+    <div class="wishlist-item-price">₹{{ item.price | plus: 0 | round }}</div>
+    <div class="wishlist-item-actions">
+      <button class="wishlist-item-btn secondary" data-wishlist-view-id="{{ item.id }}">
+        <i class="fas fa-eye"></i>
+        <span>View</span>
+      </button>
+      <button class="wishlist-item-btn primary" data-wishlist-add-cart-id="{{ item.id }}">
+        <i class="fas fa-shopping-cart"></i>
+        <span>Add to Cart</span>
+      </button>
+    </div>
+  </div>
+</div>
+{% endfor %}

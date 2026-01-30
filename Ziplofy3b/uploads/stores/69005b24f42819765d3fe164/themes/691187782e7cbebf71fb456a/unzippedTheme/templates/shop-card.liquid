@@ -1,0 +1,39 @@
+<div class="shop-card">
+  <div class="shop-card-img">
+    <img src="{{ product.image }}" alt="{{ product.title }}">
+    {% if product.discount %}
+    <span class="shop-card-badge">{{ product.discount }}% OFF</span>
+    {% endif %}
+  </div>
+  <div class="shop-card-body">
+    <h3 class="shop-card-name">
+      <a href="product-detail.html?id={{ product.id }}" class="shop-card-name-link">{{ product.title }}</a>
+    </h3>
+    <div class="shop-card-rating">
+      {% assign rating = product.rating | default: 5 %}
+      {% if rating >= 1 %}★{% endif %}
+      {% if rating >= 2 %}★{% endif %}
+      {% if rating >= 3 %}★{% endif %}
+      {% if rating >= 4 %}★{% endif %}
+      {% if rating >= 5 %}★{% endif %}
+      {% if rating < 5 %}☆{% endif %}
+      {% if rating < 4 %}☆{% endif %}
+      {% if rating < 3 %}☆{% endif %}
+      {% if rating < 2 %}☆{% endif %}
+      {% if rating < 1 %}☆{% endif %}
+      <span style="color:#9aa4b2">({{ product.reviewCount | default: 0 }})</span>
+    </div>
+    <p class="shop-card-desc">{{ product.shortDescription | default: product.description }}</p>
+    <div class="shop-card-price">
+      <span class="now">₹{{ product.price }}</span>
+      {% if product.originalPrice %}
+      <span class="was">₹{{ product.originalPrice }}</span>
+      {% endif %}
+    </div>
+    <div class="shop-card-actions">
+      <button class="btn-outline" data-id="{{ product.id }}">Add to Cart</button>
+      <button class="btn-solid" data-id="{{ product.id }}">Buy Now</button>
+    </div>
+  </div>
+</div>
+

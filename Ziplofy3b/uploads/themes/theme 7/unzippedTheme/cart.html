@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - CosmicStore</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="assets/css/style.css" rel="stylesheet">
+    <script src="https://unpkg.com/liquidjs/dist/liquid.browser.umd.js"></script>
+    <script src="constants/products.js"></script>
+</head>
+<body>
+    <canvas id="starfield"></canvas>
+
+    <!-- Header -->
+    <header class="main-header" id="navbar">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <a href="index.html" class="logo">
+                        <div class="logo-icon">
+                            <svg width="45" height="45" viewBox="0 0 45 45" fill="none">
+                                <circle cx="22.5" cy="22.5" r="20" stroke="url(#logoGradient1)" stroke-width="2.5"/>
+                                <path d="M15 22.5L21 28.5L30 15" stroke="url(#logoGradient2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                <defs>
+                                    <linearGradient id="logoGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#8B5CF6"/>
+                                        <stop offset="100%" style="stop-color:#F59E0B"/>
+                                    </linearGradient>
+                                    <linearGradient id="logoGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#F59E0B"/>
+                                        <stop offset="100%" style="stop-color:#EC4899"/>
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <div class="logo-text">
+                            <h1>ELECTRO</h1>
+                            <p>Tech & Electronics</p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="search-section">
+                    <div class="search-box">
+                        <input type="text" placeholder="Search for products, brands and more..." class="search-input">
+                        <button class="search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <a href="wishlist.html" class="action-item">
+                        <div class="action-icon">
+                            <i class="fas fa-heart"></i>
+                            <span class="badge wishlist-count">0</span>
+                        </div>
+                        <span class="action-text">Wishlist</span>
+                    </a>
+                    <a href="cart.html" class="action-item">
+                        <div class="action-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="badge cart-count">0</span>
+                        </div>
+                        <span class="action-text">Cart</span>
+                    </a>
+                    <a href="account.html" class="action-item">
+                        <div class="action-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span class="action-text">Account</span>
+                    </a>
+                </div>
+
+                <div class="mobile-menu-toggle" id="mobile-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+
+            <nav class="main-nav" id="nav-menu">
+                <ul class="nav-list">
+                    <li><a href="index.html" class="nav-link">Home</a></li>
+                    <li><a href="products.html" class="nav-link">Products</a></li>
+                    <li><a href="categories.html" class="nav-link">Categories</a></li>
+                    <li><a href="about.html" class="nav-link">About</a></li>
+                    <li><a href="contact.html" class="nav-link">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Cart Hero -->
+    <section class="cart-hero">
+        <div class="container">
+            <div class="cart-hero__content">
+                <p class="cart-hero__eyebrow">Cosmic Commerce</p>
+                <h1 class="cart-hero__title">Your bag, ready for launch</h1>
+                <p class="cart-hero__subtitle">Tune quantities, remove items, and head to checkout in one sleek view.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cart Experience -->
+    <section class="cart-stage">
+        <div class="container">
+            <div class="cart-shell">
+                <div class="cart-shell__main">
+                    <div class="cart-panel">
+                        <div class="cart-panel__head">
+                            <div>
+                                <p class="cart-panel__eyebrow">Review &amp; adjust</p>
+                                <h2>Bag items</h2>
+                                <span class="cart-panel__count" id="cart-count-label">0 items</span>
+                            </div>
+                            <a href="products.html" class="cart-panel__link">Continue shopping</a>
+                        </div>
+                        <div class="cart-empty-state" id="cart-empty-state" hidden>
+                            <p>Your bag is empty. Add products to see them here.</p>
+                            <a href="products.html" class="cta-btn primary">Browse products</a>
+                        </div>
+                        <div class="cart-items-list" id="cart-items-list">
+                            <p class="cart-loading">Retrieving your items...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cart-shell__aside">
+                    <div class="cart-summary-card">
+                        <div class="cart-summary-card__head">
+                            <p>Order summary</p>
+                        </div>
+                        <div class="cart-summary-card__body">
+                            <div class="summary-row">
+                                <span>Subtotal</span>
+                                <strong id="summary-subtotal">₹0</strong>
+                            </div>
+                            <div class="summary-row">
+                                <span>Shipping</span>
+                                <strong id="summary-shipping">FREE</strong>
+                            </div>
+                            <div class="summary-row">
+                                <span>Tax &amp; fees</span>
+                                <strong id="summary-tax">₹0</strong>
+                            </div>
+                            <div class="summary-total-row">
+                                <span>Total</span>
+                                <strong id="summary-total">₹0</strong>
+                            </div>
+                            <button class="cart-checkout-btn" id="checkout-btn">Proceed to checkout</button>
+                            <div class="summary-assurances">
+                                <span><i class="fas fa-shield-alt"></i> Secure payment</span>
+                                <span><i class="fas fa-sync"></i> Easy returns</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cart-suggestions" id="cart-suggestions">
+                        <div class="cart-suggestions__head">
+                            <p class="cart-panel__eyebrow">Inspired picks</p>
+                            <h3>Recommended add-ons</h3>
+                        </div>
+                        <div id="cart-suggestions-list">
+                            <p class="cart-loading">Scanning the catalog...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-widgets">
+            <div class="container">
+                <div class="footer-grid">
+                    <!-- Shop Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Shop</h4>
+                        <ul class="footer-links">
+                            <li><a href="categories.html?cat=electronics">Electronics</a></li>
+                            <li><a href="categories.html?cat=fashion">Fashion</a></li>
+                            <li><a href="categories.html?cat=home">Home & Garden</a></li>
+                            <li><a href="categories.html?cat=sports">Sports & Fitness</a></li>
+                            <li><a href="categories.html?cat=beauty">Beauty & Health</a></li>
+                            <li><a href="categories.html?cat=books">Books & Media</a></li>
+                            <li><a href="categories.html?cat=toys">Toys & Games</a></li>
+                            <li><a href="categories.html?cat=automotive">Automotive</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Help Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Help</h4>
+                        <ul class="footer-links">
+                            <li><a href="contact.html">Track Your Order</a></li>
+                            <li><a href="contact.html">Warranty & Support</a></li>
+                            <li><a href="contact.html">Return Policy</a></li>
+                            <li><a href="contact.html">Service Centers</a></li>
+                            <li><a href="contact.html">Bulk Orders</a></li>
+                            <li><a href="about.html">Why Buy Direct</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Company Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Company</h4>
+                        <ul class="footer-links">
+                            <li><a href="about.html">About CosmicStore</a></li>
+                            <li><a href="contact.html">News</a></li>
+                            <li><a href="contact.html">Read Our Blog</a></li>
+                            <li><a href="contact.html">Careers</a></li>
+                            <li><a href="contact.html">Security</a></li>
+                            <li><a href="contact.html">Investor Relations</a></li>
+                            <li><a href="contact.html">Social Responsibility</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Company Info Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Company Info</h4>
+                        <ul class="footer-links">
+                            <li><a href="about.html">About CosmicStore</a></li>
+                            <li><a href="about.html">Our Mission</a></li>
+                            <li><a href="about.html">Leadership Team</a></li>
+                            <li><a href="contact.html">Investor Relations</a></li>
+                            <li><a href="contact.html">Press Releases</a></li>
+                            <li><a href="about.html">Awards & Recognition</a></li>
+                        </ul>
+                        <div class="social-icons">
+                            <a href="#" class="social-link" aria-label="Facebook">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                </svg>
+                            </a>
+                            <a href="#" class="social-link" aria-label="Twitter">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/>
+                                </svg>
+                            </a>
+                            <a href="#" class="social-link" aria-label="Instagram">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 6.62 5.367 11.987 11.988 11.987s11.987-5.367 11.987-11.987C24.004 5.367 18.637.001 12.017.001zM8.449 16.988c-1.297 0-2.448-.49-3.323-1.297C4.198 14.895 3.708 13.744 3.708 12.447s.49-2.448 1.297-3.323c.875-.807 2.026-1.297 3.323-1.297s2.448.49 3.323 1.297c.807.875 1.297 2.026 1.297 3.323s-.49 2.448-1.297 3.323c-.875.807-2.026 1.297-3.323 1.297zm7.718-1.297c-.875.807-2.026 1.297-3.323 1.297s-2.448-.49-3.323-1.297c-.807-.875-1.297-2.026-1.297-3.323s.49-2.448 1.297-3.323c.875-.807 2.026-1.297 3.323-1.297s2.448.49 3.323 1.297c.807.875 1.297 2.026 1.297 3.323s-.49 2.448-1.297 3.323c-.875.807-2.026 1.297-3.323 1.297z"/>
+                                </svg>
+                            </a>
+                            <a href="#" class="social-link" aria-label="YouTube">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Newsletter Section - Separate -->
+                <div class="newsletter-section">
+                    <div class="newsletter-content">
+                        <h4 class="newsletter-title">Join the Tribe</h4>
+                        <p class="newsletter-text">Subscribe to email alerts. We promise not to spam your inbox.</p>
+                        <div class="newsletter-form">
+                            <input type="email" placeholder="Enter your email" class="newsletter-input">
+                            <button class="newsletter-btn">Subscribe</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Site Info -->
+        <div class="site-info">
+            <div class="container">
+                <div class="site-info-content">
+                    <div class="site-description">
+                        <p>India's fastest growing tech & electronics brand. The most incredible range of smartphones, laptops, gaming gear, and home audio. From work to adventures, CosmicStore will get you powered!</p>
+                    </div>
+                    
+                    <!-- 4 Column Footer Info -->
+                    <div class="footer-info-grid">
+                        <div class="footer-info-column">
+                            <h5>Company Info</h5>
+                            <p>&copy; 2025 CosmicStore.<br>All Rights Reserved.</p>
+                        </div>
+                        
+                        <div class="footer-info-column">
+                            <h5>Contact Details</h5>
+                            <p>Manager, CosmicStore<br>
+                            Unit no. 204 & 205, 2nd floor</p>
+                        </div>
+                        
+                        <div class="footer-info-column">
+                            <h5>Address</h5>
+                            <p>D-wing & E-wing,<br>
+                            Corporate Avenue,<br>
+                            Andheri Ghatkopar Link Road</p>
+                        </div>
+                        
+                        <div class="footer-info-column">
+                            <h5>Location</h5>
+                            <p>Mumbai, Maharashtra<br>
+                            400093, India</p>
+                        </div>
+                    </div>
+                    
+                    <div class="footer-bottom">
+                        <div class="footer-bottom-content">
+                            <p>&copy; 2025 CosmicStore. All rights reserved.</p>
+                            <div class="footer-links-bottom">
+                                <a href="contact.html">Privacy Policy</a>
+                                <a href="contact.html">Terms of Use</a>
+                                <a href="contact.html">Warranty Policy</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/script.js"></script>
+    <script src="js/cart-view.js"></script>
+</body>
+</html>

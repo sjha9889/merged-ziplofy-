@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - ShoppingMart</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/cart-sidebar.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header id="masthead" class="site-header">
+        <div class="header-wrap">
+            <!-- Top Header Bar -->
+            <div class="top-header">
+                <div class="top-bar">
+                    <div class="container">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="widget-contact">
+                                    <ul class="list-inline mb-0">
+                                        <li class="list-inline-item">
+                                            <i class="fas fa-phone"></i>
+                                            <a href="tel:+1234567890">+1 (234) 567-890</a>
+                                        </li>
+                                        <li class="list-inline-item">
+                                            <i class="fas fa-envelope"></i>
+                                            <a href="mailto:info@shoppingcart.com">info@shoppingcart.com</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="right-top-bar">
+                                    <div class="social-links">
+                                        <a href="#" class="me-2"><i class="fab fa-facebook"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-instagram"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-pinterest"></i></a>
+                                    </div>
+                                    <div class="user-account">
+                                        <a href="login.html" class="account-link me-3">
+                                            <i class="fas fa-user me-1"></i>Login
+                                        </a>
+                                        <a href="register.html" class="account-link">
+                                            <i class="fas fa-user-plus me-1"></i>Register
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Site Branding -->
+            <div id="site-branding">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <div class="site-logo">
+                                <a href="index.html">
+                                    <h1 class="site-title">ShoppingMart</h1>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="search-box">
+                                <form class="search-form">
+                                    <div class="input-group">
+                                        <input type="search" class="form-control" placeholder="Search products...">
+                                        <button class="btn btn-primary" type="submit">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="header-right">
+                                <div class="cart-wishlist">
+                                    <a href="cart.html" class="cart-btn me-3">
+                                        <i class="fas fa-shopping-cart"></i>
+                                        <span class="cart-count">0</span>
+                                        <span class="cart-text">Cart</span>
+                                    </a>
+                                    <a href="wishlist.html" class="wishlist-btn">
+                                        <i class="fas fa-heart"></i>
+                                        <span class="wishlist-count">0</span>
+                                        <span class="wishlist-text">Wishlist</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Navigation -->
+            <nav id="sticky-header" class="main-navigation">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="main-header">
+                                <nav class="navbar navbar-expand-lg">
+                                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                                        <span class="navbar-toggler-icon"></span>
+                                    </button>
+                                    <div class="collapse navbar-collapse" id="navbarNav">
+                                        <ul class="navbar-nav me-auto">
+                                            <li class="nav-item">
+                                                <a class="nav-link active" href="index.html">Home</a>
+                                            </li>
+                                            <li class="nav-item dropdown">
+                                                <a class="nav-link" href="shop.html" role="button">Shop</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="about.html">About</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="contact.html">Contact</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="blog.html">Blog</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <section class="page-header bg-light py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1 class="page-title">Our Products</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                            <li class="breadcrumb-item active">Products</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Cart Sidebar -->
+    <div id="cart-sidebar" class="cart-sidebar">
+        <div class="cart-sidebar-header">
+            <h3>Shopping Cart</h3>
+            <button class="cart-close-btn" id="cart-close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-sidebar-content">
+            <div class="cart-items" id="cart-items">
+                <!-- Cart items will be added here dynamically -->
+                <div class="empty-cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <p>Your cart is empty</p>
+                    <a href="shop.html" class="btn btn-primary">Continue Shopping</a>
+                </div>
+            </div>
+        </div>
+        <div class="cart-sidebar-footer">
+            <div class="cart-total">
+                <div class="total-row">
+                    <span>Subtotal:</span>
+                    <span id="cart-subtotal">$0.00</span>
+                </div>
+                <div class="total-row">
+                    <span>Shipping:</span>
+                    <span id="cart-shipping">$0.00</span>
+                </div>
+                <div class="total-row total-final">
+                    <span>Total:</span>
+                    <span id="cart-total">$0.00</span>
+                </div>
+            </div>
+            <div class="cart-actions">
+                <a href="cart.html" class="btn btn-outline-primary">View Cart</a>
+                <a href="checkout.html" class="btn btn-primary">Checkout</a>
+            </div>
+        </div>
+    </div>
+    <!-- End Cart Sidebar -->
+
+    <!-- Cart Sidebar Overlay -->
+    <div class="cart-sidebar-overlay"></div>
+
+    <!-- Main Content -->
+    <div id="content" class="site-content">
+        <div class="container">
+            <!-- Page Title -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h1 class="page-title">All Products</h1>
+                </div>
+            </div>
+            
+            <!-- Filters and Sorting -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center">
+                        <label class="me-2">Filter by:</label>
+                        <select class="form-select me-3 product-filter" style="width: auto;">
+                            <option value="all">All Categories</option>
+                            <option value="electronics">Electronics</option>
+                            <option value="fashion">Fashion</option>
+                            <option value="home">Home & Garden</option>
+                            <option value="sports">Sports</option>
+                        </select>
+                        <select class="form-select" style="width: auto;">
+                            <option>Price Range</option>
+                            <option>Under $50</option>
+                            <option>$50 - $100</option>
+                            <option>$100 - $200</option>
+                            <option>Over $200</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center justify-content-end">
+                        <label class="me-2">Sort by:</label>
+                        <select class="form-select" style="width: auto;">
+                            <option>Default</option>
+                            <option>Price: Low to High</option>
+                            <option>Price: High to Low</option>
+                            <option>Name A-Z</option>
+                            <option>Name Z-A</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="row" id="products-grid">
+                <!-- Products will be loaded dynamically from product-data.js -->
+            </div>
+
+            <!-- Pagination -->
+            <nav aria-label="Products pagination" class="mt-5">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">Previous</a>
+                    </li>
+                    <li class="page-item active">
+                        <a class="page-link" href="#">1</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">2</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">3</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="colophon" class="site-footer">
+        <div class="widget-wrap">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="widget">
+                            <h3 class="widget-title">About Us</h3>
+                            <p>We are a leading e-commerce platform offering the best products at competitive prices. Our mission is to provide exceptional shopping experiences.</p>
+                            <div class="social-links">
+                                <a href="#" class="me-2"><i class="fab fa-facebook"></i></a>
+                                <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
+                                <a href="#" class="me-2"><i class="fab fa-instagram"></i></a>
+                                <a href="#" class="me-2"><i class="fab fa-pinterest"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="widget">
+                            <h3 class="widget-title">Quick Links</h3>
+                            <ul class="list-unstyled">
+                                <li><a href="index.html">Home</a></li>
+                                <li><a href="about.html">About Us</a></li>
+                                <li><a href="shop.html">Products</a></li>
+                                <li><a href="contact.html">Contact</a></li>
+                                <li><a href="blog.html">Blog</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="widget">
+                            <h3 class="widget-title">Customer Service</h3>
+                            <ul class="list-unstyled">
+                                <li><a href="shipping.html">Shipping Info</a></li>
+                                <li><a href="returns.html">Returns</a></li>
+                                <li><a href="size-guide.html">Size Guide</a></li>
+                                <li><a href="faq.html">FAQ</a></li>
+                                <li><a href="support.html">Support</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="widget">
+                            <h3 class="widget-title">Contact Info</h3>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-map-marker-alt me-2"></i>123 Shopping Street, City, State 12345</li>
+                                <li><i class="fas fa-phone me-2"></i>+1 (234) 567-890</li>
+                                <li><i class="fas fa-envelope me-2"></i>info@shoppingcart.com</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="site-info">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="copyright">
+                            <p>&copy; 2024 ShoppingMart. All rights reserved. | Designed by <a href="#">Ziplofy</a></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="payment-cards text-end">
+                            <i class="fab fa-cc-visa fa-2x me-2"></i>
+                            <i class="fab fa-cc-mastercard fa-2x me-2"></i>
+                            <i class="fab fa-cc-paypal fa-2x me-2"></i>
+                            <i class="fab fa-cc-amex fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Go to Top Button -->
+    <button type="button" class="go-to-top" id="goToTop">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Custom JS -->
+    <script src="assets/js/product-data.js"></script>
+    <script src="assets/js/dynamic-products.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/cart-sidebar.js"></script>
+    <script src="assets/js/wishlist.js"></script>
+</body>
+</html>

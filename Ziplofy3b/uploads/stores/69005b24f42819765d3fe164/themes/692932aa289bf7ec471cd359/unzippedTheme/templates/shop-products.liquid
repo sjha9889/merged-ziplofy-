@@ -1,0 +1,33 @@
+{% for product in products %}
+<div class="shop-product-card" data-product-id="{{ product.id }}">
+  <div class="shop-product-image">
+    <img src="{{ product.image }}" alt="{{ product.name | default: product.title | default: 'Product' }}" onerror="this.src='https://via.placeholder.com/400x300/1a1a1a/FF5E00?text=No+Image'">
+    {% if product.badge %}
+    <div class="shop-product-badge">{{ product.badge }}</div>
+    {% endif %}
+  </div>
+  <div class="shop-product-info">
+    <h3 class="shop-product-title">{{ product.name | default: product.title | default: 'Product' }}</h3>
+    <div class="shop-product-price-rating">
+      <div class="shop-product-price">₹{{ product.price | round: 2 }}</div>
+      <div class="shop-product-rating">
+        <div class="stars">
+          {% assign full_stars = product.rating | floor %}
+          {% assign empty_stars = 5 | minus: full_stars %}
+          {% for i in (1..full_stars) %}★{% endfor %}
+          {% for i in (1..empty_stars) %}☆{% endfor %}
+        </div>
+        <span class="rating-count">({{ product.reviews }})</span>
+      </div>
+    </div>
+    <div class="shop-product-actions">
+      <button class="shop-btn-add-cart" data-add-cart-id="{{ product.id }}" data-product-name="{{ product.name | default: product.title | default: 'Product' }}">
+        <i class="fas fa-cart-plus"></i> Add to Cart
+      </button>
+      <a href="product.html?id={{ product.id }}" class="shop-btn-buy-now" data-buy-now-id="{{ product.id }}">
+        <i class="fas fa-bolt"></i> Buy Now
+      </a>
+    </div>
+  </div>
+</div>
+{% endfor %}

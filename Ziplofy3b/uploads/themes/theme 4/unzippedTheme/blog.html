@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Blog - ShopHub Premium Ecommerce Store</title>
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <meta content="ShopHub Blog, Latest News, Ecommerce Updates" name="keywords">
+        <meta content="Stay updated with the latest news, trends, and updates from ShopHub" name="description">
+
+        <!-- Favicon -->
+        <link href="assets/img/favicon.ico" rel="icon">
+
+        <!-- Google Font -->
+        <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@1,600;1,700;1,800&family=Roboto:wght@400;500&display=swap" rel="stylesheet"> 
+        
+        <!-- CSS Libraries -->
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+        <link href="assets/lib/animate/animate.min.css" rel="stylesheet">
+        <link href="assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+
+        <!-- Template Stylesheet -->
+        <link href="assets/css/style.css" rel="stylesheet">
+    </head>
+
+    <body>
+        <div class="wrapper">
+            <!-- Mobile Header Start -->
+            <div class="mobile-header d-lg-none">
+                <div class="container-fluid">
+                    <div class="mh-row">
+                        <button class="mh-btn" id="mobileMenuBtn" aria-label="Menu">
+                            <span class="mh-bar"></span>
+                            <span class="mh-bar"></span>
+                            <span class="mh-bar"></span>
+                        </button>
+                        <a href="index.html" class="mh-logo">ShopHub</a>
+                        <div class="mh-actions">
+                            <a href="#" class="mh-action" aria-label="Search"><i class="fas fa-search"></i></a>
+                            <a href="#" class="mh-action" aria-label="Cart"><i class="fas fa-shopping-cart"></i><span class="mh-badge">0</span></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="mobile-drawer" id="mobileDrawer">
+                    <div class="md-inner">
+                        <div class="md-search">
+                            <input type="text" placeholder="Search for products..." class="md-input">
+                            <button class="md-search-btn"><i class="fas fa-search"></i></button>
+                        </div>
+                        <nav class="md-nav">
+                            <a href="index.html">Home</a>
+                            <a href="service.html">New Arrivals</a>
+                            <a href="team.html">Best Sellers</a>
+                            <a href="portfolio.html">Deals</a>
+                            <a href="blog.html">Brands</a>
+                            <a href="contact.html">Contact</a>
+                        </nav>
+                        <div class="md-meta">
+                            <a href="#">My Account</a>
+                            <a href="#">Wishlist</a>
+                            <a href="#">Help & FAQs</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="mobile-backdrop" id="mobileBackdrop"></div>
+            </div>
+            <!-- Mobile Header End -->
+
+            <!-- Top Bar Start -->
+            <div class="top-bar">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-lg-3">
+                            <div class="logo">
+                                <a href="index.html">
+                                    <h1>ShopHub</h1>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="search-bar">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Search for products, brands and more...">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-search" type="button">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                </div>
+                                </div>
+                                </div>
+                                </div>
+                        <div class="col-lg-3">
+                            <div class="top-bar-right">
+                                <div class="user-actions">
+                                    <a href="login.html" class="action-item">
+                                        <i class="fas fa-user"></i>
+                                        <span>Account</span>
+                                    </a>
+                                    <a href="login.html" class="action-item">
+                                        <i class="fas fa-heart"></i>
+                                        <span>Wishlist</span>
+                                    </a>
+                                    <a href="#" class="action-item cart-item">
+                                        <i class="fas fa-shopping-cart"></i>
+                                        <span>Cart</span>
+                                        <span class="cart-count">0</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Top Bar End -->
+
+            <!-- Nav Bar Start -->
+            <div class="nav-bar">
+                <div class="container-fluid">
+                    <nav class="navbar navbar-expand-lg navbar-light">
+                        <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+
+                        <div class="collapse navbar-collapse" id="navbarCollapse">
+                            <div class="navbar-nav">
+                                <div class="nav-item dropdown mega-menu">
+                                    <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+                                        <i class="fas fa-bars"></i> All Categories
+                                    </a>
+                                    <div class="dropdown-menu mega-dropdown">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <h6>Electronics</h6>
+                                                <a href="#" class="dropdown-item">Smartphones</a>
+                                                <a href="#" class="dropdown-item">Laptops</a>
+                                                <a href="#" class="dropdown-item">Headphones</a>
+                                                <a href="#" class="dropdown-item">Cameras</a>
+                                </div>
+                                            <div class="col-md-3">
+                                                <h6>Fashion</h6>
+                                                <a href="#" class="dropdown-item">Men's Clothing</a>
+                                                <a href="#" class="dropdown-item">Women's Clothing</a>
+                                                <a href="#" class="dropdown-item">Shoes</a>
+                                                <a href="#" class="dropdown-item">Accessories</a>
+                            </div>
+                                            <div class="col-md-3">
+                                                <h6>Home & Garden</h6>
+                                                <a href="#" class="dropdown-item">Furniture</a>
+                                                <a href="#" class="dropdown-item">Kitchen</a>
+                                                <a href="#" class="dropdown-item">Garden</a>
+                                                <a href="#" class="dropdown-item">Decor</a>
+                        </div>
+                                            <div class="col-md-3">
+                                                <h6>Sports</h6>
+                                                <a href="#" class="dropdown-item">Fitness</a>
+                                                <a href="#" class="dropdown-item">Outdoor</a>
+                                                <a href="#" class="dropdown-item">Sports Gear</a>
+                                                <a href="#" class="dropdown-item">Equipment</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a href="index.html" class="nav-item nav-link">Home</a>
+                                <a href="shop.html" class="nav-item nav-link">Shop</a>
+                                <a href="category.html?category=Dresses" class="nav-item nav-link">Dresses</a>
+                                <a href="category.html?category=Shirts" class="nav-item nav-link">Shirts</a>
+                                <a href="category.html?category=Jeans" class="nav-item nav-link">Jeans</a>
+                                <a href="category.html?category=Jackets" class="nav-item nav-link">Jackets</a>
+                                <a href="category.html?category=Shoes" class="nav-item nav-link">Shoes</a>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+            <!-- Nav Bar End -->
+            
+            <!-- Page Header Start -->
+            <div class="page-header">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12">
+                            <h2>Latest News & Updates</h2>
+                        </div>
+                        <div class="col-12">
+                            <a href="index.html">Home</a>
+                            <a href="blog.html">Blog</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Page Header End -->
+
+            <!-- Blog Start -->
+            <div class="blog">
+                <div class="container">
+                    <div class="section-header">
+                        <h2>Latest News & Updates</h2>
+                        <p>Stay informed with the latest trends, news, and updates from ShopHub</p>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-4 col-md-6">
+                            <div class="blog-item">
+                                <div class="blog-img">
+                                    <img src="https://picsum.photos/400/250?random=1" alt="Blog">
+                    </div>
+                                <div class="blog-content">
+                                    <h3>New Product Launch: Latest Smartphones</h3>
+                            <div class="meta">
+                                <i class="fa fa-list-alt"></i>
+                                        <a href="">Electronics</a>
+                                <i class="fa fa-calendar-alt"></i>
+                                        <p>01-Jan-2024</p>
+                            </div>
+                            <p>
+                                        Discover the latest smartphones with cutting-edge technology, enhanced cameras, and improved performance. Stay ahead with the newest innovations in mobile technology.
+                                    </p>
+                                    <a class="btn" href="">Read More</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="blog-item">
+                                <div class="blog-img">
+                                    <img src="https://picsum.photos/400/250?random=2" alt="Blog">
+                        </div>
+                                <div class="blog-content">
+                                    <h3>Fashion Trends for 2024</h3>
+                            <div class="meta">
+                                <i class="fa fa-list-alt"></i>
+                                        <a href="">Fashion</a>
+                                <i class="fa fa-calendar-alt"></i>
+                                        <p>02-Jan-2024</p>
+                            </div>
+                            <p>
+                                        Explore the hottest fashion trends for 2024. From sustainable fashion to bold new styles, discover what's trending in the fashion world this year.
+                                    </p>
+                                    <a class="btn" href="">Read More</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="blog-item">
+                                <div class="blog-img">
+                                    <img src="https://picsum.photos/400/250?random=3" alt="Blog">
+                        </div>
+                                <div class="blog-content">
+                                    <h3>Home Decor Ideas for Spring</h3>
+                            <div class="meta">
+                                <i class="fa fa-list-alt"></i>
+                                        <a href="">Home & Garden</a>
+                                <i class="fa fa-calendar-alt"></i>
+                                        <p>03-Jan-2024</p>
+                            </div>
+                            <p>
+                                        Transform your home with fresh spring decor ideas. From vibrant colors to natural elements, create a beautiful and welcoming space for the new season.
+                            </p>
+                                    <a class="btn" href="">Read More</a>
+                        </div>
+                        </div>
+                            </div>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="blog-item">
+                                <div class="blog-img">
+                                    <img src="https://picsum.photos/400/250?random=4" alt="Blog">
+                        </div>
+                                <div class="blog-content">
+                                    <h3>Fitness Equipment Guide</h3>
+                            <div class="meta">
+                                <i class="fa fa-list-alt"></i>
+                                        <a href="">Sports & Fitness</a>
+                                <i class="fa fa-calendar-alt"></i>
+                                        <p>04-Jan-2024</p>
+                            </div>
+                            <p>
+                                        Complete guide to choosing the right fitness equipment for your home gym. From cardio machines to strength training, find the perfect equipment for your fitness goals.
+                            </p>
+                                    <a class="btn" href="">Read More</a>
+                        </div>
+                        </div>
+                            </div>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="blog-item">
+                                <div class="blog-img">
+                                    <img src="https://picsum.photos/400/250?random=5" alt="Blog">
+                        </div>
+                                <div class="blog-content">
+                                    <h3>Tech Gadgets You Need</h3>
+                            <div class="meta">
+                                <i class="fa fa-list-alt"></i>
+                                        <a href="">Technology</a>
+                                <i class="fa fa-calendar-alt"></i>
+                                        <p>05-Jan-2024</p>
+                            </div>
+                            <p>
+                                        Essential tech gadgets that can make your life easier and more productive. Discover the must-have devices for modern living and working.
+                            </p>
+                                    <a class="btn" href="">Read More</a>
+                        </div>
+                        </div>
+                            </div>
+                        <div class="col-lg-4 col-md-6">
+                            <div class="blog-item">
+                                <div class="blog-img">
+                                    <img src="https://picsum.photos/400/250?random=6" alt="Blog">
+                        </div>
+                                <div class="blog-content">
+                                    <h3>Sustainable Shopping Tips</h3>
+                            <div class="meta">
+                                <i class="fa fa-list-alt"></i>
+                                        <a href="">Sustainability</a>
+                                <i class="fa fa-calendar-alt"></i>
+                                        <p>06-Jan-2024</p>
+                            </div>
+                            <p>
+                                        Learn how to shop sustainably and make eco-friendly choices. Discover brands and products that prioritize environmental responsibility and ethical practices.
+                            </p>
+                                    <a class="btn" href="">Read More</a>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Blog End -->
+
+            <!-- Footer Start -->
+            <div class="footer">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-6 col-lg-4">
+                            <div class="footer-about">
+                                <h2>About ShopHub</h2>
+                                <p>
+                                    ShopHub is your premier online destination for quality products and exceptional shopping experiences. We offer a wide range of products from trusted brands with fast shipping and excellent customer service.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-8">
+                            <div class="row">
+                        <div class="col-md-6 col-lg-4">
+                            <div class="footer-link">
+                                <h2>Product Categories</h2>
+                                <a href="">Electronics</a>
+                                <a href="">Fashion</a>
+                                <a href="">Home & Garden</a>
+                                <a href="">Sports & Fitness</a>
+                                <a href="">Books & Media</a>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-4">
+                            <div class="footer-link">
+                                <h2>Customer Service</h2>
+                                <a href="about.html">About Us</a>
+                                <a href="contact.html">Contact Us</a>
+                                <a href="shipping-info.html">Shipping Info</a>
+                                <a href="returns.html">Returns</a>
+                                <a href="faqs.html">FAQs</a>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-4">
+                            <div class="footer-contact">
+                                <h2>Get In Touch</h2>
+                                <p><i class="fa fa-map-marker-alt"></i>123 Street, New York, USA</p>
+                                <p><i class="fa fa-phone-alt"></i>+012 345 67890</p>
+                                <p><i class="fa fa-envelope"></i>info@example.com</p>
+                                <div class="footer-social">
+                                    <a href=""><i class="fab fa-twitter"></i></a>
+                                    <a href=""><i class="fab fa-facebook-f"></i></a>
+                                    <a href=""><i class="fab fa-youtube"></i></a>
+                                    <a href=""><i class="fab fa-instagram"></i></a>
+                                    <a href=""><i class="fab fa-linkedin-in"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                <div class="container footer-menu">
+                    <div class="f-menu">
+                        <a href="terms-of-use.html">Terms of use</a>
+                        <a href="privacy-policy.html">Privacy policy</a>
+                        <a href="">Cookies</a>
+                        <a href="help.html">Help</a>
+                        <a href="faqs.html">FQAs</a>
+                    </div>
+                </div>
+                <div class="container copyright">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p>&copy; <a href="#">ShopHub</a>, All Right Reserved.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <!--/*** This template is free as long as you keep the footer author's credit link/attribution link/backlink. If you'd like to use the template without the footer author's credit link/attribution link/backlink, you can purchase the Credit Removal License from "https://htmlcodex.com/credit-removal". Thank you for your support. ***/-->
+                            <p>Designed By <a href="#">ziplofy</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer End -->
+            
+            <a href="#" class="back-to-top"><i class="fa fa-chevron-up"></i></a>
+        </div>
+
+        <!-- JavaScript Libraries -->
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+        <script src="assets/lib/easing/easing.min.js"></script>
+        <script src="assets/lib/owlcarousel/owl.carousel.min.js"></script>
+        <script src="assets/lib/isotope/isotope.pkgd.min.js"></script>
+
+        <!-- Template Javascript -->
+        <script src="js/main.js"></script>
+    </body>
+</html>

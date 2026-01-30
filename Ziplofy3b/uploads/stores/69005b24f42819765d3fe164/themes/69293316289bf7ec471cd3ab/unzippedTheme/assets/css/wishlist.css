@@ -1,0 +1,446 @@
+/* Wishlist Page Specific Styles */
+
+/* Wishlist Header */
+.wishlist-header {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.wishlist-header h3 {
+    color: #333;
+    font-weight: 700;
+    margin-bottom: 0;
+}
+
+.wishlist-actions .btn {
+    padding: 8px 16px;
+    font-weight: 600;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.wishlist-actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Wishlist Items */
+.wishlist-items {
+    margin-bottom: 30px;
+}
+
+.wishlist-item {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.wishlist-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+}
+
+.wishlist-item .product-image {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 1;
+}
+
+.wishlist-item .product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.wishlist-item:hover .product-image img {
+    transform: scale(1.05);
+}
+
+.wishlist-item .product-badges {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 2;
+}
+
+.wishlist-item .product-badges .badge {
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 20px;
+}
+
+.wishlist-item .product-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.wishlist-item:hover .product-actions {
+    opacity: 1;
+}
+
+.wishlist-item .product-actions .btn {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 14px;
+}
+
+.wishlist-item .product-info {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.wishlist-item .product-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    line-height: 1.4;
+}
+
+.wishlist-item .product-title a {
+    color: #333;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.wishlist-item .product-title a:hover {
+    color: #007bff;
+}
+
+.wishlist-item .product-rating {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.wishlist-item .product-rating .stars {
+    color: #ffc107;
+    font-size: 14px;
+}
+
+.wishlist-item .rating-count {
+    color: #666;
+    font-size: 12px;
+}
+
+.wishlist-item .product-price {
+    margin-bottom: 15px;
+}
+
+.wishlist-item .current-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: #007bff;
+}
+
+.wishlist-item .original-price {
+    font-size: 14px;
+    color: #999;
+    text-decoration: line-through;
+    margin-left: 8px;
+}
+
+.wishlist-item .product-availability {
+    margin-top: auto;
+}
+
+.wishlist-item .badge {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+/* Empty Wishlist State */
+.empty-wishlist {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.empty-wishlist i {
+    color: #dee2e6;
+    margin-bottom: 20px;
+}
+
+.empty-wishlist h3 {
+    color: #333;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.empty-wishlist p {
+    color: #666;
+    margin-bottom: 25px;
+}
+
+.empty-wishlist .btn {
+    padding: 12px 25px;
+    font-weight: 600;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.empty-wishlist .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Wishlist Item Animations */
+.wishlist-item.removing {
+    opacity: 0.5;
+    transform: translateX(-20px);
+    transition: all 0.3s ease;
+}
+
+.wishlist-item.added-to-cart {
+    background: rgba(0,123,255,0.1);
+    border: 2px solid #007bff;
+    transition: all 0.3s ease;
+}
+
+/* Share Wishlist Modal */
+.share-wishlist-modal .modal-body {
+    padding: 30px;
+}
+
+.share-wishlist-modal .share-options {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.share-wishlist-modal .share-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.share-wishlist-modal .share-option:hover {
+    border-color: #007bff;
+    background: rgba(0,123,255,0.05);
+}
+
+.share-wishlist-modal .share-option i {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #666;
+}
+
+.share-wishlist-modal .share-option:hover i {
+    color: #007bff;
+}
+
+.share-wishlist-modal .share-option span {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+}
+
+.share-wishlist-modal .share-option:hover span {
+    color: #007bff;
+}
+
+.share-wishlist-modal .share-link {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.share-wishlist-modal .share-link input {
+    border: none;
+    background: transparent;
+    width: 100%;
+    font-size: 14px;
+    color: #666;
+}
+
+.share-wishlist-modal .copy-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.share-wishlist-modal .copy-btn:hover {
+    background: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .wishlist-header {
+        text-align: center;
+    }
+    
+    .wishlist-header .row {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .wishlist-actions {
+        text-align: center;
+    }
+    
+    .wishlist-actions .btn {
+        margin: 5px;
+    }
+    
+    .wishlist-item .product-info {
+        padding: 15px;
+    }
+    
+    .wishlist-item .product-title {
+        font-size: 14px;
+    }
+    
+    .wishlist-item .current-price {
+        font-size: 16px;
+    }
+    
+    .share-wishlist-modal .share-options {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .share-wishlist-modal .share-option {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 576px) {
+    .wishlist-header {
+        padding: 15px;
+    }
+    
+    .wishlist-header h3 {
+        font-size: 20px;
+    }
+    
+    .wishlist-actions .btn {
+        padding: 6px 12px;
+        font-size: 14px;
+    }
+    
+    .wishlist-item .product-info {
+        padding: 12px;
+    }
+    
+    .wishlist-item .product-title {
+        font-size: 13px;
+    }
+    
+    .wishlist-item .current-price {
+        font-size: 15px;
+    }
+    
+    .empty-wishlist {
+        padding: 40px 15px;
+    }
+    
+    .empty-wishlist h3 {
+        font-size: 20px;
+    }
+    
+    .empty-wishlist .btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+}
+
+/* Loading States */
+.wishlist-item.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.wishlist-item.loading .product-actions .btn {
+    background: #f8f9fa;
+    color: #666;
+}
+
+/* Notification Styles */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    padding: 15px 20px;
+    border-left: 4px solid #007bff;
+    animation: slideInRight 0.3s ease-out;
+}
+
+.notification-success {
+    border-left-color: #28a745;
+}
+
+.notification-error {
+    border-left-color: #dc3545;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.notification-content i {
+    font-size: 18px;
+}
+
+.notification-success .notification-content i {
+    color: #28a745;
+}
+
+.notification-error .notification-content i {
+    color: #dc3545;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - ELECTRO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/templatemo-electric-xtra.css" rel="stylesheet">
+    <link href="assets/css/ecommerce.css" rel="stylesheet">
+    <link href="assets/css/additional.css" rel="stylesheet">
+    <link href="assets/css/cart-slider.css" rel="stylesheet">
+    <link href="assets/css/modern-account.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Animated Grid Background -->
+    <div class="grid-bg"></div>
+    <div class="gradient-overlay"></div>
+    <div class="scanlines"></div>
+
+    <!-- Animated Shapes -->
+    <div class="shapes-container">
+        <div class="shape shape-circle"></div>
+        <div class="shape shape-triangle"></div>
+        <div class="shape shape-square"></div>
+    </div>
+
+    <!-- Floating Particles -->
+    <div id="particles"></div>
+
+    <!-- Top Info Bar -->
+    <div class="top-info-bar">
+        <div class="container">
+            <div class="top-info-content">
+                <div class="top-info-left">
+                    <div class="info-items">
+                        <span class="info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>ELECTRO Store, Mumbai, Maharashtra</span>
+                        </span>
+                        <span class="info-item">
+                            <i class="fas fa-phone"></i>
+                            <span>+91 98765 43210</span>
+                        </span>
+                        <span class="info-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>info@electro.com</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="top-info-right">
+                    <div class="social-links">
+                        <a href="#" class="social-link" title="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="social-link" title="Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-link" title="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-link" title="YouTube">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    </div>
+                    <div class="account-links">
+                        <a href="my-account.html" class="account-link active">
+                            <i class="fas fa-user"></i>
+                            <span>My Account</span>
+                        </a>
+                        <a href="login.html" class="account-link">
+                            <i class="fas fa-lock"></i>
+                            <span>Login</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-left">
+                    <a href="index.html" class="logo-link">
+                        <div class="logo-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="logo-text">
+                            <h1>ELECTRO</h1>
+                            <p>BUILD YOUR DREAM TECH STORE</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="header-center">
+                    <div class="search-container">
+                        <input type="text" placeholder="Search products..." class="search-input">
+                        <button class="search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <div class="action-item">
+                            <a href="wishlist.html" class="action-link">
+                                <i class="fas fa-heart"></i>
+                                <span class="action-count">0</span>
+                            </a>
+                            <span class="action-label">Wishlist</span>
+                        </div>
+                        <div class="action-item">
+                            <a href="#" class="action-link cart-icon" id="cartIcon">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span class="action-count cart-count">0</span>
+                            </a>
+                            <span class="action-label">Cart</span>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav id="navbar" class="sticky-nav">
+        <div class="container">
+            <ul class="nav-links" id="navLinks">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="categories.html" class="nav-link">
+                        <i class="fas fa-th-large"></i>
+                        <span>Sections</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="shop.html" class="nav-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Shop</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-blog"></i>
+                        <span>Blog</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="contact.html" class="nav-link">
+                        <i class="fas fa-envelope"></i>
+                        <span>Contact Us</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- User Dashboard Section -->
+    <section class="user-dashboard-section">
+        <div class="container">
+            <div class="user-dashboard-wrapper">
+                <!-- User Profile Header -->
+                <div class="user-profile-header">
+                    <div class="user-avatar-section">
+                        <div class="user-avatar-large">
+                            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face" alt="User Avatar">
+                            <div class="avatar-status">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                        <div class="user-info-section">
+                            <h2 class="user-name">John Doe</h2>
+                            <p class="user-email">john.doe@email.com</p>
+                            <div class="user-stats-row">
+                                <div class="user-stat">
+                                    <span class="stat-number">5</span>
+                                    <span class="stat-label">Orders</span>
+                                </div>
+                                <div class="user-stat">
+                                    <span class="stat-number">12</span>
+                                    <span class="stat-label">Wishlist</span>
+                                </div>
+                                <div class="user-stat">
+                                    <span class="stat-number">4.8</span>
+                                    <span class="stat-label">Rating</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="user-actions">
+                        <button class="action-btn primary-btn">
+                            <i class="fas fa-edit"></i>
+                            Edit Profile
+                        </button>
+                        <button class="action-btn secondary-btn">
+                            <i class="fas fa-cog"></i>
+                            Settings
+                        </button>
+                        <button class="action-btn logout-btn" onclick="handleLogout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dashboard Navigation -->
+                <div class="dashboard-nav-tabs">
+                    <button class="nav-tab active" data-tab="overview">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Overview</span>
+                    </button>
+                    <button class="nav-tab" data-tab="orders">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span>My Orders</span>
+                    </button>
+                    <button class="nav-tab" data-tab="wishlist">
+                        <i class="fas fa-heart"></i>
+                        <span>Wishlist</span>
+                    </button>
+                    <button class="nav-tab" data-tab="addresses">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Addresses</span>
+                    </button>
+                    <button class="nav-tab" data-tab="profile">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </button>
+                </div>
+
+                <!-- Dashboard Content -->
+                <div class="dashboard-content-area">
+                    <!-- Overview Tab -->
+                    <div class="tab-content active" id="overview">
+                        <div class="overview-grid">
+                            <div class="overview-card">
+                                <div class="card-header">
+                                    <h3>Recent Orders</h3>
+                                    <a href="#orders" class="view-all-link">View All</a>
+                                </div>
+                                <div class="card-body">
+                                    <div class="order-summary">
+                                        <div class="order-item-summary">
+                                            <div class="order-info">
+                                                <span class="order-id">#ORD-001</span>
+                                                <span class="order-date">Dec 15, 2024</span>
+                                            </div>
+                                            <div class="order-status-badge delivered">Delivered</div>
+                                            <div class="order-amount">₹45,999</div>
+                                        </div>
+                                        <div class="order-item-summary">
+                                            <div class="order-info">
+                                                <span class="order-id">#ORD-002</span>
+                                                <span class="order-date">Dec 10, 2024</span>
+                                            </div>
+                                            <div class="order-status-badge shipped">Shipped</div>
+                                            <div class="order-amount">₹29,999</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="overview-card">
+                                <div class="card-header">
+                                    <h3>Quick Actions</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="quick-actions-grid">
+                                        <button class="quick-action-btn">
+                                            <i class="fas fa-plus"></i>
+                                            <span>Add Address</span>
+                                        </button>
+                                        <button class="quick-action-btn">
+                                            <i class="fas fa-heart"></i>
+                                            <span>View Wishlist</span>
+                                        </button>
+                                        <button class="quick-action-btn">
+                                            <i class="fas fa-star"></i>
+                                            <span>Write Review</span>
+                                        </button>
+                                        <button class="quick-action-btn">
+                                            <i class="fas fa-cog"></i>
+                                            <span>Settings</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="overview-card">
+                                <div class="card-header">
+                                    <h3>Account Summary</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="summary-stats">
+                                        <div class="summary-stat">
+                                            <div class="stat-icon">
+                                                <i class="fas fa-shopping-bag"></i>
+                                            </div>
+                                            <div class="stat-details">
+                                                <span class="stat-value">5</span>
+                                                <span class="stat-label">Total Orders</span>
+                                            </div>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <div class="stat-icon">
+                                                <i class="fas fa-rupee-sign"></i>
+                                            </div>
+                                            <div class="stat-details">
+                                                <span class="stat-value">₹2,45,999</span>
+                                                <span class="stat-label">Total Spent</span>
+                                            </div>
+                                        </div>
+                                        <div class="summary-stat">
+                                            <div class="stat-icon">
+                                                <i class="fas fa-star"></i>
+                                            </div>
+                                            <div class="stat-details">
+                                                <span class="stat-value">4.8</span>
+                                                <span class="stat-label">Avg Rating</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Orders Tab -->
+                    <div class="tab-content" id="orders">
+                        <div class="orders-section">
+                            <div class="section-header">
+                                <h2>My Orders</h2>
+                                <div class="order-filters">
+                                    <button class="filter-chip active" data-filter="all">All</button>
+                                    <button class="filter-chip" data-filter="pending">Pending</button>
+                                    <button class="filter-chip" data-filter="shipped">Shipped</button>
+                                    <button class="filter-chip" data-filter="delivered">Delivered</button>
+                                </div>
+                            </div>
+                            
+                            <div class="orders-list">
+                                <div class="order-card-modern">
+                                    <div class="order-header-modern">
+                                        <div class="order-info-modern">
+                                            <span class="order-number-modern">#ORD-001</span>
+                                            <span class="order-date-modern">Placed on Dec 15, 2024</span>
+                                        </div>
+                                        <div class="order-status-modern delivered">Delivered</div>
+                                    </div>
+                                    <div class="order-items-modern">
+                                        <div class="order-item-modern">
+                                            <img src="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=80&h=80&fit=crop" alt="Product">
+                                            <div class="item-details">
+                                                <h4>iPhone 15 Pro Max</h4>
+                                                <p>Quantity: 1</p>
+                                            </div>
+                                            <div class="item-price-modern">₹45,999</div>
+                                        </div>
+                                    </div>
+                                    <div class="order-footer-modern">
+                                        <div class="order-total-modern">Total: ₹45,999</div>
+                                        <div class="order-actions-modern">
+                                            <button class="btn-outline">View Details</button>
+                                            <button class="btn-primary-modern">Reorder</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wishlist Tab -->
+                    <div class="tab-content" id="wishlist">
+                        <div class="wishlist-section">
+                            <div class="section-header">
+                                <h2>My Wishlist</h2>
+                                <span class="wishlist-count">12 items</span>
+                            </div>
+                            
+                            <div class="wishlist-grid-modern">
+                                <div class="wishlist-item-modern">
+                                    <div class="item-image-modern">
+                                        <img src="https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=200&h=200&fit=crop" alt="Product">
+                                        <button class="remove-wishlist-btn">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div class="item-details-modern">
+                                        <h4>iPhone 15 Pro Max</h4>
+                                        <p class="item-price-modern">₹45,999</p>
+                                        <button class="add-cart-btn-modern">Add to Cart</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Addresses Tab -->
+                    <div class="tab-content" id="addresses">
+                        <div class="addresses-section">
+                            <div class="section-header">
+                                <h2>My Addresses</h2>
+                                <button class="add-address-btn">
+                                    <i class="fas fa-plus"></i>
+                                    Add New Address
+                                </button>
+                            </div>
+                            
+                            <div class="addresses-grid-modern">
+                                <div class="address-card-modern">
+                                    <div class="address-header-modern">
+                                        <h4>Home Address</h4>
+                                        <div class="address-actions-modern">
+                                            <button class="edit-address-btn">Edit</button>
+                                            <button class="delete-address-btn">Delete</button>
+                                        </div>
+                                    </div>
+                                    <div class="address-content-modern">
+                                        <p>123 Tech Street, Mumbai, Maharashtra 400001</p>
+                                        <p>Phone: +91 98765 43210</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Tab -->
+                    <div class="tab-content" id="profile">
+                        <div class="profile-section">
+                            <div class="section-header">
+                                <h2>Profile Information</h2>
+                            </div>
+                            
+                            <form class="profile-form-modern">
+                                <div class="form-grid">
+                                    <div class="form-group-modern">
+                                        <label for="firstName">First Name</label>
+                                        <input type="text" id="firstName" value="John">
+                                    </div>
+                                    <div class="form-group-modern">
+                                        <label for="lastName">Last Name</label>
+                                        <input type="text" id="lastName" value="Doe">
+                                    </div>
+                                </div>
+                                <div class="form-group-modern">
+                                    <label for="email">Email</label>
+                                    <input type="email" id="email" value="john.doe@email.com">
+                                </div>
+                                <div class="form-group-modern">
+                                    <label for="phone">Phone</label>
+                                    <input type="tel" id="phone" value="+91 98765 43210">
+                                </div>
+                                <button type="submit" class="btn-primary-modern">Update Profile</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-widgets">
+            <div class="container">
+                <div class="footer-grid">
+                    <!-- Shop Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Shop</h4>
+                        <ul class="footer-links">
+                            <li><a href="category.html?cat=smartphones">True Wireless Earbuds</a></li>
+                            <li><a href="category.html?cat=audio">Wireless Headphones</a></li>
+                            <li><a href="category.html?cat=audio">Wired Headphones</a></li>
+                            <li><a href="category.html?cat=audio">Wireless Speakers</a></li>
+                            <li><a href="category.html?cat=audio">Home Audio</a></li>
+                            <li><a href="category.html?cat=accessories">Mobile Accessories</a></li>
+                            <li><a href="category.html?cat=wearables">Smart Watches</a></li>
+                            <li><a href="category.html?cat=gaming">Gaming Series</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Help Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Help</h4>
+                        <ul class="footer-links">
+                            <li><a href="#">Track Your Order</a></li>
+                            <li><a href="#">Warranty & Support</a></li>
+                            <li><a href="#">Return Policy</a></li>
+                            <li><a href="#">Service Centers</a></li>
+                            <li><a href="#">Bulk Orders</a></li>
+                            <li><a href="#">Why Buy Direct</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Company Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Company</h4>
+                        <ul class="footer-links">
+                            <li><a href="about.html">About ELECTRO</a></li>
+                            <li><a href="#">News</a></li>
+                            <li><a href="#">Read Our Blog</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">Security</a></li>
+                            <li><a href="#">Investor Relations</a></li>
+                            <li><a href="#">Social Responsibility</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Company Info Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Company Info</h4>
+                        <ul class="footer-links">
+                            <li><a href="#">About ELECTRO</a></li>
+                            <li><a href="#">Our Mission</a></li>
+                            <li><a href="#">Leadership Team</a></li>
+                            <li><a href="#">Investor Relations</a></li>
+                            <li><a href="#">Press Releases</a></li>
+                            <li><a href="#">Awards & Recognition</a></li>
+                        </ul>
+                        <div class="social-icons">
+                            <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Newsletter Section - Separate -->
+                <div class="newsletter-section">
+                    <div class="newsletter-content">
+                        <h4 class="newsletter-title">Join the Tribe</h4>
+                        <p class="newsletter-text">Subscribe to email alerts. We promise not to spam your inbox.</p>
+                        <div class="newsletter-form">
+                            <input type="email" placeholder="Enter your email" class="newsletter-input">
+                            <button class="newsletter-btn">Subscribe</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Site Info -->
+        <div class="site-info">
+            <div class="container">
+                <div class="site-info-content">
+                    <div class="site-description">
+                        <p>India's fastest growing tech & electronics brand. The most incredible range of smartphones, laptops, gaming gear, and home audio. From work to adventures, ELECTRO will get you powered!</p>
+                    </div>
+                    
+                    <!-- 4 Column Footer Info -->
+                    <div class="footer-info-grid">
+                        <div class="footer-info-column">
+                            <h5>Company Info</h5>
+                            <p>&copy; 2025 ELECTRO.<br>All Rights Reserved.</p>
+                        </div>
+                        
+                        <div class="footer-info-column">
+                            <h5>Contact Details</h5>
+                            <p>Manager, ELECTRO<br>
+                            Unit no. 204 & 205, 2nd floor</p>
+                        </div>
+                        
+                        <div class="footer-info-column">
+                            <h5>Address</h5>
+                            <p>D-wing & E-wing,<br>
+                            Corporate Avenue,<br>
+                            Andheri Ghatkopar Link Road</p>
+                        </div>
+                        
+                        <div class="footer-info-column">
+                            <h5>Location</h5>
+                            <p>Mumbai, Maharashtra<br>
+                            400093, India</p>
+                        </div>
+                    </div>
+                    
+                    <div class="footer-bottom">
+                        <div class="footer-bottom-content">
+                            <p>&copy; 2025 ELECTRO. All rights reserved.</p>
+                            <div class="footer-links-bottom">
+                                <a href="privacy-policy.html">Privacy Policy</a>
+                                <a href="terms-of-use.html">Terms of Use</a>
+                                <a href="warranty-policy.html">Warranty Policy</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/app.js"></script>
+    <script src="assets/js/ecommerce.js"></script>
+</body>
+</html>

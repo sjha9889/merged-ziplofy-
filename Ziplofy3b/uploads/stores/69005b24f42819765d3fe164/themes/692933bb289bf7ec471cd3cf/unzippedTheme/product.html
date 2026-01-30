@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zxx" class="no-js">
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link rel="shortcut icon" href="assets/img/logo.png">
+	<meta charset="UTF-8">
+	<title>Product Details - Watch</title>
+	<link href="https://fonts.googleapis.com/css?family=Poppins:100,200,400,300,500,600,700" rel="stylesheet">
+	<link rel="stylesheet" href="assets/css/linearicons.css">
+	<link rel="stylesheet" href="assets/css/font-awesome.min.css">
+	<link rel="stylesheet" href="assets/css/bootstrap.css">
+	<link rel="stylesheet" href="assets/css/magnific-popup.css">
+	<link rel="stylesheet" href="assets/css/nice-select.css">
+	<link rel="stylesheet" href="assets/css/animate.min.css">
+	<link rel="stylesheet" href="assets/css/owl.carousel.css">
+	<link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/product.css">
+    <link rel="stylesheet" href="assets/css/shop.css">
+</head>
+<body>
+	<header id="header" id="home">
+		<div class="header-top">
+			<div class="container">
+				<div class="row align-items-center justify-content-between d-flex">
+					<div class="col-6">
+						<span class="fz-12">Free shipping on orders over £199</span>
+					</div>
+					<div class="col-6 text-right top-links">
+						<a href="#">Help</a>
+						<a href="#">Track Order</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="header-main">
+			<div class="container">
+				<div class="row align-items-center">
+					<div class="col-md-2 logo">
+						<!-- <a href="index.html"><img src="assets/img/logo.png" alt="" title="" /></a> -->
+						<a href="index.html" class="brand-text">WatchMart</a>
+					</div>
+					<div class="col-md-7">
+						<div class="search-wrap">
+							<input type="text" placeholder="Search for products, brands and more">
+							<button class="primary-btn search-btn"><i class="fa fa-search"></i></button>
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="action-icons">
+							<a href="login.html"><i class="fa fa-user"></i> Account</a>
+							<a href="wishlist.html"><i class="fa fa-heart-o"></i> <span class="badge">2</span></a>
+							<a href="cart.html"><i class="fa fa-shopping-cart"></i> <span class="badge">1</span></a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="nav-cats">
+			<div class="container">
+				<ul class="cat-menu">
+					<li><a href="shop.html">Smart Watches</a></li>
+					<li><a href="shop.html">Classic</a></li>
+					<li><a href="shop.html">Fitness</a></li>
+					<li><a href="shop.html">Straps</a></li>
+					<li><a href="shop.html">Accessories</a></li>
+				</ul>
+			</div>
+		</div>
+	</header>
+	<section class="generic-banner">
+		<div class="container">
+			<div class="row height align-items-center justify-content-center">
+				<div class="col-lg-10">
+					<div class="generic-banner-content">
+						<h2 class="text-white">Product Details</h2>
+						<p class="text-white" id="product-banner-subtitle">Loading...</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+    <section class="section-gap product-detail">
+		<div class="container">
+            <div id="product-detail-container" aria-live="polite">
+                <div class="text-center">
+                    <p>Loading product details...</p>
+                </div>
+            </div>
+            <script type="text/template" id="product-detail-template">
+                {% render 'product-detail', product: product %}
+            </script>
+		</div>
+	</section>
+    <!-- Product Tabs Section -->
+    <section class="section-gap pd-tabs">
+        <div class="container">
+            <div class="tab-nav">
+                <div class="tab active" data-tab="desc">Description</div>
+                <div class="tab" data-tab="specs">Specifications</div>
+                <div class="tab" data-tab="reviews">Reviews (24)</div>
+                <div class="tab" data-tab="ship">Shipping & Returns</div>
+            </div>
+            <div class="tab-panel">
+                <div class="tab-pane active" id="tab-desc">
+                    <h4>Product Description</h4>
+                    <div id="product-description-content">
+                        <p>Loading description...</p>
+                    </div>
+                </div>
+                <div class="tab-pane" id="tab-specs">
+                    <ul id="product-specs-content">
+                        <li>Loading specifications...</li>
+                    </ul>
+                </div>
+                <div class="tab-pane" id="tab-reviews">
+                    <div class="reviews">
+                        <h5 class="mb-10">Customer Reviews</h5>
+                        <div class="review-list mb-20">
+                            <div class="review-item">
+                                <div class="ri-head"><strong>Rahul</strong> <span class="ri-rating"><i class="fa fa-star"></i> 5</span></div>
+                                <p>Excellent watch! Battery easily lasts two days and the strap is comfortable.</p>
+                            </div>
+                            <div class="review-item">
+                                <div class="ri-head"><strong>Anita</strong> <span class="ri-rating"><i class="fa fa-star"></i> 4</span></div>
+                                <p>Looks premium and features are solid. Wish there were more color options.</p>
+                            </div>
+                            <div class="review-item">
+                                <div class="ri-head"><strong>Vikram</strong> <span class="ri-rating"><i class="fa fa-star"></i> 4</span></div>
+                                <p>Great value for money. Fitness tracking is accurate.</p>
+                            </div>
+                        </div>
+                        <h5 class="mb-10">Add a Review</h5>
+                        <form class="review-form">
+                            <div class="row">
+                                <div class="col-md-6 mb-10"><input type="text" class="form-control" name="name" placeholder="Your Name" required></div>
+                                <div class="col-md-6 mb-10">
+                                    <select class="form-control" name="rating" required>
+                                        <option value="">Rating</option>
+                                        <option value="5">5 - Excellent</option>
+                                        <option value="4">4 - Good</option>
+                                        <option value="3">3 - Average</option>
+                                        <option value="2">2 - Poor</option>
+                                        <option value="1">1 - Bad</option>
+                                    </select>
+                                </div>
+                                <div class="col-12 mb-10"><textarea class="form-control" name="comment" rows="3" placeholder="Write your review..." required></textarea></div>
+                                <div class="col-12"><button type="submit" class="btn-theme" style="width:180px;">Submit Review</button></div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="tab-pane" id="tab-ship">
+                    <p>Free shipping on orders over £199. 7-day easy returns.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Sticky Buy Bar (mobile) -->
+    <div class="buybar">
+        <div class="container">
+            <div class="wrap" id="buybar-actions">
+                <button class="btn-outline-theme" type="button" data-action="add-to-cart" data-product-id="">Add to Cart</button>
+                <button class="btn-theme" type="button" data-action="buy-now" data-product-id="">Buy Now</button>
+            </div>
+        </div>
+    </div>
+    <!-- Related Products -->
+	<section class="section-gap">
+		<div class="container">
+            <div class="row d-flex justify-content-center">
+                <div class="menu-content pb-60 col-lg-10">
+                    <div class="title text-center">
+                        <h1 class="mb-10">Related Products</h1>
+                        <p>Customers also viewed</p>
+                    </div>
+                </div>
+            </div>
+			<div id="related-products" class="row" aria-live="polite">
+                <div class="col-12 text-center">
+                    <p>Loading related products...</p>
+                </div>
+            </div>
+            <script type="text/template" id="related-products-template">
+                {% for product in products %}
+                <div class="col-lg-3 col-md-6">
+                    {% render 'shop-card', product: product %}
+                </div>
+                {% endfor %}
+            </script>
+		</div>
+	</section>
+	<footer class="footer-area section-gap">
+		<div class="container">
+			<div class="row">
+				<!-- Get in touch -->
+				<div class="col-lg-4 col-md-6 col-sm-6">
+					<div class="single-footer-widget">
+						<h6>Get In Touch</h6>
+						<p>No dolore ipsum accusam no lorem. Invidunt sed clita kasd clita et et dolor sed dolor. Rebum tempor no vero est magna amet no</p>
+						<ul class="footer-contact">
+							<li><i class="fa fa-map-marker"></i> 123 Street, New York, USA</li>
+							<li><i class="fa fa-envelope-o"></i> info@example.com</li>
+							<li><i class="fa fa-phone"></i> +012 345 67890</li>
+						</ul>
+					</div>
+				</div>
+				<!-- Quick Shop -->
+				<div class="col-lg-2 col-md-6 col-sm-6">
+                    <div class="single-footer-widget footer-links">
+						<h6>Quick Shop</h6>
+						<ul>
+                            <li><a href="index.html">Home</a></li>
+                            <li><a href="shop.html">Our Shop</a></li>
+                            <li><a href="product.html">Shop Detail</a></li>
+                            <li><a href="cart.html">Shopping Cart</a></li>
+                            <li><a href="checkout.html">Checkout</a></li>
+                            <li><a href="contact.html">Contact Us</a></li>
+						</ul>
+					</div>
+				</div>
+				<!-- My Account -->
+				<div class="col-lg-2 col-md-6 col-sm-6">
+                    <div class="single-footer-widget footer-links">
+						<h6>My Account</h6>
+						<ul>
+                            <li><a href="about.html">About</a></li>
+                            <li><a href="contact.html">Contact Us</a></li>
+                            <li><a href="#">My Account</a></li>
+                            <li><a href="track.html">Track Order</a></li>
+                            <li><a href="terms.html">Terms &amp; Conditions</a></li>
+                            <li><a href="refund.html">Refund &amp; Return Policy</a></li>
+						</ul>
+					</div>
+				</div>
+				<!-- Newsletter -->
+				<div class="col-lg-4 col-md-6 col-sm-6">
+					<div class="single-footer-widget">
+						<h6>Newsletter</h6>
+						<p>Duo stet tempor ipsum sit amet magna ipsum tempor est</p>
+						<form class="form-inline" action="#" onsubmit="return false;">
+							<input class="form-control" type="email" placeholder="Your email address">
+							<button class="click-btn btn btn-default" type="submit">Sign Up</button>
+						</form>
+						<div class="footer-social mt-20">
+							<a href="#" aria-label="Twitter"><i class="fa fa-twitter"></i></a>
+							<a href="#" aria-label="Facebook"><i class="fa fa-facebook"></i></a>
+							<a href="#" aria-label="LinkedIn"><i class="fa fa-linkedin"></i></a>
+							<a href="#" aria-label="Instagram"><i class="fa fa-instagram"></i></a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="container footer-bottom">
+			<div class="row align-items-center">
+				<div class="col-md-7 text-center text-md-left mb-3 mb-md-0">
+					<p class="footer-text mb-0">&copy; <script>document.write(new Date().getFullYear());</script> <a href="#">Shop Top</a>. All Rights Reserved. Designed by ziplofy</p>
+				</div>
+				<div class="col-md-5 text-center text-md-right">
+					<div class="footer-payments">
+						<i class="fa fa-cc-visa"></i>
+						<i class="fa fa-cc-mastercard"></i>
+						<i class="fa fa-cc-paypal"></i>
+						<i class="fa fa-cc-amex"></i>
+						<i class="fa fa-cc-discover"></i>
+					</div>
+				</div>
+			</div>
+		</div>
+	</footer>
+	<script src="assets/js/vendor/jquery-2.2.4.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+	<script src="assets/js/vendor/bootstrap.min.js"></script>
+	<script src="assets/js/easing.min.js"></script>
+	<script src="assets/js/hoverIntent.js"></script>
+	<script src="assets/js/superfish.min.js"></script>
+	<script src="assets/js/jquery.ajaxchimp.min.js"></script>
+	<script src="assets/js/jquery.magnific-popup.min.js"></script>
+	<script src="assets/js/owl.carousel.min.js"></script>
+	<script src="assets/js/jquery.sticky.js"></script>
+	<script src="assets/js/jquery.nice-select.min.js"></script>
+	<script src="assets/js/parallax.min.js"></script>
+	<script src="assets/js/mail-script.js"></script>
+	<script src="assets/js/main.js"></script>
+	<script src="https://unpkg.com/liquidjs/dist/liquid.browser.umd.js"></script>
+	<script src="constants/products.js"></script>
+	<script src="assets/js/featured-products.js"></script>
+    <script src="assets/js/product.js"></script>
+</body>
+</html>

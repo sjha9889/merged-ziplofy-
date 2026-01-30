@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELECTRO - Cyberpunk E-Commerce Store</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="assets/css/templatemo-electric-xtra.css" rel="stylesheet">
+    <link href="assets/css/ecommerce.css" rel="stylesheet">
+    <link href="assets/css/additional.css" rel="stylesheet">
+    <link href="assets/css/cart-slider.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Animated Grid Background -->
+    <div class="grid-bg"></div>
+    <div class="gradient-overlay"></div>
+    <div class="scanlines"></div>
+
+    <!-- Animated Shapes -->
+    <div class="shapes-container">
+        <div class="shape shape-circle"></div>
+        <div class="shape shape-triangle"></div>
+        <div class="shape shape-square"></div>
+    </div>
+
+    <!-- Floating Particles -->
+    <div id="particles"></div>
+
+    <!-- Top Info Bar -->
+    <div class="top-info-bar">
+        <div class="container">
+            <div class="top-info-content">
+                <div class="top-info-left">
+                    <div class="info-items">
+                        <span class="info-item">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>ELECTRO Store, Mumbai, Maharashtra</span>
+                        </span>
+                        <span class="info-item">
+                            <i class="fas fa-phone"></i>
+                            <span>+91 98765 43210</span>
+                        </span>
+                        <span class="info-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>info@electro.com</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="top-info-right">
+                    <div class="social-links">
+                        <a href="#" class="social-link" title="Facebook">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="social-link" title="Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="social-link" title="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="social-link" title="YouTube">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    </div>
+                    <div class="account-links">
+                        <a href="my-account.html" class="account-link">
+                            <i class="fas fa-user"></i>
+                            <span>My Account</span>
+                        </a>
+                        <a href="login.html" class="account-link">
+                            <i class="fas fa-lock"></i>
+                            <span>Login</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header -->
+    <header class="main-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-left">
+                    <a href="index.html" class="logo-link">
+                        <div class="logo-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="logo-text">
+                            <h1>ELECTRO</h1>
+                            <p>BUILD YOUR DREAM TECH STORE</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="header-center">
+                    <div class="search-container">
+                        <input type="text" placeholder="Search products..." class="search-input">
+                        <button class="search-btn">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <div class="header-actions">
+                        <div class="action-item">
+                            <a href="wishlist.html" class="action-link">
+                                <i class="fas fa-heart"></i>
+                                <span class="action-count">0</span>
+                            </a>
+                            <span class="action-label">Wishlist</span>
+                        </div>
+                        <div class="action-item mobile-only">
+                            <a href="#" class="action-link mobile-search-trigger">
+                                <i class="fas fa-search"></i>
+                            </a>
+                            <span class="action-label">Search</span>
+                        </div>
+                        <div class="action-item">
+                            <a href="#" class="action-link cart-icon" id="cartIcon">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span class="action-count cart-count">0</span>
+                            </a>
+                            <span class="action-label">Cart</span>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </header>
+
+    
+
+    <!-- Navigation -->
+    <nav id="navbar" class="sticky-nav">
+        <div class="container">
+            <div class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link active">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="categories.html" class="nav-link">
+                        <i class="fas fa-th-large"></i>
+                        <span>Sections</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="shop.html" class="nav-link">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Shop</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="fas fa-blog"></i>
+                        <span>Blog</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="contact.html" class="nav-link">
+                        <i class="fas fa-envelope"></i>
+                        <span>Contact Us</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Mobile Nav Overlay -->
+    <div class="mobile-nav-overlay" id="mobileNavOverlay"></div>
+
+
+    <!-- Banner Slider Section -->
+    <section class="banner-slider"> 
+        <div class="slider-container">
+            <div class="slider-wrapper">
+                <div class="slide active">
+                    <div class="slide-bg" style="background: url('https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=1200&h=400&fit=crop&q=80') center/cover;">
+                        <div class="slide-content">
+                            <h2 class="slide-title" data-text="iPhone 15 Pro Max">iPhone 15 Pro Max</h2>
+                            <p class="slide-subtitle">Latest iPhone with titanium design and A17 Pro chip</p>
+                            <a href="category.html?cat=smartphones" class="cta-button cta-primary">shop right now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="slide">
+                    <div class="slide-bg" style="background: url('https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=1200&h=400&fit=crop&q=80') center/cover;">
+                        <div class="slide-content">
+                            <h2 class="slide-title" data-text="MacBook Pro M3">MacBook Pro M3</h2>
+                            <p class="slide-subtitle">Professional laptop with M3 chip and Liquid Retina XDR display</p>
+                            <a href="category.html?cat=laptops" class="slide-btn">Explore</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="slide">
+                    <div class="slide-bg" style="background: url('https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1200&h=400&fit=crop&q=80') center/cover;">
+                        <div class="slide-content">
+                            <h2 class="slide-title" data-text="Sony WH-1000XM5">Sony WH-1000XM5</h2>
+                            <p class="slide-subtitle">Industry-leading noise canceling wireless headphones</p>
+                            <a href="category.html?cat=audio" class="slide-btn">Discover</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="slider-controls">
+                <button class="slider-prev" id="sliderPrev">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="slider-next" id="sliderNext">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="slider-dots">
+                <span class="dot active" data-slide="0"></span>
+                <span class="dot" data-slide="1"></span>
+                <span class="dot" data-slide="2"></span>
+        </div>
+        </div>
+    </section>
+
+    <!-- Top Categories Section -->
+    <section class="top-categories">
+        <div class="container">
+            <h2 class="categories-title">TOP CATEGORIES</h2>
+            <div class="categories-scroll-container">
+                <button class="scroll-btn scroll-left" id="scrollLeft">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <div class="categories-scroll-wrapper" id="categoriesScroll">
+                    <div class="category-item">
+                        <div class="category-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <span class="category-name">SMARTPHONES</span>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-icon">
+                            <i class="fas fa-laptop"></i>
+                        </div>
+                        <span class="category-name">LAPTOPS</span>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-icon">
+                            <i class="fas fa-headphones"></i>
+                        </div>
+                        <span class="category-name">AUDIO</span>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-icon">
+                            <i class="fas fa-watch"></i>
+                        </div>
+                        <span class="category-name">WEARABLES</span>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-icon">
+                            <i class="fas fa-keyboard"></i>
+                        </div>
+                        <span class="category-name">ACCESSORIES</span>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-icon">
+                            <i class="fas fa-gamepad"></i>
+                        </div>
+                        <span class="category-name">GAMING</span>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-icon">
+                            <i class="fas fa-desktop"></i>
+                        </div>
+                        <span class="category-name">MONITORS</span>
+                    </div>
+                    <div class="category-item">
+                        <div class="category-icon">
+                            <i class="fas fa-tablet-alt"></i>
+                        </div>
+                        <span class="category-name">TABLETS</span>
+                    </div>
+                </div>
+                <button class="scroll-btn scroll-right" id="scrollRight">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Products Section -->
+    <section class="featured-products" id="featured">
+        <div class="container">
+            <h2 class="section-title">Featured Products</h2>
+            <div class="products-grid" id="featuredProducts">
+                <!-- Products will be loaded dynamically -->
+            </div>
+                <div class="view-all">
+                    <a href="shop.html" class="cta-button cta-secondary">View All Products</a>
+                </div>
+            </div>
+        </section>
+
+    <!-- Flash Sale Section -->
+    <section class="flash-sale-section" id="flashSale">
+        <div class="container">
+            <div class="flash-header">
+                <div class="flash-title-wrapper">
+                    <h2 class="flash-title">⚡ FLASH SALE ⚡</h2>
+                    <p class="flash-subtitle">Limited Time Offers - Don't Miss Out!</p>
+                </div>
+                <div class="countdown-timer" id="countdownTimer">
+                    <div class="timer-item">
+                        <span class="timer-number" id="hours">23</span>
+                        <span class="timer-label">Hours</span>
+                    </div>
+                    <div class="timer-item">
+                        <span class="timer-number" id="minutes">59</span>
+                        <span class="timer-label">Minutes</span>
+                    </div>
+                    <div class="timer-item">
+                        <span class="timer-number" id="seconds">59</span>
+                        <span class="timer-label">Seconds</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flash-grid">
+                <div class="flash-card mega-deal" data-product-id="macbook-pro-m3">
+                    <div class="flash-badge">MEGA DEAL</div>
+                    <div class="flash-content">
+                        <div class="product-image">
+                            <img src="https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=300&h=300&fit=crop&q=80" alt="MacBook Pro">
+                            <div class="discount-overlay">-40%</div>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">MacBook Pro M2</h3>
+                            <p class="product-desc">Latest Apple MacBook</p>
+                            <div class="price-section">
+                                <span class="old-price">₹1,25,000</span>
+                                <span class="new-price">₹74,999</span>
+                            </div>
+                            <div class="stock-info">
+                                <span class="stock-left">Only 3 left!</span>
+                                <div class="stock-bar">
+                                    <div class="stock-fill" style="width: 30%"></div>
+                                </div>
+                            </div>
+                            <button class="flash-btn">GRAB DEAL</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flash-card hot-deal" data-product-id="sony-wh-1000xm4">
+                    <div class="flash-badge">HOT DEAL</div>
+                    <div class="flash-content">
+                        <div class="product-image">
+                            <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300&h=300&fit=crop&q=80" alt="Headphones">
+                            <div class="discount-overlay">-60%</div>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Premium Headphones</h3>
+                            <p class="product-desc">High-quality audio</p>
+                            <div class="price-section">
+                                <span class="old-price">₹15,999</span>
+                                <span class="new-price">₹6,399</span>
+                            </div>
+                            <div class="stock-info">
+                                <span class="stock-left">Only 7 left!</span>
+                                <div class="stock-bar">
+                                    <div class="stock-fill" style="width: 70%"></div>
+                                </div>
+                            </div>
+                            <button class="flash-btn">GRAB DEAL</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flash-card super-deal" data-product-id="nike-air-max-270">
+                    <div class="flash-badge">SUPER DEAL</div>
+                    <div class="flash-content">
+                        <div class="product-image">
+                            <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=300&h=300&fit=crop&q=80" alt="Fashion">
+                            <div class="discount-overlay">-70%</div>
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Fashion Collection</h3>
+                            <p class="product-desc">Latest trends 2025</p>
+                            <div class="price-section">
+                                <span class="old-price">₹2,999</span>
+                                <span class="new-price">₹899</span>
+                            </div>
+                            <div class="stock-info">
+                                <span class="stock-left">Only 12 left!</span>
+                                <div class="stock-bar">
+                                    <div class="stock-fill" style="width: 80%"></div>
+                                </div>
+                            </div>
+                            <button class="flash-btn">GRAB DEAL</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+   
+
+    <!-- Newsletter Section -->
+    <section class="newsletter">
+        <div class="newsletter-content">
+            <h2>Stay Updated</h2>
+            <p>Get the latest tech news and exclusive offers</p>
+            <form class="newsletter-form" id="newsletterForm">
+                <input type="email" placeholder="Enter your email" required>
+                <button type="submit">Subscribe</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Explore Collection Section -->
+    <section class="explore-collection">
+        <div class="container">
+            <h2 class="collection-title">EXPLORE OUR COLLECTION</h2>
+            <div class="collection-grid">
+                <div class="collection-card bicycle-card" data-category-key="accessories">
+                    <div class="card-background">
+                        <div class="card-image">
+                            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=500&fit=crop&q=80" alt="Bicycle Gloves">
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">IMPROVE YOUR JOURNEY WITH</h3>
+                            <h2 class="card-main-title">BICYCLE GLOVES</h2>
+                            <div class="card-price">starting at ₹ 289.00/-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="collection-card cricket-card" data-category-key="gaming">
+                    <div class="card-background">
+                        <div class="card-image">
+                            <img src="https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=400&h=500&fit=crop&q=80" alt="Cricket Game">
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">ENHANCE YOUR</h3>
+                            <h2 class="card-main-title">CRICKET GAME</h2>
+                            <div class="card-price">STARTING AT ₹ 177.00/-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="collection-card gym-card" data-category-key="accessories">
+                    <div class="card-background">
+                        <div class="card-image">
+                            <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=500&fit=crop&q=80" alt="Gym Equipment">
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">FIX YOUR</h3>
+                            <h2 class="card-main-title">GYM TIME</h2>
+                            <div class="card-price">DUMBELLS STARTING AT ₹ 1,599.00/-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="collection-card roller-card" data-category-key="accessories">
+                    <div class="card-background">
+                        <div class="card-image">
+                            <img src="https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=400&h=500&fit=crop&q=80" alt="Roller Skates">
+                        </div>
+                        <div class="card-content">
+                            <h3 class="card-title">EXPLORE THE FUN WITH</h3>
+                            <h2 class="card-main-title">ROLLER SKATES</h2>
+                            <div class="card-price">STARTING AT ₹ 1,249.00/-</div>
+                        </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Brand Deals Banner Section -->
+    <section class="brand-deals-banner">
+        <div class="container-fuild">
+            <div class="deals-grid">
+                <div class="deal-item adidas-deal">
+                    <div class="deal-content">
+                        <h3 class="deal-brand">ADIDAS</h3>
+                        <div class="deal-price">Just ₹1,999</div>
+                    </div>
+                    <div class="deal-image">
+                        <img src="https://images.unsplash.com/photo-1549298916-b41d501d3772?w=200&h=200&fit=crop&q=80" alt="Adidas Sneakers">
+                    </div>
+                </div>
+
+                <div class="deal-item levis-deal">
+                    <div class="deal-content">
+                        <h3 class="deal-brand">Levi's, Spykar & more</h3>
+                        <div class="deal-price">Just ₹849</div>
+                    </div>
+                    <div class="deal-image">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&q=80" alt="Fashion">
+                    </div>
+                </div>
+
+                <div class="deal-item tommy-deal">
+                    <div class="deal-content">
+                        <h3 class="deal-brand">Tommy Hilfiger, Uppercase & more</h3>
+                        <div class="deal-price">Min. 65% Off</div>
+                    </div>
+                    <div class="deal-image">
+                        <img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=200&h=200&fit=crop&q=80" alt="Luggage">
+                    </div>
+                </div>
+
+                <div class="deal-item titan-deal">
+                    <div class="deal-content">
+                        <h3 class="deal-brand">Titan, Casio & more</h3>
+                        <div class="deal-price">From ₹999</div>
+                    </div>
+                    <div class="deal-image">
+                        <img src="https://images.unsplash.com/photo-1523170335258-f5e6a4c8b4e8?w=200&h=200&fit=crop&q=80" alt="Watches">
+                    </div>
+            </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Special Offers Section - Rendered via liquid template -->
+    <div id="specialOffersContainer"></div>
+
+    <!-- Banner Slider Section -->
+    <section class="banner-slider-section">
+        <div class="container">
+            <div class="banner-slider-container">
+                <div class="banner-slides" id="bannerSlides">
+                    <div class="banner-slide active">
+                        <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&h=350&fit=crop&q=80" alt="Fashion Banner">
+                        <div class="banner-content">
+                            <h2 class="banner-title">Fashion Collection 2025</h2>
+                            <p class="banner-subtitle">Discover the latest trends</p>
+                            <a href="category.html?cat=fashion" class="banner-cta">Shop Now</a>
+                        </div>
+                    </div>
+                    <div class="banner-slide">
+                        <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200&h=350&fit=crop&q=80" alt="Fitness Banner">
+                        <div class="banner-content">
+                            <h2 class="banner-title">Fitness & Wellness</h2>
+                            <p class="banner-subtitle">Transform your lifestyle</p>
+                            <a href="category.html?cat=fitness" class="banner-cta">Explore</a>
+                        </div>
+                    </div>
+                    <div class="banner-slide">
+                        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1200&h=350&fit=crop&q=80" alt="Sports Banner">
+                        <div class="banner-content">
+                            <h2 class="banner-title">Sports & Games</h2>
+                            <p class="banner-subtitle">Gear up for action</p>
+                            <a href="category.html?cat=sports" class="banner-cta">Shop Sports</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="banner-controls">
+                    <button class="banner-prev" id="bannerPrev">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="banner-next" id="bannerNext">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="banner-dots">
+                    <span class="banner-dot active" data-slide="0"></span>
+                    <span class="banner-dot" data-slide="1"></span>
+                    <span class="banner-dot" data-slide="2"></span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Blog Section -->
+    <section class="blog-section">
+        <div class="container">
+            <div class="blog-header">
+                <h2 class="blog-title">Latest Blog Posts</h2>
+                <div class="blog-controls">
+                    <button class="blog-prev" id="blogPrev">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="blog-next" id="blogNext">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    </div>
+            </div>
+            
+            <div class="blog-carousel" id="blogCarousel">
+                <div class="blog-slider" id="blogSlider">
+                    <div class="blog-card">
+                        <div class="blog-image">
+                            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=250&fit=crop&q=80" alt="Blog Post 1">
+                            <div class="blog-category">Sports</div>
+                        </div>
+                        <div class="blog-content">
+                            <h3 class="blog-post-title">Best Cricket Equipment for 2025</h3>
+                            <p class="blog-excerpt">Discover the latest cricket gear and equipment that will enhance your game performance...</p>
+                            <div class="blog-meta">
+                                <span class="blog-date">Jan 15, 2025</span>
+                                <span class="blog-author">By John Doe</span>
+                            </div>
+                            <a href="#" class="blog-read-more">Read More</a>
+                        </div>
+                    </div>
+
+                    <div class="blog-card">
+                        <div class="blog-image">
+                            <img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=250&fit=crop&q=80" alt="Blog Post 2">
+                            <div class="blog-category">Fitness</div>
+                        </div>
+                        <div class="blog-content">
+                            <h3 class="blog-post-title">Home Workout Essentials</h3>
+                            <p class="blog-excerpt">Transform your home into a fitness studio with these essential workout equipment...</p>
+                            <div class="blog-meta">
+                                <span class="blog-date">Jan 12, 2025</span>
+                                <span class="blog-author">By Jane Smith</span>
+                            </div>
+                            <a href="#" class="blog-read-more">Read More</a>
+                </div>
+                    </div>
+
+                    <div class="blog-card">
+                        <div class="blog-image">
+                            <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=250&fit=crop&q=80" alt="Blog Post 3">
+                            <div class="blog-category">Fashion</div>
+                        </div>
+                        <div class="blog-content">
+                            <h3 class="blog-post-title">Trending Fashion Styles</h3>
+                            <p class="blog-excerpt">Stay ahead of the fashion curve with these trending styles for the upcoming season...</p>
+                            <div class="blog-meta">
+                                <span class="blog-date">Jan 10, 2025</span>
+                                <span class="blog-author">By Mike Johnson</span>
+                            </div>
+                            <a href="#" class="blog-read-more">Read More</a>
+                </div>
+                    </div>
+
+                    <div class="blog-card">
+                        <div class="blog-image">
+                            <img src="https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&h=250&fit=crop&q=80" alt="Blog Post 4">
+                            <div class="blog-category">Technology</div>
+                        </div>
+                        <div class="blog-content">
+                            <h3 class="blog-post-title">Latest Tech Gadgets</h3>
+                            <p class="blog-excerpt">Explore the newest technology gadgets that are revolutionizing our daily lives...</p>
+                            <div class="blog-meta">
+                                <span class="blog-date">Jan 8, 2025</span>
+                                <span class="blog-author">By Sarah Wilson</span>
+                            </div>
+                            <a href="#" class="blog-read-more">Read More</a>
+                </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Electro Cart Slider -->
+    <div class="electro-cart-slider" id="electroCartSlider">
+        <div class="electro-cart-header">
+            <div class="electro-cart-title">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Shopping Cart</span>
+            </div>
+            <button class="electro-close-cart" id="electroCloseCart">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="electro-cart-content" id="electroCartItems">
+            <div class="electro-empty-cart">
+                <i class="fas fa-shopping-cart"></i>
+                <h3>Your cart is empty</h3>
+                <p>Add some products to get started</p>
+            </div>
+        </div>
+        
+        <div class="electro-cart-footer">
+            <div class="electro-cart-total">
+                <span class="electro-total-label">Total:</span>
+                <span class="electro-total-amount">₹<span id="electroCartTotal">0.00</span></span>
+            </div>
+            <div class="electro-cart-actions">
+                <a href="cart.html" class="electro-btn-view-cart">
+                    <i class="fas fa-eye"></i>
+                    View Cart
+                </a>
+                <button class="electro-btn-checkout">
+                    <i class="fas fa-credit-card"></i>
+                    Checkout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-widgets">
+            <div class="container">
+                <div class="footer-grid">
+                    <!-- Shop Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Shop</h4>
+                        <ul class="footer-links">
+                            <li><a href="category.html?cat=smartphones">True Wireless Earbuds</a></li>
+                            <li><a href="category.html?cat=audio">Wireless Headphones</a></li>
+                            <li><a href="category.html?cat=audio">Wired Headphones</a></li>
+                            <li><a href="category.html?cat=audio">Wireless Speakers</a></li>
+                            <li><a href="category.html?cat=audio">Home Audio</a></li>
+                            <li><a href="category.html?cat=accessories">Mobile Accessories</a></li>
+                            <li><a href="category.html?cat=wearables">Smart Watches</a></li>
+                            <li><a href="category.html?cat=gaming">Gaming Series</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Help Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Help</h4>
+                        <ul class="footer-links">
+                            <li><a href="#">Track Your Order</a></li>
+                            <li><a href="#">Warranty & Support</a></li>
+                            <li><a href="#">Return Policy</a></li>
+                            <li><a href="#">Service Centers</a></li>
+                            <li><a href="#">Bulk Orders</a></li>
+                            <li><a href="#">Why Buy Direct</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Company Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Company</h4>
+                        <ul class="footer-links">
+                            <li><a href="about.html">About ELECTRO</a></li>
+                            <li><a href="#">News</a></li>
+                            <li><a href="#">Read Our Blog</a></li>
+                            <li><a href="#">Careers</a></li>
+                            <li><a href="#">Security</a></li>
+                            <li><a href="#">Investor Relations</a></li>
+                            <li><a href="#">Social Responsibility</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Company Info Section -->
+                    <div class="footer-widget">
+                        <h4 class="widget-title">Company Info</h4>
+                        <ul class="footer-links">
+                            <li><a href="#">About ELECTRO</a></li>
+                            <li><a href="#">Our Mission</a></li>
+                            <li><a href="#">Leadership Team</a></li>
+                            <li><a href="#">Investor Relations</a></li>
+                            <li><a href="#">Press Releases</a></li>
+                            <li><a href="#">Awards & Recognition</a></li>
+                        </ul>
+                        <div class="social-icons">
+                            <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                            <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Newsletter Section - Separate -->
+                <div class="newsletter-section">
+                    <div class="newsletter-content">
+                        <h4 class="newsletter-title">Join the Tribe</h4>
+                        <p class="newsletter-text">Subscribe to email alerts. We promise not to spam your inbox.</p>
+                        <div class="newsletter-form">
+                            <input type="email" placeholder="Enter your email" class="newsletter-input">
+                            <button class="newsletter-btn">Subscribe</button>
+            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Site Info -->
+        <div class="site-info">
+            <div class="container">
+                <div class="site-info-content">
+                    <div class="site-description">
+                        <p>India's fastest growing tech & electronics brand. The most incredible range of smartphones, laptops, gaming gear, and home audio. From work to adventures, ELECTRO will get you powered!</p>
+                    </div>
+                    
+                    <!-- 4 Column Footer Info -->
+                    <div class="footer-info-grid">
+                        <div class="footer-info-column">
+                            <h5>Company Info</h5>
+                            <p>&copy; 2025 ELECTRO.<br>All Rights Reserved.</p>
+                        </div>
+                        
+                        <div class="footer-info-column">
+                            <h5>Contact Details</h5>
+                            <p>Manager, ELECTRO<br>
+                            Unit no. 204 & 205, 2nd floor</p>
+                        </div>
+                        
+                        <div class="footer-info-column">
+                            <h5>Address</h5>
+                            <p>D-wing & E-wing,<br>
+                            Corporate Avenue,<br>
+                            Andheri Ghatkopar Link Road</p>
+                        </div>
+                        
+                        <div class="footer-info-column">
+                            <h5>Location</h5>
+                            <p>Mumbai, Maharashtra<br>
+                            400093, India</p>
+                </div>
+                    </div>
+                    
+                    <div class="footer-bottom">
+                        <div class="footer-bottom-content">
+                                <p>&copy; 2025 ELECTRO. All rights reserved.</p>
+                            <div class="footer-links-bottom">
+                                <a href="privacy-policy.html">Privacy Policy</a>
+                                <a href="terms-of-use.html">Terms of Use</a>
+                                <a href="warranty-policy.html">Warranty Policy</a>
+                    </div>
+                </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Load constants first -->
+    <script src="constants/products.js"></script>
+    <!-- Load liquid.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/liquidjs@10/dist/liquid.browser.min.js"></script>
+    <!-- Load render.js for liquid templates -->
+    <script src="js/render.js"></script>
+    <script src="assets/js/app.js"></script>
+</body>
+</html>

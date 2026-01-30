@@ -1,0 +1,9 @@
+<div class="order-item">
+  <img src="{{ item.image }}" alt="{{ item.title }}" loading="lazy" onerror="this.src='https://via.placeholder.com/80x80?text=No+Image'">
+  <div class="item-details">
+    <h4>{{ item.title }}</h4>
+    <p>{{ item.category }} | Qty: {{ item.quantity }}</p>
+    <span class="item-price">{{ item.lineTotalFormatted }}</span>
+  </div>
+</div>
+

@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>new elements test</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      line-height: 1.6;
+      color: #1e1e1e;
+      background: #ffffff;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    .ziplofy-page {
+      display: none;
+      width: 100%;
+      min-height: 100vh;
+    }
+    .ziplofy-page.active {
+      display: block;
+    }
+    /* CRITICAL: Ensure wrapper styles apply to page containers */
+    .ziplofy-page > .gjs-wrapper-body,
+    .ziplofy-page.gjs-wrapper-body {
+      width: 100%;
+      min-height: 100vh;
+    }
+    * { box-sizing: border-box; } body {margin: 0;}#i1n4{font-size:32px;font-weight:700;margin-bottom:32px;}#ipwg{font-size:48px;font-weight:800;line-height:1;}#i1ogu{font-size:14px;margin-top:8px;opacity:0.9;}#iwqh{background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);padding:20px;border-radius:12px;min-width:100px;}#ius19{font-size:48px;font-weight:800;line-height:1;}#ivy73{font-size:14px;margin-top:8px;opacity:0.9;}#iy1f6{background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);padding:20px;border-radius:12px;min-width:100px;}#ix1z2{font-size:48px;font-weight:800;line-height:1;}#itqee{font-size:14px;margin-top:8px;opacity:0.9;}#iuqve{background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);padding:20px;border-radius:12px;min-width:100px;}#iz6iw{font-size:48px;font-weight:800;line-height:1;}#imwxk{font-size:14px;margin-top:8px;opacity:0.9;}#iqyr1{background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);padding:20px;border-radius:12px;min-width:100px;}#i73w{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;}#ir2f{padding:40px;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);border-radius:16px;text-align:center;color:#ffffff;}#ir3r5{font-size:14px;font-weight:600;color:#1e1e1e;}#ih5ff{font-size:14px;font-weight:600;color:#5e72e4;}#ioh6o{display:flex;justify-content:space-between;margin-bottom:8px;}#isjzj{width:75%;height:100%;background:linear-gradient(90deg, #5e72e4 0%, #667eea 100%);border-radius:6px;transition:width 0.3s ease;}#ikgcs{width:100%;height:12px;background:#e5e7eb;border-radius:6px;overflow:hidden;}#ijjy1{margin-bottom:20px;}#itzq8{padding:30px;background:#ffffff;border-radius:12px;}#ia9ux{font-size:64px;font-weight:800;margin-bottom:12px;line-height:1;}#ih0m3{font-size:20px;font-weight:500;opacity:0.9;}#i0nbs{text-align:center;padding:40px;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);border-radius:16px;color:#ffffff;}#iv863{position:absolute;left:0;top:0;bottom:0;width:2px;background:#e5e7eb;}#igh34{position:absolute;left:-32px;top:0;width:16px;height:16px;border-radius:50%;background:#5e72e4;border:3px solid #ffffff;box-shadow:0 0 0 2px #5e72e4;}#ibqrd{font-size:14px;font-weight:600;color:#5e72e4;margin-bottom:8px;}#ivanr{font-size:20px;font-weight:700;margin-bottom:8px;color:#1e1e1e;}#i80tr{color:#6b7280;line-height:1.6;}#iq1we{background:#f9fafb;padding:24px;border-radius:12px;border-left:3px solid #5e72e4;}#ivn63{position:relative;margin-bottom:40px;}#iw2sl{position:absolute;left:-32px;top:0;width:16px;height:16px;border-radius:50%;background:#10b981;border:3px solid #ffffff;box-shadow:0 0 0 2px #10b981;}#ilvvi{font-size:14px;font-weight:600;color:#10b981;margin-bottom:8px;}#ibuof{font-size:20px;font-weight:700;margin-bottom:8px;color:#1e1e1e;}#ioywi{color:#6b7280;line-height:1.6;}#im552{background:#f9fafb;padding:24px;border-radius:12px;border-left:3px solid #10b981;}#iedlt{position:relative;margin-bottom:40px;}#ip80h{position:relative;padding-left:40px;}#i8a33{padding:40px;background:#ffffff;position:relative;}
+
+.{min-height:600px;padding:40px;background:#fff;}
+
+#i1n4{font-size:32px;font-weight:700;margin-bottom:32px;}
+
+#ipwg{font-size:48px;font-weight:800;line-height:1;}
+
+#i1ogu{font-size:14px;margin-top:8px;opacity:0.9;}
+
+#iwqh{background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);padding:20px;border-radius:12px;min-width:100px;}
+
+#ius19{font-size:48px;font-weight:800;line-height:1;}
+
+#ivy73{font-size:14px;margin-top:8px;opacity:0.9;}
+
+#iy1f6{background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);padding:20px;border-radius:12px;min-width:100px;}
+
+#ix1z2{font-size:48px;font-weight:800;line-height:1;}
+
+#itqee{font-size:14px;margin-top:8px;opacity:0.9;}
+
+#iuqve{background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);padding:20px;border-radius:12px;min-width:100px;}
+
+#iz6iw{font-size:48px;font-weight:800;line-height:1;}
+
+#imwxk{font-size:14px;margin-top:8px;opacity:0.9;}
+
+#iqyr1{background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);padding:20px;border-radius:12px;min-width:100px;}
+
+#i73w{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;}
+
+#ir2f{padding:40px;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);border-radius:16px;text-align:center;color:#ffffff;}
+
+#ir3r5{font-size:14px;font-weight:600;color:#1e1e1e;}
+
+#ih5ff{font-size:14px;font-weight:600;color:#5e72e4;}
+
+#ioh6o{display:flex;justify-content:space-between;margin-bottom:8px;}
+
+#isjzj{width:75%;height:100%;background:linear-gradient(90deg, #5e72e4 0%, #667eea 100%);border-radius:6px;transition:width 0.3s ease;}
+
+#ikgcs{width:100%;height:12px;background:#e5e7eb;border-radius:6px;overflow:hidden;}
+
+#ijjy1{margin-bottom:20px;}
+
+#itzq8{padding:30px;background:#ffffff;border-radius:12px;}
+
+#ia9ux{font-size:64px;font-weight:800;margin-bottom:12px;line-height:1;}
+
+#ih0m3{font-size:20px;font-weight:500;opacity:0.9;}
+
+#i0nbs{text-align:center;padding:40px;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);border-radius:16px;color:#ffffff;}
+
+#iv863{position:absolute;left:0;top:0;bottom:0;width:2px;background:#e5e7eb;}
+
+#igh34{position:absolute;left:-32px;top:0;width:16px;height:16px;border-radius:50%;background:#5e72e4;border:3px solid #ffffff;box-shadow:0 0 0 2px #5e72e4;}
+
+#ibqrd{font-size:14px;font-weight:600;color:#5e72e4;margin-bottom:8px;}
+
+#ivanr{font-size:20px;font-weight:700;margin-bottom:8px;color:#1e1e1e;}
+
+#i80tr{color:#6b7280;line-height:1.6;}
+
+#iq1we{background:#f9fafb;padding:24px;border-radius:12px;border-left:3px solid #5e72e4;}
+
+#ivn63{position:relative;margin-bottom:40px;}
+
+#iw2sl{position:absolute;left:-32px;top:0;width:16px;height:16px;border-radius:50%;background:#10b981;border:3px solid #ffffff;box-shadow:0 0 0 2px #10b981;}
+
+#ilvvi{font-size:14px;font-weight:600;color:#10b981;margin-bottom:8px;}
+
+#ibuof{font-size:20px;font-weight:700;margin-bottom:8px;color:#1e1e1e;}
+
+#ioywi{color:#6b7280;line-height:1.6;}
+
+#im552{background:#f9fafb;padding:24px;border-radius:12px;border-left:3px solid #10b981;}
+
+#iedlt{position:relative;margin-bottom:40px;}
+
+#ip80h{position:relative;padding-left:40px;}
+
+#i8a33{padding:40px;background:#ffffff;position:relative;}
+  </style>
+</head>
+<body>
+  <div id="ziplofy-page-container"></div>
+  <script id="ziplofy-pages-data" type="application/json">[{"id":"page-1","name":"Home","html":"\u003cbody class=\"gjs-wrapper-body\" id=\"iec5\"\u003e\u003cdiv data-countdown-days=\"30\" data-countdown-hours=\"12\" data-countdown-minutes=\"45\" data-countdown-seconds=\"30\" class=\"ziplofy-countdown-timer\" id=\"ir2f\"\u003e\u003ch2 id=\"i1n4\"\u003eLimited Time Offer\u003c/h2\u003e\u003cdiv id=\"i73w\"\u003e\u003cdiv id=\"iwqh\"\u003e\u003cdiv class=\"countdown-days\" id=\"ipwg\"\u003e30\u003c/div\u003e\u003cdiv id=\"i1ogu\"\u003eDays\u003c/div\u003e\u003c/div\u003e\u003cdiv id=\"iy1f6\"\u003e\u003cdiv class=\"countdown-hours\" id=\"ius19\"\u003e12\u003c/div\u003e\u003cdiv id=\"ivy73\"\u003eHours\u003c/div\u003e\u003c/div\u003e\u003cdiv id=\"iuqve\"\u003e\u003cdiv class=\"countdown-minutes\" id=\"ix1z2\"\u003e45\u003c/div\u003e\u003cdiv id=\"itqee\"\u003eMinutes\u003c/div\u003e\u003c/div\u003e\u003cdiv id=\"iqyr1\"\u003e\u003cdiv class=\"countdown-seconds\" id=\"iz6iw\"\u003e30\u003c/div\u003e\u003cdiv id=\"imwxk\"\u003eSeconds\u003c/div\u003e\u003c/div\u003e\u003c/div\u003e\u003c/div\u003e\u003cdiv class=\"ziplofy-progress-bar\" id=\"itzq8\"\u003e\u003cdiv id=\"ijjy1\"\u003e\u003cdiv id=\"ioh6o\"\u003e\u003cspan class=\"progress-label\" id=\"ir3r5\"\u003eSkill Name\u003c/span\u003e\u003cspan class=\"progress-percentage\" id=\"ih5ff\"\u003e%\u003c/span\u003e\u003c/div\u003e\u003cdiv class=\"progress-bar-container\" id=\"ikgcs\"\u003e\u003cdiv class=\"progress-bar-fill\" id=\"isjzj\"\u003e\u003c/div\u003e\u003c/div\u003e\u003c/div\u003e\u003c/div\u003e\u003cdiv id=\"i0nbs\"\u003e\u003cdiv id=\"ia9ux\"\u003e1,234\u003c/div\u003e\u003cdiv id=\"i8a33\"\u003e\u003cdiv id=\"ip80h\"\u003e\u003cdiv id=\"iv863\"\u003e\u003c/div\u003e\u003cdiv id=\"ivn63\"\u003e\u003cdiv id=\"igh34\"\u003e\u003c/div\u003e\u003cdiv id=\"iq1we\"\u003e\u003cdiv id=\"ibqrd\"\u003e2024\u003c/div\u003e\u003ch3 id=\"ivanr\"\u003eEvent Title\u003c/h3\u003e\u003cp id=\"i80tr\"\u003eEvent description goes here. You can edit this text.\u003c/p\u003e\u003c/div\u003e\u003c/div\u003e\u003cdiv id=\"iedlt\"\u003e\u003cdiv id=\"iw2sl\"\u003e\u003c/div\u003e\u003cdiv id=\"im552\"\u003e\u003cdiv id=\"ilvvi\"\u003e2023\u003c/div\u003e\u003ch3 id=\"ibuof\"\u003eAnother Event\u003c/h3\u003e\u003cp id=\"ioywi\"\u003eAnother event description. Customize as needed.\u003c/p\u003e\u003c/div\u003e\u003c/div\u003e\u003c/div\u003e\u003c/div\u003e\u003cdiv id=\"ih0m3\"\u003eTotal Users\u003c/div\u003e\u003c/div\u003e\u003c/body\u003e","css":"* { box-sizing: border-box; } body {margin: 0;}#i1n4{font-size:32px;font-weight:700;margin-bottom:32px;}#ipwg{font-size:48px;font-weight:800;line-height:1;}#i1ogu{font-size:14px;margin-top:8px;opacity:0.9;}#iwqh{background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);padding:20px;border-radius:12px;min-width:100px;}#ius19{font-size:48px;font-weight:800;line-height:1;}#ivy73{font-size:14px;margin-top:8px;opacity:0.9;}#iy1f6{background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);padding:20px;border-radius:12px;min-width:100px;}#ix1z2{font-size:48px;font-weight:800;line-height:1;}#itqee{font-size:14px;margin-top:8px;opacity:0.9;}#iuqve{background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);padding:20px;border-radius:12px;min-width:100px;}#iz6iw{font-size:48px;font-weight:800;line-height:1;}#imwxk{font-size:14px;margin-top:8px;opacity:0.9;}#iqyr1{background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);padding:20px;border-radius:12px;min-width:100px;}#i73w{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;}#ir2f{padding:40px;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);border-radius:16px;text-align:center;color:#ffffff;}#ir3r5{font-size:14px;font-weight:600;color:#1e1e1e;}#ih5ff{font-size:14px;font-weight:600;color:#5e72e4;}#ioh6o{display:flex;justify-content:space-between;margin-bottom:8px;}#isjzj{width:75%;height:100%;background:linear-gradient(90deg, #5e72e4 0%, #667eea 100%);border-radius:6px;transition:width 0.3s ease;}#ikgcs{width:100%;height:12px;background:#e5e7eb;border-radius:6px;overflow:hidden;}#ijjy1{margin-bottom:20px;}#itzq8{padding:30px;background:#ffffff;border-radius:12px;}#ia9ux{font-size:64px;font-weight:800;margin-bottom:12px;line-height:1;}#ih0m3{font-size:20px;font-weight:500;opacity:0.9;}#i0nbs{text-align:center;padding:40px;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);border-radius:16px;color:#ffffff;}#iv863{position:absolute;left:0;top:0;bottom:0;width:2px;background:#e5e7eb;}#igh34{position:absolute;left:-32px;top:0;width:16px;height:16px;border-radius:50%;background:#5e72e4;border:3px solid #ffffff;box-shadow:0 0 0 2px #5e72e4;}#ibqrd{font-size:14px;font-weight:600;color:#5e72e4;margin-bottom:8px;}#ivanr{font-size:20px;font-weight:700;margin-bottom:8px;color:#1e1e1e;}#i80tr{color:#6b7280;line-height:1.6;}#iq1we{background:#f9fafb;padding:24px;border-radius:12px;border-left:3px solid #5e72e4;}#ivn63{position:relative;margin-bottom:40px;}#iw2sl{position:absolute;left:-32px;top:0;width:16px;height:16px;border-radius:50%;background:#10b981;border:3px solid #ffffff;box-shadow:0 0 0 2px #10b981;}#ilvvi{font-size:14px;font-weight:600;color:#10b981;margin-bottom:8px;}#ibuof{font-size:20px;font-weight:700;margin-bottom:8px;color:#1e1e1e;}#ioywi{color:#6b7280;line-height:1.6;}#im552{background:#f9fafb;padding:24px;border-radius:12px;border-left:3px solid #10b981;}#iedlt{position:relative;margin-bottom:40px;}#ip80h{position:relative;padding-left:40px;}#i8a33{padding:40px;background:#ffffff;position:relative;}\n\n.{min-height:600px;padding:40px;background:#fff;}\n\n#i1n4{font-size:32px;font-weight:700;margin-bottom:32px;}\n\n#ipwg{font-size:48px;font-weight:800;line-height:1;}\n\n#i1ogu{font-size:14px;margin-top:8px;opacity:0.9;}\n\n#iwqh{background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);padding:20px;border-radius:12px;min-width:100px;}\n\n#ius19{font-size:48px;font-weight:800;line-height:1;}\n\n#ivy73{font-size:14px;margin-top:8px;opacity:0.9;}\n\n#iy1f6{background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);padding:20px;border-radius:12px;min-width:100px;}\n\n#ix1z2{font-size:48px;font-weight:800;line-height:1;}\n\n#itqee{font-size:14px;margin-top:8px;opacity:0.9;}\n\n#iuqve{background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);padding:20px;border-radius:12px;min-width:100px;}\n\n#iz6iw{font-size:48px;font-weight:800;line-height:1;}\n\n#imwxk{font-size:14px;margin-top:8px;opacity:0.9;}\n\n#iqyr1{background:rgba(255,255,255,0.2);backdrop-filter:blur(10px);padding:20px;border-radius:12px;min-width:100px;}\n\n#i73w{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;}\n\n#ir2f{padding:40px;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);border-radius:16px;text-align:center;color:#ffffff;}\n\n#ir3r5{font-size:14px;font-weight:600;color:#1e1e1e;}\n\n#ih5ff{font-size:14px;font-weight:600;color:#5e72e4;}\n\n#ioh6o{display:flex;justify-content:space-between;margin-bottom:8px;}\n\n#isjzj{width:75%;height:100%;background:linear-gradient(90deg, #5e72e4 0%, #667eea 100%);border-radius:6px;transition:width 0.3s ease;}\n\n#ikgcs{width:100%;height:12px;background:#e5e7eb;border-radius:6px;overflow:hidden;}\n\n#ijjy1{margin-bottom:20px;}\n\n#itzq8{padding:30px;background:#ffffff;border-radius:12px;}\n\n#ia9ux{font-size:64px;font-weight:800;margin-bottom:12px;line-height:1;}\n\n#ih0m3{font-size:20px;font-weight:500;opacity:0.9;}\n\n#i0nbs{text-align:center;padding:40px;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);border-radius:16px;color:#ffffff;}\n\n#iv863{position:absolute;left:0;top:0;bottom:0;width:2px;background:#e5e7eb;}\n\n#igh34{position:absolute;left:-32px;top:0;width:16px;height:16px;border-radius:50%;background:#5e72e4;border:3px solid #ffffff;box-shadow:0 0 0 2px #5e72e4;}\n\n#ibqrd{font-size:14px;font-weight:600;color:#5e72e4;margin-bottom:8px;}\n\n#ivanr{font-size:20px;font-weight:700;margin-bottom:8px;color:#1e1e1e;}\n\n#i80tr{color:#6b7280;line-height:1.6;}\n\n#iq1we{background:#f9fafb;padding:24px;border-radius:12px;border-left:3px solid #5e72e4;}\n\n#ivn63{position:relative;margin-bottom:40px;}\n\n#iw2sl{position:absolute;left:-32px;top:0;width:16px;height:16px;border-radius:50%;background:#10b981;border:3px solid #ffffff;box-shadow:0 0 0 2px #10b981;}\n\n#ilvvi{font-size:14px;font-weight:600;color:#10b981;margin-bottom:8px;}\n\n#ibuof{font-size:20px;font-weight:700;margin-bottom:8px;color:#1e1e1e;}\n\n#ioywi{color:#6b7280;line-height:1.6;}\n\n#im552{background:#f9fafb;padding:24px;border-radius:12px;border-left:3px solid #10b981;}\n\n#iedlt{position:relative;margin-bottom:40px;}\n\n#ip80h{position:relative;padding-left:40px;}\n\n#i8a33{padding:40px;background:#ffffff;position:relative;}"}]</script>
+  <script>
+    (function() {
+      try {
+        const container = document.getElementById('ziplofy-page-container');
+        const dataEl = document.getElementById('ziplofy-pages-data');
+        if (!container || !dataEl) return;
+        const pagesText = dataEl.textContent || dataEl.innerText || '[]';
+        const pages = JSON.parse(pagesText);
+        const normalizeId = function(value) {
+          if (value === null || value === undefined) return '';
+          return String(value).replace(/^#/, '').trim();
+        };
+        const idsMatch = function(a, b) {
+          const normalizedA = normalizeId(a);
+          const normalizedB = normalizeId(b);
+          if (!normalizedA || !normalizedB) return false;
+          if (normalizedA === normalizedB) return true;
+          const stripA = normalizedA.replace(/^page-/, '');
+          const stripB = normalizedB.replace(/^page-/, '');
+          return stripA === stripB;
+        };
+        const normalizeExternalUrl = function(url) {
+          if (!url) return '';
+          const trimmed = String(url).trim();
+          if (!trimmed) return '';
+          const lower = trimmed.toLowerCase();
+          if (lower.startsWith('http://') || lower.startsWith('https://') || lower.startsWith('mailto:') || lower.startsWith('tel:')) {
+            return trimmed;
+          }
+          if (trimmed.startsWith('//')) {
+            return 'https:' + trimmed;
+          }
+          if (trimmed.includes('://')) {
+            return trimmed;
+          }
+          return 'https://' + trimmed;
+        };
+        const openExternal = function(url) {
+          const finalUrl = normalizeExternalUrl(url);
+          if (!finalUrl) return;
+          window.open(finalUrl, '_blank', 'noopener,noreferrer');
+        };
+        const renderPages = function() {
+          container.innerHTML = '';
+          pages.forEach(function(page, index) {
+            const wrapper = document.createElement('div');
+            // CRITICAL: Add gjs-wrapper-body class so background images work
+            wrapper.className = 'ziplofy-page gjs-wrapper-body' + (index === 0 ? ' active' : '');
+            wrapper.setAttribute('data-page-id', page.id || ('page-' + (index + 1)));
+            wrapper.style.display = index === 0 ? 'block' : 'none';
+            wrapper.innerHTML = page.html || '';
+            container.appendChild(wrapper);
+          });
+        };
+
+        const showPage = function(pageId, updateHash) {
+          const normalizedRequest = normalizeId(pageId);
+          if (!normalizedRequest) return false;
+          
+          const wrappers = container.querySelectorAll('.ziplofy-page');
+          let found = false;
+          
+          wrappers.forEach(function(wrapper) {
+            const wrapperPageId = wrapper.getAttribute('data-page-id') || '';
+            
+            if (idsMatch(wrapperPageId, normalizedRequest)) {
+              wrapper.classList.add('active');
+              wrapper.style.display = 'block';
+              found = true;
+            } else {
+              wrapper.classList.remove('active');
+              wrapper.style.display = 'none';
+            }
+          });
+          
+          if (found && updateHash) {
+            const activeWrapper = container.querySelector('.ziplofy-page.active');
+            const actualPageId = activeWrapper ? (activeWrapper.getAttribute('data-page-id') || normalizedRequest) : normalizedRequest;
+            window.location.hash = '#' + normalizeId(actualPageId);
+          }
+          
+          return found;
+        };
+
+        const attachLinkHandlers = function() {
+          // Remove old handlers first for links
+          const oldLinks = container.querySelectorAll('a[data-page-link]');
+          oldLinks.forEach(function(link) {
+            const newLink = link.cloneNode(true);
+            if (link.parentNode) {
+              link.parentNode.replaceChild(newLink, link);
+            }
+          });
+          
+          // Remove old handlers for buttons
+          const oldButtons = container.querySelectorAll('button[data-page-link]');
+          oldButtons.forEach(function(button) {
+            const newButton = button.cloneNode(true);
+            if (button.parentNode) {
+              button.parentNode.replaceChild(newButton, button);
+            }
+          });
+          
+          // Attach handlers to links
+          const links = container.querySelectorAll('a[data-page-link]');
+          links.forEach(function(link) {
+            link.addEventListener('click', function(evt) {
+              const targetPage = this.getAttribute('data-page-link');
+              if (targetPage && targetPage.trim() !== '') {
+                evt.preventDefault();
+                evt.stopPropagation();
+                if (!showPage(targetPage, true)) {
+                  console.warn('Ziplofy: target page not found for link', targetPage);
+                }
+                return;
+              }
+              
+              const href = this.getAttribute('href');
+              if (href && href.startsWith('#')) {
+                evt.preventDefault();
+                evt.stopPropagation();
+                if (!showPage(href, true)) {
+                  console.warn('Ziplofy: target page not found for link href', href);
+                }
+                return;
+              }
+              
+              if (href && href.trim() !== '') {
+                evt.preventDefault();
+                evt.stopPropagation();
+                openExternal(href);
+              }
+            });
+          });
+          
+          // Attach handlers to buttons
+          const buttons = container.querySelectorAll('button[data-page-link]');
+          buttons.forEach(function(button) {
+            button.addEventListener('click', function(evt) {
+              evt.preventDefault();
+              evt.stopPropagation();
+              
+              const targetPage = this.getAttribute('data-page-link');
+              const href = this.getAttribute('href');
+              
+              if (targetPage && targetPage.trim() !== '') {
+                if (!showPage(targetPage, true)) {
+                  console.warn('Ziplofy: target page not found for button', targetPage, 'Available pages:', Array.from(container.querySelectorAll('.ziplofy-page')).map(function(p) { return p.getAttribute('data-page-id'); }));
+                }
+                return;
+              }
+              
+              if (href && href.startsWith('#')) {
+                if (!showPage(href, true)) {
+                  console.warn('Ziplofy: target page not found for button href', href);
+                }
+                return;
+              }
+              
+              if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
+                openExternal(href);
+                return;
+              }
+              
+              if (href && href.trim() !== '') {
+                openExternal(href);
+              }
+            });
+          });
+          
+          // Also handle buttons with href attribute for external URLs
+          const buttonsWithHref = container.querySelectorAll('button[href]');
+          buttonsWithHref.forEach(function(button) {
+            const href = button.getAttribute('href');
+            const hasPageLink = button.hasAttribute('data-page-link');
+            
+            // Only add handler if it doesn't already have a page link handler
+            if (!hasPageLink && href && (href.startsWith('http://') || href.startsWith('https://'))) {
+              button.addEventListener('click', function(evt) {
+                evt.preventDefault();
+                window.open(href, '_blank', 'noopener,noreferrer');
+              });
+            }
+          });
+        };
+
+        renderPages();
+        attachLinkHandlers();
+        
+        // Re-attach handlers after any dynamic content changes (with debounce to prevent excessive calls)
+        let attachTimeout = null;
+        const observer = new MutationObserver(function() {
+          if (attachTimeout) {
+            clearTimeout(attachTimeout);
+          }
+          attachTimeout = setTimeout(function() {
+            attachLinkHandlers();
+          }, 300); // Debounce to 300ms
+        });
+        observer.observe(container, { childList: true, subtree: true });
+
+        const handleHashChange = function() {
+          const hash = window.location.hash.replace(/^#/, '');
+          if (!hash) return;
+          const clean = hash.replace(/^page-/, '');
+          showPage(clean, false);
+        };
+
+        window.addEventListener('hashchange', handleHashChange);
+        handleHashChange();
+      } catch (err) {
+        console.error('Ziplofy multipage preview error:', err);
+      }
+
+      // Initialize Countdown Timers
+      function initCountdownTimers() {
+        const timers = document.querySelectorAll('.ziplofy-countdown-timer');
+        timers.forEach((timer) => {
+          const daysEl = timer.querySelector('.countdown-days');
+          const hoursEl = timer.querySelector('.countdown-hours');
+          const minutesEl = timer.querySelector('.countdown-minutes');
+          const secondsEl = timer.querySelector('.countdown-seconds');
+          
+          if (!daysEl || !hoursEl || !minutesEl || !secondsEl) return;
+          
+          let days = parseInt(timer.getAttribute('data-countdown-days') || '0', 10);
+          let hours = parseInt(timer.getAttribute('data-countdown-hours') || '0', 10);
+          let minutes = parseInt(timer.getAttribute('data-countdown-minutes') || '0', 10);
+          let seconds = parseInt(timer.getAttribute('data-countdown-seconds') || '0', 10);
+          
+          // Convert to total seconds
+          let totalSeconds = days * 86400 + hours * 3600 + minutes * 60 + seconds;
+          
+          function updateTimer() {
+            if (totalSeconds <= 0) {
+              daysEl.textContent = '0';
+              hoursEl.textContent = '0';
+              minutesEl.textContent = '0';
+              secondsEl.textContent = '0';
+              return;
+            }
+            
+            const d = Math.floor(totalSeconds / 86400);
+            const h = Math.floor((totalSeconds % 86400) / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
+            
+            daysEl.textContent = d.toString();
+            hoursEl.textContent = h.toString().padStart(2, '0');
+            minutesEl.textContent = m.toString().padStart(2, '0');
+            secondsEl.textContent = s.toString().padStart(2, '0');
+            
+            totalSeconds--;
+          }
+          
+          updateTimer();
+          setInterval(updateTimer, 1000);
+        });
+      }
+      
+      // Initialize countdown timers when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCountdownTimers);
+      } else {
+        initCountdownTimers();
+      }
+
+      // Initialize Progress Bars - sync percentage text with bar width
+      function initProgressBars() {
+        const progressBars = document.querySelectorAll('.ziplofy-progress-bar');
+        progressBars.forEach((bar) => {
+          const percentageEl = bar.querySelector('.progress-percentage');
+          const fillEl = bar.querySelector('.progress-bar-fill');
+          
+          if (!percentageEl || !fillEl) return;
+          
+          function updateProgressBar() {
+            const text = percentageEl.textContent || percentageEl.innerText || '0%';
+            const match = text.match(/(d+(?:.d+)?)/);
+            if (match) {
+              const percentage = parseFloat(match[1]);
+              const clampedPercentage = Math.min(100, Math.max(0, percentage));
+              fillEl.style.width = clampedPercentage + '%';
+            }
+          }
+          
+          // Initial update
+          updateProgressBar();
+          
+          // Watch for changes using MutationObserver
+          const observer = new MutationObserver(updateProgressBar);
+          observer.observe(percentageEl, {
+            childList: true,
+            characterData: true,
+            subtree: true
+          });
+        });
+      }
+      
+      // Initialize progress bars when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initProgressBars);
+      } else {
+        initProgressBars();
+      }
+
+      // Initialize Parallax Sections
+      function initParallaxSections() {
+        const parallaxSections = document.querySelectorAll('.ziplofy-parallax-section');
+        
+        if (parallaxSections.length === 0) return;
+        
+        function updateParallax() {
+          parallaxSections.forEach((section) => {
+            const background = section.querySelector('.parallax-background');
+            const content = section.querySelector('.parallax-content');
+            
+            if (!background) return;
+            
+            const rect = section.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+            const sectionTop = rect.top;
+            const sectionHeight = rect.height;
+            
+            // Calculate parallax effect based on scroll position
+            // Parallax: background moves slower than foreground, creating depth
+            const scrolled = window.pageYOffset || document.documentElement.scrollTop;
+            const sectionOffset = section.offsetTop;
+            
+            // Calculate how much the page has scrolled past the section start
+            // This creates the parallax effect where background lags behind
+            const scrollPastSection = scrolled - sectionOffset;
+            
+            // Parallax effect: background moves at 50% of scroll speed
+            // This creates the illusion that background is further away (moves slower)
+            const parallaxSpeed = 0.5;
+            const backgroundY = scrollPastSection * parallaxSpeed;
+            
+            // Only apply parallax when section is in viewport
+            if (sectionTop < windowHeight && sectionTop + sectionHeight > 0) {
+              // Apply transform to background (moves slower, creating parallax depth)
+              background.style.transform = 'translate3d(0, ' + backgroundY + 'px, 0)';
+              
+              // Content moves even slower for subtle layered parallax effect
+              if (content) {
+                const contentSpeed = 0.15;
+                const contentY = scrollPastSection * contentSpeed;
+                content.style.transform = 'translate3d(0, ' + contentY + 'px, 0)';
+              }
+            } else {
+              // Reset when out of viewport
+              background.style.transform = 'translate3d(0, 0, 0)';
+              if (content) {
+                content.style.transform = 'translate3d(0, 0, 0)';
+              }
+            }
+          });
+        }
+        
+        // Throttle scroll events for better performance
+        let ticking = false;
+        function onScroll() {
+          if (!ticking) {
+            window.requestAnimationFrame(function() {
+              updateParallax();
+              ticking = false;
+            });
+            ticking = true;
+          }
+        }
+        
+        // Initial update
+        updateParallax();
+        
+        // Listen to scroll events
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', updateParallax, { passive: true });
+      }
+      
+      // Initialize parallax sections when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initParallaxSections);
+      } else {
+        initParallaxSections();
+      }
+    })();
+  </script>
+</body>
+</html>

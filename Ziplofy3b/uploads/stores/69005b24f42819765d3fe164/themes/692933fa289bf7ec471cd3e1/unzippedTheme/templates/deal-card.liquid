@@ -1,0 +1,42 @@
+<div class="deal-product-card">
+  <div class="deal-product-image">
+    <img src="{{ product.image }}" alt="{{ product.title }}">
+    {% if product.badge %}
+    <div class="deal-badge">{{ product.badge }}</div>
+    {% endif %}
+    <div class="deal-overlay">
+      <button class="deal-quick-view">Quick View</button>
+    </div>
+  </div>
+  <div class="deal-product-content">
+    <div class="deal-product-rating">
+      {% assign rating = product.rating | default: 5 %}
+      {% if rating >= 1 %}<span class="stars">★</span>{% endif %}
+      {% if rating >= 2 %}<span class="stars">★</span>{% endif %}
+      {% if rating >= 3 %}<span class="stars">★</span>{% endif %}
+      {% if rating >= 4 %}<span class="stars">★</span>{% endif %}
+      {% if rating >= 5 %}<span class="stars">★</span>{% endif %}
+      <span class="rating-count">({{ product.reviewCount | default: 0 }})</span>
+    </div>
+    <h3 class="deal-product-name">
+      <a href="product-detail.html?id={{ product.id }}" class="deal-product-name-link">{{ product.title }}</a>
+    </h3>
+    {% if product.shortDescription %}
+    <p class="deal-product-description">{{ product.shortDescription }}</p>
+    {% endif %}
+    <div class="deal-product-price">
+      <span class="current-price">₹{{ product.price }}</span>
+      {% if product.originalPrice %}
+      <span class="original-price">₹{{ product.originalPrice }}</span>
+      {% endif %}
+      {% if product.discount %}
+      <span class="discount">{{ product.discount }}% OFF</span>
+      {% endif %}
+    </div>
+    <div class="deal-product-actions">
+      <button class="deal-product-btn">Add to Cart</button>
+      <button class="deal-product-wishlist">♡</button>
+    </div>
+  </div>
+</div>
+

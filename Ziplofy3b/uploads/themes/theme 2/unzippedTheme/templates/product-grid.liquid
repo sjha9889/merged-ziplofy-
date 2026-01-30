@@ -1,0 +1,122 @@
+{% comment %}
+Renders a grid of product cards.
+Inputs:
+- products: normalized product objects (render.js normalizeProduct)
+- options: { variant: 'modern' | 'standard', context, col_class }
+{% endcomment %}
+{% assign variant = options.variant | default: 'modern' %}
+{% assign default_col = options.col_class | default: 'col-lg-3 col-md-4 col-sm-6 col-6 mb-4' %}
+{% for product in products %}
+  {% assign col_class = product.colClass | default: default_col %}
+  <div class="{{ col_class }}">
+    {% if variant == 'standard' %}
+      <div class="card h-100"
+           data-category="{{ product.category }}"
+           data-price="{{ product.price }}"
+           data-rating="{{ product.rating }}">
+        <div class="position-relative">
+          <img src="{{ product.image }}" alt="{{ product.name | default: product.title }}" class="card-img-top">
+          <div class="position-absolute top-0 start-0 m-2 d-flex flex-column gap-1">
+            {% for badge in product.badges %}
+              <span class="badge bg-{{ badge.colorClass }} text-uppercase">{{ badge.label }}</span>
+            {% endfor %}
+          </div>
+          {% if product.hasDiscount %}
+            <span class="badge bg-danger position-absolute top-0 end-0 m-2">{{ product.discount }}% OFF</span>
+          {% endif %}
+        </div>
+        <div class="card-body d-flex flex-column">
+          <h6 class="mb-2">
+            <a href="product-detail.html?id={{ product.id }}" class="text-decoration-none text-dark">
+              {{ product.name | default: product.title }}
+            </a>
+          </h6>
+          <div class="d-flex align-items-center mb-2">
+            <span class="me-2 text-warning">
+              {% for _ in (1..product.starsFull) %}<i class="fas fa-star"></i>{% endfor %}
+              {% if product.starsHalf == 1 %}<i class="fas fa-star-half-alt"></i>{% endif %}
+              {% for _ in (1..product.starsEmpty) %}<i class="far fa-star"></i>{% endfor %}
+            </span>
+            <small class="text-muted">({{ product.reviewCount }})</small>
+          </div>
+          <div class="mb-2 d-flex align-items-center gap-2">
+            <span class="fw-bold">{{ product.priceDisplay }}</span>
+            {% if product.hasDiscount %}
+              <span class="text-muted text-decoration-line-through">{{ product.originalPriceDisplay }}</span>
+            {% endif %}
+          </div>
+          <div class="mb-3">
+            {% if product.inStock %}
+              <span class="text-success"><i class="fas fa-check me-1"></i>In Stock</span>
+            {% else %}
+              <span class="text-danger"><i class="fas fa-times me-1"></i>Out of Stock</span>
+            {% endif %}
+          </div>
+          <div class="mt-auto d-flex gap-2">
+            <button class="btn btn-sm btn-primary add-to-cart" data-product-id="{{ product.id }}">
+              <i class="fas fa-shopping-cart me-1"></i>Add
+            </button>
+            <button class="btn btn-sm btn-outline-secondary add-to-wishlist" data-product-id="{{ product.id }}">
+              <i class="fas fa-heart me-1"></i>Wish
+            </button>
+            <button class="btn btn-sm btn-outline-info quick-view" data-product-id="{{ product.id }}">
+              <i class="fas fa-eye me-1"></i>View
+            </button>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div class="product-card-modern" data-category="{{ product.category }}">
+        <div class="product-media">
+          <img src="{{ product.image }}" alt="{{ product.name | default: product.title }}" class="img-fluid">
+          <div class="product-badges">
+            {% for badge in product.badges %}
+              {% assign badgeLower = badge.label | downcase %}
+              {% unless badgeLower contains 'off' or badgeLower contains 'discount' or badgeLower contains '%' %}
+                <span class="badge {{ badge.className }}">{{ badge.label }}</span>
+              {% endunless %}
+            {% endfor %}
+            {% if product.hasDiscount %}
+              <span class="badge bg-danger">{{ product.discount }}% OFF</span>
+            {% endif %}
+          </div>
+          <div class="product-actions">
+            <button class="action-btn add-to-wishlist" title="Add to Wishlist" data-product-id="{{ product.id }}">
+              <i class="fas fa-heart"></i>
+            </button>
+            <button class="action-btn quick-view" title="Quick View" data-product-id="{{ product.id }}">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="product-body">
+          <h5 class="product-title">
+            <a href="product-detail.html?id={{ product.id }}">{{ product.name | default: product.title }}</a>
+          </h5>
+          <div class="product-rating">
+            <div class="stars">
+              {% for _ in (1..product.starsFull) %}<i class="fas fa-star"></i>{% endfor %}
+              {% if product.starsHalf == 1 %}<i class="fas fa-star-half-alt"></i>{% endif %}
+              {% for _ in (1..product.starsEmpty) %}<i class="far fa-star"></i>{% endfor %}
+            </div>
+            <span class="rating-count">({{ product.reviewCount }})</span>
+          </div>
+          <div class="product-price">
+            <span class="current-price">{{ product.priceDisplay }}</span>
+            {% if product.hasDiscount %}
+              <span class="original-price">{{ product.originalPriceDisplay }}</span>
+            {% endif %}
+          </div>
+          <button class="btn btn-primary add-to-cart-btn"
+                  data-product-id="{{ product.id }}"
+                  data-product-name="{{ product.name | default: product.title }}"
+                  data-product-price="{{ product.price }}"
+                  data-product-image="{{ product.image }}">
+            <i class="fas fa-shopping-cart me-1"></i>Add to Cart
+          </button>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endfor %}
+

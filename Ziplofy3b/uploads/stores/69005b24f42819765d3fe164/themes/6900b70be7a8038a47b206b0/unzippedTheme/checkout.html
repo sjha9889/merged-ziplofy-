@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - ORNATIVA</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand mx-auto" href="index.html">ORNATIVA</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav mx-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="shop.html">Collections</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="shop.html">New Arrivals</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="about.html">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contact.html">Contact</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-3">
+                    <a href="account.html" class="nav-icon active">
+                        <i class="fas fa-user"></i>
+                    </a>
+                    <a href="cart.html" class="nav-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span class="badge">2</span>
+                    </a>
+                    <a href="shop.html" class="btn btn-outline-gold">Shop Now</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Strip -->
+    <section class="checkout-hero-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1 class="checkout-title">Checkout</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                            <li class="breadcrumb-item"><a href="cart.html">Cart</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Checkout Layout -->
+    <section class="checkout-section py-5">
+        <div class="container">
+            <div class="row g-5">
+                <!-- Left Column - Customer Details -->
+                <div class="col-lg-8">
+                    <!-- Billing Details Form -->
+                    <div class="checkout-card mb-4">
+                        <div class="card-header">
+                            <h3 class="card-title">Billing Details</h3>
+                        </div>
+                        <div class="card-body">
+                            <form id="billingForm">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="fullName" class="form-label">Full Name *</label>
+                                        <input type="text" class="form-control" id="fullName" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="email" class="form-label">Email Address *</label>
+                                        <input type="email" class="form-control" id="email" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="phone" class="form-label">Phone Number *</label>
+                                        <input type="tel" class="form-control" id="phone" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="country" class="form-label">Country *</label>
+                                        <select class="form-select" id="country" required>
+                                            <option value="">Select Country</option>
+                                            <option value="IN">India</option>
+                                            <option value="US">United States</option>
+                                            <option value="UK">United Kingdom</option>
+                                            <option value="CA">Canada</option>
+                                            <option value="AU">Australia</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="address" class="form-label">Address *</label>
+                                        <textarea class="form-control" id="address" rows="3" required></textarea>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="city" class="form-label">City *</label>
+                                        <input type="text" class="form-control" id="city" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="state" class="form-label">State *</label>
+                                        <input type="text" class="form-control" id="state" required>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="zipCode" class="form-label">ZIP Code *</label>
+                                        <input type="text" class="form-control" id="zipCode" required>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Details Toggle -->
+                    <div class="checkout-card mb-4">
+                        <div class="card-header">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="differentShipping">
+                                <label class="form-check-label" for="differentShipping">
+                                    Ship to a different address
+                                </label>
+                            </div>
+                        </div>
+                        <div class="card-body" id="shippingDetails" style="display: none;">
+                            <form id="shippingForm">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="shippingName" class="form-label">Full Name *</label>
+                                        <input type="text" class="form-control" id="shippingName">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="shippingPhone" class="form-label">Phone Number *</label>
+                                        <input type="tel" class="form-control" id="shippingPhone">
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="shippingAddress" class="form-label">Address *</label>
+                                        <textarea class="form-control" id="shippingAddress" rows="3"></textarea>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="shippingCity" class="form-label">City *</label>
+                                        <input type="text" class="form-control" id="shippingCity">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="shippingState" class="form-label">State *</label>
+                                        <input type="text" class="form-control" id="shippingState">
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label for="shippingZip" class="form-label">ZIP Code *</label>
+                                        <input type="text" class="form-control" id="shippingZip">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="checkout-card mb-4">
+                        <div class="card-header">
+                            <h3 class="card-title">Payment Method</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="payment-methods">
+                                <div class="form-check payment-option mb-3">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="cardPayment"
+                                        value="card" checked>
+                                    <label class="form-check-label" for="cardPayment">
+                                        <i class="fas fa-credit-card"></i>
+                                        Credit/Debit Card
+                                    </label>
+                                </div>
+
+                                <div class="card-details" id="cardDetails">
+                                    <div class="row g-3">
+                                        <div class="col-12">
+                                            <label for="cardNumber" class="form-label">Card Number *</label>
+                                            <input type="text" class="form-control" id="cardNumber"
+                                                placeholder="1234 5678 9012 3456">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="expiryDate" class="form-label">Expiry Date *</label>
+                                            <input type="text" class="form-control" id="expiryDate" placeholder="MM/YY">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="cvv" class="form-label">CVV *</label>
+                                            <input type="text" class="form-control" id="cvv" placeholder="123">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-check payment-option mb-3">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="upiPayment"
+                                        value="upi">
+                                    <label class="form-check-label" for="upiPayment">
+                                        <i class="fas fa-mobile-alt"></i>
+                                        UPI / Netbanking
+                                    </label>
+                                </div>
+
+                                <div class="form-check payment-option mb-3">
+                                    <input class="form-check-input" type="radio" name="paymentMethod" id="codPayment"
+                                        value="cod">
+                                    <label class="form-check-label" for="codPayment">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        Cash on Delivery
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Trust Icons -->
+                            <div class="trust-icons mt-4">
+                                <div class="d-flex align-items-center gap-3">
+                                    <i class="fas fa-lock text-success"></i>
+                                    <span class="small text-muted">SSL Secure</span>
+                                    <i class="fas fa-shield-alt text-success"></i>
+                                    <span class="small text-muted">100% Secure Payment</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Order Summary -->
+                <div class="col-lg-4">
+                    <div class="checkout-card sticky-top">
+                        <div class="card-header">
+                            <h3 class="card-title">Order Summary</h3>
+                        </div>
+                        <div class="card-body">
+                            <!-- Order Items -->
+                            <div class="order-items mb-4">
+                                <div class="order-item d-flex align-items-center mb-3">
+                                    <img src="https://via.placeholder.com/60/f8f5f0/b8860b?text=Ring" alt="Product"
+                                        class="order-item-image">
+                                    <div class="order-item-details ms-3 flex-grow-1">
+                                        <h6 class="order-item-name">Diamond Solitaire Ring</h6>
+                                        <p class="order-item-specs text-muted small">Size: 7 | Gold</p>
+                                        <p class="order-item-qty text-muted small">Qty: 1</p>
+                                    </div>
+                                    <div class="order-item-price">
+                                        <span class="fw-bold">₹45,000</span>
+                                    </div>
+                                </div>
+
+                                <div class="order-item d-flex align-items-center mb-3">
+                                    <img src="https://via.placeholder.com/60/f8f5f0/b8860b?text=Ear" alt="Product"
+                                        class="order-item-image">
+                                    <div class="order-item-details ms-3 flex-grow-1">
+                                        <h6 class="order-item-name">Pearl Drop Earrings</h6>
+                                        <p class="order-item-specs text-muted small">Gold</p>
+                                        <p class="order-item-qty text-muted small">Qty: 1</p>
+                                    </div>
+                                    <div class="order-item-price">
+                                        <span class="fw-bold">₹28,000</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Discount Code -->
+                            <div class="discount-section mb-4">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="discountCode"
+                                        placeholder="Discount Code">
+                                    <button class="btn btn-outline-gold" type="button" id="applyDiscount">Apply</button>
+                                </div>
+                            </div>
+
+                            <!-- Price Breakdown -->
+                            <div class="price-breakdown">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Subtotal:</span>
+                                    <span>₹73,000</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Shipping:</span>
+                                    <span class="text-success">Free</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Tax:</span>
+                                    <span>₹6,570</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2" id="discountRow"
+                                    style="display: none;">
+                                    <span>Discount:</span>
+                                    <span class="text-success" id="discountAmount">-₹0</span>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span class="fw-bold fs-5">Total:</span>
+                                    <span class="fw-bold fs-5 text-gold" id="totalAmount">₹79,570</span>
+                                </div>
+                            </div>
+
+                            <!-- Place Order Button -->
+                            <button class="btn btn-gold btn-lg w-100 mb-3" id="placeOrderBtn">
+                                <i class="fas fa-lock me-2"></i>
+                                Place Order
+                            </button>
+
+                            <!-- Trust Badges -->
+                            <div class="trust-badges text-center">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <div class="trust-badge">
+                                            <i class="fas fa-shield-alt text-success"></i>
+                                            <small class="d-block">100% Secure</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="trust-badge">
+                                            <i class="fas fa-undo text-success"></i>
+                                            <small class="d-block">Easy Returns</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Newsletter Subscription -->
+                            <div class="newsletter-mini mt-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="newsletterSubscribe">
+                                    <label class="form-check-label small" for="newsletterSubscribe">
+                                        Subscribe to our newsletter for exclusive offers
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer py-5 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h4 class="ornativa-logo mb-3">ORNATIVA</h4>
+                    <p class="text-muted">Timeless Luxury, Crafted for You.</p>
+                </div>
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h5 class="mb-3">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="shop.html" class="text-muted text-decoration-none">Shop</a></li>
+                        <li><a href="#about-us" class="text-muted text-decoration-none">About</a></li>
+                        <li><a href="#contact" class="text-muted text-decoration-none">Contact</a></li>
+                        <li><a href="#policies" class="text-muted text-decoration-none">Faq</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4 mb-md-0">
+                    <h5 class="mb-3">Policies</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="shop.html" class="text-muted text-decoration-none">Privacy Policy</a></li>
+                        <li><a href="#about-us" class="text-muted text-decoration-none">Return Policy</a></li>
+                        <li><a href="#contact" class="text-muted text-decoration-none">Shipping Policy</a></li>
+                        <li><a href="#policies" class="text-muted text-decoration-none">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5 class="mb-3">Connect With Us</h5>
+                    <div class="social-links">
+                        <a href="#instagram" class="text-muted me-3"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#facebook" class="text-muted me-3"><i class="fab fa-facebook-f fa-lg"></i></a>
+                        <a href="#whatsapp" class="text-muted"><i class="fab fa-whatsapp fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="text-center text-muted small">
+                © 2025 ORNATIVA. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom JS -->
+    <script src="assets/js/script.js"></script>
+</body>
+
+</html>

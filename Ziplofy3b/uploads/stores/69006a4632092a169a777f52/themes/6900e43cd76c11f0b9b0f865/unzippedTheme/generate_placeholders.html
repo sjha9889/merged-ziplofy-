@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Placeholder Images</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .image-item {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .image-item img {
+            max-width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .image-item h3 {
+            margin: 10px 0 5px;
+            color: #333;
+        }
+
+        .image-item p {
+            color: #666;
+            font-size: 12px;
+        }
+
+        .download-btn {
+            background: #D4AF37;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .download-btn:hover {
+            background: #B8941F;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Jewelry Website Placeholder Images</h1>
+        <p>This page generates placeholder images for the jewelry website. Right-click on any image and "Save image
+            as..." to download it to the assets/images folder.</p>
+
+        <div class="image-grid">
+            <div class="image-item">
+                <img id="hero-jewelry"
+                    src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                    alt="Hero Jewelry">
+                <h3>Hero Jewelry</h3>
+                <p>hero-jewelry.jpg</p>
+                <button class="download-btn"
+                    onclick="downloadImage('hero-jewelry', 'hero-jewelry.jpg')">Download</button>
+            </div>
+
+            <div class="image-item">
+                <img id="rings-collection"
+                    src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                    alt="Rings Collection">
+                <h3>Rings Collection</h3>
+                <p>rings-collection.jpg</p>
+                <button class="download-btn"
+                    onclick="downloadImage('rings-collection', 'rings-collection.jpg')">Download</button>
+            </div>
+
+            <div class="image-item">
+                <img id="necklaces-collection"
+                    src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                    alt="Necklaces Collection">
+                <h3>Necklaces Collection</h3>
+                <p>necklaces-collection.jpg</p>
+                <button class="download-btn"
+                    onclick="downloadImage('necklaces-collection', 'necklaces-collection.jpg')">Download</button>
+            </div>
+
+            <div class="image-item">
+                <img id="earrings-collection"
+                    src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                    alt="Earrings Collection">
+                <h3>Earrings Collection</h3>
+                <p>earrings-collection.jpg</p>
+                <button class="download-btn"
+                    onclick="downloadImage('earrings-collection', 'earrings-collection.jpg')">Download</button>
+            </div>
+
+            <div class="image-item">
+                <img id="bracelets-collection"
+                    src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                    alt="Bracelets Collection">
+                <h3>Bracelets Collection</h3>
+                <p>bracelets-collection.jpg</p>
+                <button class="download-btn"
+                    onclick="downloadImage('bracelets-collection', 'bracelets-collection.jpg')">Download</button>
+            </div>
+
+            <div class="image-item">
+                <img id="about-brand"
+                    src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                    alt="About Brand">
+                <h3>About Brand</h3>
+                <p>about-brand.jpg</p>
+                <button class="download-btn" onclick="downloadImage('about-brand', 'about-brand.jpg')">Download</button>
+            </div>
+
+            <div class="image-item">
+                <img id="product-1"
+                    src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                    alt="Product 1">
+                <h3>Diamond Solitaire Ring</h3>
+                <p>product-1.jpg</p>
+                <button class="download-btn" onclick="downloadImage('product-1', 'product-1.jpg')">Download</button>
+            </div>
+
+            <div class="image-item">
+                <img id="product-2"
+                    src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                    alt="Product 2">
+                <h3>Pearl Drop Earrings</h3>
+                <p>product-2.jpg</p>
+                <button class="download-btn" onclick="downloadImage('product-2', 'product-2.jpg')">Download</button>
+            </div>
+
+            <div class="image-item">
+                <img id="product-3"
+                    src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                    alt="Product 3">
+                <h3>Gold Chain Necklace</h3>
+                <p>product-3.jpg</p>
+                <button class="download-btn" onclick="downloadImage('product-3', 'product-3.jpg')">Download</button>
+            </div>
+
+            <div class="image-item">
+                <img id="product-4"
+                    src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                    alt="Product 4">
+                <h3>Tennis Bracelet</h3>
+                <p>product-4.jpg</p>
+                <button class="download-btn" onclick="downloadImage('product-4', 'product-4.jpg')">Download</button>
+            </div>
+
+            <div class="image-item">
+                <img id="product-5"
+                    src="https://images.unsplash.com/photo-1603561596112-db0b2b0b5b8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                    alt="Product 5">
+                <h3>Emerald Ring</h3>
+                <p>product-5.jpg</p>
+                <button class="download-btn" onclick="downloadImage('product-5', 'product-5.jpg')">Download</button>
+            </div>
+
+            <div class="image-item">
+                <img id="product-6"
+                    src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                    alt="Product 6">
+                <h3>Sapphire Pendant</h3>
+                <p>product-6.jpg</p>
+                <button class="download-btn" onclick="downloadImage('product-6', 'product-6.jpg')">Download</button>
+            </div>
+
+            <div class="image-item">
+                <img id="gallery-1"
+                    src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                    alt="Gallery 1">
+                <h3>Gallery Image 1</h3>
+                <p>gallery-1.jpg</p>
+                <button class="download-btn" onclick="downloadImage('gallery-1', 'gallery-1.jpg')">Download</button>
+            </div>
+
+            <div class="image-item">
+                <img id="gallery-2"
+                    src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                    alt="Gallery 2">
+                <h3>Gallery Image 2</h3>
+                <p>gallery-2.jpg</p>
+                <button class="download-btn" onclick="downloadImage('gallery-2', 'gallery-2.jpg')">Download</button>
+            </div>
+
+            <div class="image-item">
+                <img id="gallery-3"
+                    src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                    alt="Gallery 3">
+                <h3>Gallery Image 3</h3>
+                <p>gallery-3.jpg</p>
+                <button class="download-btn" onclick="downloadImage('gallery-3', 'gallery-3.jpg')">Download</button>
+            </div>
+
+            <div class="image-item">
+                <img id="gallery-4"
+                    src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                    alt="Gallery 4">
+                <h3>Gallery Image 4</h3>
+                <p>gallery-4.jpg</p>
+                <button class="download-btn" onclick="downloadImage('gallery-4', 'gallery-4.jpg')">Download</button>
+            </div>
+
+            <div class="image-item">
+                <img id="gallery-5"
+                    src="https://images.unsplash.com/photo-1603561596112-db0b2b0b5b8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                    alt="Gallery 5">
+                <h3>Gallery Image 5</h3>
+                <p>gallery-5.jpg</p>
+                <button class="download-btn" onclick="downloadImage('gallery-5', 'gallery-5.jpg')">Download</button>
+            </div>
+
+            <div class="image-item">
+                <img id="gallery-6"
+                    src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                    alt="Gallery 6">
+                <h3>Gallery Image 6</h3>
+                <p>gallery-6.jpg</p>
+                <button class="download-btn" onclick="downloadImage('gallery-6', 'gallery-6.jpg')">Download</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function downloadImage(imageId, filename) {
+            const img = document.getElementById(imageId);
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+
+            ctx.drawImage(img, 0, 0);
+
+            canvas.toBlob(function (blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }
+    </script>
+</body>
+
+</html>

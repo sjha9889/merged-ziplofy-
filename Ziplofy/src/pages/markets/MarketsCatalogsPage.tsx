@@ -1,0 +1,44 @@
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
+import CatalogsEmptyState from '../../components/CatalogsEmptyState';
+import CatalogsTable from '../../components/CatalogsTable';
+import MarketsCatalogsHeader from '../../components/MarketsCatalogsHeader';
+import { useCatalogs } from '../../contexts/catalog.context';
+import { useStore } from '../../contexts/store.context';
+
+const MarketsCatalogsPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { catalogs, getByStoreId, loading } = useCatalogs();
+  const { activeStoreId } = useStore();
+
+  useEffect(() => {
+    if (activeStoreId) {
+      getByStoreId(activeStoreId).catch(() => {});
+    }
+  }, [activeStoreId, getByStoreId]);
+
+  const showEmpty = !loading && catalogs.length === 0;
+
+  return (
+    <GridBackgroundWrapper>
+      <div className="min-h-screen">
+        <div className="max-w-[1400px] mx-auto px-4 py-6">
+          <div className="mb-4">
+            <MarketsCatalogsHeader onCreate={() => navigate('/markets/catalogs/new')} />
+          </div>
+
+          {showEmpty ? (
+            <CatalogsEmptyState onCreate={() => navigate('/markets/catalogs/new')} />
+          ) : (
+            <CatalogsTable catalogs={catalogs} onSelect={(id) => navigate(`/markets/catalogs/${id}`)} />
+          )}
+        </div>
+      </div>
+    </GridBackgroundWrapper>
+  );
+};
+
+export default MarketsCatalogsPage;
+
+

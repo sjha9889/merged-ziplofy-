@@ -1,0 +1,504 @@
+import {
+  ArrowPathIcon,
+  CubeIcon,
+  FunnelIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
+import React, { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
+import { useInventoryLevels } from '../contexts/inventory-level.contexts';
+import { useLocations } from '../contexts/location.context';
+import { useStore } from '../contexts/store.context';
+
+const ProductsInventoryPage: React.FC = () => {
+  const { activeStoreId } = useStore();
+  const { locations, fetchLocationsByStoreId } = useLocations();
+  const { inventoryLevels, fetchByLocation, updateById, loading: invLoading } = useInventoryLevels();
+  const [selectedLocationId, setSelectedLocationId] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [unavailAnchorEl, setUnavailAnchorEl] = useState<null | HTMLElement>(null);
+  const [unavailLevelId, setUnavailLevelId] = useState<string | null>(null);
+  const [editUnavailable, setEditUnavailable] = useState<{ damaged: number; qualityControl: number; safetyStock: number; other: number } | null>(null);
+  const [savingUnavailable, setSavingUnavailable] = useState(false);
+  const [editingAvailableId, setEditingAvailableId] = useState<string | null>(null);
+  const [editAvailableValue, setEditAvailableValue] = useState<number>(0);
+  const [savingAvailable, setSavingAvailable] = useState(false);
+  const [editingOnHandId, setEditingOnHandId] = useState<string | null>(null);
+  const [editOnHandValue, setEditOnHandValue] = useState<number>(0);
+  const [savingOnHand, setSavingOnHand] = useState(false);
+
+  // Fetch locations on mount/store change
+  useEffect(() => {
+    if (activeStoreId) {
+      fetchLocationsByStoreId(activeStoreId);
+    }
+  }, [activeStoreId, fetchLocationsByStoreId]);
+
+  // Fetch inventory levels when a location is selected
+  useEffect(() => {
+    if (selectedLocationId) {
+      fetchByLocation(selectedLocationId);
+    }
+  }, [selectedLocationId, fetchByLocation]);
+
+  // Auto-select default location (or first) when locations load
+  useEffect(() => {
+    if (!selectedLocationId && locations && locations.length > 0) {
+      const defaultLoc = locations.find((l: any) => l.isDefault) || locations[0];
+      if (defaultLoc?._id) {
+        setSelectedLocationId(defaultLoc._id);
+      }
+    }
+  }, [locations, selectedLocationId]);
+
+  // Filter inventory levels based on search query (by SKU or product title)
+  const filteredLevels = useMemo(() => {
+    if (!searchQuery.trim()) return inventoryLevels;
+    const q = searchQuery.toLowerCase();
+    return inventoryLevels.filter(lvl =>
+      lvl.variantId.sku.toLowerCase().includes(q) ||
+      (lvl.variantId.productId.title || '').toLowerCase().includes(q)
+    );
+  }, [searchQuery, inventoryLevels]);
+
+  const handleLocationChange = useCallback((locationId: string) => {
+    setSelectedLocationId(locationId);
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    if (selectedLocationId) {
+      fetchByLocation(selectedLocationId);
+    }
+  }, [selectedLocationId, fetchByLocation]);
+
+  const openUnavailableMenu = useCallback((e: MouseEvent<HTMLElement>, levelId: string) => {
+    setUnavailAnchorEl(e.currentTarget);
+    setUnavailLevelId(levelId);
+    const lvl = inventoryLevels.find(l => l._id === levelId);
+    if (lvl) {
+      setEditUnavailable({ ...lvl.unavailable });
+    } else {
+      setEditUnavailable({ damaged: 0, qualityControl: 0, safetyStock: 0, other: 0 });
+    }
+  }, [inventoryLevels]);
+
+  const closeUnavailableMenu = useCallback(() => {
+    setUnavailAnchorEl(null);
+    setUnavailLevelId(null);
+    setEditUnavailable(null);
+  }, []);
+
+  const handleUnavailableChange = useCallback((key: 'damaged' | 'qualityControl' | 'safetyStock' | 'other', value: string) => {
+    const n = Math.max(0, Number(value) || 0);
+    setEditUnavailable(prev => (prev ? { ...prev, [key]: n } : prev));
+  }, []);
+
+  const saveUnavailable = useCallback(async () => {
+    if (!unavailLevelId || !editUnavailable) return;
+    try {
+      setSavingUnavailable(true);
+      // Shopify-style math: available = onHand - committed - unavailableTotal
+      const lvl = inventoryLevels.find(l => l._id === unavailLevelId);
+      const currentCommitted = lvl?.committed ?? 0;
+      const currentOnHand = lvl?.onHand ?? 0;
+      const unavailTotal = (editUnavailable.damaged || 0) + (editUnavailable.qualityControl || 0) + (editUnavailable.safetyStock || 0) + (editUnavailable.other || 0);
+      const computedAvailable = Math.max(0, currentOnHand - currentCommitted - unavailTotal);
+      await updateById(unavailLevelId, { unavailable: editUnavailable, available: computedAvailable });
+      closeUnavailableMenu();
+    } finally {
+      setSavingUnavailable(false);
+    }
+  }, [unavailLevelId, editUnavailable, inventoryLevels, updateById, closeUnavailableMenu]);
+
+  const startEditAvailable = useCallback((levelId: string, current: number) => {
+    setEditingAvailableId(levelId);
+    setEditAvailableValue(current ?? 0);
+  }, []);
+
+  const cancelEditAvailable = useCallback(() => {
+    setEditingAvailableId(null);
+  }, []);
+
+  const saveAvailable = useCallback(async () => {
+    if (!editingAvailableId) return;
+    try {
+      setSavingAvailable(true);
+      // Shopify-style math: onHand = available + committed + unavailableTotal
+      const lvl = inventoryLevels.find(l => l._id === editingAvailableId);
+      const currentCommitted = lvl?.committed ?? 0;
+      const unavail = lvl?.unavailable || { damaged: 0, qualityControl: 0, safetyStock: 0, other: 0 };
+      const unavailTotal = (unavail.damaged || 0) + (unavail.qualityControl || 0) + (unavail.safetyStock || 0) + (unavail.other || 0);
+      const nextAvailable = Math.max(0, editAvailableValue || 0);
+      const computedOnHand = Math.max(0, nextAvailable + currentCommitted + unavailTotal);
+      await updateById(editingAvailableId, { available: nextAvailable, onHand: computedOnHand });
+      setEditingAvailableId(null);
+    } finally {
+      setSavingAvailable(false);
+    }
+  }, [editingAvailableId, editAvailableValue, inventoryLevels, updateById]);
+
+  const startEditOnHand = useCallback((levelId: string, current: number) => {
+    setEditingOnHandId(levelId);
+    setEditOnHandValue(current ?? 0);
+  }, []);
+
+  const cancelEditOnHand = useCallback(() => {
+    setEditingOnHandId(null);
+  }, []);
+
+  const saveOnHand = useCallback(async () => {
+    if (!editingOnHandId) return;
+    try {
+      setSavingOnHand(true);
+      // Shopify-style math: available = onHand - committed - unavailableTotal
+      const lvl = inventoryLevels.find(l => l._id === editingOnHandId);
+      const currentCommitted = lvl?.committed ?? 0;
+      const unavail = lvl?.unavailable || { damaged: 0, qualityControl: 0, safetyStock: 0, other: 0 };
+      const unavailTotal = (unavail.damaged || 0) + (unavail.qualityControl || 0) + (unavail.safetyStock || 0) + (unavail.other || 0);
+      const nextOnHand = Math.max(0, editOnHandValue || 0);
+      const computedAvailable = Math.max(0, nextOnHand - currentCommitted - unavailTotal);
+      await updateById(editingOnHandId, { onHand: nextOnHand, available: computedAvailable });
+      setEditingOnHandId(null);
+    } finally {
+      setSavingOnHand(false);
+    }
+  }, [editingOnHandId, editOnHandValue, inventoryLevels, updateById]);
+
+  return (
+    <GridBackgroundWrapper>
+      <div className="min-h-screen">
+
+        <div className="border-b border-gray-200 px-4 py-4">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CubeIcon className="w-5 h-5 text-gray-600" />
+                <h1 className="text-xl font-medium text-gray-900">Inventory</h1>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  className="px-3 py-1.5 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 text-sm font-medium text-gray-700 transition-colors"
+                  onClick={handleRefresh}
+                  disabled={!selectedLocationId || invLoading}
+                >
+                  <ArrowPathIcon className="w-4 h-4" />
+                  Refresh
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      <div className="max-w-7xl mx-auto py-6 px-4">
+        <div className="bg-white border border-gray-200 rounded p-4">
+          <h2 className="text-base font-medium text-gray-900 mb-4">
+            Inventory by Location
+          </h2>
+
+          {/* Location Selection */}
+          <div className="flex gap-4 mb-4 items-center">
+            <div className="min-w-[200px]">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Location
+              </label>
+              <select
+                value={selectedLocationId}
+                onChange={(e) => handleLocationChange(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded text-base focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+              >
+                <option value="">Select a location</option>
+                {locations.map((location) => (
+                  <option key={location._id} value={location._id}>
+                    {location.name} - {location.city}, {location.state}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Search and Filters */}
+          {selectedLocationId && (
+            <div className="flex gap-2 mb-4">
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <MagnifyingGlassIcon className="h-4 w-4 text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search by SKU or product title..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded text-base focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                />
+              </div>
+              <button className="p-2 border border-gray-200 rounded hover:bg-gray-50 transition-colors">
+                <FunnelIcon className="w-4 h-4 text-gray-600" />
+              </button>
+            </div>
+          )}
+
+          {/* Inventory Table */}
+          {selectedLocationId ? (
+            invLoading ? (
+              <div className="text-center py-6">
+                <p className="text-sm text-gray-600">
+                  Loading inventory...
+                </p>
+              </div>
+            ) : filteredLevels.length > 0 ? (
+              <>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Product</th>
+                      <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">SKU</th>
+                      <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Unavailable</th>
+                      <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Committed</th>
+                      <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Incoming</th>
+                      <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Available</th>
+                      <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">On Hand</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredLevels.map((lvl) => {
+                      const unavailableTotal = lvl.unavailable.damaged + lvl.unavailable.qualityControl + lvl.unavailable.safetyStock + lvl.unavailable.other;
+                      const optionSummary = Object.values(lvl.variantId.optionValues || {}).join(' / ');
+                      return (
+                        <tr key={lvl._id} className="hover:bg-gray-50 group">
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              <img
+                                src={lvl.variantId.productId.imageUrl || undefined}
+                                alt={lvl.variantId.productId.title}
+                                className="w-6 h-6 rounded-full object-cover bg-gray-200"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).style.display = 'none';
+                                }}
+                              />
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">{lvl.variantId.productId.title}</p>
+                                <p className="text-xs text-gray-600">{optionSummary}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <span className="text-sm font-medium text-gray-700">{lvl.variantId.sku}</span>
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <div className="inline-flex items-center gap-1 relative">
+                              <span className="text-sm font-medium text-gray-700">{unavailableTotal}</span>
+                              <button
+                                aria-label="unavailable details"
+                                onClick={(e) => openUnavailableMenu(e, lvl._id)}
+                                className="ml-1 opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 rounded transition-colors"
+                              >
+                                <FunnelIcon className="w-3.5 h-3.5 text-gray-600" />
+                              </button>
+                            </div>
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <span className="text-sm font-medium text-gray-700">{lvl.committed}</span>
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            <span className="text-sm font-medium text-gray-700">{lvl.incoming ?? 0}</span>
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            {editingAvailableId === lvl._id ? (
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={editAvailableValue}
+                                  onChange={(e) => setEditAvailableValue(Number(e.target.value) || 0)}
+                                  className="w-20 px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                                />
+                                <button
+                                  className="px-2 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                                  onClick={cancelEditAvailable}
+                                  disabled={savingAvailable}
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  className="px-2 py-1 text-xs bg-gray-900 text-white rounded hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                                  onClick={saveAvailable}
+                                  disabled={savingAvailable}
+                                >
+                                  {savingAvailable ? 'Saving...' : 'Save'}
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="inline-flex items-center gap-2">
+                                <span
+                                  className={`px-1.5 py-0.5 text-xs font-medium rounded ${
+                                    lvl.available > 0
+                                      ? 'bg-green-100 text-green-800'
+                                      : 'bg-red-100 text-red-800'
+                                  }`}
+                                >
+                                  {lvl.available}
+                                </span>
+                                <button
+                                  className="text-xs text-gray-600 hover:text-gray-900 transition-colors"
+                                  onClick={() => startEditAvailable(lvl._id, lvl.available)}
+                                >
+                                  Edit
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 whitespace-nowrap">
+                            {editingOnHandId === lvl._id ? (
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={editOnHandValue}
+                                  onChange={(e) => setEditOnHandValue(Number(e.target.value) || 0)}
+                                  className="w-20 px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                                />
+                                <button
+                                  className="px-2 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                                  onClick={cancelEditOnHand}
+                                  disabled={savingOnHand}
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  className="px-2 py-1 text-xs bg-gray-900 text-white rounded hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                                  onClick={saveOnHand}
+                                  disabled={savingOnHand}
+                                >
+                                  {savingOnHand ? 'Saving...' : 'Save'}
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="inline-flex items-center gap-2">
+                                <span className="text-sm font-medium text-gray-700">{lvl.onHand}</span>
+                                <button
+                                  className="text-xs text-gray-600 hover:text-gray-900 transition-colors"
+                                  onClick={() => startEditOnHand(lvl._id, lvl.onHand)}
+                                >
+                                  Edit
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              {/* Unavailable breakdown menu */}
+              {unavailAnchorEl && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={closeUnavailableMenu}
+                  ></div>
+                  <div
+                    className="fixed z-50 mt-2 bg-white border border-gray-200 rounded shadow-lg"
+                    style={{
+                      top: unavailAnchorEl.getBoundingClientRect().bottom + window.scrollY + 4,
+                      left: unavailAnchorEl.getBoundingClientRect().left + window.scrollX,
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                  <div className="px-3 pt-2 pb-2">
+                    <p className="text-xs font-medium text-gray-700">
+                      Unavailable inventory
+                    </p>
+                  </div>
+                  <div className="border-t border-gray-200"></div>
+                  {editUnavailable && (
+                    <div className="min-w-[240px] py-2">
+                      <div className="px-3 py-2 flex items-center justify-between gap-4 hover:bg-gray-50 transition-colors">
+                        <span className="text-sm text-gray-700">Damaged</span>
+                        <input
+                          type="number"
+                          min="0"
+                          value={editUnavailable.damaged}
+                          onChange={(e) => handleUnavailableChange('damaged', e.target.value)}
+                          className="w-20 px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                        />
+                      </div>
+                      <div className="px-3 py-2 flex items-center justify-between gap-4 hover:bg-gray-50 transition-colors">
+                        <span className="text-sm text-gray-700">Quality Control</span>
+                        <input
+                          type="number"
+                          min="0"
+                          value={editUnavailable.qualityControl}
+                          onChange={(e) => handleUnavailableChange('qualityControl', e.target.value)}
+                          className="w-20 px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                        />
+                      </div>
+                      <div className="px-3 py-2 flex items-center justify-between gap-4 hover:bg-gray-50 transition-colors">
+                        <span className="text-sm text-gray-700">Safety Stock</span>
+                        <input
+                          type="number"
+                          min="0"
+                          value={editUnavailable.safetyStock}
+                          onChange={(e) => handleUnavailableChange('safetyStock', e.target.value)}
+                          className="w-20 px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                        />
+                      </div>
+                      <div className="px-3 py-2 flex items-center justify-between gap-4 hover:bg-gray-50 transition-colors">
+                        <span className="text-sm text-gray-700">Other</span>
+                        <input
+                          type="number"
+                          min="0"
+                          value={editUnavailable.other}
+                          onChange={(e) => handleUnavailableChange('other', e.target.value)}
+                          className="w-20 px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                        />
+                      </div>
+                      <div className="flex justify-end gap-2 px-3 pb-2 pt-2">
+                        <button
+                          className="px-2 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                          onClick={closeUnavailableMenu}
+                          disabled={savingUnavailable}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          className="px-2 py-1 text-xs bg-gray-900 text-white rounded hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                          onClick={saveUnavailable}
+                          disabled={savingUnavailable}
+                        >
+                          {savingUnavailable ? 'Saving...' : 'Save'}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  </div>
+                </>
+              )}
+              </>
+            ) : (
+              <div className="text-center py-6">
+                <p className="text-sm text-gray-600">
+                  {searchQuery ? 'No items match your search.' : 'No inventory found for this location.'}
+                </p>
+              </div>
+            )
+          ) : (
+            <div className="text-center py-6">
+              <CubeIcon className="w-10 h-10 text-gray-400 mx-auto mb-3" />
+              <h3 className="text-base font-medium text-gray-700 mb-1">
+                Select a location to view inventory
+              </h3>
+              <p className="text-sm text-gray-600">
+                Choose a location from the dropdown above to see inventory levels.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+    </GridBackgroundWrapper>
+  );
+};
+
+export default ProductsInventoryPage;

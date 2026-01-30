@@ -1,0 +1,40 @@
+RewriteEngine On
+
+# Remove .html extension from URLs
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^([^\.]+)$ $1.html [NC,L]
+
+# Redirect .html URLs to clean URLs
+RewriteCond %{THE_REQUEST} /([^.]+)\.html [NC]
+RewriteRule ^ /%1? [NC,L,R=301]
+
+# Handle index page
+RewriteRule ^$ index.html [L]
+
+# Handle specific pages
+RewriteRule ^shop/?$ shop.html [L]
+RewriteRule ^product/?$ product.html [L]
+RewriteRule ^cart/?$ cart.html [L]
+RewriteRule ^checkout/?$ checkout.html [L]
+RewriteRule ^contact/?$ contact.html [L]
+RewriteRule ^categories/?$ categories.html [L]
+RewriteRule ^category/?$ category.html [L]
+RewriteRule ^about/?$ about.html [L]
+
+# Handle product pages with ID
+RewriteRule ^product/([0-9]+)/?$ product.html?id=$1 [L]
+
+# Handle category pages
+RewriteRule ^category/([^/]+)/?$ category.html?cat=$1 [L]
+
+# Security headers
+Header always set X-Content-Type-Options nosniff
+Header always set X-Frame-Options DENY
+Header always set X-XSS-Protection "1; mode=block"
+
+# Cache control for static files
+<FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|svg)$">
+    ExpiresActive On
+    ExpiresDefault "access plus 1 month"
+</FilesMatch>

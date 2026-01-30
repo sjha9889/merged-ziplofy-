@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Returns & Refunds - ShopHub Premium Ecommerce Store</title>
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <meta content="Returns, Refunds, Exchange, ShopHub" name="keywords">
+        <meta content="Returns and refunds policy at ShopHub" name="description">
+        <link href="assets/img/favicon.ico" rel="icon">
+        <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@1,600;1,700;1,800&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+        <link href="assets/lib/animate/animate.min.css" rel="stylesheet">
+        <link href="assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+        <link href="assets/css/style.css" rel="stylesheet">
+        <style>
+            /* Returns Page Enhanced Styles */
+            .returns-card {
+                background: #fff;
+                border-radius: 12px;
+                padding: 30px;
+                margin-bottom: 30px;
+                box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                border-left: 4px solid #aa9166;
+            }
+            .returns-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            }
+            .returns-card-icon {
+                width: 70px;
+                height: 70px;
+                background: linear-gradient(135deg, #020202 0%, #aa9166 100%);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 20px;
+                color: #fff;
+                font-size: 28px;
+            }
+            .returns-card h3 {
+                color: #212121;
+                font-size: 24px;
+                font-weight: 600;
+                margin-bottom: 15px;
+            }
+            .returns-card p {
+                color: #666;
+                line-height: 1.8;
+                margin-bottom: 0;
+            }
+            .returns-feature-list {
+                list-style: none;
+                padding: 0;
+                margin: 20px 0 0 0;
+            }
+            .returns-feature-list li {
+                padding: 12px 0;
+                border-bottom: 1px solid #f0f0f0;
+                color: #555;
+                display: flex;
+                align-items: center;
+            }
+            .returns-feature-list li:last-child {
+                border-bottom: none;
+            }
+            .returns-feature-list li i {
+                color: #aa9166;
+                margin-right: 12px;
+                font-size: 16px;
+            }
+            .returns-info-grid {
+                margin-top: 50px;
+            }
+            .warning-box {
+                background: #fff3cd;
+                border-left: 4px solid #ffc107;
+                border-radius: 8px;
+                padding: 20px;
+                margin: 20px 0;
+            }
+            .warning-box h4 {
+                color: #856404;
+                font-weight: 600;
+                margin-bottom: 10px;
+            }
+            .warning-box ul {
+                margin: 0;
+                padding-left: 20px;
+                color: #856404;
+            }
+            .success-box {
+                background: #d4edda;
+                border-left: 4px solid #28a745;
+                border-radius: 8px;
+                padding: 20px;
+                margin: 20px 0;
+            }
+            .success-box h4 {
+                color: #155724;
+                font-weight: 600;
+                margin-bottom: 10px;
+            }
+            .success-box p {
+                color: #155724;
+                margin: 0;
+            }
+            @media (max-width: 768px) {
+                .returns-card {
+                    padding: 20px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="wrapper">
+            <div class="mobile-header d-lg-none">
+                <div class="container-fluid">
+                    <div class="mh-row">
+                        <button class="mh-btn" id="mobileMenuBtn" aria-label="Menu">
+                            <span class="mh-bar"></span>
+                            <span class="mh-bar"></span>
+                            <span class="mh-bar"></span>
+                        </button>
+                        <a href="index.html" class="mh-logo">ShopHub</a>
+                        <div class="mh-actions">
+                            <a href="#" class="mh-action" aria-label="Search"><i class="fas fa-search"></i></a>
+                            <a href="cart.html" class="mh-action" aria-label="Cart"><i class="fas fa-shopping-cart"></i><span class="mh-badge">0</span></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="mobile-drawer" id="mobileDrawer">
+                    <div class="md-inner">
+                        <div class="md-search">
+                            <input type="text" placeholder="Search for products..." class="md-input">
+                            <button class="md-search-btn"><i class="fas fa-search"></i></button>
+                        </div>
+                        <nav class="md-nav">
+                            <a href="index.html">Home</a>
+                            <a href="shop.html">Shop</a>
+                            <a href="category.html?category=All">Categories</a>
+                            <a href="blog.html">Blog</a>
+                            <a href="contact.html">Contact</a>
+                        </nav>
+                        <div class="md-meta">
+                            <a href="#">My Account</a>
+                            <a href="#">Wishlist</a>
+                            <a href="#">Help & FAQs</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="mobile-backdrop" id="mobileBackdrop"></div>
+            </div>
+
+            <div class="top-bar">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-lg-3">
+                            <div class="logo">
+                                <a href="index.html">
+                                    <h1>ShopHub</h1>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="search-bar">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Search for products, brands and more...">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-search" type="button"><i class="fas fa-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="top-bar-right">
+                                <div class="user-actions">
+                                    <a href="login.html" class="action-item"><i class="fas fa-user"></i><span>Account</span></a>
+                                    <a href="wishlist.html" class="action-item"><i class="fas fa-heart"></i><span>Wishlist</span></a>
+                                    <a href="cart.html" class="action-item cart-item"><i class="fas fa-shopping-cart"></i><span>Cart</span><span class="cart-count">0</span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-bar">
+                <div class="container-fluid">
+                    <nav class="navbar navbar-expand-lg navbar-light">
+                        <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse" id="navbarCollapse">
+                            <div class="navbar-nav">
+                                <div class="nav-item dropdown mega-menu">
+                                    <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+                                        <i class="fas fa-bars"></i> All Categories
+                                    </a>
+                                    <div class="dropdown-menu mega-dropdown">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <h6>Electronics</h6>
+                                                <a href="category.html?category=Electronics" class="dropdown-item">Smartphones</a>
+                                                <a href="category.html?category=Electronics" class="dropdown-item">Laptops</a>
+                                                <a href="category.html?category=Electronics" class="dropdown-item">Headphones</a>
+                                                <a href="category.html?category=Electronics" class="dropdown-item">Cameras</a>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <h6>Fashion</h6>
+                                                <a href="category.html?category=Fashion" class="dropdown-item">Men's Clothing</a>
+                                                <a href="category.html?category=Fashion" class="dropdown-item">Women's Clothing</a>
+                                                <a href="category.html?category=Fashion" class="dropdown-item">Shoes</a>
+                                                <a href="category.html?category=Fashion" class="dropdown-item">Accessories</a>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <h6>Home & Garden</h6>
+                                                <a href="category.html?category=Home%20%26%20Garden" class="dropdown-item">Furniture</a>
+                                                <a href="category.html?category=Home%20%26%20Garden" class="dropdown-item">Kitchen</a>
+                                                <a href="category.html?category=Home%20%26%20Garden" class="dropdown-item">Garden</a>
+                                                <a href="category.html?category=Home%20%26%20Garden" class="dropdown-item">Decor</a>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <h6>Sports</h6>
+                                                <a href="category.html?category=Sports" class="dropdown-item">Fitness</a>
+                                                <a href="category.html?category=Sports" class="dropdown-item">Outdoor</a>
+                                                <a href="category.html?category=Sports" class="dropdown-item">Sports Gear</a>
+                                                <a href="category.html?category=Sports" class="dropdown-item">Equipment</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a href="index.html" class="nav-item nav-link">Home</a>
+                                <a href="shop.html" class="nav-item nav-link">Shop</a>
+                                <a href="category.html?category=Dresses" class="nav-item nav-link">Dresses</a>
+                                <a href="category.html?category=Shirts" class="nav-item nav-link">Shirts</a>
+                                <a href="category.html?category=Jeans" class="nav-item nav-link">Jeans</a>
+                                <a href="category.html?category=Jackets" class="nav-item nav-link">Jackets</a>
+                                <a href="category.html?category=Shoes" class="nav-item nav-link">Shoes</a>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="page-header">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12">
+                            <h2>Returns & Refunds</h2>
+                        </div>
+                        <div class="col-12">
+                            <a href="index.html">Home</a>
+                            <a href="returns.html">Returns</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="single">
+                <div class="container">
+                    <div class="row returns-info-grid">
+                        <div class="col-lg-6 col-md-6">
+                            <div class="returns-card">
+                                <div class="returns-card-icon">
+                                    <i class="fas fa-undo"></i>
+                                </div>
+                                <h3>Return Policy</h3>
+                                <ul class="returns-feature-list">
+                                    <li><i class="fas fa-calendar-check"></i> <strong>Return Window:</strong> 7 days from delivery</li>
+                                    <li><i class="fas fa-box"></i> <strong>Condition:</strong> Unused, unwashed, original packaging</li>
+                                    <li><i class="fas fa-tag"></i> <strong>Tags Required:</strong> All original tags must be attached</li>
+                                    <li><i class="fas fa-shipping-fast"></i> <strong>Free Returns:</strong> Available for orders above ₹500</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            <div class="returns-card">
+                                <div class="returns-card-icon">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </div>
+                                <h3>Refund Process</h3>
+                                <p>Once we receive and inspect your returned item, we'll process your refund within <strong>5-7 business days</strong>. The amount will be credited to your original payment method automatically.</p>
+                                <div class="success-box mt-3">
+                                    <h4><i class="fas fa-check-circle"></i> Quick Refunds</h4>
+                                    <p>Most refunds are processed within 3-5 days for faster payment methods.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            <div class="returns-card">
+                                <div class="returns-card-icon">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </div>
+                                <h3>Exchange Policy</h3>
+                                <p>Need a different size, color, or style? We offer hassle-free exchanges within <strong>7 days of delivery</strong>. Exchanges are subject to product availability.</p>
+                                <ul class="returns-feature-list mt-3">
+                                    <li><i class="fas fa-check"></i> Size exchanges available</li>
+                                    <li><i class="fas fa-check"></i> Color variations available</li>
+                                    <li><i class="fas fa-check"></i> Style exchanges subject to stock</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6">
+                            <div class="returns-card">
+                                <div class="returns-card-icon">
+                                    <i class="fas fa-headset"></i>
+                                </div>
+                                <h3>How to Return</h3>
+                                <ul class="returns-feature-list">
+                                    <li><i class="fas fa-user-circle"></i> Log in to your account</li>
+                                    <li><i class="fas fa-shopping-bag"></i> Go to "My Orders"</li>
+                                    <li><i class="fas fa-undo"></i> Select item and click "Return"</li>
+                                    <li><i class="fas fa-print"></i> Print return label</li>
+                                    <li><i class="fas fa-truck"></i> Schedule pickup or drop off</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-4">
+                        <div class="col-lg-6">
+                            <div class="warning-box">
+                                <h4><i class="fas fa-exclamation-triangle"></i> Non-Returnable Items</h4>
+                                <ul>
+                                    <li>Personalized or customized products</li>
+                                    <li>Items damaged by misuse or normal wear</li>
+                                    <li>Products without original packaging or tags</li>
+                                    <li>Gift cards and vouchers</li>
+                                    <li>Underwear and intimate apparel</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="success-box">
+                                <h4><i class="fas fa-question-circle"></i> Need Help?</h4>
+                                <p>Our customer support team is available 24/7 to assist you with returns, refunds, or exchanges. Contact us via email, phone, or live chat for immediate assistance.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-6 col-lg-4">
+                            <div class="footer-about">
+                                <h2>About ShopHub</h2>
+                                <p>ShopHub is your premier online destination for quality products and exceptional shopping experiences. We offer a wide range of products from trusted brands with fast shipping and excellent customer service.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-8">
+                            <div class="row">
+                                <div class="col-6 col-md-6 col-lg-4">
+                                    <div class="footer-link">
+                                        <h2>Product Categories</h2>
+                                        <a href="">Electronics</a>
+                                        <a href="">Fashion</a>
+                                        <a href="">Home & Garden</a>
+                                        <a href="">Sports & Fitness</a>
+                                        <a href="">Books & Media</a>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6 col-lg-4">
+                                    <div class="footer-link">
+                                        <h2>Customer Service</h2>
+                                        <a href="about.html">About Us</a>
+                                        <a href="contact.html">Contact Us</a>
+                                        <a href="shipping-info.html">Shipping Info</a>
+                                        <a href="returns.html">Returns</a>
+                                        <a href="faqs.html">FAQs</a>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <div class="footer-contact">
+                                        <h2>Get In Touch</h2>
+                                        <p><i class="fa fa-map-marker-alt"></i>123 Street, New York, USA</p>
+                                        <p><i class="fa fa-phone-alt"></i>+012 345 67890</p>
+                                        <p><i class="fa fa-envelope"></i>info@example.com</p>
+                                        <div class="footer-social">
+                                            <a href=""><i class="fab fa-twitter"></i></a>
+                                            <a href=""><i class="fab fa-facebook-f"></i></a>
+                                            <a href=""><i class="fab fa-youtube"></i></a>
+                                            <a href=""><i class="fab fa-instagram"></i></a>
+                                            <a href=""><i class="fab fa-linkedin-in"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="container footer-menu">
+                    <div class="f-menu">
+                        <a href="terms-of-use.html">Terms of use</a>
+                        <a href="privacy-policy.html">Privacy policy</a>
+                        <a href="">Cookies</a>
+                        <a href="help.html">Help</a>
+                        <a href="faqs.html">FQAs</a>
+                    </div>
+                </div>
+                <div class="container copyright">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p>&copy; <a href="#">ShopHub</a>, All Right Reserved.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p>Designed By <a href="#">ziplofy</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <a href="#" class="back-to-top"><i class="fa fa-chevron-up"></i></a>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+        <script src="assets/lib/easing/easing.min.js"></script>
+        <script src="assets/lib/owlcarousel/owl.carousel.min.js"></script>
+        <script src="assets/js/main.js"></script>
+        <script src="assets/js/shop.js"></script>
+        <script>
+        (function(){
+            var btn = document.getElementById('mobileMenuBtn');
+            var drawer = document.getElementById('mobileDrawer');
+            var backdrop = document.getElementById('mobileBackdrop');
+            if(btn && drawer && backdrop && !btn.__inlineBound){
+                btn.addEventListener('click', function(e){ e.preventDefault(); drawer.classList.add('open'); backdrop.classList.add('show'); });
+                backdrop.addEventListener('click', function(){ drawer.classList.remove('open'); backdrop.classList.remove('show'); });
+                btn.__inlineBound = true;
+            }
+        })();
+        </script>
+    </body>
+</html>
+

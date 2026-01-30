@@ -1,0 +1,17 @@
+<div class="col-lg-3 col-md-4 col-sm-6 pb-1">
+  <a class="text-decoration-none" href="category.html?cat={{ category.slug }}">
+    <div class="cat-item d-flex align-items-center mb-4">
+      <div class="overflow-hidden" style="width: 100px; height: 100px;">
+        <img class="img-fluid h-100 w-100" src="{{ category.image }}" alt="{{ category.name }}" loading="lazy" style="object-fit: cover;">
+      </div>
+      <div class="flex-fill pl-3">
+        <h6 class="text-uppercase mb-0">{{ category.name }}</h6>
+        {% if category.count %}
+          <small class="text-body">{{ category.count }} Products</small>
+        {% endif %}
+      </div>
+    </div>
+  </a>
+</div>
+
+

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Category - ShopHub Premium Ecommerce Store</title>
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <meta content="ShopHub Category, Products, Ecommerce" name="keywords">
+        <meta content="Browse products by category at ShopHub" name="description">
+
+        <link href="assets/img/favicon.ico" rel="icon">
+        <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@1,600;1,700;1,800&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+        <link href="assets/lib/animate/animate.min.css" rel="stylesheet">
+        <link href="assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+        <link href="assets/css/style.css" rel="stylesheet">
+        <link href="assets/css/shop.css" rel="stylesheet">
+        
+        <!-- Custom Styles -->
+        <style>
+            /* Flash Message Styles */
+            .flash-message {
+                display: none;
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 10000;
+                padding: 15px 20px;
+                background: #fff;
+                border-radius: 5px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                min-width: 250px;
+                animation: slideInRight 0.3s ease;
+            }
+            .flash-message.show {
+                display: block;
+            }
+            .flash-success {
+                border-left: 4px solid #2ecc71;
+            }
+            .flash-error {
+                border-left: 4px solid #e74c3c;
+            }
+            .flash-info {
+                border-left: 4px solid #3498db;
+            }
+            .flash-warning {
+                border-left: 4px solid #f39c12;
+            }
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="wrapper">
+            <!-- Reuse header from index (mobile header + top bar + navbar) -->
+            <div class="mobile-header d-lg-none">
+                <div class="container-fluid">
+                    <div class="mh-row">
+                        <button class="mh-btn" id="mobileMenuBtn" aria-label="Menu">
+                            <span class="mh-bar"></span>
+                            <span class="mh-bar"></span>
+                            <span class="mh-bar"></span>
+                        </button>
+                        <a href="index.html" class="mh-logo">ShopHub</a>
+                        <div class="mh-actions">
+                            <a href="#" class="mh-action" aria-label="Search"><i class="fas fa-search"></i></a>
+                            <a href="#" class="mh-action" aria-label="Cart"><i class="fas fa-shopping-cart"></i><span class="mh-badge">0</span></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="mobile-drawer" id="mobileDrawer">
+                    <div class="md-inner">
+                        <div class="md-search">
+                            <input type="text" placeholder="Search for products..." class="md-input">
+                            <button class="md-search-btn"><i class="fas fa-search"></i></button>
+                        </div>
+                        <nav class="md-nav">
+                            <a href="index.html">Home</a>
+                            <a href="service.html">New Arrivals</a>
+                            <a href="team.html">Best Sellers</a>
+                            <a href="portfolio.html">Deals</a>
+                            <a href="blog.html">Brands</a>
+                            <a href="contact.html">Contact</a>
+                        </nav>
+                        <div class="md-meta">
+                            <a href="#">My Account</a>
+                            <a href="#">Wishlist</a>
+                            <a href="#">Help & FAQs</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="mobile-backdrop" id="mobileBackdrop"></div>
+            </div>
+
+            <div class="top-bar">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-lg-3">
+                            <div class="logo">
+                                <a href="index.html">
+                                    <h1>ShopHub</h1>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="search-bar">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Search for products, brands and more...">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-search" type="button"><i class="fas fa-search"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="top-bar-right">
+                                <div class="user-actions">
+                                    <a href="login.html" class="action-item"><i class="fas fa-user"></i><span>Account</span></a>
+                                    <a href="wishlist.html" class="action-item"><i class="fas fa-heart"></i><span>Wishlist</span></a>
+                                    <a href="cart.html" class="action-item cart-item"><i class="fas fa-shopping-cart"></i><span>Cart</span><span class="cart-count">0</span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-bar">
+                <div class="container-fluid">
+                    <nav class="navbar navbar-expand-lg navbar-light">
+                        <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse" id="navbarCollapse">
+                            <div class="navbar-nav">
+                                <div class="nav-item dropdown mega-menu">
+                                    <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+                                        <i class="fas fa-bars"></i> All Categories
+                                    </a>
+                                    <div class="dropdown-menu mega-dropdown">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <h6>Electronics</h6>
+                                                <a href="#" class="dropdown-item">Smartphones</a>
+                                                <a href="#" class="dropdown-item">Laptops</a>
+                                                <a href="#" class="dropdown-item">Headphones</a>
+                                                <a href="#" class="dropdown-item">Cameras</a>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <h6>Fashion</h6>
+                                                <a href="#" class="dropdown-item">Men's Clothing</a>
+                                                <a href="#" class="dropdown-item">Women's Clothing</a>
+                                                <a href="#" class="dropdown-item">Shoes</a>
+                                                <a href="#" class="dropdown-item">Accessories</a>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <h6>Home & Garden</h6>
+                                                <a href="#" class="dropdown-item">Furniture</a>
+                                                <a href="#" class="dropdown-item">Kitchen</a>
+                                                <a href="#" class="dropdown-item">Garden</a>
+                                                <a href="#" class="dropdown-item">Decor</a>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <h6>Sports</h6>
+                                                <a href="#" class="dropdown-item">Fitness</a>
+                                                <a href="#" class="dropdown-item">Outdoor</a>
+                                                <a href="#" class="dropdown-item">Sports Gear</a>
+                                                <a href="#" class="dropdown-item">Equipment</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <a href="index.html" class="nav-item nav-link">Home</a>
+                                <a href="shop.html" class="nav-item nav-link">Shop</a>
+                                <a href="category.html?category=Dresses" class="nav-item nav-link">Dresses</a>
+                                <a href="category.html?category=Shirts" class="nav-item nav-link">Shirts</a>
+                                <a href="category.html?category=Jeans" class="nav-item nav-link">Jeans</a>
+                                <a href="category.html?category=Jackets" class="nav-item nav-link">Jackets</a>
+                                <a href="category.html?category=Shoes" class="nav-item nav-link">Shoes</a>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="page-header">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12">
+                            <h2 id="categoryTitle">Category</h2>
+                        </div>
+                        <div class="col-12">
+                            <a href="index.html">Home</a>
+                            <a href="#" id="breadcrumbCategory">Category</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="shop">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <div class="shop-sidebar">
+                                <div class="sidebar-widget">
+                                    <h4 class="widget-title">Categories</h4>
+                                    <div class="category-list">
+                                        <a href="category.html?category=All" class="category-item">All Products</a>
+                                        <a href="category.html?category=Electronics" class="category-item">Electronics</a>
+                                        <a href="category.html?category=Fashion" class="category-item">Fashion</a>
+                                        <a href="category.html?category=Home%20%26%20Garden" class="category-item">Home & Garden</a>
+                                        <a href="category.html?category=Sports" class="category-item">Sports</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-9">
+                            <div class="products-grid" id="catProductsGrid">
+                                <div class="row" id="catProductsRow">
+                                    <!-- Products injected by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer reused from index -->
+            <div class="footer">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-6 col-lg-4">
+                            <div class="footer-about">
+                                <h2>About ShopHub</h2>
+                                <p>ShopHub is your premier online destination for quality products and exceptional shopping experiences. We offer a wide range of products from trusted brands with fast shipping and excellent customer service.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-lg-8">
+                            <div class="row">
+                                <div class="col-6 col-md-6 col-lg-4">
+                                    <div class="footer-link">
+                                        <h2>Product Categories</h2>
+                                        <a href="">Electronics</a>
+                                        <a href="">Fashion</a>
+                                        <a href="">Home & Garden</a>
+                                        <a href="">Sports & Fitness</a>
+                                        <a href="">Books & Media</a>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-6 col-lg-4">
+                                    <div class="footer-link">
+                                        <h2>Customer Service</h2>
+                                        <a href="about.html">About Us</a>
+                                        <a href="contact.html">Contact Us</a>
+                                        <a href="shipping-info.html">Shipping Info</a>
+                                        <a href="returns.html">Returns</a>
+                                        <a href="faqs.html">FAQs</a>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <div class="footer-contact">
+                                        <h2>Get In Touch</h2>
+                                        <p><i class="fa fa-map-marker-alt"></i>123 Street, New York, USA</p>
+                                        <p><i class="fa fa-phone-alt"></i>+012 345 67890</p>
+                                        <p><i class="fa fa-envelope"></i>info@example.com</p>
+                                        <div class="footer-social">
+                                            <a href=""><i class="fab fa-twitter"></i></a>
+                                            <a href=""><i class="fab fa-facebook-f"></i></a>
+                                            <a href=""><i class="fab fa-youtube"></i></a>
+                                            <a href=""><i class="fab fa-instagram"></i></a>
+                                            <a href=""><i class="fab fa-linkedin-in"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="container footer-menu">
+                    <div class="f-menu">
+                        <a href="terms-of-use.html">Terms of use</a>
+                        <a href="privacy-policy.html">Privacy policy</a>
+                        <a href="">Cookies</a>
+                        <a href="help.html">Help</a>
+                        <a href="faqs.html">FQAs</a>
+                    </div>
+                </div>
+                <div class="container copyright">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p>&copy; <a href="#">ShopHub</a>, All Right Reserved.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p>Designed By <a href="#">ziplofy</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <a href="#" class="back-to-top"><i class="fa fa-chevron-up"></i></a>
+        </div>
+
+        <!-- Quick View Modal -->
+        <div class="modal fade" id="quickViewModal" tabindex="-1" role="dialog" aria-labelledby="quickViewModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header" style="border-bottom: 1px solid #eee;">
+                        <h5 class="modal-title" id="quickViewModalLabel">Quick View</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="quick-view-image" style="position: relative; text-align: center; margin-bottom: 20px;">
+                                    <img id="quickViewImage" src="" alt="Product" style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                                    <div id="quickViewBadge" style="display: none; position: absolute; top: 15px; left: 15px; background: #e74c3c; color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; z-index: 10;"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <h3 id="quickViewTitle" style="margin-bottom: 15px; color: #333;"></h3>
+                                <div class="quick-view-price" style="margin-bottom: 20px;">
+                                    <span id="quickViewPrice" style="font-size: 28px; font-weight: 700; color: #aa9166;"></span>
+                                    <span id="quickViewOldPrice" style="display: none; margin-left: 10px;">
+                                        <del style="font-size: 18px; color: #999;"></del>
+                                    </span>
+                                </div>
+                                <div id="quickViewDescription" style="margin-bottom: 20px; color: #666; line-height: 1.6;"></div>
+                                <div id="quickViewFeatures" style="margin-bottom: 20px;">
+                                    <h5 style="margin-bottom: 10px; font-size: 16px;">Key Features:</h5>
+                                    <ul style="list-style: none; padding: 0;">
+                                        <!-- Features will be populated here -->
+                                    </ul>
+                                </div>
+                                <div class="quick-view-actions" style="display: flex; gap: 10px; margin-top: 25px;">
+                                    <button type="button" id="quickViewAddToCart" class="btn" style="flex: 1; background: #aa9166; color: #fff; padding: 12px; border: none; border-radius: 5px; font-weight: 500;">
+                                        <i class="fas fa-shopping-cart mr-2"></i> Add to Cart
+                                    </button>
+                                    <button type="button" id="quickViewAddToWishlist" class="btn" style="flex: 1; background: #e74c3c; color: #fff; padding: 12px; border: none; border-radius: 5px; font-weight: 500;">
+                                        <i class="fas fa-heart mr-2"></i> Wishlist
+                                    </button>
+                                </div>
+                                <div style="margin-top: 20px; text-align: center;">
+                                    <a id="quickViewDetailLink" href="#" class="btn" style="background: transparent; color: #aa9166; border: 2px solid #aa9166; padding: 10px 30px; text-decoration: none; display: inline-block;">
+                                        View Full Details <i class="fas fa-arrow-right ml-2"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flash Message Container -->
+        <div id="flash-message" class="flash-message"></div>
+
+        <!-- JavaScript Libraries -->
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+        <script src="assets/lib/easing/easing.min.js"></script>
+        <script src="assets/lib/owlcarousel/owl.carousel.min.js"></script>
+        <script src="assets/lib/isotope/isotope.pkgd.min.js"></script>
+        
+        <!-- LiquidJS Template Engine - MUST load first -->
+        <script src="https://cdn.jsdelivr.net/npm/liquidjs@10.7.0/dist/liquid.browser.min.js"></script>
+        
+        <!-- Product Data - MUST load before products.js -->
+        <script src="constants/products.js"></script>
+
+        <!-- Template Javascript -->
+        <script src="assets/js/main.js"></script>
+        <script src="assets/js/shop.js"></script>
+        <script src="assets/js/products.js"></script>
+        
+        <!-- Category page script - MUST load last -->
+        <script src="assets/js/category.js"></script>
+        <script>
+        (function(){
+            var btn = document.getElementById('mobileMenuBtn');
+            var drawer = document.getElementById('mobileDrawer');
+            var backdrop = document.getElementById('mobileBackdrop');
+            if(btn && drawer && backdrop && !btn.__inlineBound){
+                btn.addEventListener('click', function(e){ e.preventDefault(); drawer.classList.add('open'); backdrop.classList.add('show'); });
+                backdrop.addEventListener('click', function(){ drawer.classList.remove('open'); backdrop.classList.remove('show'); });
+                btn.__inlineBound = true;
+            }
+        })();
+        </script>
+    </body>
+</html>

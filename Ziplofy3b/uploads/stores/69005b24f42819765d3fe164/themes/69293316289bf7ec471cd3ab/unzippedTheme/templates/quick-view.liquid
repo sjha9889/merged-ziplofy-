@@ -1,0 +1,96 @@
+{% comment %}
+Quick View Modal Template
+Inputs:
+- product: normalized product object (render.js normalizeProduct)
+{% endcomment %}
+<style>
+#quickViewModal .modal-dialog {
+  margin-top: 110px;
+  margin-bottom: 50px;
+}
+#quickViewModal .modal-body .action-btn {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #333;
+  transition: all 0.3s ease;
+  font-size: 18px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+#quickViewModal .modal-body .action-btn:hover {
+  background: #fff0f3;
+  border-color: #dc3545;
+  color: #dc3545;
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(220,53,69,0.2);
+}
+#quickViewModal .modal-body .action-btn i.fas.fa-heart {
+  color: #dc3545;
+}
+</style>
+<div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: #dc3545; color: white;">
+        <h5 class="modal-title" id="quickViewModalLabel" style="color: white;">Quick View</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body position-relative">
+        <button type="button" class="action-btn add-to-wishlist position-absolute top-0 end-0 me-3 mt-2" title="Add to Wishlist" data-product-id="{{ product.id }}" style="z-index: 10;">
+          <i class="far fa-heart"></i>
+        </button>
+        <div class="row">
+          <div class="col-md-6">
+            <img src="{{ product.image }}" alt="{{ product.name | default: product.title }}" class="img-fluid rounded">
+          </div>
+          <div class="col-md-6">
+            <h4>{{ product.name | default: product.title }}</h4>
+            <div class="product-rating mb-3">
+              <div class="stars text-warning">
+                {% for _ in (1..product.starsFull) %}<i class="fas fa-star"></i>{% endfor %}
+                {% if product.starsHalf == 1 %}<i class="fas fa-star-half-alt"></i>{% endif %}
+                {% for _ in (1..product.starsEmpty) %}<i class="far fa-star"></i>{% endfor %}
+              </div>
+              <span class="rating-text ms-2">{{ product.rating }} ({{ product.reviewCount }} reviews)</span>
+            </div>
+            <div class="product-price mb-3">
+              <span class="current-price fw-bold fs-4">{{ product.priceDisplay }}</span>
+              {% if product.hasDiscount %}
+                <span class="original-price text-muted text-decoration-line-through ms-2">{{ product.originalPriceDisplay }}</span>
+                <span class="badge bg-danger ms-2">{{ product.discount }}% OFF</span>
+              {% endif %}
+            </div>
+            <p class="mb-3">{{ product.description | default: product.shortDescription }}</p>
+            {% if product.features and product.features.size > 0 %}
+            <div class="product-features mb-3">
+              <h6>Key Features:</h6>
+              <ul class="list-unstyled">
+                {% for feature in product.features %}
+                  <li><i class="fas fa-check text-success me-2"></i>{{ feature }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+            {% endif %}
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary add-to-cart" data-product-id="{{ product.id }}">
+                <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+              </button>
+              <button class="btn btn-success checkout-btn" data-product-id="{{ product.id }}">
+                <i class="fas fa-credit-card me-2"></i>Checkout
+              </button>
+              <a href="product-detail.html?id={{ product.id }}" class="btn btn-outline-primary">
+                <i class="fas fa-external-link-alt me-2"></i>View Details
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

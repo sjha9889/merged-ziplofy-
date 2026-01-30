@@ -1,0 +1,719 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Checkout - Shop Top</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta name="description" content="Complete your purchase securely with our easy checkout process. Multiple payment options available.">
+    <link rel="canonical" href="/checkout.html">
+    <meta property="og:title" content="Checkout - Shop Top">
+    <meta property="og:description" content="Complete your purchase securely with our easy checkout process.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="/checkout.html">
+
+    <!-- Favicon -->
+    <link href="assets/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">  
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="assets/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link rel="preload" href="assets/css/style.min.css" as="style">
+    <link href="assets/css/style.min.css" rel="stylesheet">
+    <link href="assets/css/drawers.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Announcement Bar -->
+    <div class="container-fluid bg-primary text-dark text-center py-1">
+        <small><strong>Diwali Sale:</strong> Up to 50% off + Free Shipping over $50</small>
+    </div>
+    <!-- Topbar Start -->
+    <div class="container-fluid">
+        <div class="row bg-secondary py-1 px-xl-5">
+            <div class="col-lg-6 d-none d-lg-block">
+                <div class="d-inline-flex align-items-center h-100">
+                    <a class="text-body mr-3" href="">About</a>
+                    <a class="text-body mr-3" href="">Contact</a>
+                    <a class="text-body mr-3" href="">Help</a>
+                    <a class="text-body mr-3" href="">FAQs</a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center text-lg-right">
+                <div class="d-inline-flex align-items-center">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">My Account</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <button class="dropdown-item" type="button" onclick="window.location.href='login.html'">Sign in</button>
+                            <button class="dropdown-item" type="button" onclick="window.location.href='signup.html'">Sign up</button>
+                        </div>
+                    </div>
+                    <div class="btn-group mx-2">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">USD</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <button class="dropdown-item" type="button">EUR</button>
+                            <button class="dropdown-item" type="button">GBP</button>
+                            <button class="dropdown-item" type="button">CAD</button>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">EN</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <button class="dropdown-item" type="button">FR</button>
+                            <button class="dropdown-item" type="button">AR</button>
+                            <button class="dropdown-item" type="button">RU</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-inline-flex align-items-center d-block d-lg-none">
+                    <a href="" class="btn px-0 ml-2">
+                        <i class="fas fa-heart text-dark"></i>
+                        <span class="badge text-dark border border-dark rounded-circle" style="padding-bottom: 2px;" data-count-target="wishlist">0</span>
+                    </a>
+                    <button type="button" class="btn px-0 ml-2" id="cart-drawer-trigger-mobile" aria-label="View cart" onclick="if(window.openCartDrawer){window.openCartDrawer();}">
+                        <i class="fas fa-shopping-cart text-dark"></i>
+                        <span class="badge text-dark border border-dark rounded-circle" style="padding-bottom: 2px;" data-count-target="cart">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="row align-items-center bg-light py-3 px-xl-5 d-none d-lg-flex">
+            <div class="col-lg-4">
+                <a href="" class="text-decoration-none">
+                    <span class="h1 text-uppercase text-primary bg-dark px-2">Shop</span>
+                    <span class="h1 text-uppercase text-dark bg-primary px-2 ml-n1">Top</span>
+                </a>
+            </div>
+            <div class="col-lg-4 col-6 text-left">
+                <form action="/search" role="search">
+                    <div class="input-group">
+                        <label for="site-search" class="sr-only">Search products</label>
+                        <input id="site-search" name="q" type="search" class="form-control" placeholder="Search for products" autocomplete="off">
+                        <div class="input-group-append">
+                            <button class="input-group-text bg-transparent text-primary" type="submit" aria-label="Search">
+                                <i class="fa fa-search" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-4 col-6 text-right">
+                <p class="m-0">Customer Service</p>
+                <h5 class="m-0">+012 345 6789</h5>
+            </div>
+        </div>
+    </div>
+    <!-- Topbar End -->
+
+
+    <!-- Navbar Start -->
+    <div class="container-fluid bg-dark mb-30 navbar-area">
+        <nav class="navbar navbar-expand-lg bg-dark navbar-dark py-3 py-lg-0 px-0">
+            <a href="" class="text-decoration-none d-block d-lg-none">
+                <span class="h1 text-uppercase text-dark bg-light px-2">Shop</span>
+                <span class="h1 text-uppercase text-light bg-primary px-2 ml-n1">Top</span>
+            </a>
+            <button type="button" class="navbar-toggler" id="mobile-nav-toggler" aria-label="Toggle navigation" onclick="if(window.openNavDrawer){window.openNavDrawer();}">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
+                        <div class="navbar-nav mr-auto py-0">
+                            <a href="index.html" class="nav-item nav-link">Home</a>
+                            <a href="shop.html" class="nav-item nav-link active">Shop</a>
+                            <div class="nav-item dropdown">
+                                <a href="category.html?cat=dresses" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dresses</a>
+                                <div class="dropdown-menu rounded-0 border-0 m-0">
+                                    <a href="category.html?cat=men-dresses" class="dropdown-item">Men's Dresses</a>
+                                    <a href="category.html?cat=women-dresses" class="dropdown-item">Women's Dresses</a>
+                                    <a href="category.html?cat=baby-dresses" class="dropdown-item">Baby's Dresses</a>
+                                </div>
+                            </div>
+                            <a href="category.html?cat=shirts" class="nav-item nav-link">Shirts</a>
+                            <a href="category.html?cat=jeans" class="nav-item nav-link">Jeans</a>
+                            <a href="category.html?cat=swimwear" class="nav-item nav-link">Swimwear</a>
+                            <a href="category.html?cat=sleepwear" class="nav-item nav-link">Sleepwear</a>
+                            <a href="category.html?cat=sportswear" class="nav-item nav-link">Sportswear</a>
+                            <a href="category.html?cat=jumpsuits" class="nav-item nav-link">Jumpsuits</a>
+                            <a href="category.html?cat=blazers" class="nav-item nav-link">Blazers</a>
+                            <a href="category.html?cat=jackets" class="nav-item nav-link">Jackets</a>
+                            <a href="category.html?cat=shoes" class="nav-item nav-link">Shoes</a>
+                        </div>
+                <div class="navbar-nav ml-auto py-0 d-none d-lg-block">
+                    <a href="" class="btn px-0" aria-label="View wishlist">
+                        <i class="fas fa-heart text-primary" aria-hidden="true"></i>
+                        <span class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;" data-count-target="wishlist">0</span>
+                    </a>
+                    <button type="button" class="btn px-0 ml-3" id="cart-drawer-trigger" aria-label="View cart" onclick="if(window.openCartDrawer){window.openCartDrawer();}">
+                        <i class="fas fa-shopping-cart text-primary" aria-hidden="true"></i>
+                        <span class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;" data-count-target="cart">0</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <!-- Navbar End -->
+
+
+    <!-- Breadcrumb Start -->
+    <div class="container-fluid">
+        <div class="row px-xl-5">
+            <div class="col-12">
+                <nav class="breadcrumb bg-light mb-30">
+                    <a class="breadcrumb-item text-dark" href="index.html">Home</a>
+                    <a class="breadcrumb-item text-dark" href="shop.html">Shop</a>
+                    <a class="breadcrumb-item text-dark" href="cart.html">Cart</a>
+                    <span class="breadcrumb-item active">Checkout</span>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <!-- Breadcrumb End -->
+
+
+    <!-- Checkout Start -->
+    <div class="container-fluid">
+        <div class="row px-xl-5">
+            <div class="col-lg-8">
+                <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Billing Address</span></h5>
+                <div class="bg-light p-30 mb-5">
+                    <form id="checkout-form" novalidate>
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label for="firstName">First Name <span class="text-danger">*</span></label>
+                                <input class="form-control" type="text" id="firstName" name="firstName" placeholder="John" required>
+                                <div class="invalid-feedback">Please enter your first name.</div>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="lastName">Last Name <span class="text-danger">*</span></label>
+                                <input class="form-control" type="text" id="lastName" name="lastName" placeholder="Doe" required>
+                                <div class="invalid-feedback">Please enter your last name.</div>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="email">E-mail <span class="text-danger">*</span></label>
+                                <input class="form-control" type="email" id="email" name="email" placeholder="example@email.com" required>
+                                <div class="invalid-feedback">Please enter a valid email address.</div>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="mobile">Mobile No <span class="text-danger">*</span></label>
+                                <input class="form-control" type="tel" id="mobile" name="mobile" placeholder="+123 456 789" required>
+                                <div class="invalid-feedback">Please enter your mobile number.</div>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="address1">Address Line 1 <span class="text-danger">*</span></label>
+                                <input class="form-control" type="text" id="address1" name="address1" placeholder="123 Street" required>
+                                <div class="invalid-feedback">Please enter your address.</div>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="address2">Address Line 2</label>
+                                <input class="form-control" type="text" id="address2" name="address2" placeholder="Apartment, suite, etc. (optional)">
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="country">Country <span class="text-danger">*</span></label>
+                                <select class="custom-select" id="country" name="country" required>
+                                    <option value="">Select Country</option>
+                                    <option value="US" selected>United States</option>
+                                    <option value="IN">India</option>
+                                    <option value="CA">Canada</option>
+                                    <option value="UK">United Kingdom</option>
+                                    <option value="AU">Australia</option>
+                                    <option value="DE">Germany</option>
+                                    <option value="FR">France</option>
+                                    <option value="IT">Italy</option>
+                                    <option value="ES">Spain</option>
+                                    <option value="BR">Brazil</option>
+                                </select>
+                                <div class="invalid-feedback">Please select your country.</div>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="city">City <span class="text-danger">*</span></label>
+                                <input class="form-control" type="text" id="city" name="city" placeholder="New York" required>
+                                <div class="invalid-feedback">Please enter your city.</div>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="state">State/Province <span class="text-danger">*</span></label>
+                                <input class="form-control" type="text" id="state" name="state" placeholder="New York" required>
+                                <div class="invalid-feedback">Please enter your state.</div>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label for="zipCode">ZIP/Postal Code <span class="text-danger">*</span></label>
+                                <input class="form-control" type="text" id="zipCode" name="zipCode" placeholder="12345" required>
+                                <div class="invalid-feedback">Please enter your ZIP code.</div>
+                            </div>
+                        <div class="col-md-12 form-group">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="newaccount">
+                                <label class="custom-control-label" for="newaccount">Create an account</label>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="shipto">
+                                <label class="custom-control-label" for="shipto"  data-toggle="collapse" data-target="#shipping-address">Ship to different address</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="collapse mb-5" id="shipping-address">
+                    <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Shipping Address</span></h5>
+                    <div class="bg-light p-30">
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label>First Name</label>
+                                <input class="form-control" type="text" placeholder="John">
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label>Last Name</label>
+                                <input class="form-control" type="text" placeholder="Doe">
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label>E-mail</label>
+                                <input class="form-control" type="text" placeholder="example@email.com">
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label>Mobile No</label>
+                                <input class="form-control" type="text" placeholder="+123 456 789">
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label>Address Line 1</label>
+                                <input class="form-control" type="text" placeholder="123 Street">
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label>Address Line 2</label>
+                                <input class="form-control" type="text" placeholder="123 Street">
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label>Country</label>
+                                <select class="custom-select">
+                                    <option selected>United States</option>
+                                    <option>Afghanistan</option>
+                                    <option>Albania</option>
+                                    <option>Algeria</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label>City</label>
+                                <input class="form-control" type="text" placeholder="New York">
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label>State</label>
+                                <input class="form-control" type="text" placeholder="New York">
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label>ZIP Code</label>
+                                <input class="form-control" type="text" placeholder="123">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Order Total</span></h5>
+                <div class="bg-light p-30 mb-5">
+                    <div class="border-bottom" id="order-summary-products">
+                        <h6 class="mb-3">Products</h6>
+                        <div class="d-flex justify-content-between">
+                            <p class="text-muted">Loading cart items...</p>
+                        </div>
+                    </div>
+                    <div class="border-bottom pt-3 pb-2">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h6>Subtotal</h6>
+                            <h6 id="order-subtotal">₹0</h6>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <h6 class="font-weight-medium">Shipping</h6>
+                            <h6 class="font-weight-medium" id="order-shipping">₹0</h6>
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <div class="d-flex justify-content-between mt-2">
+                            <h5>Total</h5>
+                            <h5 id="order-total">₹0</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-5">
+                    <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Payment</span></h5>
+                    <div class="bg-light p-30">
+                        <div class="form-group">
+                            <div class="custom-control custom-radio">
+                                <input type="radio" class="custom-control-input" name="payment" id="creditcard" value="creditcard" checked>
+                                <label class="custom-control-label" for="creditcard">
+                                    <i class="fab fa-cc-visa text-primary mr-2"></i>
+                                    <i class="fab fa-cc-mastercard text-primary mr-2"></i>
+                                    <i class="fab fa-cc-amex text-primary mr-2"></i>
+                                    Credit/Debit Card
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="custom-control custom-radio">
+                                <input type="radio" class="custom-control-input" name="payment" id="paypal" value="paypal">
+                                <label class="custom-control-label" for="paypal">
+                                    <i class="fab fa-paypal text-primary mr-2"></i>
+                                    PayPal
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="custom-control custom-radio">
+                                <input type="radio" class="custom-control-input" name="payment" id="applepay" value="applepay">
+                                <label class="custom-control-label" for="applepay">
+                                    <i class="fab fa-apple-pay text-primary mr-2"></i>
+                                    Apple Pay
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="custom-control custom-radio">
+                                <input type="radio" class="custom-control-input" name="payment" id="googlepay" value="googlepay">
+                                <label class="custom-control-label" for="googlepay">
+                                    <i class="fab fa-google-pay text-primary mr-2"></i>
+                                    Google Pay
+                                </label>
+                            </div>
+                        </div>
+                        <div class="form-group mb-4">
+                            <div class="custom-control custom-radio">
+                                <input type="radio" class="custom-control-input" name="payment" id="banktransfer" value="banktransfer">
+                                <label class="custom-control-label" for="banktransfer">
+                                    <i class="fas fa-university text-primary mr-2"></i>
+                                    Bank Transfer
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Credit Card Details (shown when credit card is selected) -->
+                        <div id="credit-card-details" class="mt-3">
+                            <div class="form-group">
+                                <label for="cardNumber">Card Number <span class="text-danger">*</span></label>
+                                <input class="form-control" type="text" id="cardNumber" name="cardNumber" placeholder="1234 5678 9012 3456" maxlength="19">
+                                <div class="invalid-feedback">Please enter a valid card number.</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 form-group">
+                                    <label for="expiryDate">Expiry Date <span class="text-danger">*</span></label>
+                                    <input class="form-control" type="text" id="expiryDate" name="expiryDate" placeholder="MM/YY" maxlength="5">
+                                    <div class="invalid-feedback">Please enter expiry date.</div>
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <label for="cvv">CVV <span class="text-danger">*</span></label>
+                                    <input class="form-control" type="text" id="cvv" name="cvv" placeholder="123" maxlength="4">
+                                    <div class="invalid-feedback">Please enter CVV.</div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="cardName">Name on Card <span class="text-danger">*</span></label>
+                                <input class="form-control" type="text" id="cardName" name="cardName" placeholder="John Doe">
+                                <div class="invalid-feedback">Please enter name on card.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="saveCard" name="saveCard">
+                                <label class="custom-control-label" for="saveCard">Save card for future purchases</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group mb-3">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="terms" name="terms" required>
+                                <label class="custom-control-label" for="terms">
+                                    I agree to the <a href="#" class="text-primary">Terms and Conditions</a> and <a href="#" class="text-primary">Privacy Policy</a> <span class="text-danger">*</span>
+                                </label>
+                                <div class="invalid-feedback">You must agree to the terms and conditions.</div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-block btn-primary font-weight-bold py-3" id="place-order-btn">
+                            <i class="fas fa-lock mr-2"></i>Place Order Securely
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Checkout End -->
+
+
+    <!-- Flash Message -->
+    <div id="flash-message" class="flash-message" role="alert"></div>
+
+    <!-- Footer Start -->
+    <div class="container-fluid bg-dark text-secondary mt-5 pt-5">
+        <div class="row px-xl-5 pt-5">
+            <div class="col-lg-4 col-md-12 mb-5 pr-3 pr-xl-5">
+                <h5 class="text-secondary text-uppercase mb-4">Get In Touch</h5>
+                <p class="mb-4">No dolore ipsum accusam no lorem. Invidunt sed clita kasd clita et et dolor sed dolor. Rebum tempor no vero est magna amet no</p>
+                <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>123 Street, New York, USA</p>
+                <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>info@example.com</p>
+                <p class="mb-0"><i class="fa fa-phone-alt text-primary mr-3"></i>+012 345 67890</p>
+            </div>
+            <div class="col-lg-8 col-md-12">
+                <div class="row">
+                    <div class="col-md-4 mb-5">
+                        <h5 class="text-secondary text-uppercase mb-4">Quick Shop</h5>
+                        <div class="d-flex flex-column justify-content-start">
+                            <a class="text-secondary mb-2" href="index.html"><i class="fa fa-angle-right mr-2"></i>Home</a>
+                            <a class="text-secondary mb-2" href="shop.html"><i class="fa fa-angle-right mr-2"></i>Our Shop</a>
+                            <a class="text-secondary mb-2" href="product-detail.html"><i class="fa fa-angle-right mr-2"></i>Shop Detail</a>
+                            <a class="text-secondary mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Shopping Cart</a>
+                            <a class="text-secondary mb-2" href="checkout.html"><i class="fa fa-angle-right mr-2"></i>Checkout</a>
+                            <a class="text-secondary" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-5">
+                        <h5 class="text-secondary text-uppercase mb-4">My Account</h5>
+                        <div class="d-flex flex-column justify-content-start">
+                            <a class="text-secondary mb-2" href="about.html"><i class="fa fa-angle-right mr-2"></i>About</a>
+                            <a class="text-secondary mb-2" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
+                            <a class="text-secondary mb-2" href="login.html"><i class="fa fa-angle-right mr-2"></i>My Account</a>
+                            <a class="text-secondary mb-2" href="track-order.html"><i class="fa fa-angle-right mr-2"></i>Track Order</a>
+                            <a class="text-secondary mb-2" href="privacy-policy.html"><i class="fa fa-angle-right mr-2"></i>Privacy Policy</a>
+                            <a class="text-secondary mb-2" href="terms-conditions.html"><i class="fa fa-angle-right mr-2"></i>Terms & Conditions</a>
+                            <a class="text-secondary" href="refund-policy.html"><i class="fa fa-angle-right mr-2"></i>Refund & Return Policy</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-5">
+                        <h5 class="text-secondary text-uppercase mb-4">Newsletter</h5>
+                        <p>Duo stet tempor ipsum sit amet magna ipsum tempor est</p>
+                        <form action="">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Your Email Address">
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary">Sign Up</button>
+                                </div>
+                            </div>
+                        </form>
+                        <h6 class="text-secondary text-uppercase mt-4 mb-3">Follow Us</h6>
+                        <div class="d-flex">
+                            <a class="btn btn-primary btn-square mr-2" href="#"><i class="fab fa-twitter"></i></a>
+                            <a class="btn btn-primary btn-square mr-2" href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a class="btn btn-primary btn-square mr-2" href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a class="btn btn-primary btn-square" href="#"><i class="fab fa-instagram"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row border-top mx-xl-5 py-4" style="border-color: rgba(256, 256, 256, .1) !important;">
+            <div class="col-md-6 px-xl-0">
+                <p class="mb-md-0 text-center text-md-left text-secondary">
+                    &copy; 2025 <a class="text-primary" href="/">Shop Top</a>. All Rights Reserved. Designed by ziplofy
+                </p>
+            </div>
+            <div class="col-md-6 px-xl-0 text-center text-md-right">
+                <img class="img-fluid" src="assets/img/payments.png" alt="">
+            </div>
+        </div>
+    </div>
+    <!-- Footer End -->
+
+
+    <!-- Cart Drawer -->
+    <div class="offcanvas-overlay" id="cart-drawer-overlay" style="display: none !important;"></div>
+    <div class="offcanvas-panel cart-panel" id="cart-drawer" style="display: none !important;">
+        <div class="offcanvas-header">
+            <div class="offcanvas-title">Shopping Cart</div>
+            <button type="button" class="offcanvas-close" id="cart-drawer-close" aria-label="Close cart">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+        <div class="offcanvas-body" id="cart-drawer-body">
+            <div class="text-center py-5 text-muted">
+                <i class="fas fa-shopping-cart fa-3x mb-3"></i>
+                <p>Your cart is empty</p>
+            </div>
+        </div>
+        <div class="offcanvas-footer" id="cart-drawer-footer" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <strong>Total:</strong>
+                <strong id="cart-drawer-total">₹0</strong>
+            </div>
+            <a href="checkout.html" class="btn btn-primary btn-block">Proceed to Checkout</a>
+            <a href="cart.html" class="btn btn-outline-dark btn-block mt-2">View Cart</a>
+        </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div class="offcanvas-overlay" id="nav-drawer-overlay" style="display: none !important;"></div>
+    <div class="offcanvas-panel nav-panel" id="nav-drawer" style="display: none !important;">
+        <div class="offcanvas-header">
+            <div class="offcanvas-title">Menu</div>
+            <button type="button" class="offcanvas-close" id="nav-drawer-close" aria-label="Close menu">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+        <div class="offcanvas-body" id="nav-drawer-body">
+            <nav class="nav flex-column">
+                <a class="nav-link" href="index.html">Home</a>
+                <a class="nav-link" href="shop.html">Shop</a>
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navDrawerDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Dresses
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navDrawerDropdown">
+                        <a class="dropdown-item" href="category.html?cat=men-dresses">Men's Dresses</a>
+                        <a class="dropdown-item" href="category.html?cat=women-dresses">Women's Dresses</a>
+                        <a class="dropdown-item" href="category.html?cat=baby-dresses">Baby's Dresses</a>
+                    </div>
+                </div>
+                <a class="nav-link" href="category.html?cat=shirts">Shirts</a>
+                <a class="nav-link" href="category.html?cat=jeans">Jeans</a>
+                <a class="nav-link" href="category.html?cat=swimwear">Swimwear</a>
+                <a class="nav-link" href="category.html?cat=sleepwear">Sleepwear</a>
+                <a class="nav-link" href="category.html?cat=sportswear">Sportswear</a>
+                <a class="nav-link" href="category.html?cat=jumpsuits">Jumpsuits</a>
+                <a class="nav-link" href="category.html?cat=blazers">Blazers</a>
+                <a class="nav-link" href="category.html?cat=jackets">Jackets</a>
+                <a class="nav-link" href="category.html?cat=shoes">Shoes</a>
+                <a class="nav-link" href="contact.html">Contact</a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
+
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/lib/easing/easing.min.js"></script>
+    <script src="assets/lib/owlcarousel/owl.carousel.min.js"></script>
+
+    <!-- Contact Javascript File -->
+    <script src="mail/jqBootstrapValidation.min.js"></script>
+    <script src="mail/contact.js"></script>
+
+    <!-- Checkout JavaScript -->
+    <script>
+        $(document).ready(function() {
+            // Form validation
+            const form = document.getElementById('checkout-form');
+            const placeOrderBtn = document.getElementById('place-order-btn');
+            
+            // Payment method change handler
+            $('input[name="payment"]').change(function() {
+                const selectedPayment = $(this).val();
+                const creditCardDetails = $('#credit-card-details');
+                
+                if (selectedPayment === 'creditcard') {
+                    creditCardDetails.show();
+                } else {
+                    creditCardDetails.hide();
+                }
+            });
+            
+            // Card number formatting
+            $('#cardNumber').on('input', function() {
+                let value = this.value.replace(/\s/g, '').replace(/[^0-9]/gi, '');
+                let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+                this.value = formattedValue;
+            });
+            
+            // Expiry date formatting
+            $('#expiryDate').on('input', function() {
+                let value = this.value.replace(/\D/g, '');
+                if (value.length >= 2) {
+                    value = value.substring(0, 2) + '/' + value.substring(2, 4);
+                }
+                this.value = value;
+            });
+            
+            // CVV formatting
+            $('#cvv').on('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+            
+            // Form submission
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                } else {
+                    // Show loading state
+                    placeOrderBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+                    placeOrderBtn.disabled = true;
+                    
+                    // Simulate order processing
+                    setTimeout(function() {
+                        alert('Order placed successfully! Thank you for your purchase.');
+                        // Reset form
+                        form.reset();
+                        placeOrderBtn.innerHTML = '<i class="fas fa-lock mr-2"></i>Place Order Securely';
+                        placeOrderBtn.disabled = false;
+                    }, 2000);
+                }
+                
+                form.classList.add('was-validated');
+            });
+            
+            // Real-time validation
+            const inputs = form.querySelectorAll('input[required], select[required]');
+            inputs.forEach(input => {
+                input.addEventListener('blur', function() {
+                    if (this.checkValidity()) {
+                        this.classList.remove('is-invalid');
+                        this.classList.add('is-valid');
+                    } else {
+                        this.classList.remove('is-valid');
+                        this.classList.add('is-invalid');
+                    }
+                });
+            });
+            
+            // Email validation
+            $('#email').on('blur', function() {
+                const email = this.value;
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (email && !emailRegex.test(email)) {
+                    this.setCustomValidity('Please enter a valid email address');
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
+            
+            // Phone validation
+            $('#mobile').on('blur', function() {
+                const phone = this.value.replace(/\D/g, '');
+                if (phone && phone.length < 10) {
+                    this.setCustomValidity('Please enter a valid phone number');
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
+        });
+    </script>
+
+    <!-- Product Data -->
+    <script src="constants/products.js"></script>
+
+    <!-- Product Rendering (for cart functions) -->
+    <script src="assets/js/products.js"></script>
+
+    <!-- Checkout Page Script -->
+    <script src="assets/js/checkout.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="assets/js/main.js"></script>
+    
+    <!-- Drawer Functionality -->
+    <script src="assets/js/drawers.js"></script>
+</body>
+
+</html>
+

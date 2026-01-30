@@ -1,0 +1,65 @@
+* { box-sizing: border-box; } body {margin: 0;}#i94jwe{color:#aa9166;}#isrxhq{margin-top:15px;color:#666;}#ihm93k{padding:40px;}#imsxci{color:#aa9166;}#ixsaco{margin-top:15px;color:#666;}#iaa0nh{padding:40px;}#i7owbh{background:#aa9166;color:#fff;padding:12px 40px;border-radius:5px;text-decoration:none;display:inline-block;transition:all 0.3s;font-weight:500;border:none;cursor:pointer;}#iilr5b{color:#aa9166;}#i54mif{margin-top:15px;color:#666;}#i91ngu{padding:40px;}#iicb5w{background:#aa9166;color:#fff;padding:12px 40px;border-radius:5px;text-decoration:none;display:inline-block;transition:all 0.3s;font-weight:500;border:none;cursor:pointer;}#ied0jl{border-bottom:1px solid #eee;}#quickViewImage{max-width:100%;height:auto;border-radius:8px;box-shadow:0 5px 15px rgba(0,0,0,0.1);}#quickViewBadge{display:none;position:absolute;top:15px;left:15px;background:#e74c3c;color:#fff;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;z-index:10;}#i8os0s{position:relative;text-align:center;margin-bottom:20px;}#quickViewTitle{margin-bottom:15px;color:#333;}#quickViewPrice{font-size:28px;font-weight:700;color:#aa9166;}#iwy41k{font-size:18px;color:#999;}#quickViewOldPrice{display:none;margin-left:10px;}#iogfm1{margin-bottom:20px;}#quickViewDescription{margin-bottom:20px;color:#666;line-height:1.6;}#izvk7e{margin-bottom:10px;font-size:16px;}#izanxx{list-style:none;padding:0;}#quickViewFeatures{margin-bottom:20px;}#quickViewAddToCart{flex:1;background:#aa9166;color:#fff;padding:12px;border:none;border-radius:5px;font-weight:500;}#quickViewAddToWishlist{flex:1;background:#e74c3c;color:#fff;padding:12px;border:none;border-radius:5px;font-weight:500;}#i0mao4{display:flex;gap:10px;margin-top:25px;}#quickViewDetailLink{background:transparent;color:#aa9166;border:2px solid #aa9166;padding:10px 30px;text-decoration:none;display:inline-block;}#ibpxjf{margin-top:20px;text-align:center;}
+
+            .view-more-btn:hover {
+                background: #8b7552 !important;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(170, 145, 102, 0.3);
+            }
+            .view-more-btn i {
+                transition: transform 0.3s;
+            }
+            .view-more-btn:hover i {
+                transform: translateX(5px);
+            }
+            
+            /* Flash Message Styles */
+            .flash-message {
+                display: none;
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 10000;
+                padding: 15px 20px;
+                background: #fff;
+                border-radius: 5px;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                min-width: 250px;
+                animation: slideInRight 0.3s ease;
+            }
+            .flash-message.show {
+                display: block;
+            }
+            .flash-success {
+                border-left: 4px solid #2ecc71;
+            }
+            .flash-error {
+                border-left: 4px solid #e74c3c;
+            }
+            .flash-warning {
+                border-left: 4px solid #f39c12;
+            }
+            .flash-info {
+                border-left: 4px solid #3498db;
+            }
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            
+            /* Quick View Modal Image Container */
+            .quick-view-image {
+                position: relative;
+            }
+            #quickViewBadge {
+                position: absolute;
+                top: 15px;
+                left: 15px;
+                z-index: 10;
+            }
+        

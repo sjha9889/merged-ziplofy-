@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>User Dashboard - ShopHub</title>
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <link href="../img/favicon.ico" rel="icon">
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+        <link href="../css/style.css" rel="stylesheet">
+        <link href="../css/shop.css" rel="stylesheet">
+        <link href="dashboard.css" rel="stylesheet">
+    </head>
+    <body>
+        <div class="wrapper">
+            <div class="top-bar">
+                <div class="container-fluid">
+                    <div class="row align-items-center">
+                        <div class="col-lg-3"><div class="logo"><a href="../index.html"><h1>ShopHub</h1></a></div></div>
+                        <div class="col-lg-6"><div class="search-bar"><div class="input-group"><input type="text" class="form-control" placeholder="Search orders, products..."><div class="input-group-append"><button class="btn btn-search" type="button"><i class="fas fa-search"></i></button></div></div></div></div>
+                        <div class="col-lg-3"><div class="top-bar-right"><div class="user-actions"><a href="../login.html" class="action-item"><i class="fas fa-user"></i><span>Account</span></a><a href="../wishlist.html" class="action-item"><i class="fas fa-heart"></i><span>Wishlist</span></a><a href="../cart.html" class="action-item cart-item"><i class="fas fa-shopping-cart"></i><span>Cart</span><span class="cart-count">0</span></a></div></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="container-fluid py-4">
+                <div class="row">
+                    <div class="col-lg-3 mb-3">
+                        <div class="dash-sidebar card-elevated p-3">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="avatar mr-2"><i class="fas fa-user"></i></div>
+                                <div>
+                                    <strong>Hi, John</strong>
+                                    <div class="text-muted small">john@example.com</div>
+                                </div>
+                            </div>
+                            <nav class="nav flex-column">
+                                <a class="nav-link active" href="#" data-target="#panel-overview"><i class="fas fa-th-large mr-2"></i>Overview</a>
+                                <a class="nav-link" href="#" data-target="#panel-orders"><i class="fas fa-box mr-2"></i>Orders</a>
+                                <a class="nav-link" href="#" data-target="#panel-addresses"><i class="fas fa-map-marker-alt mr-2"></i>Addresses</a>
+                                <a class="nav-link" href="#" data-target="#panel-wishlist"><i class="fas fa-heart mr-2"></i>Wishlist</a>
+                                <a class="nav-link" href="#" data-target="#panel-wallet"><i class="fas fa-wallet mr-2"></i>Wallet</a>
+                                <a class="nav-link" href="#" data-target="#panel-profile"><i class="fas fa-user-cog mr-2"></i>Profile</a>
+                                <a class="nav-link" href="#" data-target="#panel-settings"><i class="fas fa-cog mr-2"></i>Settings</a>
+                                <a class="nav-link text-danger" href="../login.html"><i class="fas fa-sign-out-alt mr-2"></i>Logout</a>
+                            </nav>
+                        </div>
+                    </div>
+                    <div class="col-lg-9">
+                        <div class="dash-content">
+                            <div id="panel-overview" class="dash-panel card-elevated p-3">
+                                <h4 class="mb-3">Overview</h4>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3"><div class="stat-card p-3"><div class="text-muted small">Total Orders</div><div class="h4 mb-0">12</div></div></div>
+                                    <div class="col-md-4 mb-3"><div class="stat-card p-3"><div class="text-muted small">Wishlist Items</div><div class="h4 mb-0">5</div></div></div>
+                                    <div class="col-md-4 mb-3"><div class="stat-card p-3"><div class="text-muted small">Wallet Balance</div><div class="h4 mb-0">$120.00</div></div></div>
+                                </div>
+                            </div>
+                            <div id="panel-orders" class="dash-panel card-elevated p-3 d-none">
+                                <h4 class="mb-3">My Orders</h4>
+                                <div class="table-responsive">
+                                    <table class="table table-borderless table-modern">
+                                        <thead><tr><th>Order #</th><th>Date</th><th>Status</th><th>Total</th><th>Action</th></tr></thead>
+                                        <tbody>
+                                            <tr><td>#1001</td><td>2025-10-10</td><td><span class="chip">Delivered</span></td><td>$149.99</td><td><a href="#" class="btn btn-sm btn-theme-ghost">View</a></td></tr>
+                                            <tr><td>#1002</td><td>2025-10-12</td><td><span class="chip">Shipped</span></td><td>$89.99</td><td><a href="#" class="btn btn-sm btn-theme-ghost">Track</a></td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div id="panel-addresses" class="dash-panel card-elevated p-3 d-none">
+                                <h4 class="mb-3">Saved Addresses</h4>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3"><div class="p-3 border rounded address-card" data-key="home">
+                                        <div class="addr-label font-weight-bold">Home</div>
+                                        <div class="addr-line text-muted">123 Main St, New York, NY 10001</div>
+                                        <div class="mt-2">
+                                            <button class="btn btn-sm btn-theme-ghost btn-edit-address">Edit</button>
+                                        </div>
+                                    </div></div>
+                                    <div class="col-md-6 mb-3"><div class="p-3 border rounded address-card" data-key="office">
+                                        <div class="addr-label font-weight-bold">Office</div>
+                                        <div class="addr-line text-muted">456 Market Ave, New York, NY 10002</div>
+                                        <div class="mt-2">
+                                            <button class="btn btn-sm btn-theme-ghost btn-edit-address">Edit</button>
+                                        </div>
+                                    </div></div>
+                                </div>
+                            </div>
+                            <div id="panel-wishlist" class="dash-panel card-elevated p-3 d-none">
+                                <h4 class="mb-3">Wishlist</h4>
+                                <p class="text-muted mb-0">You have 5 items saved in wishlist.</p>
+                            </div>
+                            <div id="panel-wallet" class="dash-panel card-elevated p-3 d-none">
+                                <h4 class="mb-3">Wallet</h4>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3"><div class="p-3 border rounded"><div class="small text-muted">Current Balance</div><div class="h4 mb-0">$120.00</div></div></div>
+                                    <div class="col-md-6 mb-3"><div class="p-3 border rounded"><div class="small text-muted">Last Transaction</div><div class="mb-0">+$20.00 (Refund)</div></div></div>
+                                </div>
+                            </div>
+                            <div id="panel-profile" class="dash-panel card-elevated p-3 d-none">
+                                <h4 class="mb-3">Profile</h4>
+                                <form>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6"><label>First Name</label><input type="text" class="form-control" value="John"></div>
+                                        <div class="form-group col-md-6"><label>Last Name</label><input type="text" class="form-control" value="Doe"></div>
+                                    </div>
+                                    <div class="form-group"><label>Email</label><input type="email" class="form-control" value="john@example.com"></div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6"><label>Phone</label><input type="text" class="form-control" value="+1 555 000 0000"></div>
+                                        <div class="form-group col-md-6"><label>Birthday</label><input type="date" class="form-control" value="1992-05-20"></div>
+                                    </div>
+                                    <button class="btn btn-theme-primary" type="button">Save Changes</button>
+                                </form>
+                            </div>
+                            <div id="panel-settings" class="dash-panel card-elevated p-3 d-none">
+                                <h4 class="mb-3">Settings</h4>
+                                <div class="custom-control custom-switch mb-2"><input type="checkbox" class="custom-control-input" id="notif"><label class="custom-control-label" for="notif">Email Notifications</label></div>
+                                <div class="custom-control custom-switch mb-2"><input type="checkbox" class="custom-control-input" id="promos" checked><label class="custom-control-label" for="promos">Promotional Emails</label></div>
+                                <button class="btn btn-theme-ghost" type="button" id="btnResetPassword">Reset Password</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer"><div class="container"><div class="row"><div class="col-md-6 col-lg-4"><div class="footer-about"><h2>About ShopHub</h2><p>ShopHub is your premier online destination for quality products and exceptional shopping experiences. We offer a wide range of products from trusted brands with fast shipping and excellent customer service.</p></div></div><div class="col-md-6 col-lg-8"><div class="row"><div class="col-md-6 col-lg-4"><div class="footer-link"><h2>Product Categories</h2><a href="">Electronics</a><a href="">Fashion</a><a href="">Home & Garden</a><a href="">Sports & Fitness</a><a href="">Books & Media</a></div></div><div class="col-md-6 col-lg-4"><div class="footer-link"><h2>Customer Service</h2><a href="">About Us</a><a href="">Contact Us</a><a href="">Shipping Info</a><a href="">Returns</a><a href="">FAQs</a></div></div><div class="col-md-6 col-lg-4"><div class="footer-contact"><h2>Get In Touch</h2><p><i class="fa fa-map-marker-alt"></i>123 Street, New York, USA</p><p><i class="fa fa-phone-alt"></i>+012 345 67890</p><p><i class="fa fa-envelope"></i>info@example.com</p><div class="footer-social"><a href=""><i class="fab fa-twitter"></i></a><a href=""><i class="fab fa-facebook-f"></i></a><a href=""><i class="fab fa-youtube"></i></a><a href=""><i class="fab fa-instagram"></i></a><a href=""><i class="fab fa-linkedin-in"></i></a></div></div></div></div></div></div><div class="container footer-menu"><div class="f-menu"><a href="">Terms of use</a><a href="">Privacy policy</a><a href="">Cookies</a><a href="">Help</a><a href="">FQAs</a></div></div><div class="container copyright"><div class="row"><div class="col-md-6"><p>&copy; <a href="#">ShopHub</a>, All Right Reserved.</p></div><div class="col-md-6"><p>Designed By <a href="#">ziplofy</a></p></div></div></div></div>
+            <a href="#" class="back-to-top"><i class="fa fa-chevron-up"></i></a>
+        </div>
+
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+        <script src="../js/main.js"></script>
+        <script src="../js/shop.js"></script>
+        <script src="dashboard.js"></script>
+    </body>
+</html>

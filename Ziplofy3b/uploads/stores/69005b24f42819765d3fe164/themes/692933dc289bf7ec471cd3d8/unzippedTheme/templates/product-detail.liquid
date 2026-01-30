@@ -1,0 +1,120 @@
+<div class="pd-wrap">
+  <div class="pd-left">
+    <div class="pd-gallery">
+      <div class="pd-main">
+        <img class="img-fluid main-image" src="{{ product.image }}" alt="{{ product.title }}">
+      </div>
+      <div class="pd-thumbs">
+        {% if product.images and product.images.size > 0 %}
+          {% for image in product.images %}
+            <img src="{{ image }}" class="{% if forloop.first %}active{% endif %}" alt="{{ product.title }}">
+          {% endfor %}
+        {% else %}
+          <img src="{{ product.image }}" class="active" alt="{{ product.title }}">
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="pd-right">
+    <h1 class="pd-title">{{ product.title }}</h1>
+    <div class="pd-rating">
+      <span class="pill"><i class="fa fa-star"></i> {{ product.rating }}</span>
+      <span class="ml-10">{{ product.reviewCount }} ratings</span>
+    </div>
+    <div class="pd-price">
+      <span class="price">{{ product.priceFormatted }}</span>
+      {% if product.originalPriceFormatted %}
+      <span class="old">{{ product.originalPriceFormatted }}</span>
+      {% endif %}
+      {% if product.discountLabel %}
+      <span class="off">{{ product.discountLabel }}</span>
+      {% endif %}
+    </div>
+    {% if product.badge %}
+    <div class="pd-badges">
+      <span class="pd-badge">{{ product.badge }}</span>
+      {% if product.inStock == false %}
+      <span class="pd-badge">Out of Stock</span>
+      {% endif %}
+    </div>
+    {% endif %}
+    <div class="pd-offers">
+      <h6 style="color: #000000;">Available offers</h6>
+      <ul>
+        <li><i class="fa fa-tag"></i> Bank Offer: 10% off with ICICI Cards</li>
+        <li><i class="fa fa-tag"></i> No Cost EMI from £1,333/month</li>
+      </ul>
+      <div class="pd-pin">
+        <input type="text" placeholder="Enter Pincode">
+        <a href="#" class="btn-outline-theme">Check</a>
+      </div>
+    </div>
+    <p>{{ product.description }}</p>
+    {% if product.sizes and product.sizes.size > 0 %}
+    <div class="pd-options pd-size">
+      <div class="opt-label">Strap Size</div>
+      <div class="chips">
+        {% for size in product.sizes %}
+          <span class="chip {% if forloop.first %}active{% endif %}">{{ size }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    {% if product.colors and product.colors.size > 0 %}
+    <div class="pd-options pd-color">
+      <div class="opt-label">Color</div>
+      <div class="chips">
+        {% for color in product.colors %}
+          <span class="chip {% if forloop.first %}active{% endif %}">{{ color }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    <div class="pd-qty">
+      <span>Qty</span>
+      <input type="number" value="1" min="1" id="product-qty">
+    </div>
+    <div class="pd-actions">
+      <button class="btn-outline-theme" type="button" data-action="add-to-cart" data-product-id="{{ product.id }}">Add to Cart</button>
+      <button class="btn-theme" type="button" data-action="buy-now" data-product-id="{{ product.id }}">Buy Now</button>
+    </div>
+    <div class="pd-ship">
+      Free delivery by Tomorrow • Pay on Delivery available
+    </div>
+    <div class="pd-accordion">
+      {% if product.features and product.features.size > 0 %}
+      <div class="item">
+        <div class="head">Highlights</div>
+        <div class="body">
+          <ul>
+            {% for feature in product.features %}
+            <li>{{ feature }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      {% endif %}
+      {% if product.specifications %}
+      <div class="item">
+        <div class="head">Specifications</div>
+        <div class="body" id="product-specs-accordion">
+          <ul>
+            <li>Loading specifications...</li>
+          </ul>
+        </div>
+      </div>
+      {% endif %}
+      <div class="item">
+        <div class="head">Warranty</div>
+        <div class="body">
+          {% if product.specifications and product.specifications.Warranty %}
+            {{ product.specifications.Warranty }}
+          {% else %}
+            1 Year Manufacturer Warranty
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+

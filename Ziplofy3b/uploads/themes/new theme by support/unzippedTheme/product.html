@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product - Ornativa</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <!-- Font Awesome CSS (optional) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav id="main-nav" class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><img src="assets/images/logo.png" alt=""></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="shop.html">Collections</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="about.html">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contact.html">Contact</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <a href="login.html" class="nav-link"><i class="bi bi-person-circle"></i></a>
+                    <a href="cart.html" class="nav-link"><i class="bi bi-cart"></i></a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container my-5">
+        <div class="row">
+            <!-- Left Side: Image Gallery -->
+            <div class="col-lg-6">
+                <div class="product-image-gallery">
+                    <div class="main-image-container mb-3">
+                        <img src="assets/images/product1.jpg" class="img-fluid large-product-image"
+                            alt="Main Product Image">
+                        <!-- <div class="quick-view-icon-overlay">
+                            <button class="btn btn-light quick-view-full-image-btn" data-bs-toggle="modal"
+                                data-bs-target="#imageModal">Quick View</button>
+                        </div> -->
+                    </div>
+                    <div class="thumbnail-slider d-flex justify-content-center">
+                        <img src="assets/images/product1.jpg" class="img-thumbnail product-thumbnail active"
+                            alt="Thumbnail 1">
+                        <img src="assets/images/product2.jpg" class="img-thumbnail product-thumbnail" alt="Thumbnail 2">
+                        <img src="assets/images/product3.jpg" class="img-thumbnail product-thumbnail" alt="Thumbnail 3">
+                        <img src="assets/images/product4.jpg" class="img-thumbnail product-thumbnail" alt="Thumbnail 4">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Product Info -->
+            <div class="col-lg-6">
+                <div class="product-info">
+                    <h1 class="display-4 product-title">Elegant Diamond Ring</h1>
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="star-rating">
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-fill"></i>
+                            <i class="bi bi-star-half"></i>
+                        </div>
+                        <span class="ms-2 text-muted">(150 Reviews)</span>
+                    </div>
+                    <p class="product-price h3">$1200.00 <span class="badge bg-danger fs-6">20% Off</span></p>
+                    <p class="product-short-description text-muted mb-4">
+                        A stunning diamond ring crafted with exquisite precision, perfect for any special occasion. Made
+                        with high-quality materials for lasting brilliance.
+                    </p>
+
+                    <div class="product-options mb-4">
+                        <div class="mb-3">
+                            <label for="materialSelect" class="form-label fw-bold">Material:</label>
+                            <select class="form-select" id="materialSelect">
+                                <option selected>Gold</option>
+                                <option>Silver</option>
+                                <option>Platinum</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="sizeSelect" class="form-label fw-bold">Size:</label>
+                            <select class="form-select" id="sizeSelect">
+                                <option selected>6</option>
+                                <option>7</option>
+                                <option>8</option>
+                                <option>9</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Color:</label>
+                            <div class="d-flex">
+                                <div class="color-option color-gold active me-2"></div>
+                                <div class="color-option color-silver me-2"></div>
+                                <div class="color-option color-rose-gold"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="quantity-selector d-flex align-items-center mb-4">
+                        <label for="quantityInput" class="form-label fw-bold me-3 mb-0">Quantity:</label>
+                        <button class="btn btn-outline-secondary btn-sm" id="decreaseQuantity">-</button>
+                        <input type="text" class="form-control text-center mx-2" id="quantityInput" value="1"
+                            style="width: 60px;">
+                        <button class="btn btn-outline-secondary btn-sm" id="increaseQuantity">+</button>
+                    </div>
+
+                    <div class="product-actions d-flex mb-4">
+                        <button class="btn btn-primary add-to-cart-btn me-2">Add to Cart</button>
+                        <button class="btn btn-outline-primary buy-now-btn me-2">Buy Now</button>
+                        <button class="btn btn-outline-secondary wishlist-btn"><i class="bi bi-heart"></i></button>
+                    </div>
+
+                    <div class="secure-payment-icons">
+                        <span class="text-muted me-2">Secure Payments:</span>
+                        <i class="bi bi-credit-card-fill text-primary me-2"></i>
+                        <i class="bi bi-paypal text-primary me-2"></i>
+                        <i class="bi bi-shield-lock-fill text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <section class="product-details-tabs container my-5">
+        <ul class="nav nav-tabs justify-content-center" id="productTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description"
+                    type="button" role="tab" aria-controls="description" aria-selected="true">Description</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="specifications-tab" data-bs-toggle="tab" data-bs-target="#specifications"
+                    type="button" role="tab" aria-controls="specifications"
+                    aria-selected="false">Specifications</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button"
+                    role="tab" aria-controls="reviews" aria-selected="false">Reviews</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="shipping-returns-tab" data-bs-toggle="tab"
+                    data-bs-target="#shipping-returns" type="button" role="tab" aria-controls="shipping-returns"
+                    aria-selected="false">Shipping & Returns</button>
+            </li>
+        </ul>
+        <div class="tab-content p-3 border border-top-0" id="productTabContent">
+            <!-- Description Tab Content -->
+            <div class="tab-pane fade show active" id="description" role="tabpanel" aria-labelledby="description-tab">
+                <h5 class="mb-3">Product Description</h5>
+                <p>This exquisite diamond ring is a testament to timeless elegance and superior craftsmanship. Featuring
+                    a brilliant-cut center diamond flanked by an array of smaller, sparkling stones, it captures the
+                    light from every angle. The band is meticulously crafted from 18k white gold, offering both
+                    durability and a luxurious feel. Perfect for engagements, anniversaries, or as a magnificent gift to
+                    cherish forever.</p>
+                <ul>
+                    <li><strong>Center Stone:</strong> 1.0 Carat, VS1 Clarity, D Color</li>
+                    <li><strong>Side Stones:</strong> 0.5 Carat total weight</li>
+                    <li><strong>Setting:</strong> Pave and Prong setting</li>
+                    <li><strong>Finish:</strong> High-polish</li>
+                </ul>
+                <p>Each Ornativa piece comes with a certificate of authenticity and a lifetime guarantee, reflecting our
+                    commitment to quality and customer satisfaction.</p>
+            </div>
+
+            <!-- Specifications Tab Content -->
+            <div class="tab-pane fade" id="specifications" role="tabpanel" aria-labelledby="specifications-tab">
+                <h5 class="mb-3">Specifications</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <tbody>
+                            <tr>
+                                <td><strong>Material</strong></td>
+                                <td>18k White Gold</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Weight</strong></td>
+                                <td>4.5 grams</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Main Stone</strong></td>
+                                <td>Natural Diamond</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Diamond Carat</strong></td>
+                                <td>1.0 CT (Center)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Diamond Clarity</strong></td>
+                                <td>VS1</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Diamond Color</strong></td>
+                                <td>D</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Ring Size</strong></td>
+                                <td>Available in 6, 7, 8, 9</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Purity</strong></td>
+                                <td>75% Gold Purity</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Care Info</strong></td>
+                                <td>Avoid chemicals, clean with soft cloth</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Reviews Tab Content -->
+            <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                <h5 class="mb-3">Customer Reviews</h5>
+                <div id="customerReviews">
+                    <!-- Existing Reviews will be loaded here, or dynamically added -->
+                    <div class="review-item border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="mb-0">Jane Doe</h6>
+                            <div class="star-rating small">
+                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
+                                    class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
+                                    class="bi bi-star-fill"></i>
+                            </div>
+                        </div>
+                        <p class="text-muted small">Reviewed on January 15, 2023</p>
+                        <p>Absolutely stunning ring! The quality is exceptional and it sparkles beautifully. Highly
+                            recommend Ornativa for their exquisite craftsmanship.</p>
+                    </div>
+                    <div class="review-item border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between">
+                            <h6 class="mb-0">John Smith</h6>
+                            <div class="star-rating small">
+                                <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
+                                    class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i
+                                    class="bi bi-star-half"></i>
+                            </div>
+                        </div>
+                        <p class="text-muted small">Reviewed on February 20, 2023</p>
+                        <p>I bought this for my wife and she absolutely loves it. The diamonds are very clear and the
+                            gold is polished perfectly. Fast shipping too!</p>
+                    </div>
+                </div>
+
+                <h5 class="mt-5 mb-3">Write a Review</h5>
+                <form id="reviewForm">
+                    <div class="mb-3">
+                        <label for="reviewerName" class="form-label">Your Name</label>
+                        <input type="text" class="form-control" id="reviewerName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reviewerEmail" class="form-label">Your Email</label>
+                        <input type="email" class="form-control" id="reviewerEmail" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reviewRating" class="form-label">Your Rating</label>
+                        <div id="reviewRating" class="star-rating-input" data-rating="0">
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                            <i class="bi bi-star"></i>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reviewComment" class="form-label">Your Comment</label>
+                        <textarea class="form-control" id="reviewComment" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                </form>
+            </div>
+
+            <!-- Shipping & Returns Tab Content -->
+            <div class="tab-pane fade" id="shipping-returns" role="tabpanel" aria-labelledby="shipping-returns-tab">
+                <h5 class="mb-3">Shipping & Returns</h5>
+                <p><strong>Shipping:</strong> We offer free standard shipping on all orders worldwide. Expedited
+                    shipping options are available at checkout for an additional fee. All orders are fully insured
+                    during transit. Delivery times typically range from 5-7 business days for standard shipping.</p>
+                <p><strong>Returns:</strong> We want you to be completely satisfied with your purchase. If for any
+                    reason you are not, we offer a 30-day money-back guarantee. Items must be returned in their original
+                    condition with all accompanying documentation. Custom orders and engraved items are non-returnable.
+                    Please contact our customer service team to initiate a return.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="related-products container my-5">
+        <h2 class="text-center mb-4">You May Also Like</h2>
+        <div id="relatedProductsCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <!-- First set of 4 products -->
+                <div class="carousel-item active">
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+                        <div class="col">
+                            <div class="card product-card h-100">
+                                <div class="product-image-container">
+                                    <img src="assets/images/product5.jpg" class="card-img-top" alt="Related Product 1">
+                                    <!-- <div class="product-overlay">
+                                        <button class="btn btn-light quick-view-btn">Quick View</button>
+                                    </div>
+                                    <span class="wishlist-icon"><i class="bi bi-heart"></i></span> -->
+                                </div>
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Elegant Ruby Necklace</h5>
+                                    <p class="card-text price">$950.00</p>
+                                    <button class="btn btn-primary add-to-cart-btn">Add to Cart</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card product-card h-100">
+                                <div class="product-image-container">
+                                    <img src="assets/images/product6.jpg" class="card-img-top" alt="Related Product 2">
+                                    <!-- <div class="product-overlay">
+                                        <button class="btn btn-light quick-view-btn">Quick View</button>
+                                    </div>
+                                    <span class="wishlist-icon"><i class="bi bi-heart"></i></span> -->
+                                </div>
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Sapphire Drop Earrings</h5>
+                                    <p class="card-text price">$720.00</p>
+                                    <button class="btn btn-primary add-to-cart-btn">Add to Cart</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card product-card h-100">
+                                <div class="product-image-container">
+                                    <img src="assets/images/product7.jpg" class="card-img-top" alt="Related Product 3">
+                                    <!-- <div class="product-overlay">
+                                        <button class="btn btn-light quick-view-btn">Quick View</button>
+                                    </div>
+                                    <span class="wishlist-icon"><i class="bi bi-heart"></i></span> -->
+                                </div>
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Emerald Engagement Ring</h5>
+                                    <p class="card-text price">$1800.00 <span class="badge bg-success">New!</span></p>
+                                    <button class="btn btn-primary add-to-cart-btn">Add to Cart</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card product-card h-100">
+                                <div class="product-image-container">
+                                    <img src="assets/images/product8.jpg" class="card-img-top" alt="Related Product 4">
+                                    <!-- <div class="product-overlay">
+                                        <button class="btn btn-light quick-view-btn">Quick View</button>
+                                    </div>
+                                    <span class="wishlist-icon"><i class="bi bi-heart"></i></span> -->
+                                </div>
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Diamond Tennis Bracelet</h5>
+                                    <p class="card-text price">$1500.00</p>
+                                    <button class="btn btn-primary add-to-cart-btn">Add to Cart</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Second set of 4 products (optional, for carousel functionality) -->
+                <div class="carousel-item">
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+                        <div class="col">
+                            <div class="card product-card h-100">
+                                <div class="product-image-container">
+                                    <img src="assets/images/product1.jpg" class="card-img-top" alt="Related Product 5">
+                                    <!-- <div class="product-overlay">
+                                        <button class="btn btn-light quick-view-btn">Quick View</button>
+                                    </div>
+                                    <span class="wishlist-icon"><i class="bi bi-heart"></i></span> -->
+                                </div>
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Classic Pearl Necklace</h5>
+                                    <p class="card-text price">$500.00</p>
+                                    <button class="btn btn-primary add-to-cart-btn">Add to Cart</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card product-card h-100">
+                                <div class="product-image-container">
+                                    <img src="assets/images/product2.jpg" class="card-img-top" alt="Related Product 6">
+                                    <!-- <div class="product-overlay">
+                                        <button class="btn btn-light quick-view-btn">Quick View</button>
+                                    </div>
+                                    <span class="wishlist-icon"><i class="bi bi-heart"></i></span> -->
+                                </div>
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Vintage Silver Locket</h5>
+                                    <p class="card-text price">$320.00</p>
+                                    <button class="btn btn-primary add-to-cart-btn">Add to Cart</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card product-card h-100">
+                                <div class="product-image-container">
+                                    <img src="assets/images/product3.jpg" class="card-img-top" alt="Related Product 7">
+                                    <!-- <div class="product-overlay">
+                                        <button class="btn btn-light quick-view-btn">Quick View</button>
+                                    </div>
+                                    <span class="wishlist-icon"><i class="bi bi-heart"></i></span> -->
+                                </div>
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Modern Gold Hoops</h5>
+                                    <p class="card-text price">$480.00</p>
+                                    <button class="btn btn-primary add-to-cart-btn">Add to Cart</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card product-card h-100">
+                                <div class="product-image-container">
+                                    <img src="assets/images/product4.jpg" class="card-img-top" alt="Related Product 8">
+                                    <!-- <div class="product-overlay">
+                                        <button class="btn btn-light quick-view-btn">Quick View</button>
+                                    </div>
+                                    <span class="wishlist-icon"><i class="bi bi-heart"></i></span> -->
+                                </div>
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Personalized Initial Bracelet</h5>
+                                    <p class="card-text price">$220.00</p>
+                                    <button class="btn btn-primary add-to-cart-btn">Add to Cart</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#relatedProductsCarousel"
+                data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#relatedProductsCarousel"
+                data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+    </section>
+
+    <section class="cta-banner-product bg-dark text-white text-center py-4 mt-5">
+        <div class="container">
+            <p class="mb-0 h4">Limited Edition – Only Few Left!</p>
+        </div>
+    </section>
+
+    <!-- Quick View Full Image Modal -->
+    <!-- <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="imageModalLabel">Product Image</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="assets/images/product1.jpg" class="img-fluid" alt="Full Product Image"
+                        id="fullImageModalSrc">
+                </div>
+            </div>
+        </div>
+    </div> -->
+
+    <!-- Footer -->
+    <footer id="main-footer" class="bg-dark text-white py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4">Shop Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white-50">Rings</a></li>
+                        <li><a href="#" class="text-white-50">Necklaces</a></li>
+                        <li><a href="#" class="text-white-50">Bracelets</a></li>
+                        <li><a href="#" class="text-white-50">Earrings</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4">Customer Support</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="privacy.html" class="text-white-50">Privacy Policy</a></li>
+                        <li><a href="return.html" class="text-white-50">Returns</a></li>
+                        <li><a href="shipping.html" class="text-white-50">Shipping</a></li>
+                        <li><a href="terms.html" class="text-white-50">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4">About Brand</h5>
+                    <p class="text-white-50">Discover our story, commitment to craftsmanship, and ethical sourcing
+                        practices.</p>
+                    <a href="#" class="btn btn-sm btn-outline-light">Read More</a>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4">Contact Info</h5>
+                    <p class="text-white-50">123 Jewelry Street, Gemstone City, 12345</p>
+                    <p class="text-white-50">Email: info@brand.com</p>
+                    <p class="text-white-50">Phone: +1 (123) 456-7890</p>
+                    <div class="social-icons mt-3">
+                        <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4 border-white-50">
+            <div class="text-center text-white-50">
+                <small>&copy; 2023 Jewelry Brand. All rights reserved.</small>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/script.js"></script>
+</body>
+
+</html>

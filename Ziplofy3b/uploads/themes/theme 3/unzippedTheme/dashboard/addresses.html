@@ -1,0 +1,688 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Addresses - Shop Top</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta name="description" content="Manage your shipping and billing addresses at Shop Top.">
+    <link rel="canonical" href="/dashboard/addresses.html">
+    <meta property="og:title" content="Addresses - Shop Top">
+    <meta property="og:description" content="Manage your shipping and billing addresses.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="/dashboard/addresses.html">
+    <meta property="og:image" content="../assets/img/carousel-1.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Favicon -->
+    <link href="../assets/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">  
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="../assets/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="../assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link rel="preload" href="../assets/css/style.min.css" as="style">
+    <link href="../assets/css/style.min.css" rel="stylesheet">
+
+    <style>
+        .dashboard-sidebar {
+            background: linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%);
+            min-height: 100vh;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        .dashboard-card {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        .sidebar-link {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            padding: 1rem 1.5rem;
+            display: block;
+            border-radius: 10px;
+            margin: 0.5rem 1rem;
+            transition: all 0.3s ease;
+        }
+        .sidebar-link:hover, .sidebar-link.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            transform: translateX(5px);
+        }
+        .address-card {
+            border: 1px solid #e9ecef;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+            background: #fff;
+        }
+        .address-card:hover {
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        .address-card.default {
+            border-color: #0d6efd;
+            background: linear-gradient(135deg, rgba(13, 110, 253, 0.05) 0%, rgba(111, 66, 193, 0.05) 100%);
+        }
+        /* .btn-primary {
+            background: linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        } */
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.4);
+        }
+        .btn-outline-primary {
+            border-color: #0d6efd;
+            color: #0d6efd;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-outline-primary:hover {
+            background: #0d6efd;
+            border-color: #0d6efd;
+            transform: translateY(-2px);
+        }
+        .btn-outline-danger {
+            border-color: #dc3545;
+            color: #dc3545;
+            border-radius: 10px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-outline-danger:hover {
+            background: #dc3545;
+            border-color: #dc3545;
+            transform: translateY(-2px);
+        }
+        .default-badge {
+            background: linear-gradient(135deg, #0d6efd 0%, #6f42c1 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .address-type {
+            background: #f8f9fa;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #6c757d;
+        }
+        .address-type.shipping {
+            background: #d4edda;
+            color: #155724;
+        }
+        .address-type.billing {
+            background: #cce5ff;
+            color: #004085;
+        }
+        .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+        .empty-addresses {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+        .empty-addresses i {
+            font-size: 4rem;
+            color: #dee2e6;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Topbar Start -->
+    <div class="container-fluid">
+        <div class="row bg-secondary py-1 px-xl-5">
+            <div class="col-lg-6 d-none d-lg-block">
+                <div class="d-inline-flex align-items-center h-100">
+                    <a class="text-body mr-3" href="../about.html">About</a>
+                    <a class="text-body mr-3" href="../contact.html">Contact</a>
+                    <a class="text-body mr-3" href="">Help</a>
+                    <a class="text-body mr-3" href="">FAQs</a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center text-lg-right">
+                <div class="d-inline-flex align-items-center">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">My Account</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <button class="dropdown-item" type="button" onclick="window.location.href='../login.html'">Sign in</button>
+                            <button class="dropdown-item" type="button" onclick="window.location.href='../signup.html'">Sign up</button>
+                        </div>
+                    </div>
+                    <div class="btn-group mx-2">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">USD</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <button class="dropdown-item" type="button">EUR</button>
+                            <button class="dropdown-item" type="button">GBP</button>
+                            <button class="dropdown-item" type="button">CAD</button>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">EN</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <button class="dropdown-item" type="button">FR</button>
+                            <button class="dropdown-item" type="button">AR</button>
+                            <button class="dropdown-item" type="button">RU</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row align-items-center bg-light py-3 px-xl-5 d-none d-lg-flex">
+            <div class="col-lg-4">
+                <a href="../index.html" class="text-decoration-none">
+                    <span class="h1 text-uppercase text-primary bg-dark px-2">Shop</span>
+                    <span class="h1 text-uppercase text-dark bg-primary px-2 ml-n1">Top</span>
+                </a>
+            </div>
+            <div class="col-lg-4 col-6 text-left">
+                <form action="/search" role="search">
+                    <div class="input-group">
+                        <label for="site-search" class="sr-only">Search products</label>
+                        <input id="site-search" name="q" type="search" class="form-control" placeholder="Search for products" autocomplete="off">
+                        <div class="input-group-append">
+                            <button class="input-group-text bg-transparent text-primary" type="submit" aria-label="Search">
+                                <i class="fa fa-search" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-4 col-6 text-right">
+                <p class="m-0">Customer Service</p>
+                <h5 class="m-0">+012 345 6789</h5>
+            </div>
+        </div>
+    </div>
+    <!-- Topbar End -->
+
+    <!-- Navbar Start -->
+    <div class="container-fluid bg-dark mb-30 navbar-area">
+        <nav class="navbar navbar-expand-lg bg-dark navbar-dark py-3 py-lg-0 px-0">
+            <a href="../index.html" class="text-decoration-none d-block d-lg-none">
+                <span class="h1 text-uppercase text-dark bg-light px-2">Shop</span>
+                <span class="h1 text-uppercase text-light bg-primary px-2 ml-n1">Top</span>
+            </a>
+            <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#navbarCollapse">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
+                <div class="navbar-nav mr-auto py-0">
+                    <a href="../index.html" class="nav-item nav-link">Home</a>
+                    <a href="../shop.html" class="nav-item nav-link">Shop</a>
+                    <div class="nav-item dropdown">
+                        <a href="../category.html?cat=dresses" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dresses</a>
+                        <div class="dropdown-menu rounded-0 border-0 m-0">
+                            <a href="../category.html?cat=men-dresses" class="dropdown-item">Men's Dresses</a>
+                            <a href="../category.html?cat=women-dresses" class="dropdown-item">Women's Dresses</a>
+                            <a href="../category.html?cat=baby-dresses" class="dropdown-item">Baby's Dresses</a>
+                        </div>
+                    </div>
+                    <a href="../category.html?cat=shirts" class="nav-item nav-link">Shirts</a>
+                    <a href="../category.html?cat=jeans" class="nav-item nav-link">Jeans</a>
+                    <a href="../category.html?cat=swimwear" class="nav-item nav-link">Swimwear</a>
+                    <a href="../category.html?cat=sleepwear" class="nav-item nav-link">Sleepwear</a>
+                    <a href="../category.html?cat=sportswear" class="nav-item nav-link">Sportswear</a>
+                    <a href="../category.html?cat=jumpsuits" class="nav-item nav-link">Jumpsuits</a>
+                    <a href="../category.html?cat=blazers" class="nav-item nav-link">Blazers</a>
+                    <a href="../category.html?cat=jackets" class="nav-item nav-link">Jackets</a>
+                    <a href="../category.html?cat=shoes" class="nav-item nav-link">Shoes</a>
+                </div>
+                <div class="navbar-nav ml-auto py-0 d-none d-lg-block">
+                    <a href="" class="btn px-0" aria-label="View wishlist">
+                        <i class="fas fa-heart text-primary" aria-hidden="true"></i>
+                        <span class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;">0</span>
+                    </a>
+                    <a href="" class="btn px-0 ml-3" aria-label="View cart">
+                        <i class="fas fa-shopping-cart text-primary" aria-hidden="true"></i>
+                        <span class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;">0</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <!-- Navbar End -->
+
+    <!-- Addresses Start -->
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-3 col-md-4">
+                <div class="dashboard-sidebar">
+                    <div class="p-4">
+                        <div class="text-center mb-4">
+                            <img src="../assets/img/user.jpg" alt="User Avatar" class="rounded-circle mb-3" style="width: 80px; height: 80px; object-fit: cover;">
+                            <h5 class="text-white mb-1">John Doe</h5>
+                            <p class="text-white-50 mb-0">Premium Member</p>
+                        </div>
+                        <nav class="nav flex-column">
+                            <a href="dashboard.html" class="sidebar-link">
+                                <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                            </a>
+                            <a href="order-history.html" class="sidebar-link">
+                                <i class="fas fa-shopping-bag mr-2"></i>Order History
+                            </a>
+                            <a href="profile.html" class="sidebar-link">
+                                <i class="fas fa-user mr-2"></i>Profile Settings
+                            </a>
+                            <a href="wishlist.html" class="sidebar-link">
+                                <i class="fas fa-heart mr-2"></i>Wishlist
+                            </a>
+                            <a href="addresses.html" class="sidebar-link active">
+                                <i class="fas fa-map-marker-alt mr-2"></i>Addresses
+                            </a>
+                            <a href="notifications.html" class="sidebar-link">
+                                <i class="fas fa-bell mr-2"></i>Notifications
+                            </a>
+                            <a href="support.html" class="sidebar-link">
+                                <i class="fas fa-headset mr-2"></i>Support
+                            </a>
+                            <a href="../login.html" class="sidebar-link">
+                                <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-9 col-md-8">
+                <div class="p-4">
+                    <!-- Header -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h2 class="mb-2">My Addresses</h2>
+                            <p class="text-muted">Manage your shipping and billing addresses.</p>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <button class="btn btn-primary" data-toggle="modal" data-target="#addAddressModal">
+                                <i class="fas fa-plus mr-2"></i>Add New Address
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Addresses List -->
+                    <div class="row">
+                        <div class="col-12">
+                            <!-- Default Shipping Address -->
+                            <div class="address-card default">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <h6 class="mb-0 mr-3">Home Address</h6>
+                                            <span class="default-badge">Default</span>
+                                            <span class="address-type shipping ml-2">Shipping</span>
+                                        </div>
+                                        <p class="mb-1"><strong>John Doe</strong></p>
+                                        <p class="mb-1">123 Main Street, Apt 4B</p>
+                                        <p class="mb-1">New York, NY 10001</p>
+                                        <p class="mb-1">United States</p>
+                                        <p class="mb-0"><strong>Phone:</strong> +1 (555) 123-4567</p>
+                                    </div>
+                                    <div class="col-md-4 text-right">
+                                        <button class="btn btn-outline-primary btn-sm mb-2 mr-2" data-toggle="modal" data-target="#editAddressModal">
+                                            <i class="fas fa-edit mr-1"></i>Edit
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm mb-2">
+                                            <i class="fas fa-trash mr-1"></i>Delete
+                                        </button>
+                                        <br>
+                                        <small class="text-muted">Added on Jan 10, 2025</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Billing Address -->
+                            <div class="address-card">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <h6 class="mb-0 mr-3">Office Address</h6>
+                                            <span class="address-type billing">Billing</span>
+                                        </div>
+                                        <p class="mb-1"><strong>John Doe</strong></p>
+                                        <p class="mb-1">456 Business Ave, Suite 200</p>
+                                        <p class="mb-1">New York, NY 10002</p>
+                                        <p class="mb-1">United States</p>
+                                        <p class="mb-0"><strong>Phone:</strong> +1 (555) 987-6543</p>
+                                    </div>
+                                    <div class="col-md-4 text-right">
+                                        <button class="btn btn-outline-primary btn-sm mb-2 mr-2" data-toggle="modal" data-target="#editAddressModal">
+                                            <i class="fas fa-edit mr-1"></i>Edit
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm mb-2">
+                                            <i class="fas fa-trash mr-1"></i>Delete
+                                        </button>
+                                        <br>
+                                        <small class="text-muted">Added on Jan 5, 2025</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Additional Address -->
+                            <div class="address-card">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <h6 class="mb-0 mr-3">Summer House</h6>
+                                            <span class="address-type shipping">Shipping</span>
+                                        </div>
+                                        <p class="mb-1"><strong>John Doe</strong></p>
+                                        <p class="mb-1">789 Beach Road</p>
+                                        <p class="mb-1">Miami, FL 33101</p>
+                                        <p class="mb-1">United States</p>
+                                        <p class="mb-0"><strong>Phone:</strong> +1 (555) 456-7890</p>
+                                    </div>
+                                    <div class="col-md-4 text-right">
+                                        <button class="btn btn-outline-primary btn-sm mb-2 mr-2" data-toggle="modal" data-target="#editAddressModal">
+                                            <i class="fas fa-edit mr-1"></i>Edit
+                                        </button>
+                                        <button class="btn btn-outline-danger btn-sm mb-2">
+                                            <i class="fas fa-trash mr-1"></i>Delete
+                                        </button>
+                                        <br>
+                                        <button class="btn btn-primary btn-sm">
+                                            <i class="fas fa-star mr-1"></i>Set as Default
+                                        </button>
+                                        <br>
+                                        <small class="text-muted">Added on Dec 20, 2024</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Addresses End -->
+
+    <!-- Add Address Modal -->
+    <div class="modal fade" id="addAddressModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Address</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="addressName" class="form-label">Address Name</label>
+                                <input type="text" class="form-control" id="addressName" placeholder="e.g., Home, Office">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="addressType" class="form-label">Address Type</label>
+                                <select class="form-control" id="addressType">
+                                    <option value="shipping">Shipping</option>
+                                    <option value="billing">Billing</option>
+                                    <option value="both">Both</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="firstName" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="firstName" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lastName" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="lastName" required>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="addressLine1" class="form-label">Address Line 1</label>
+                                <input type="text" class="form-control" id="addressLine1" required>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="addressLine2" class="form-label">Address Line 2</label>
+                                <input type="text" class="form-control" id="addressLine2" placeholder="Apartment, suite, unit, etc. (optional)">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="city" class="form-label">City</label>
+                                <input type="text" class="form-control" id="city" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="state" class="form-label">State/Province</label>
+                                <input type="text" class="form-control" id="state" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="zipCode" class="form-label">ZIP/Postal Code</label>
+                                <input type="text" class="form-control" id="zipCode" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="country" class="form-label">Country</label>
+                                <select class="form-control" id="country" required>
+                                    <option value="US">United States</option>
+                                    <option value="CA">Canada</option>
+                                    <option value="GB">United Kingdom</option>
+                                    <option value="AU">Australia</option>
+                                    <option value="DE">Germany</option>
+                                    <option value="FR">France</option>
+                                    <option value="IN">India</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" required>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="setAsDefault">
+                                    <label class="form-check-label" for="setAsDefault">
+                                        Set as default address
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary">Save Address</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Address Modal -->
+    <div class="modal fade" id="editAddressModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Address</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="editAddressName" class="form-label">Address Name</label>
+                                <input type="text" class="form-control" id="editAddressName" value="Home Address">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editAddressType" class="form-label">Address Type</label>
+                                <select class="form-control" id="editAddressType">
+                                    <option value="shipping" selected>Shipping</option>
+                                    <option value="billing">Billing</option>
+                                    <option value="both">Both</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editFirstName" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="editFirstName" value="John" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editLastName" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="editLastName" value="Doe" required>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="editAddressLine1" class="form-label">Address Line 1</label>
+                                <input type="text" class="form-control" id="editAddressLine1" value="123 Main Street, Apt 4B" required>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="editAddressLine2" class="form-label">Address Line 2</label>
+                                <input type="text" class="form-control" id="editAddressLine2" placeholder="Apartment, suite, unit, etc. (optional)">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="editCity" class="form-label">City</label>
+                                <input type="text" class="form-control" id="editCity" value="New York" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="editState" class="form-label">State/Province</label>
+                                <input type="text" class="form-control" id="editState" value="NY" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="editZipCode" class="form-label">ZIP/Postal Code</label>
+                                <input type="text" class="form-control" id="editZipCode" value="10001" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editCountry" class="form-label">Country</label>
+                                <select class="form-control" id="editCountry" required>
+                                    <option value="US" selected>United States</option>
+                                    <option value="CA">Canada</option>
+                                    <option value="GB">United Kingdom</option>
+                                    <option value="AU">Australia</option>
+                                    <option value="DE">Germany</option>
+                                    <option value="FR">France</option>
+                                    <option value="IN">India</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="editPhone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="editPhone" value="+1 (555) 123-4567" required>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="editSetAsDefault" checked>
+                                    <label class="form-check-label" for="editSetAsDefault">
+                                        Set as default address
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary">Update Address</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Start -->
+    <div class="container-fluid bg-dark text-secondary mt-5 pt-5">
+        <div class="row px-xl-5 pt-5">
+            <div class="col-lg-4 col-md-12 mb-5 pr-3 pr-xl-5">
+                <h5 class="text-secondary text-uppercase mb-4">Get In Touch</h5>
+                <p class="mb-4">No dolore ipsum accusam no lorem. Invidunt sed clita kasd clita et et dolor sed dolor. Rebum tempor no vero est magna amet no</p>
+                <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>123 Street, New York, USA</p>
+                <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>info@example.com</p>
+                <p class="mb-0"><i class="fa fa-phone-alt text-primary mr-3"></i>+012 345 67890</p>
+            </div>
+            <div class="col-lg-8 col-md-12">
+                <div class="row">
+                    <div class="col-md-4 mb-5">
+                        <h5 class="text-secondary text-uppercase mb-4">Quick Shop</h5>
+                        <div class="d-flex flex-column justify-content-start">
+                            <a class="text-secondary mb-2" href="../index.html"><i class="fa fa-angle-right mr-2"></i>Home</a>
+                            <a class="text-secondary mb-2" href="../shop.html"><i class="fa fa-angle-right mr-2"></i>Our Shop</a>
+                            <a class="text-secondary mb-2" href="../product-detail.html"><i class="fa fa-angle-right mr-2"></i>Shop Detail</a>
+                            <a class="text-secondary mb-2" href="../cart.html"><i class="fa fa-angle-right mr-2"></i>Shopping Cart</a>
+                            <a class="text-secondary mb-2" href="../checkout.html"><i class="fa fa-angle-right mr-2"></i>Checkout</a>
+                            <a class="text-secondary" href="../contact.html"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-5">
+                        <h5 class="text-secondary text-uppercase mb-4">My Account</h5>
+                        <div class="d-flex flex-column justify-content-start">
+                            <a class="text-secondary mb-2" href="../about.html"><i class="fa fa-angle-right mr-2"></i>About</a>
+                            <a class="text-secondary mb-2" href="../contact.html"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
+                            <a class="text-secondary mb-2" href="../login.html"><i class="fa fa-angle-right mr-2"></i>My Account</a>
+                            <a class="text-secondary mb-2" href="../privacy-policy.html"><i class="fa fa-angle-right mr-2"></i>Privacy Policy</a>
+                            <a class="text-secondary mb-2" href="../terms-conditions.html"><i class="fa fa-angle-right mr-2"></i>Terms & Conditions</a>
+                            <a class="text-secondary" href="../refund-policy.html"><i class="fa fa-angle-right mr-2"></i>Refund & Return Policy</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-5">
+                        <h5 class="text-secondary text-uppercase mb-4">Newsletter</h5>
+                        <p>Duo stet tempor ipsum sit amet magna ipsum tempor est</p>
+                        <form action="">
+                            <div class="input-group">
+                                <input id="newsletter-email" name="email" type="email" class="form-control" placeholder="Your email address" required>
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-primary" aria-label="Sign up to newsletter">Sign Up</button>
+                                </div>
+                            </div>
+                        </form>
+                        <h6 class="text-secondary text-uppercase mt-4 mb-3">Follow Us</h6>
+                        <div class="d-flex">
+                            <a class="btn btn-primary btn-square mr-2" href="#"><i class="fab fa-twitter"></i></a>
+                            <a class="btn btn-primary btn-square mr-2" href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a class="btn btn-primary btn-square mr-2" href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a class="btn btn-primary btn-square" href="#"><i class="fab fa-instagram"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row border-top mx-xl-5 py-4" style="border-color: rgba(256, 256, 256, .1) !important;">
+            <div class="col-md-6 px-xl-0">
+                <p class="mb-md-0 text-center text-md-left text-secondary">
+                    &copy; 2025 <a class="text-primary" href="/">Shop Top</a>. All Rights Reserved. Designed by ziplofy
+                </p>
+            </div>
+            <div class="col-md-6 px-xl-0 text-center text-md-right">
+                <img class="img-fluid" src="../assets/img/payments.png" alt="">
+            </div>
+        </div>
+    </div>
+    <!-- Footer End -->
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/lib/easing/easing.min.js"></script>
+    <script src="../assets/lib/owlcarousel/owl.carousel.min.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="../assets/js/main.js"></script>
+</body>
+
+</html>
+

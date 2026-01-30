@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ornativa</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <!-- Font Awesome CSS (optional) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav id="main-nav" class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><img src="assets/images/logo.png" alt=""></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="shop.html">Collections</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="about.html">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contact.html">Contact</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <a href="login.html" class="nav-link"><i class="bi bi-person-circle"></i></a>
+                    <a href="cart.html" class="nav-link"><i class="bi bi-cart"></i></a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section class="hero-banner">
+        <div class="container h-100">
+            <div class="row h-100 align-items-center">
+                <div class="col-12 text-center text-white">
+                    <h1 class="display-3 fw-bold">Discover Our Exclusive Collections</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center">
+                            <li class="breadcrumb-item"><a href="index.html" class="text-white">Home</a></li>
+                            <li class="breadcrumb-item active text-white" aria-current="page">Shop</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main class="container my-5">
+        <div class="row">
+            <aside class="col-lg-3">
+                <!-- Categories -->
+                <div class="card mb-4">
+                    <div class="card-header">Categories</div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><a href="#">Rings</a></li>
+                        <li class="list-group-item"><a href="#">Necklaces</a></li>
+                        <li class="list-group-item"><a href="#">Earrings</a></li>
+                        <li class="list-group-item"><a href="#">Bracelets</a></li>
+                        <li class="list-group-item"><a href="#">Bridal</a></li>
+                    </ul>
+                </div>
+
+                <!-- Price Range -->
+                <div class="card mb-4">
+                    <div class="card-header">Price Range</div>
+                    <div class="card-body">
+                        <input type="range" class="form-range" min="0" max="1000" step="10" id="priceRange">
+                        <div class="d-flex justify-content-between">
+                            <span>$0</span>
+                            <span>$1000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Material -->
+                <div class="card mb-4">
+                    <div class="card-header">Material</div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="Gold" id="materialGold">
+                                <label class="form-check-label" for="materialGold">Gold</label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="Silver" id="materialSilver">
+                                <label class="form-check-label" for="materialSilver">Silver</label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="Diamond" id="materialDiamond">
+                                <label class="form-check-label" for="materialDiamond">Diamond</label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="Platinum" id="materialPlatinum">
+                                <label class="form-check-label" for="materialPlatinum">Platinum</label>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Offers -->
+                <div class="card mb-4">
+                    <div class="card-header">Offers</div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="Discounts" id="offerDiscount">
+                                <label class="form-check-label" for="offerDiscount">Discounts</label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="NewArrival" id="offerNewArrival">
+                                <label class="form-check-label" for="offerNewArrival">New Arrival</label>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="BestSeller" id="offerBestSeller">
+                                <label class="form-check-label" for="offerBestSeller">Best Seller</label>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+
+            <div class="col-lg-9">
+                <!-- Sort Bar -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownSort"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            Sort by: Popularity
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownSort">
+                            <li><a class="dropdown-item" href="#">Popularity</a></li>
+                            <li><a class="dropdown-item" href="#">Newest</a></li>
+                            <li><a class="dropdown-item" href="#">Price Low-High</a></li>
+                            <li><a class="dropdown-item" href="#">Price High-Low</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-secondary active">
+                            <i class="bi bi-grid-fill"></i> Grid
+                        </button>
+                        <button class="btn btn-outline-secondary ms-2">
+                            <i class="bi bi-list"></i> List
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Product Grid -->
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+                    <!-- Product Card 1 -->
+                    <div class="col">
+                        <div class="card product-card h-100">
+                            <div class="product-image-container">
+                                <img src="https://i.pinimg.com/1200x/8c/7a/d6/8c7ad6798d37d5313f4f3ea8f2ea1a52.jpg"
+                                    class="card-img-top" alt="Product 1">
+                                <div class="product-overlay">
+                                    <button class="btn btn-light quick-view-btn">Quick View</button>
+                                </div>
+                                <span class="wishlist-icon"><i class="bi bi-heart"></i></span>
+                            </div>
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Elegant Diamond Ring</h5>
+                                <p class="card-text price">$1200.00 <span class="badge bg-danger">20% Off</span></p>
+                                <a href="product.html" class="btn btn-primary add-to-cart-btn">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Product Card 2 -->
+                    <div class="col">
+                        <div class="card product-card h-100">
+                            <div class="product-image-container">
+                                <img src="assets/images/product2.jpg" class="card-img-top" alt="Product 2">
+                                <div class="product-overlay">
+                                    <button class="btn btn-light quick-view-btn">Quick View</button>
+                                </div>
+                                <span class="wishlist-icon"><i class="bi bi-heart"></i></span>
+                            </div>
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Classic Gold Necklace</h5>
+                                <p class="card-text price">$850.00</p>
+                                <a href="product.html" class="btn btn-primary add-to-cart-btn">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Product Card 3 -->
+                    <div class="col">
+                        <div class="card product-card h-100">
+                            <div class="product-image-container">
+                                <img src="assets/images/product3.jpg" class="card-img-top" alt="Product 3">
+                                <div class="product-overlay">
+                                    <button class="btn btn-light quick-view-btn">Quick View</button>
+                                </div>
+                                <span class="wishlist-icon"><i class="bi bi-heart"></i></span>
+                            </div>
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Silver Hoop Earrings</h5>
+                                <p class="card-text price">$250.00</p>
+                                <a href="product.html" class="btn btn-primary add-to-cart-btn">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Product Card 4 -->
+                    <div class="col">
+                        <div class="card product-card h-100">
+                            <div class="product-image-container">
+                                <img src="assets/images/product4.jpg" class="card-img-top" alt="Product 4">
+                                <div class="product-overlay">
+                                    <button class="btn btn-light quick-view-btn">Quick View</button>
+                                </div>
+                                <span class="wishlist-icon"><i class="bi bi-heart"></i></span>
+                            </div>
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Pearl Bracelet</h5>
+                                <p class="card-text price">$400.00 <span class="badge bg-success">New!</span></p>
+                                <a href="product.html" class="btn btn-primary add-to-cart-btn">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Product Card 5 -->
+                    <div class="col">
+                        <div class="card product-card h-100">
+                            <div class="product-image-container">
+                                <img src="assets/images/product5.jpg" class="card-img-top" alt="Product 5">
+                                <div class="product-overlay">
+                                    <button class="btn btn-light quick-view-btn">Quick View</button>
+                                </div>
+                                <span class="wishlist-icon"><i class="bi bi-heart"></i></span>
+                            </div>
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Engagement Ring</h5>
+                                <p class="card-text price">$2500.00</p>
+                                <a href="product.html" class="btn btn-primary add-to-cart-btn">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Product Card 6 -->
+                    <div class="col">
+                        <div class="card product-card h-100">
+                            <div class="product-image-container">
+                                <img src="assets/images/product6.jpg" class="card-img-top" alt="Product 6">
+                                <div class="product-overlay">
+                                    <button class="btn btn-light quick-view-btn">Quick View</button>
+                                </div>
+                                <span class="wishlist-icon"><i class="bi bi-heart"></i></span>
+                            </div>
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Statement Necklace</h5>
+                                <p class="card-text price">$950.00</p>
+                                <a href="product.html" class="btn btn-primary add-to-cart-btn">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Product Card 7 -->
+                    <div class="col">
+                        <div class="card product-card h-100">
+                            <div class="product-image-container">
+                                <img src="assets/images/product7.jpg" class="card-img-top" alt="Product 7">
+                                <div class="product-overlay">
+                                    <button class="btn btn-light quick-view-btn">Quick View</button>
+                                </div>
+                                <span class="wishlist-icon"><i class="bi bi-heart"></i></span>
+                            </div>
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Delicate Stud Earrings</h5>
+                                <p class="card-text price">$180.00</p>
+                                <a href="product.html" class="btn btn-primary add-to-cart-btn">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Product Card 8 -->
+                    <div class="col">
+                        <div class="card product-card h-100">
+                            <div class="product-image-container">
+                                <img src="assets/images/product8.jpg" class="card-img-top" alt="Product 8">
+                                <div class="product-overlay">
+                                    <button class="btn btn-light quick-view-btn">Quick View</button>
+                                </div>
+                                <span class="wishlist-icon"><i class="bi bi-heart"></i></span>
+                            </div>
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Cuff Bracelet</h5>
+                                <p class="card-text price">$600.00</p>
+                                <a href="product.html" class="btn btn-primary add-to-cart-btn">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item"><a class="page-link" href="#">Next</a></li>
+                        </ul>
+                    </nav>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownShow"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            Show 12 per page
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownShow">
+                            <li><a class="dropdown-item" href="#">Show 12 per page</a></li>
+                            <li><a class="dropdown-item" href="#">Show 24 per page</a></li>
+                            <li><a class="dropdown-item" href="#">Show 48 per page</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <section class="cta-banner text-white text-center py-4 mt-5">
+        <div class="container position-relative">
+            <img src="assets/images/offer-banner.jpg" alt="Festive Collection Offer" class="img-fluid cta-banner-img">
+            <div class="cta-banner-overlay d-flex flex-column justify-content-center align-items-center">
+                <p class="mb-0 h4">Festive Collection – Flat 20% Off | <a href="#" class="text-white fw-bold">Shop
+                        Now</a>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Newsletter Subscription Banner -->
+    <section id="newsletter" class="py-5 bg-dark text-white text-center">
+        <div class="container">
+            <h2 class="display-4 mb-3">Be the First to Know</h2>
+            <p class="lead mb-4">Get updates on new arrivals & exclusive offers.</p>
+            <form class="row justify-content-center">
+                <div class="col-md-6 col-lg-4">
+                    <div class="input-group mb-3">
+                        <input type="email" class="form-control" placeholder="Enter your email"
+                            aria-label="Enter your email">
+                        <button class="btn btn-primary" type="submit">Subscribe</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="main-footer" class="bg-dark text-white py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4">Shop Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white-50">Rings</a></li>
+                        <li><a href="#" class="text-white-50">Necklaces</a></li>
+                        <li><a href="#" class="text-white-50">Bracelets</a></li>
+                        <li><a href="#" class="text-white-50">Earrings</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4">Customer Support</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="privacy.html" class="text-white-50">Privacy Policy</a></li>
+                        <li><a href="return.html" class="text-white-50">Returns</a></li>
+                        <li><a href="shipping.html" class="text-white-50">Shipping</a></li>
+                        <li><a href="terms.html" class="text-white-50">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4">About Brand</h5>
+                    <p class="text-white-50">Discover our story, commitment to craftsmanship, and ethical sourcing
+                        practices.</p>
+                    <a href="#" class="btn btn-sm btn-outline-light">Read More</a>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4">Contact Info</h5>
+                    <p class="text-white-50">123 Jewelry Street, Gemstone City, 12345</p>
+                    <p class="text-white-50">Email: info@brand.com</p>
+                    <p class="text-white-50">Phone: +1 (123) 456-7890</p>
+                    <div class="social-icons mt-3">
+                        <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4 border-white-50">
+            <div class="text-center text-white-50">
+                <small>&copy; 2023 Jewelry Brand. All rights reserved.</small>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/script.js"></script>
+</body>
+
+</html>

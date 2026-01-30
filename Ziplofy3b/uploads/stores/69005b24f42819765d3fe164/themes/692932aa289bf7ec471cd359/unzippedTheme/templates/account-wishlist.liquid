@@ -1,0 +1,15 @@
+{% for item in items %}
+<div class="wishlist-item" data-item-id="{{ item.id }}">
+  <div class="item-image">
+    <img src="{{ item.image }}" alt="{{ item.name }}">
+    <button class="remove-btn account-remove-btn" data-account-wishlist-remove="{{ item.id }}">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  <div class="item-info">
+    <h4>{{ item.name }}</h4>
+    <p class="item-price">{{ item.price }}</p>
+    <button class="add-to-cart-btn account-add-cart-btn" data-account-wishlist-add="{{ item.id }}">Add to Cart</button>
+  </div>
+</div>
+{% endfor %}

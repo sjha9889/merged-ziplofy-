@@ -1,0 +1,651 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Category - Shop Top</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta name="description" content="Browse our wide range of fashion categories. Find the perfect clothing for every occasion.">
+    <link rel="canonical" href="/category.html">
+    <meta property="og:title" content="Category - Shop Top">
+    <meta property="og:description" content="Browse our wide range of fashion categories.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="/category.html">
+    <meta property="og:image" content="img/carousel-1.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Favicon -->
+    <link href="assets/img/favicon.ico" rel="icon">
+
+    <!-- Google Web Fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">  
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Libraries Stylesheet -->
+    <link href="assets/lib/animate/animate.min.css" rel="stylesheet">
+    <link href="assets/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+
+    <!-- Customized Bootstrap Stylesheet -->
+    <link href="assets/css/style.css" rel="stylesheet">
+    <link href="assets/css/drawers.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Announcement Bar -->
+    <div class="container-fluid bg-primary text-dark text-center py-1">
+        <small><strong>Diwali Sale:</strong> Up to 50% off + Free Shipping over $50</small>
+    </div>
+    <!-- Topbar Start -->
+    <div class="container-fluid">
+        <div class="row bg-secondary py-1 px-xl-5">
+            <div class="col-lg-6 d-none d-lg-block">
+                <div class="d-inline-flex align-items-center h-100">
+                    <a class="text-body mr-3" href="">About</a>
+                    <a class="text-body mr-3" href="">Contact</a>
+                    <a class="text-body mr-3" href="">Help</a>
+                    <a class="text-body mr-3" href="">FAQs</a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center text-lg-right">
+                <div class="d-inline-flex align-items-center">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">My Account</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <button class="dropdown-item" type="button" onclick="window.location.href='login.html'">Sign in</button>
+                            <button class="dropdown-item" type="button" onclick="window.location.href='signup.html'">Sign up</button>
+                        </div>
+                    </div>
+                    <div class="btn-group mx-2">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">USD</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <button class="dropdown-item" type="button">EUR</button>
+                            <button class="dropdown-item" type="button">GBP</button>
+                            <button class="dropdown-item" type="button">CAD</button>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">EN</button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <button class="dropdown-item" type="button">FR</button>
+                            <button class="dropdown-item" type="button">AR</button>
+                            <button class="dropdown-item" type="button">RU</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="d-inline-flex align-items-center d-block d-lg-none">
+                    <a href="" class="btn px-0 ml-2">
+                        <i class="fas fa-heart text-dark"></i>
+                        <span class="badge text-dark border border-dark rounded-circle" style="padding-bottom: 2px;" data-count-target="wishlist">0</span>
+                    </a>
+                    <button type="button" class="btn px-0 ml-2" id="cart-drawer-trigger-mobile" aria-label="View cart" onclick="if(window.openCartDrawer){window.openCartDrawer();}">
+                        <i class="fas fa-shopping-cart text-dark"></i>
+                        <span class="badge text-dark border border-dark rounded-circle" style="padding-bottom: 2px;" data-count-target="cart">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="row align-items-center bg-light py-3 px-xl-5 d-none d-lg-flex">
+            <div class="col-lg-4">
+                <a href="" class="text-decoration-none">
+                    <span class="h1 text-uppercase text-primary bg-dark px-2">Shop</span>
+                    <span class="h1 text-uppercase text-dark bg-primary px-2 ml-n1">Top</span>
+                </a>
+            </div>
+            <div class="col-lg-4 col-6 text-left">
+                <form action="/search" role="search">
+                    <div class="input-group">
+                        <label for="site-search" class="sr-only">Search products</label>
+                        <input id="site-search" name="q" type="search" class="form-control" placeholder="Search for products" autocomplete="off">
+                        <div class="input-group-append">
+                            <button class="input-group-text bg-transparent text-primary" type="submit" aria-label="Search">
+                                <i class="fa fa-search" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="col-lg-4 col-6 text-right">
+                <p class="m-0">Customer Service</p>
+                <h5 class="m-0">+012 345 6789</h5>
+            </div>
+        </div>
+    </div>
+    <!-- Topbar End -->
+
+
+    <!-- Navbar Start -->
+    <div class="container-fluid bg-dark mb-30 navbar-area">
+        <nav class="navbar navbar-expand-lg bg-dark navbar-dark py-3 py-lg-0 px-0">
+            <a href="" class="text-decoration-none d-block d-lg-none">
+                <span class="h1 text-uppercase text-dark bg-light px-2">Shop</span>
+                <span class="h1 text-uppercase text-light bg-primary px-2 ml-n1">Top</span>
+            </a>
+            <button type="button" class="navbar-toggler" id="mobile-nav-toggler" aria-label="Toggle navigation" onclick="if(window.openNavDrawer){window.openNavDrawer();}">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-between" id="navbarCollapse">
+                        <div class="navbar-nav mr-auto py-0">
+                            <a href="index.html" class="nav-item nav-link">Home</a>
+                            <a href="shop.html" class="nav-item nav-link active">Shop</a>
+                            <div class="nav-item dropdown">
+                                <a href="category.html?cat=dresses" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dresses</a>
+                                <div class="dropdown-menu rounded-0 border-0 m-0">
+                                    <a href="category.html?cat=men-dresses" class="dropdown-item">Men's Dresses</a>
+                                    <a href="category.html?cat=women-dresses" class="dropdown-item">Women's Dresses</a>
+                                    <a href="category.html?cat=baby-dresses" class="dropdown-item">Baby's Dresses</a>
+                                </div>
+                            </div>
+                            <a href="category.html?cat=shirts" class="nav-item nav-link">Shirts</a>
+                            <a href="category.html?cat=jeans" class="nav-item nav-link">Jeans</a>
+                            <a href="category.html?cat=swimwear" class="nav-item nav-link">Swimwear</a>
+                            <a href="category.html?cat=sleepwear" class="nav-item nav-link">Sleepwear</a>
+                            <a href="category.html?cat=sportswear" class="nav-item nav-link">Sportswear</a>
+                            <a href="category.html?cat=jumpsuits" class="nav-item nav-link">Jumpsuits</a>
+                            <a href="category.html?cat=blazers" class="nav-item nav-link">Blazers</a>
+                            <a href="category.html?cat=jackets" class="nav-item nav-link">Jackets</a>
+                            <a href="category.html?cat=shoes" class="nav-item nav-link">Shoes</a>
+                        </div>
+                <div class="navbar-nav ml-auto py-0 d-none d-lg-block">
+                    <a href="" class="btn px-0" aria-label="View wishlist">
+                        <i class="fas fa-heart text-primary" aria-hidden="true"></i>
+                        <span class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;" data-count-target="wishlist">0</span>
+                    </a>
+                    <button type="button" class="btn px-0 ml-3" id="cart-drawer-trigger" aria-label="View cart" onclick="if(window.openCartDrawer){window.openCartDrawer();}">
+                        <i class="fas fa-shopping-cart text-primary" aria-hidden="true"></i>
+                        <span class="badge text-secondary border border-secondary rounded-circle" style="padding-bottom: 2px;" data-count-target="cart">0</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <!-- Navbar End -->
+
+    <!-- Breadcrumb Start -->
+    <div class="container-fluid">
+        <div class="row px-xl-5">
+            <div class="col-12">
+                <nav class="breadcrumb bg-light mb-30">
+                    <a class="breadcrumb-item text-dark" href="index.html">Home</a>
+                    <a class="breadcrumb-item text-dark" href="shop.html">Shop</a>
+                    <span class="breadcrumb-item active" id="breadcrumb-category">Category</span>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <!-- Breadcrumb End -->
+
+    <!-- Category Header Start -->
+    <div class="container-fluid pt-5">
+        <div class="row px-xl-5">
+            <div class="col-12">
+                <div class="text-center mb-5">
+                    <h1 class="display-4 text-uppercase mb-3" id="category-title">Category Collection</h1>
+                    <p class="lead" id="category-description">Discover our stunning collection of fashion items. From casual day wear to elegant evening wear, find the perfect items that match your style.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Category Header End -->
+
+    <!-- Shop Start -->
+    <div class="container-fluid">
+        <div class="row px-xl-5">
+            <!-- Shop Sidebar Start -->
+            <div class="col-lg-3 col-md-4 d-none d-md-block">
+                <!-- Price Start -->
+                <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Filter by price</span></h5>
+                <div class="bg-light p-4 mb-30">
+                    <form>
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                            <input type="checkbox" class="custom-control-input" checked id="price-all">
+                            <label class="custom-control-label" for="price-all">All Price</label>
+                            <span class="badge border font-weight-normal" id="price-all-count">150</span>
+                        </div>
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                            <input type="checkbox" class="custom-control-input" id="price-1">
+                            <label class="custom-control-label" for="price-1">$0 - $100</label>
+                            <span class="badge border font-weight-normal" id="price-1-count">45</span>
+                        </div>
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                            <input type="checkbox" class="custom-control-input" id="price-2">
+                            <label class="custom-control-label" for="price-2">$100 - $200</label>
+                            <span class="badge border font-weight-normal" id="price-2-count">60</span>
+                        </div>
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                            <input type="checkbox" class="custom-control-input" id="price-3">
+                            <label class="custom-control-label" for="price-3">$200 - $300</label>
+                            <span class="badge border font-weight-normal" id="price-3-count">30</span>
+                        </div>
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between">
+                            <input type="checkbox" class="custom-control-input" id="price-4">
+                            <label class="custom-control-label" for="price-4">$300+</label>
+                            <span class="badge border font-weight-normal" id="price-4-count">15</span>
+                        </div>
+                    </form>
+                </div>
+                <!-- Price End -->
+                
+                <!-- Color Start -->
+                <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Filter by color</span></h5>
+                <div class="bg-light p-4 mb-30">
+                    <form>
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                            <input type="checkbox" class="custom-control-input" checked id="color-all">
+                            <label class="custom-control-label" for="color-all">All Color</label>
+                            <span class="badge border font-weight-normal" id="color-all-count">150</span>
+                        </div>
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                            <input type="checkbox" class="custom-control-input" id="color-1">
+                            <label class="custom-control-label" for="color-1">Black</label>
+                            <span class="badge border font-weight-normal" id="color-1-count">25</span>
+                        </div>
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                            <input type="checkbox" class="custom-control-input" id="color-2">
+                            <label class="custom-control-label" for="color-2">White</label>
+                            <span class="badge border font-weight-normal" id="color-2-count">30</span>
+                        </div>
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                            <input type="checkbox" class="custom-control-input" id="color-3">
+                            <label class="custom-control-label" for="color-3">Red</label>
+                            <span class="badge border font-weight-normal" id="color-3-count">20</span>
+                        </div>
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                            <input type="checkbox" class="custom-control-input" id="color-4">
+                            <label class="custom-control-label" for="color-4">Blue</label>
+                            <span class="badge border font-weight-normal" id="color-4-count">35</span>
+                        </div>
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between">
+                            <input type="checkbox" class="custom-control-input" id="color-5">
+                            <label class="custom-control-label" for="color-5">Other</label>
+                            <span class="badge border font-weight-normal" id="color-5-count">40</span>
+                        </div>
+                    </form>
+                </div>
+                <!-- Color End -->
+
+                <!-- Size Start -->
+                <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Filter by size</span></h5>
+                <div class="bg-light p-4 mb-30">
+                    <form>
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                            <input type="checkbox" class="custom-control-input" checked id="size-all">
+                            <label class="custom-control-label" for="size-all">All Size</label>
+                            <span class="badge border font-weight-normal" id="size-all-count">150</span>
+                        </div>
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                            <input type="checkbox" class="custom-control-input" id="size-1">
+                            <label class="custom-control-label" for="size-1">XS</label>
+                            <span class="badge border font-weight-normal" id="size-1-count">20</span>
+                        </div>
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                            <input type="checkbox" class="custom-control-input" id="size-2">
+                            <label class="custom-control-label" for="size-2">S</label>
+                            <span class="badge border font-weight-normal" id="size-2-count">35</span>
+                        </div>
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                            <input type="checkbox" class="custom-control-input" id="size-3">
+                            <label class="custom-control-label" for="size-3">M</label>
+                            <span class="badge border font-weight-normal" id="size-3-count">40</span>
+                        </div>
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                            <input type="checkbox" class="custom-control-input" id="size-4">
+                            <label class="custom-control-label" for="size-4">L</label>
+                            <span class="badge border font-weight-normal" id="size-4-count">30</span>
+                        </div>
+                        <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between">
+                            <input type="checkbox" class="custom-control-input" id="size-5">
+                            <label class="custom-control-label" for="size-5">XL</label>
+                            <span class="badge border font-weight-normal" id="size-5-count">25</span>
+                        </div>
+                    </form>
+                </div>
+                <!-- Size End -->
+            </div>
+            <!-- Shop Sidebar End -->
+
+            <!-- Shop Product Start -->
+            <div class="col-lg-9 col-md-8">
+                <div class="row pb-3">
+                    <div class="col-12 pb-1">
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <div>
+                                <!-- Mobile Filter Button -->
+                                <button type="button" class="btn btn-sm btn-primary d-md-none" id="filter-drawer-trigger" aria-label="Open filters" onclick="if(window.openFilterDrawer){window.openFilterDrawer();}">
+                                    <i class="fa fa-filter mr-1"></i> Filter
+                                </button>
+                                <button class="btn btn-sm btn-light d-none d-md-inline-block"><i class="fa fa-th-large"></i></button>
+                                <button class="btn btn-sm btn-light ml-2 d-none d-md-inline-block"><i class="fa fa-bars"></i></button>
+                            </div>
+                            <div class="ml-2">
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">Sorting</button>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a class="dropdown-item" href="#">Latest</a>
+                                        <a class="dropdown-item" href="#">Popularity</a>
+                                        <a class="dropdown-item" href="#">Best Rating</a>
+                                    </div>
+                                </div>
+                                <div class="btn-group ml-2">
+                                    <button type="button" class="btn btn-sm btn-light dropdown-toggle" data-toggle="dropdown">Showing</button>
+                                    <div class="dropdown-menu dropdown-menu-right">
+                                        <a class="dropdown-item" href="#">10</a>
+                                        <a class="dropdown-item" href="#">20</a>
+                                        <a class="dropdown-item" href="#">30</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Products will be dynamically loaded here -->
+                    <div id="category-products-grid" class="row">
+                        <div class="col-12 text-center py-5 text-muted">
+                            <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
+                            Loading products...
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <nav>
+                            <ul class="pagination justify-content-center" id="category-pagination">
+                                <!-- Pagination will be dynamically generated -->
+                          </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            <!-- Shop Product End -->
+        </div>
+    </div>
+    <!-- Shop End -->
+
+    <!-- Footer Start -->
+    <div class="container-fluid bg-dark text-secondary mt-5 pt-5">
+        <div class="row px-xl-5 pt-5">
+            <div class="col-lg-4 col-md-12 mb-5 pr-3 pr-xl-5">
+                <h5 class="text-secondary text-uppercase mb-4">Get In Touch</h5>
+                <p class="mb-4">No dolore ipsum accusam no lorem. Invidunt sed clita kasd clita et et dolor sed dolor. Rebum tempor no vero est magna amet no</p>
+                <p class="mb-2"><i class="fa fa-map-marker-alt text-primary mr-3"></i>123 Street, New York, USA</p>
+                <p class="mb-2"><i class="fa fa-envelope text-primary mr-3"></i>info@example.com</p>
+                <p class="mb-0"><i class="fa fa-phone-alt text-primary mr-3"></i>+012 345 67890</p>
+            </div>
+            <div class="col-lg-8 col-md-12">
+                <div class="row">
+                    <div class="col-md-4 mb-5">
+                        <h5 class="text-secondary text-uppercase mb-4">Quick Shop</h5>
+                        <div class="d-flex flex-column justify-content-start">
+                            <a class="text-secondary mb-2" href="index.html"><i class="fa fa-angle-right mr-2"></i>Home</a>
+                            <a class="text-secondary mb-2" href="shop.html"><i class="fa fa-angle-right mr-2"></i>Our Shop</a>
+                            <a class="text-secondary mb-2" href="product-detail.html"><i class="fa fa-angle-right mr-2"></i>Shop Detail</a>
+                            <a class="text-secondary mb-2" href="cart.html"><i class="fa fa-angle-right mr-2"></i>Shopping Cart</a>
+                            <a class="text-secondary mb-2" href="checkout.html"><i class="fa fa-angle-right mr-2"></i>Checkout</a>
+                            <a class="text-secondary" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-5">
+                        <h5 class="text-secondary text-uppercase mb-4">My Account</h5>
+                        <div class="d-flex flex-column justify-content-start">
+                            <a class="text-secondary mb-2" href="about.html"><i class="fa fa-angle-right mr-2"></i>About</a>
+                            <a class="text-secondary mb-2" href="contact.html"><i class="fa fa-angle-right mr-2"></i>Contact Us</a>
+                            <a class="text-secondary mb-2" href="login.html"><i class="fa fa-angle-right mr-2"></i>My Account</a>
+                            <a class="text-secondary mb-2" href="privacy-policy.html"><i class="fa fa-angle-right mr-2"></i>Privacy Policy</a>
+                            <a class="text-secondary mb-2" href="terms-conditions.html"><i class="fa fa-angle-right mr-2"></i>Terms & Conditions</a>
+                            <a class="text-secondary" href="refund-policy.html"><i class="fa fa-angle-right mr-2"></i>Refund & Return Policy</a>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-5">
+                        <h5 class="text-secondary text-uppercase mb-4">Newsletter</h5>
+                        <p>Duo stet tempor ipsum sit amet magna ipsum tempor est</p>
+                        <form action="">
+                            <div class="input-group">
+                                <input id="newsletter-email" name="email" type="email" class="form-control" placeholder="Your email address" required>
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-primary" aria-label="Sign up to newsletter">Sign Up</button>
+                                </div>
+                            </div>
+                        </form>
+                        <h6 class="text-secondary text-uppercase mt-4 mb-3">Follow Us</h6>
+                        <div class="d-flex">
+                            <a class="btn btn-primary btn-square mr-2" href="#"><i class="fab fa-twitter"></i></a>
+                            <a class="btn btn-primary btn-square mr-2" href="#"><i class="fab fa-facebook-f"></i></a>
+                            <a class="btn btn-primary btn-square mr-2" href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a class="btn btn-primary btn-square" href="#"><i class="fab fa-instagram"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row border-top mx-xl-5 py-4" style="border-color: rgba(256, 256, 256, .1) !important;">
+            <div class="col-md-6 px-xl-0">
+                <p class="mb-md-0 text-center text-md-left text-secondary">
+                    &copy; 2025 <a class="text-primary" href="/">Shop Top</a>. All Rights Reserved. Designed by ziplofy
+                </p>
+            </div>
+            <div class="col-md-6 px-xl-0 text-center text-md-right">
+                <img class="img-fluid" src="assets/img/payments.png" alt="">
+            </div>
+        </div>
+    </div>
+    <!-- Footer End -->
+
+    <!-- Flash Message -->
+    <div id="flash-message" class="flash-message" role="alert"></div>
+
+    <!-- Cart Drawer -->
+    <div class="offcanvas-overlay" id="cart-drawer-overlay" style="display: none !important;"></div>
+    <div class="offcanvas-panel cart-panel" id="cart-drawer" style="display: none !important;">
+        <div class="offcanvas-header">
+            <div class="offcanvas-title">Shopping Cart</div>
+            <button type="button" class="offcanvas-close" id="cart-drawer-close" aria-label="Close cart">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+        <div class="offcanvas-body" id="cart-drawer-body">
+            <div class="text-center py-5 text-muted">
+                <i class="fas fa-shopping-cart fa-3x mb-3"></i>
+                <p>Your cart is empty</p>
+            </div>
+        </div>
+        <div class="offcanvas-footer" id="cart-drawer-footer" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <strong>Total:</strong>
+                <strong id="cart-drawer-total">₹0</strong>
+            </div>
+            <a href="checkout.html" class="btn btn-primary btn-block">Proceed to Checkout</a>
+            <a href="cart.html" class="btn btn-outline-dark btn-block mt-2">View Cart</a>
+        </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div class="offcanvas-overlay" id="nav-drawer-overlay" style="display: none !important;"></div>
+    <div class="offcanvas-panel nav-panel" id="nav-drawer" style="display: none !important;">
+        <div class="offcanvas-header">
+            <div class="offcanvas-title">Menu</div>
+            <button type="button" class="offcanvas-close" id="nav-drawer-close" aria-label="Close menu">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+        <div class="offcanvas-body" id="nav-drawer-body">
+            <nav class="nav flex-column">
+                <a class="nav-link" href="index.html">Home</a>
+                <a class="nav-link" href="shop.html">Shop</a>
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navDrawerDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Dresses
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navDrawerDropdown">
+                        <a class="dropdown-item" href="category.html?cat=men-dresses">Men's Dresses</a>
+                        <a class="dropdown-item" href="category.html?cat=women-dresses">Women's Dresses</a>
+                        <a class="dropdown-item" href="category.html?cat=baby-dresses">Baby's Dresses</a>
+                    </div>
+                </div>
+                <a class="nav-link" href="category.html?cat=shirts">Shirts</a>
+                <a class="nav-link" href="category.html?cat=jeans">Jeans</a>
+                <a class="nav-link" href="category.html?cat=swimwear">Swimwear</a>
+                <a class="nav-link" href="category.html?cat=sleepwear">Sleepwear</a>
+                <a class="nav-link" href="category.html?cat=sportswear">Sportswear</a>
+                <a class="nav-link" href="category.html?cat=jumpsuits">Jumpsuits</a>
+                <a class="nav-link" href="category.html?cat=blazers">Blazers</a>
+                <a class="nav-link" href="category.html?cat=jackets">Jackets</a>
+                <a class="nav-link" href="category.html?cat=shoes">Shoes</a>
+                <a class="nav-link" href="contact.html">Contact</a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Mobile Filter Drawer -->
+    <div class="offcanvas-overlay" id="filter-drawer-overlay" style="display: none !important;"></div>
+    <div class="offcanvas-panel filter-panel" id="filter-drawer" style="display: none !important;">
+        <div class="offcanvas-header">
+            <div class="offcanvas-title">Filters</div>
+            <button type="button" class="offcanvas-close" id="filter-drawer-close" aria-label="Close filters">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+        <div class="offcanvas-body" id="filter-drawer-body">
+            <!-- Price Start -->
+            <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Filter by price</span></h5>
+            <div class="bg-light p-4 mb-30">
+                <form>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" checked id="filter-price-all">
+                        <label class="custom-control-label" for="filter-price-all">All Price</label>
+                        <span class="badge border font-weight-normal" id="filter-price-all-count">150</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" id="filter-price-1">
+                        <label class="custom-control-label" for="filter-price-1">$0 - $100</label>
+                        <span class="badge border font-weight-normal" id="filter-price-1-count">45</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" id="filter-price-2">
+                        <label class="custom-control-label" for="filter-price-2">$100 - $200</label>
+                        <span class="badge border font-weight-normal" id="filter-price-2-count">60</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" id="filter-price-3">
+                        <label class="custom-control-label" for="filter-price-3">$200 - $300</label>
+                        <span class="badge border font-weight-normal" id="filter-price-3-count">30</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between">
+                        <input type="checkbox" class="custom-control-input" id="filter-price-4">
+                        <label class="custom-control-label" for="filter-price-4">$300+</label>
+                        <span class="badge border font-weight-normal" id="filter-price-4-count">15</span>
+                    </div>
+                </form>
+            </div>
+            <!-- Price End -->
+            
+            <!-- Color Start -->
+            <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Filter by color</span></h5>
+            <div class="bg-light p-4 mb-30">
+                <form>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" checked id="filter-color-all">
+                        <label class="custom-control-label" for="filter-color-all">All Color</label>
+                        <span class="badge border font-weight-normal" id="filter-color-all-count">150</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" id="filter-color-1">
+                        <label class="custom-control-label" for="filter-color-1">Black</label>
+                        <span class="badge border font-weight-normal" id="filter-color-1-count">25</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" id="filter-color-2">
+                        <label class="custom-control-label" for="filter-color-2">White</label>
+                        <span class="badge border font-weight-normal" id="filter-color-2-count">30</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" id="filter-color-3">
+                        <label class="custom-control-label" for="filter-color-3">Red</label>
+                        <span class="badge border font-weight-normal" id="filter-color-3-count">20</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" id="filter-color-4">
+                        <label class="custom-control-label" for="filter-color-4">Blue</label>
+                        <span class="badge border font-weight-normal" id="filter-color-4-count">35</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between">
+                        <input type="checkbox" class="custom-control-input" id="filter-color-5">
+                        <label class="custom-control-label" for="filter-color-5">Other</label>
+                        <span class="badge border font-weight-normal" id="filter-color-5-count">40</span>
+                    </div>
+                </form>
+            </div>
+            <!-- Color End -->
+
+            <!-- Size Start -->
+            <h5 class="section-title position-relative text-uppercase mb-3"><span class="bg-secondary pr-3">Filter by size</span></h5>
+            <div class="bg-light p-4 mb-30">
+                <form>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" checked id="filter-size-all">
+                        <label class="custom-control-label" for="filter-size-all">All Size</label>
+                        <span class="badge border font-weight-normal" id="filter-size-all-count">150</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" id="filter-size-1">
+                        <label class="custom-control-label" for="filter-size-1">XS</label>
+                        <span class="badge border font-weight-normal" id="filter-size-1-count">20</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" id="filter-size-2">
+                        <label class="custom-control-label" for="filter-size-2">S</label>
+                        <span class="badge border font-weight-normal" id="filter-size-2-count">35</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" id="filter-size-3">
+                        <label class="custom-control-label" for="filter-size-3">M</label>
+                        <span class="badge border font-weight-normal" id="filter-size-3-count">40</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between mb-3">
+                        <input type="checkbox" class="custom-control-input" id="filter-size-4">
+                        <label class="custom-control-label" for="filter-size-4">L</label>
+                        <span class="badge border font-weight-normal" id="filter-size-4-count">30</span>
+                    </div>
+                    <div class="custom-control custom-checkbox d-flex align-items-center justify-content-between">
+                        <input type="checkbox" class="custom-control-input" id="filter-size-5">
+                        <label class="custom-control-label" for="filter-size-5">XL</label>
+                        <span class="badge border font-weight-normal" id="filter-size-5-count">25</span>
+                    </div>
+                </form>
+            </div>
+            <!-- Size End -->
+        </div>
+        <div class="offcanvas-footer">
+            <button type="button" class="btn btn-primary btn-block" id="filter-apply-btn">Apply Filters</button>
+            <button type="button" class="btn btn-outline-secondary btn-block mt-2" id="filter-reset-btn">Reset</button>
+        </div>
+    </div>
+
+    <!-- Back to Top -->
+    <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
+
+    <!-- JavaScript Libraries -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/lib/easing/easing.min.js"></script>
+    <script src="assets/lib/owlcarousel/owl.carousel.min.js"></script>
+
+    <!-- LiquidJS Template Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/liquidjs@10.7.0/dist/liquid.browser.min.js"></script>
+
+    <!-- Product Data -->
+    <script src="constants/products.js"></script>
+
+    <!-- Product Rendering -->
+    <script src="assets/js/products.js"></script>
+
+    <!-- Category Page Script -->
+    <script src="assets/js/category.js"></script>
+
+    <!-- Template Javascript -->
+    <script src="assets/js/main.js"></script>
+    
+    <!-- Drawer Functionality -->
+    <script src="assets/js/drawers.js"></script>
+</body>
+
+</html>
+

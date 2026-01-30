@@ -1,0 +1,18 @@
+<!-- product widget -->
+<div class="product-widget">
+	<div class="product-img">
+		<img src="{{ product.image }}" alt="{{ product.title }}">
+	</div>
+	<div class="product-body">
+		<p class="product-category">{{ product.categoryLabel | default: product.category }}</p>
+		<h3 class="product-name"><a href="product.html?id={{ product.id }}">{{ product.title }}</a></h3>
+		<h4 class="product-price">
+			₹{{ product.price }}
+			{% if product.originalPrice and product.originalPrice > product.price %}
+			<del class="product-old-price">₹{{ product.originalPrice }}</del>
+			{% endif %}
+		</h4>
+	</div>
+</div>
+<!-- /product widget -->
+

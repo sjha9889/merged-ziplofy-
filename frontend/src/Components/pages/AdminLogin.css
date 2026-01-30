@@ -1,0 +1,11 @@
+.admin-login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0f172a}
+.admin-login-card{width:360px;background:#111827;color:#e5e7eb;border:1px solid #1f2937;border-radius:12px;padding:24px;box-shadow:0 10px 25px rgba(0,0,0,.35)}
+.admin-login-card h2{margin:0 0 12px 0}
+.admin-login-card label{display:block;font-size:14px;margin:12px 0 6px;color:#cbd5e1}
+.admin-login-card input{width:100%;padding:10px 12px;border-radius:8px;border:1px solid #374151;background:#0b1220;color:#e5e7eb}
+.password-field{position:relative}
+.password-field .toggle{position:absolute;right:6px;top:6px;background:#0b1220;border:1px solid #374151;color:#cbd5e1;border-radius:6px;padding:6px 8px;cursor:pointer}
+.submit{margin-top:16px;width:100%;padding:10px 12px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer}
+.submit:disabled{opacity:.7;cursor:not-allowed}
+.error{background:#7f1d1d;color:#fecaca;padding:8px;border-radius:6px;margin-bottom:8px;border:1px solid #ef4444}
+.hint{margin-top:10px;color:#94a3b8;font-size:12px}

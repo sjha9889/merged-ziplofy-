@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - NeuralStore</title>
+    <link href="assets/css/templatemo-neural-style.css" rel="stylesheet">
+    <link href="assets/css/checkout.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="neural-background"></div>
+    <div class="geometric-shapes"><div class="shape"></div><div class="shape"></div><div class="shape"></div><div class="shape"></div></div>
+
+    <!-- Header (same as index) -->
+    <header class="modern-header glass">
+        <div class="top-bar">
+            <div class="container">
+                <div class="top-bar-left">
+                    <span class="welcome-text">Welcome to NeuralStore</span>
+                    <span class="separator">|</span>
+                    <a href="help-center.html" class="top-link">Help Center</a>
+                    <a href="track-order.html" class="top-link">Track Order</a>
+                    <a href="refunds.html" class="top-link">Returns</a>
+                </div>
+                <div class="top-bar-right">
+                    <a href="#" class="top-link">Sell on NeuralStore</a>
+                    <a href="#" class="top-link">Customer Service</a>
+                    <a href="#" class="top-link">Download App</a>
+                    <div class="language-selector">
+                        <select>
+                            <option>English</option>
+                            <option>Hindi</option>
+                            <option>Bengali</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-header">
+            <div class="container">
+                <div class="logo-section">
+                    <a href="index.html" class="logo">
+                        <svg class="logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#e0a3ff"/>
+                                    <stop offset="50%" style="stop-color:#ff69b4"/>
+                                    <stop offset="100%" style="stop-color:#9370db"/>
+                                </linearGradient>
+                            </defs>
+                            <circle cx="50" cy="30" r="8" fill="url(#logoGradient)" opacity="0.8"></circle>
+                            <circle cx="30" cy="60" r="6" fill="url(#logoGradient)" opacity="0.6"></circle>
+                            <circle cx="70" cy="65" r="7" fill="url(#logoGradient)" opacity="0.7"></circle>
+                            <line x1="50" y1="30" x2="30" y2="60" stroke="url(#logoGradient)" stroke-width="2" opacity="0.6"></line>
+                            <line x1="50" y1="30" x2="70" y2="65" stroke="url(#logoGradient)" stroke-width="2" opacity="0.6"></line>
+                            <line x1="30" y1="60" x2="70" y2="65" stroke="url(#logoGradient)" stroke-width="2" opacity="0.6"></line>
+                        </svg>
+                        <span class="logo-text">NeuralStore</span>
+                    </a>
+                </div>
+
+                <div class="search-section">
+                    <div class="search-container">
+                        <div class="search-dropdown">
+                            <select class="category-dropdown">
+                                <option>All Categories</option>
+                                <option>Electronics</option>
+                                <option>Fashion</option>
+                                <option>Home & Garden</option>
+                                <option>Sports</option>
+                                <option>Books</option>
+                                <option>Beauty</option>
+                                <option>Toys</option>
+                            </select>
+                            <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 12,15 18,9"></polyline></svg>
+                        </div>
+                        <input type="text" class="search-input" placeholder="Search for products, brands and more...">
+                        <button class="search-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg></button>
+                    </div>
+                </div>
+
+                <div class="user-actions">
+                    <div class="action-item">
+                        <a href="#" class="action-link">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <span>Account</span>
+                        </a>
+                        <div class="dropdown-menu">
+                            <a href="login.html">Login</a>
+                            <a href="register.html">Register</a>
+                        </div>
+                    </div>
+                    <div class="action-item">
+                        <a href="wishlist.html" class="action-link">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"></path><path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"></path><path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"></path><path d="M12 3c0 1-1 3-3 3s-3-2-3-3 1-3 3-3 3 2 3 3"></path><path d="M12 21c0-1 1-3 3-3s3 2 3 3-1 3-3 3-3-2-3-3"></path></svg>
+                            <span>Wishlist</span>
+                            <span class="wishlist-count">0</span>
+                        </a>
+                    </div>
+                    <div class="action-item cart-item">
+                        <a href="cart.html" class="action-link cart-link">
+                            <div class="cart-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+                                <span class="cart-count">0</span>
+                            </div>
+                            <span>Cart</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mobile-menu-toggle"><div class="hamburger-line"></div><div class="hamburger-line"></div><div class="hamburger-line"></div></div>
+            </div>
+        </div>
+
+        <div class="promo-banner">
+            <div class="container">
+                <div class="promo-content">
+                    <span class="promo-text">🎉 Big Sale! Up to 70% OFF on Electronics</span>
+                    <a href="#" class="promo-link">Shop Now →</a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="main-nav">
+        <div class="container">
+            <div class="nav-categories">
+                <a href="#electronics" class="nav-link">Electronics</a>
+                <a href="#fashion" class="nav-link">Fashion</a>
+                <a href="#home" class="nav-link">Home & Garden</a>
+                <a href="#sports" class="nav-link">Sports</a>
+                <a href="#books" class="nav-link">Books</a>
+                <a href="#beauty" class="nav-link">Beauty</a>
+                <a href="#deals" class="nav-link deals-link">Today's Deals <span class="deal-badge">50% OFF</span></a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Checkout -->
+    <section class="checkout-section">
+        <div class="container">
+            <!-- Progress Steps -->
+            <div class="checkout-progress">
+                <div class="progress-step active">
+                    <div class="step-number">1</div>
+                    <div class="step-label">Cart</div>
+                </div>
+                <div class="progress-line active"></div>
+                <div class="progress-step active">
+                    <div class="step-number">2</div>
+                    <div class="step-label">Checkout</div>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step">
+                    <div class="step-number">3</div>
+                    <div class="step-label">Payment</div>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step">
+                    <div class="step-number">4</div>
+                    <div class="step-label">Confirmation</div>
+                </div>
+            </div>
+
+            <h1 class="checkout-title">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <path d="M20 8v6M23 11l-3 3-3-3"></path>
+                </svg>
+                Complete Your Order
+            </h1>
+
+            <div class="checkout-grid">
+                <!-- Left: Address & Payment -->
+                <div class="checkout-left">
+                    <!-- Shipping Address Card -->
+                    <div class="checkout-card">
+                        <div class="card-header">
+                            <div class="card-icon">📍</div>
+                            <div>
+                                <h3 class="card-title">Delivery Address</h3>
+                                <p class="card-subtitle">Where should we deliver your order?</p>
+                            </div>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                    Full Name
+                                </label>
+                                <input type="text" id="chName" placeholder="John Doe">
+                            </div>
+                            <div class="form-field">
+                                <label>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                                    </svg>
+                                    Phone Number
+                                </label>
+                                <input type="tel" id="chPhone" placeholder="98765 43210">
+                            </div>
+                            <div class="form-field full">
+                                <label>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                        <circle cx="12" cy="10" r="3"></circle>
+                                    </svg>
+                                    Complete Address
+                                </label>
+                                <input type="text" id="chAddress" placeholder="House no, Building, Street, Area">
+                            </div>
+                            <div class="form-field">
+                                <label>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                                    </svg>
+                                    City
+                                </label>
+                                <input type="text" id="chCity" placeholder="Mumbai">
+                            </div>
+                            <div class="form-field">
+                                <label>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <polyline points="12 6 12 12 16 14"></polyline>
+                                    </svg>
+                                    Pincode
+                                </label>
+                                <input type="text" id="chPincode" placeholder="400001">
+                            </div>
+                            <div class="form-field">
+                                <label>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                    </svg>
+                                    State
+                                </label>
+                                <input type="text" id="chState" placeholder="Maharashtra">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method Card -->
+                    <div class="checkout-card">
+                        <div class="card-header">
+                            <div class="card-icon">💳</div>
+                            <div>
+                                <h3 class="card-title">Payment Method</h3>
+                                <p class="card-subtitle">Choose how you want to pay</p>
+                            </div>
+                        </div>
+                        <div class="payment-cards">
+                            <label class="payment-card active" data-payment="cod">
+                                <input type="radio" name="pay" value="cod" checked>
+                                <div class="pay-card-content">
+                                    <div class="pay-icon">💰</div>
+                                    <div class="pay-info">
+                                        <div class="pay-name">Cash on Delivery</div>
+                                        <div class="pay-desc">Pay when you receive</div>
+                                    </div>
+                                    <div class="pay-check">✓</div>
+                                </div>
+                            </label>
+                            <label class="payment-card" data-payment="card">
+                                <input type="radio" name="pay" value="card">
+                                <div class="pay-card-content">
+                                    <div class="pay-icon">💳</div>
+                                    <div class="pay-info">
+                                        <div class="pay-name">Credit/Debit Card</div>
+                                        <div class="pay-desc">Visa, Mastercard, RuPay</div>
+                                    </div>
+                                    <div class="pay-check">✓</div>
+                                </div>
+                            </label>
+                            <label class="payment-card" data-payment="upi">
+                                <input type="radio" name="pay" value="upi">
+                                <div class="pay-card-content">
+                                    <div class="pay-icon">📱</div>
+                                    <div class="pay-info">
+                                        <div class="pay-name">UPI</div>
+                                        <div class="pay-desc">PhonePe, GPay, Paytm</div>
+                                    </div>
+                                    <div class="pay-check">✓</div>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="security-badge">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <polyline points="9 12 11 14 15 10"></polyline>
+                            </svg>
+                            <span>Your payment information is secure and encrypted</span>
+                        </div>
+                    </div>
+
+                    <!-- Delivery Options Card -->
+                    <div class="checkout-card">
+                        <div class="card-header">
+                            <div class="card-icon">🚚</div>
+                            <div>
+                                <h3 class="card-title">Delivery Speed</h3>
+                                <p class="card-subtitle">When do you want it delivered?</p>
+                            </div>
+                        </div>
+                        <div class="delivery-cards">
+                            <label class="delivery-card active" data-delivery="standard">
+                                <input type="radio" name="del" value="standard" checked>
+                                <div class="del-card-content">
+                                    <div class="del-icon">📦</div>
+                                    <div class="del-info">
+                                        <div class="del-name">Standard Delivery</div>
+                                        <div class="del-time">3-5 business days</div>
+                                    </div>
+                                    <div class="del-badge free">FREE</div>
+                                    <div class="del-check">✓</div>
+                                </div>
+                            </label>
+                            <label class="delivery-card" data-delivery="express">
+                                <input type="radio" name="del" value="express">
+                                <div class="del-card-content">
+                                    <div class="del-icon">⚡</div>
+                                    <div class="del-info">
+                                        <div class="del-name">Express Delivery</div>
+                                        <div class="del-time">1-2 business days</div>
+                                    </div>
+                                    <div class="del-badge">₹99</div>
+                                    <div class="del-check">✓</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button class="place-order-btn" id="placeOrderBtn">
+                        <span>Place Order</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Right: Order Summary -->
+                <aside class="checkout-right">
+                    <div class="checkout-card sticky">
+                        <div class="card-header">
+                            <h3 class="card-title">Order Summary</h3>
+                            <span class="item-count" id="itemCount">0 items</span>
+                        </div>
+                        <div id="summaryList" class="summary-list"></div>
+                        <div class="summary-divider"></div>
+                        <div class="summary-totals">
+                            <div class="summary-row">
+                                <span>Subtotal</span>
+                                <span id="sumSubtotal">₹0</span>
+                            </div>
+                            <div class="summary-row">
+                                <span>Shipping</span>
+                                <span id="sumShipping" class="free-shipping">Free</span>
+                            </div>
+                            <div class="summary-row discount-row" id="discountRow" style="display: none;">
+                                <span>Discount</span>
+                                <span class="discount-amount" id="sumDiscount">-₹0</span>
+                            </div>
+                        </div>
+                        <div class="summary-total">
+                            <span>Total Amount</span>
+                            <span id="sumTotal" class="total-amount">₹0</span>
+                        </div>
+                        <div class="savings-badge" id="savingsBadge" style="display: none;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                            <span>You saved <strong id="savingsAmount">₹0</strong> on this order!</span>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer (same as other pages) -->
+    <div id="neuralstore-footer" class="ns-footer-container">
+        <div class="ns-footer-wrapper">
+            <div class="ns-footer-main">
+                <div class="ns-footer-section ns-contact-section">
+                    <h3 class="ns-section-title">Get In Touch</h3>
+                    <p class="ns-section-desc">Connect with us for the latest neural technology products and innovations. We're here to help you discover the future of shopping.</p>
+                    <div class="ns-contact-list">
+                        <div class="ns-contact-item"><span class="ns-contact-icon">📍</span><span class="ns-contact-text">123 Neural Street, Tech City, USA</span></div>
+                        <div class="ns-contact-item"><span class="ns-contact-icon">✉️</span><span class="ns-contact-text">info@neuralstore.com</span></div>
+                        <div class="ns-contact-item"><span class="ns-contact-icon">📞</span><span class="ns-contact-text">+1 (555) 123-4567</span></div>
+                    </div>
+                </div>
+                <div class="ns-footer-section ns-shop-section">
+                    <h3 class="ns-section-title">Quick Shop</h3>
+                    <div class="ns-link-list">
+                        <a href="index.html" class="ns-footer-link">Home</a>
+                        <a href="shop.html" class="ns-footer-link">Our Shop</a>
+                        <a href="product-detail.html?id=iphone-15-pro" class="ns-footer-link">Shop Detail</a>
+                        <a href="cart.html" class="ns-footer-link">Shopping Cart</a>
+                        <a href="contact.html" class="ns-footer-link">Contact Us</a>
+                    </div>
+                </div>
+                <div class="ns-footer-section ns-account-section">
+                    <h3 class="ns-section-title">My Account</h3>
+                    <div class="ns-link-list">
+                        <a href="about.html" class="ns-footer-link">About</a>
+                        <a href="contact.html" class="ns-footer-link">Contact Us</a>
+                        <a href="account.html" class="ns-footer-link">My Account</a>
+                        <a href="track-order.html" class="ns-footer-link">Track Order</a>
+                        <a href="terms.html" class="ns-footer-link">Terms & Conditions</a>
+                        <a href="refunds.html" class="ns-footer-link">Refund & Return Policy</a>
+                    </div>
+                </div>
+                <div class="ns-footer-section ns-newsletter-section">
+                    <h3 class="ns-section-title">Newsletter</h3>
+                    <p class="ns-section-desc">Subscribe to our neural newsletter for the latest tech updates, exclusive deals, and cutting-edge product launches.</p>
+                    <div class="ns-newsletter-box">
+                        <input type="email" placeholder="Your email address" class="ns-email-input" id="nsEmailInput">
+                        <button class="ns-subscribe-btn" id="nsSubscribeBtn">SIGN UP</button>
+                    </div>
+                    <div class="ns-social-box">
+                        <a href="#" class="ns-social-btn" id="nsTwitterBtn">🐦</a>
+                        <a href="#" class="ns-social-btn" id="nsFacebookBtn">📘</a>
+                        <a href="#" class="ns-social-btn" id="nsLinkedinBtn">💼</a>
+                        <a href="#" class="ns-social-btn" id="nsInstagramBtn">📷</a>
+                    </div>
+                </div>
+            </div>
+            <div class="ns-footer-bottom">
+                <div class="ns-copyright"><p class="ns-copyright-text">&copy; 2025 NeuralStore. All Rights Reserved. Designed by Neural Team</p></div>
+                <div class="ns-payment-section"><span class="ns-payment-label">We Accept:</span><div class="ns-payment-badges"><span class="ns-payment-badge" id="nsVisaBadge">VISA</span><span class="ns-payment-badge" id="nsMcBadge">MC</span><span class="ns-payment-badge" id="nsPpBadge">PP</span><span class="ns-payment-badge" id="nsAeBadge">AE</span><span class="ns-payment-badge" id="nsDcBadge">DC</span></div></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/products.js"></script>
+    <script src="assets/js/templatemo-neural-scripts.js"></script>
+    <script>
+    (function(){
+        // Payment & Delivery Card Interactions
+        document.querySelectorAll('.payment-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                this.querySelector('input[type="radio"]').checked = true;
+            });
+        });
+
+        document.querySelectorAll('.delivery-card').forEach(card => {
+            card.addEventListener('click', function() {
+                document.querySelectorAll('.delivery-card').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                this.querySelector('input[type="radio"]').checked = true;
+                updateShipping();
+            });
+        });
+
+        function updateShipping() {
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            const subtotal = parseFloat(document.getElementById('sumSubtotal').textContent.replace(/[₹,]/g, '')) || 0;
+            const expressSelected = document.querySelector('input[name="del"][value="express"]')?.checked || false;
+            const standardSelected = document.querySelector('input[name="del"][value="standard"]')?.checked || false;
+            
+            let shipping = 0;
+            if (expressSelected) {
+                shipping = 99;
+            } else if (standardSelected) {
+                shipping = subtotal > 999 ? 0 : (subtotal > 0 ? 49 : 0);
+            }
+            
+            const total = subtotal + shipping;
+            const elShip = document.getElementById('sumShipping');
+            elShip.textContent = shipping === 0 ? 'Free' : `₹${shipping}`;
+            elShip.className = shipping === 0 ? 'free-shipping' : '';
+            document.getElementById('sumTotal').textContent = `₹${total.toLocaleString()}`;
+        }
+
+        function loadSummary(){
+            const summaryList = document.getElementById('summaryList');
+            const elSub = document.getElementById('sumSubtotal');
+            const elShip = document.getElementById('sumShipping');
+            const elTot = document.getElementById('sumTotal');
+            const itemCount = document.getElementById('itemCount');
+            let items = [];
+            try { items = JSON.parse(localStorage.getItem('cartItems')||'[]') } catch {}
+            
+            summaryList.innerHTML = '';
+            let subtotal = 0;
+            let totalSavings = 0;
+            
+            if (items.length === 0) {
+                summaryList.innerHTML = '<div style="text-align:center; padding:40px; color:#9fb2c2;">Your cart is empty</div>';
+                itemCount.textContent = '0 items';
+                elSub.textContent = '₹0';
+                elShip.textContent = 'Free';
+                elTot.textContent = '₹0';
+                return;
+            }
+            
+            (items||[]).forEach(it => {
+                const qty = (it.qty||it.quantity||1);
+                const price = (it.price||0);
+                // Try to get original price from products data
+                let originalPrice = price;
+                if (window.products && window.products[it.id]) {
+                    originalPrice = window.products[it.id].originalPrice || price;
+                } else if (it.originalPrice) {
+                    originalPrice = it.originalPrice;
+                }
+                const itemTotal = qty * price;
+                const itemSavings = (originalPrice - price) * qty;
+                subtotal += itemTotal;
+                totalSavings += itemSavings;
+                
+                const row = document.createElement('div');
+                row.className = 'summary-item';
+                row.innerHTML = `
+                    <img src="${it.image||''}" alt="${it.name||''}" onerror="this.src='https://via.placeholder.com/56x56/333/fff?text=Product'">
+                    <div class="si-left">
+                        <span>${it.name||''}</span>
+                        <span class="muted">Qty: ${qty}</span>
+                    </div>
+                    <div class="si-right">₹${itemTotal.toLocaleString()}</div>
+                `;
+                summaryList.appendChild(row);
+            });
+            
+            itemCount.textContent = `${items.length} ${items.length === 1 ? 'item' : 'items'}`;
+            elSub.textContent = `₹${subtotal.toLocaleString()}`;
+            
+            // Calculate shipping and total
+            calculateTotal();
+            
+            // Show savings badge if there are savings
+            const savingsBadge = document.getElementById('savingsBadge');
+            const savingsAmount = document.getElementById('savingsAmount');
+            if (totalSavings > 0) {
+                savingsBadge.style.display = 'flex';
+                savingsAmount.textContent = `₹${totalSavings.toLocaleString()}`;
+            } else {
+                savingsBadge.style.display = 'none';
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSummary();
+            
+            // Update shipping when delivery option changes
+            document.querySelectorAll('input[name="del"]').forEach(radio => {
+                radio.addEventListener('change', updateShipping);
+            });
+        });
+        
+        document.addEventListener('cart:updated', loadSummary);
+        window.addEventListener('storage', function(e){ 
+            if(e.key==='cartItems') loadSummary(); 
+        });
+
+        const placeBtn = document.getElementById('placeOrderBtn');
+        if(placeBtn){
+            placeBtn.addEventListener('click', function(){
+                const name = document.getElementById('chName').value.trim();
+                const phone = document.getElementById('chPhone').value.trim();
+                const address = document.getElementById('chAddress').value.trim();
+                
+                if (!name || !phone || !address) {
+                    alert('Please fill in all required fields (Name, Phone, Address)');
+                    return;
+                }
+                
+                // Show loading state
+                this.innerHTML = '<span>Processing...</span>';
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    alert('🎉 Order placed successfully!\n\nYour order will be delivered soon. Track your order in My Account.');
+                    localStorage.removeItem('cartItems');
+                    window.location.href = 'account.html';
+                }, 1500);
+            });
+        }
+    })();
+    </script>
+</body>
+</html>
+
+

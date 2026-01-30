@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ORNATIVA - Timeless Luxury Jewelry (Editable)</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/grapesjs/0.21.7/css/grapes.min.css" rel="stylesheet"/>
+    
+    <style>
+        /* Original ORNATIVA CSS */
+        :root {
+            --primary-color: #c9a96e;
+            --secondary-color: #2c2c2c;
+            --accent-color: #f8f8f8;
+            --text-dark: #333;
+            --text-light: #666;
+            --white: #ffffff;
+            --black: #000000;
+            --gold: #d4af37;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        .header {
+            background: var(--white);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar {
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .logo h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-menu a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-menu a:hover {
+            color: var(--primary-color);
+        }
+
+        .nav-icons {
+            display: flex;
+            gap: 1rem;
+            margin-left: 2rem;
+        }
+
+        .nav-icons a {
+            color: var(--text-dark);
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-icons a:hover {
+            color: var(--primary-color);
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .hamburger span {
+            width: 25px;
+            height: 3px;
+            background: var(--text-dark);
+            margin: 3px 0;
+            transition: 0.3s;
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 80px;
+            padding: 4rem 0;
+            background: linear-gradient(135deg, #f8f8f8 0%, #e8e8e8 100%);
+        }
+
+        .hero-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            color: var(--text-dark);
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            margin-bottom: 2rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: #b8956a;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-dark);
+            border: 2px solid var(--text-dark);
+        }
+
+        .btn-secondary:hover {
+            background: var(--text-dark);
+            color: var(--white);
+        }
+
+        .hero-image img {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        /* Section Styles */
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            color: var(--text-dark);
+        }
+
+        /* Featured Collections */
+        .featured-collections {
+            padding: 5rem 0;
+        }
+
+        .collections-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .collection-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .collection-image {
+            position: relative;
+            height: 350px;
+        }
+
+        .collection-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .collection-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .collection-overlay h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .collection-card:hover .collection-image img {
+            transform: scale(1.1);
+        }
+
+        /* About Brand */
+        .about-brand {
+            padding: 5rem 0;
+            background: var(--accent-color);
+        }
+
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .about-image img {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .about-text h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+
+        .about-text p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-color);
+            color: var(--white);
+        }
+
+        /* Bestsellers */
+        .bestsellers {
+            padding: 5rem 0;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .product-card {
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .product-image {
+            height: 300px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover .product-image img {
+            transform: scale(1.1);
+        }
+
+        .product-name {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+
+        .best-product-price {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        /* Testimonials */
+        .testimonials {
+            padding: 5rem 0;
+            background: var(--accent-color);
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .testimonial-card {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stars {
+            color: var(--gold);
+            margin-bottom: 1rem;
+        }
+
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .testimonial-author h4 {
+            color: var(--text-dark);
+            margin-bottom: 0.25rem;
+        }
+
+        .testimonial-author span {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        /* Trust Badges */
+        .trust-badges {
+            padding: 5rem 0;
+        }
+
+        .badges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .badge-item {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .badge-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .badge-item h3 {
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+
+        .badge-item p {
+            color: var(--text-light);
+        }
+
+        /* Newsletter */
+        .newsletter {
+            padding: 5rem 0;
+            background: var(--secondary-color);
+            color: var(--white);
+            text-align: center;
+        }
+
+        .newsletter-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .newsletter-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .newsletter-form {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .newsletter-form input {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        /* Instagram Gallery */
+        .instagram-gallery {
+            padding: 5rem 0;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .gallery-item {
+            position: relative;
+            height: 300px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .gallery-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .gallery-overlay span {
+            color: white;
+            font-weight: 600;
+            padding: 10px 20px;
+            border: 2px solid white;
+            border-radius: 5px;
+        }
+
+        .gallery-item:hover .gallery-overlay {
+            opacity: 1;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+
+        /* Exclusive Offers */
+        .exclusive-offers {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, var(--primary-color), #d4af37);
+            color: var(--white);
+            text-align: center;
+        }
+
+        .offer-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .offer-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        .offer-btn {
+            background: var(--white);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .offer-btn:hover {
+            background: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        /* Footer */
+        .footer {
+            background: var(--secondary-color);
+            color: var(--white);
+            padding: 3rem 0 1rem;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-column h3 {
+            margin-bottom: 1rem;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-column a {
+            color: var(--white);
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s ease;
+        }
+
+        .footer-column a:hover {
+            opacity: 1;
+            color: var(--primary-color);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .social-links a {
+            font-size: 1.5rem;
+        }
+
+        .contact-info p {
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            opacity: 0.8;
+        }
+
+        /* GrapesJS Panel Styling */
+        #gjs {
+            border: 3px solid #444;
+            border-radius: 3px;
+            height: 100vh;
+        }
+
+        .gjs-cv-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Editor Toggle Button */
+        .editor-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            background: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .editor-toggle:hover {
+            background: #b8956a;
+        }
+
+        /* User Authentication Panel */
+        .user-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 9999;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-panel.hidden {
+            display: none;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .template-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .template-btn {
+            padding: 6px 12px;
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .template-btn:hover {
+            background: #444;
+        }
+
+        /* Auto-save indicator */
+        .save-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .save-indicator.visible {
+            opacity: 1;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero-content,
+            .about-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .nav-menu {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .newsletter-form {
+                flex-direction: column;
+            }
+
+            .hero-buttons {
+                flex-direction: column;
+            }
+
+            .user-panel {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .template-buttons {
+                margin-top: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- User Authentication Panel -->
+    <div class="user-panel hidden" id="userPanel">
+        <div class="user-info">
+            <div class="user-avatar">U</div>
+            <span>Logged in as: <strong>user1</strong></span>
+        </div>
+        <div class="template-buttons">
+            <button class="template-btn" id="saveTemplateBtn">Save Template</button>
+            <button class="template-btn" id="loadTemplateBtn">Load My Template</button>
+            <button class="template-btn" id="resetTemplateBtn">Reset to Default</button>
+        </div>
+    </div>
+
+    <!-- Auto-save indicator -->
+    <div class="save-indicator" id="saveIndicator">Changes saved</div>
+
+    <button class="editor-toggle" id="toggleBtn">Toggle Editor</button>
+
+    <div id="gjs">
+        <!-- Header -->
+        <header class="header">
+            <nav class="navbar">
+                <div class="nav-container">
+                    <div class="logo">
+                        <h1>ORNATIVA</h1>
+                    </div>
+                    <ul class="nav-menu">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="category.html">Shop</a></li>
+                        <li><a href="category.html">Collections</a></li>
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                        <div class="nav-icons">
+                            <a href="#search"><i class="fas fa-search"></i></a>
+                            <a href="#cart"><i class="fas fa-shopping-bag"></i></a>
+                            <a href="login.html"><i class="fas fa-user"></i></a>
+                        </div>
+                    </ul>
+                    <div class="hamburger">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </nav>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero" id="home">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <h1 class="hero-title">Timeless Luxury, Crafted for You</h1>
+                        <p class="hero-subtitle">Discover our exquisite collection of handcrafted jewelry that celebrates
+                            life's most precious moments.</p>
+                        <div class="hero-buttons">
+                            <a href="shop.html" class="btn btn-primary">Shop Now</a>
+                            <a href="collections.html" class="btn btn-secondary">Explore Collections</a>
+                        </div>
+                    </div>
+                    <div class="hero-image">
+                        <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                            alt="Luxury Jewelry Collection" class="hero-img">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Collections -->
+        <section class="featured-collections">
+            <div class="container">
+                <h2 class="section-title">Featured Collections</h2>
+                <div class="collections-grid">
+                    <div class="collection-card" data-category="rings">
+                        <div class="collection-image">
+                            <img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwa90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                                alt="Rings Collection">
+                            <div class="collection-overlay">
+                                <h3>Rings</h3>
+                                <p>Elegant bands for every occasion</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="collection-card" data-category="necklaces">
+                        <div class="collection-image">
+                            <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                                alt="Necklaces Collection">
+                            <div class="collection-overlay">
+                                <h3>Necklaces</h3>
+                                <p>Statement pieces that define elegance</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="collection-card" data-category="earrings">
+                        <div class="collection-image">
+                            <img src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                                alt="Earrings Collection">
+                            <div class="collection-overlay">
+                                <h3>Earrings</h3>
+                                <p>Dazzling drops and studs</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="collection-card" data-category="bracelets">
+                        <div class="collection-image">
+                            <img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                                alt="Bracelets Collection">
+                            <div class="collection-overlay">
+                                <h3>Bracelets</h3>
+                                <p>Delicate chains and cuffs</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Brand Highlight -->
+        <section class="about-brand">
+            <div class="container">
+                <h2 class="section-title">About ORNATIVA</h2>
+                <div class="about-content">
+                    <div class="about-image">
+                        <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+                            alt="About ORNATIVA">
+                    </div>
+                    <div class="about-text">
+                        <h3>Our Story</h3>
+                        <p>For over three decades, ORNATIVA has been crafting exceptional jewelry that tells your unique
+                            story. Each piece is meticulously designed and handcrafted by our master artisans, using only
+                            the finest materials and traditional techniques passed down through generations.</p>
+                        <p>We believe that jewelry is more than an accessory—it's a reflection of your personality, a
+                            celebration of life's milestones, and a treasure to be cherished for generations to come.</p>
+                        <a href="about.html" class="btn btn-outline">Read More <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bestsellers / Featured Products -->
+        <section class="bestsellers">
+            <div class="container">
+                <h2 class="section-title">Bestsellers</h2>
+                <div class="products-grid">
+                    <div class="product-card" data-product="1">
+                        <div class="product-image">
+                            <img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                                alt="Diamond Solitaire Ring">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Diamond Solitaire Ring</h3>
+                            <p class="best-product-price">$2,499</p>
+                        </div>
+                    </div>
+                    <div class="product-card" data-product="2">
+                        <div class="product-image">
+                            <img src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                                alt="Pearl Drop Earrings">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Pearl Drop Earrings</h3>
+                            <p class="best-product-price">$899</p>
+                        </div>
+                    </div>
+                    <div class="product-card" data-product="3">
+                        <div class="product-image">
+                            <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                                alt="Gold Chain Necklace">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Gold Chain Necklace</h3>
+                            <p class="best-product-price">$1,299</p>
+                        </div>
+                    </div>
+                    <div class="product-card" data-product="4">
+                        <div class="product-image">
+                            <img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                                alt="Tennis Bracelet">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Tennis Bracelet</h3>
+                            <p class="best-product-price">$1,799</p>
+                        </div>
+                    </div>
+                    <div class="product-card" data-product="5">
+                        <div class="product-image">
+                            <img src="https://images.unsplash.com/photo-1603561596112-db0b2b0b5b8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                                alt="Emerald Ring">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Emerald Ring</h3>
+                            <p class="best-product-price">$3,299</p>
+                        </div>
+                    </div>
+                    <div class="product-card" data-product="6">
+                        <div class="product-image">
+                            <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                                alt="Sapphire Pendant">
+                        </div>
+                        <div class="product-info">
+                            <h3 class="product-name">Sapphire Pendant</h3>
+                            <p class="best-product-price">$1,599</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Testimonials -->
+        <section class="testimonials">
+            <div class="container">
+                <h2 class="section-title">What Our Customers Say</h2>
+                <div class="testimonials-grid">
+                    <div class="testimonial-card">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">"The craftsmanship is absolutely stunning. I've received so many
+                            compliments on my engagement ring. ORNATIVA truly understands luxury."</p>
+                        <div class="testimonial-author">
+                            <h4>Sarah Johnson</h4>
+                            <span>Verified Customer</span>
+                        </div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">"Exceptional quality and beautiful packaging. The necklace I purchased
+                            exceeded all my expectations. Highly recommended!"</p>
+                        <div class="testimonial-author">
+                            <h4>Michael Chen</h4>
+                            <span>Verified Customer</span>
+                        </div>
+                    </div>
+                    <div class="testimonial-card">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <p class="testimonial-text">"The customer service is outstanding, and the jewelry is even more
+                            beautiful in person. I'll definitely be back for more pieces."</p>
+                        <div class="testimonial-author">
+                            <h4>Emily Rodriguez</h4>
+                            <span>Verified Customer</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Why Choose Us (Trust Badges) -->
+        <section class="trust-badges">
+            <div class="container">
+                <div class="badges-grid">
+                    <div class="badge-item">
+                        <div class="badge-icon">
+                            <i class="fas fa-certificate"></i>
+                        </div>
+                        <h3>Hallmarked Jewelry</h3>
+                        <p>All pieces certified and hallmarked</p>
+                    </div>
+                    <div class="badge-item">
+                        <div class="badge-icon">
+                            <i class="fas fa-shipping-fast"></i>
+                        </div>
+                        <h3>Free Shipping</h3>
+                        <p>Complimentary delivery worldwide</p>
+                    </div>
+                    <div class="badge-item">
+                        <div class="badge-icon">
+                            <i class="fas fa-undo"></i>
+                        </div>
+                        <h3>Easy Returns</h3>
+                        <p>30-day hassle-free returns</p>
+                    </div>
+                    <div class="badge-item">
+                        <div class="badge-icon">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        <h3>Premium Packaging</h3>
+                        <p>Luxury presentation boxes included</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Newsletter Signup -->
+        <section class="newsletter">
+            <div class="container">
+                <div class="newsletter-content">
+                    <h2>Join our community & get exclusive offers</h2>
+                    <p>Be the first to know about new collections, special promotions, and insider events.</p>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Enter your email address" required>
+                        <button type="submit" class="btn btn-primary">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Instagram Feed / Jewelry Gallery -->
+        <section class="instagram-gallery">
+            <div class="container">
+                <h2 class="section-title">Follow Our Journey</h2>
+                <div class="gallery-grid">
+                    <div class="gallery-item" data-product="gallery-1">
+                        <img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                            alt="Jewelry Gallery">
+                        <div class="gallery-overlay">
+                            <span>Shop This Look</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item" data-product="gallery-2">
+                        <img src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                            alt="Jewelry Gallery">
+                        <div class="gallery-overlay">
+                            <span>Shop This Look</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item" data-product="gallery-3">
+                        <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                            alt="Jewelry Gallery">
+                        <div class="gallery-overlay">
+                            <span>Shop This Look</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item" data-product="gallery-4">
+                        <img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                            alt="Jewelry Gallery">
+                        <div class="gallery-overlay">
+                            <span>Shop This Look</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item" data-product="gallery-5">
+                        <img src="https://images.unsplash.com/photo-1603561596112-db0b2b0b5b8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                            alt="Jewelry Gallery">
+                        <div class="gallery-overlay">
+                            <span>Shop This Look</span>
+                        </div>
+                    </div>
+                    <div class="gallery-item" data-product="gallery-6">
+                        <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                            alt="Jewelry Gallery">
+                        <div class="gallery-overlay">
+                            <span>Shop This Look</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Exclusive Offers / Seasonal Banner -->
+        <section class="exclusive-offers">
+            <div class="container">
+                <div class="offer-content">
+                    <h2>Festive Collection – Up to 30% Off</h2>
+                    <p>Celebrate the season with our exclusive holiday collection. Limited time offer on selected pieces.</p>
+                    <a href="shop.html" class="offer-btn btn-primary">Shop Now</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-column">
+                        <h3>Quick Links</h3>
+                        <ul>
+                            <li><a href="index.html">Home</a></li>
+                            <li><a href="category.html">Shop</a></li>
+                            <li><a href="category.html">Collections</a></li>
+                            <li><a href="about.html">About Us</a></li>
+                            <li><a href="contact.html">Contact</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Policies</h3>
+                        <ul>
+                            <li><a href="shipping.html">Shipping Policy</a></li>
+                            <li><a href="return.html">Returns & Exchanges</a></li>
+                            <li><a href="privacy.html">Privacy Policy</a></li>
+                            <li><a href="t&c.html">Terms of Service</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h3>Connect With Us</h3>
+                        <div class="social-links">
+                            <a href="#"><i class="fab fa-facebook"></i></a>
+                            <a href="#"><i class="fab fa-instagram"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fab fa-pinterest"></i></a>
+                        </div>
+                        <div class="contact-info">
+                            <p>Email: info@ornativa.com</p>
+                            <p>Phone: (555) 123-4567</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="footer-bottom">
+                    <p>&copy; 2024 ORNATIVA. All rights reserved. | Crafted with love for jewelry enthusiasts worldwide.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/grapesjs/0.21.7/grapes.min.js"></script>
+    <script>
+        let editor;
+        let isEditorMode = false;
+        let originalContent;
+        let isLoggedIn = false; // Simulate login state
+        let autoSaveInterval;
+
+        // Store original website content
+        function storeOriginalContent() {
+            const gjs = document.querySelector('#gjs');
+            originalContent = gjs.innerHTML;
+        }
+
+        // Initialize GrapesJS
+        function initEditor() {
+            const gjs = document.querySelector('#gjs');
+            
+            // Create editor container
+            const editorContainer = document.createElement('div');
+            editorContainer.id = 'editor-container';
+            editorContainer.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100vh;
+                z-index: 10000;
+                background: white;
+                display: none;
+            `;
+            
+            // Add editor panels
+            editorContainer.innerHTML = `
+                <div style="display: flex; height: 100vh;">
+                    <div id="editor-canvas" style="flex: 1; position: relative;"></div>
+                    <div class="editor-panels" style="width: 300px; background: #f8f8f8; border-left: 1px solid #ddd; display: flex; flex-direction: column;">
+                        <div class="panel-switcher" style="background: #2c2c2c; padding: 10px; color: white; text-align: center;">
+                            <button onclick="showPanel('layers')" style="background: var(--primary-color); color: white; border: none; padding: 8px 15px; margin: 0 5px; cursor: pointer; border-radius: 3px;">Layers</button>
+                            <button onclick="showPanel('styles')" style="background: #444; color: white; border: none; padding: 8px 15px; margin: 0 5px; cursor: pointer; border-radius: 3px;">Styles</button>
+                        </div>
+                        <div id="layers-panel" class="editor-panel" style="flex: 1; padding: 10px; overflow-y: auto;"></div>
+                        <div id="styles-panel" class="editor-panel" style="flex: 1; padding: 10px; overflow-y: auto; display: none;"></div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(editorContainer);
+            
+            // Initialize GrapesJS
+            editor = grapesjs.init({
+                container: '#editor-canvas',
+                height: '100%',
+                width: '100%',
+                storageManager: false,
+                panels: { defaults: [] },
+                layerManager: {
+                    appendTo: '#layers-panel'
+                },
+                styleManager: {
+                    appendTo: '#styles-panel',
+                    sectors: [
+                        {
+                            name: 'Typography',
+                            open: true,
+                            buildProps: ['font-family', 'font-size', 'font-weight', 'letter-spacing', 'color', 'line-height', 'text-align'],
+                        },
+                        {
+                            name: 'Dimension',
+                            open: false,
+                            buildProps: ['width', 'height', 'max-width', 'min-height', 'margin', 'padding'],
+                        },
+                        {
+                            name: 'Background',
+                            open: false,
+                            buildProps: ['background-color', 'background-image', 'background-repeat', 'background-position', 'background-size'],
+                        }
+                    ]
+                },
+                deviceManager: {
+                    devices: [
+                        {
+                            name: 'Desktop',
+                            width: '',
+                        },
+                        {
+                            name: 'Tablet',
+                            width: '768px',
+                            widthMedia: '992px',
+                        },
+                        {
+                            name: 'Mobile',
+                            width: '320px',
+                            widthMedia: '768px',
+                        }
+                    ]
+                }
+            });
+
+            // Set the content from original website or saved template
+            const savedTemplate = getSavedTemplate();
+            if (savedTemplate) {
+                editor.setComponents(savedTemplate.html);
+                editor.setStyle(savedTemplate.css);
+            } else {
+                editor.setComponents(originalContent);
+                editor.setStyle(document.querySelector('style').innerHTML);
+            }
+            
+            // Set up auto-save on changes
+            editor.on('component:update', function() {
+                autoSaveTemplate();
+            });
+            
+            editor.on('styleManager:update', function() {
+                autoSaveTemplate();
+            });
+            
+            return editorContainer;
+        }
+
+        // Show/hide editor panels
+        function showPanel(panelName) {
+            const panels = document.querySelectorAll('.editor-panel');
+            const buttons = document.querySelectorAll('.panel-switcher button');
+            
+            panels.forEach(panel => panel.style.display = 'none');
+            buttons.forEach(btn => btn.style.background = '#444');
+            
+            document.getElementById(panelName + '-panel').style.display = 'block';
+            event.target.style.background = 'var(--primary-color)';
+        }
+
+        // Save template to localStorage
+        function saveTemplate() {
+            if (!editor) return;
+            
+            const templateData = {
+                html: editor.getHtml(),
+                css: editor.getCss(),
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem('userTemplate', JSON.stringify(templateData));
+            showSaveIndicator();
+        }
+
+        // Auto-save template
+        function autoSaveTemplate() {
+            if (!editor) return;
+            
+            const templateData = {
+                html: editor.getHtml(),
+                css: editor.getCss(),
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem('userTemplate', JSON.stringify(templateData));
+            showSaveIndicator();
+        }
+
+        // Get saved template from localStorage
+        function getSavedTemplate() {
+            const templateData = localStorage.getItem('userTemplate');
+            
+            if (!templateData) {
+                return null;
+            }
+            
+            try {
+                return JSON.parse(templateData);
+            } catch (error) {
+                console.error('Error parsing saved template:', error);
+                return null;
+            }
+        }
+
+        // Show save indicator
+        function showSaveIndicator() {
+            const indicator = document.getElementById('saveIndicator');
+            indicator.classList.add('visible');
+            
+            setTimeout(() => {
+                indicator.classList.remove('visible');
+            }, 2000);
+        }
+
+        // Load template from localStorage
+        function loadTemplate() {
+            const templateData = getSavedTemplate();
+            
+            if (!templateData) {
+                alert('No saved template found.');
+                return;
+            }
+            
+            try {
+                if (isEditorMode && editor) {
+                    // Update editor content
+                    editor.setComponents(templateData.html);
+                    editor.setStyle(templateData.css);
+                    alert('Template loaded successfully!');
+                } else {
+                    // Update website content directly
+                    const gjs = document.querySelector('#gjs');
+                    gjs.innerHTML = templateData.html;
+                    
+                    // Add the CSS to the page
+                    const styleElement = document.createElement('style');
+                    styleElement.textContent = templateData.css;
+                    document.head.appendChild(styleElement);
+                    
+                    alert('Template loaded successfully! Page will refresh to apply changes.');
+                    setTimeout(() => location.reload(), 1000);
+                }
+            } catch (error) {
+                console.error('Error loading template:', error);
+                alert('Error loading template. Please try again.');
+            }
+        }
+
+        // Reset to default template
+        function resetTemplate() {
+            if (confirm('Are you sure you want to reset to the default template? This cannot be undone.')) {
+                localStorage.removeItem('userTemplate');
+                
+                if (isEditorMode && editor) {
+                    editor.setComponents(originalContent);
+                    editor.setStyle(document.querySelector('style').innerHTML);
+                } else {
+                    const gjs = document.querySelector('#gjs');
+                    gjs.innerHTML = originalContent;
+                    
+                    // Remove any custom styles
+                    const customStyles = document.querySelectorAll('style[data-custom]');
+                    customStyles.forEach(style => style.remove());
+                    
+                    alert('Template reset to default! Page will refresh to apply changes.');
+                    setTimeout(() => location.reload(), 1000);
+                }
+            }
+        }
+
+        // Toggle between view and edit mode
+        function toggleEditor() {
+            const toggleBtn = document.querySelector('.editor-toggle');
+            const gjs = document.querySelector('#gjs');
+            
+            if (!isEditorMode) {
+                // Switch to editor mode
+                if (!originalContent) {
+                    storeOriginalContent();
+                }
+                
+                if (!editor) {
+                    const editorContainer = initEditor();
+                    window.editorContainer = editorContainer; // Store reference
+                }
+                
+                // Hide original website
+                gjs.style.display = 'none';
+                
+                // Show editor
+                const editorContainer = document.getElementById('editor-container') || window.editorContainer;
+                if (editorContainer) {
+                    editorContainer.style.display = 'block';
+                }
+                
+                toggleBtn.textContent = 'View Website';
+                toggleBtn.style.zIndex = '10001';
+                isEditorMode = true;
+                
+                // Show user panel if logged in
+                if (isLoggedIn) {
+                    document.getElementById('userPanel').classList.remove('hidden');
+                }
+                
+                // Start auto-save interval
+                autoSaveInterval = setInterval(autoSaveTemplate, 30000); // Auto-save every 30 seconds
+                
+                // Trigger editor refresh
+                if (editor) {
+                    editor.refresh();
+                }
+                
+            } else {
+                // Switch to view mode
+                // Stop auto-save interval
+                if (autoSaveInterval) {
+                    clearInterval(autoSaveInterval);
+                }
+                
+                // Hide editor
+                const editorContainer = document.getElementById('editor-container') || window.editorContainer;
+                if (editorContainer) {
+                    editorContainer.style.display = 'none';
+                }
+                
+                // Show original website with any updates
+                if (editor) {
+                    const updatedHtml = editor.getHtml();
+                    const updatedCss = editor.getCss();
+                    
+                    // Update the content if there are changes
+                    if (updatedHtml && updatedHtml.trim()) {
+                        gjs.innerHTML = updatedHtml;
+                    }
+                    
+                    // Save changes before exiting editor
+                    autoSaveTemplate();
+                }
+                
+                gjs.style.display = 'block';
+                gjs.style.height = 'auto';
+                gjs.style.border = 'none';
+                
+                toggleBtn.textContent = 'Toggle Editor';
+                toggleBtn.style.zIndex = '9999';
+                isEditorMode = false;
+                
+                // Hide user panel
+                document.getElementById('userPanel').classList.add('hidden');
+            }
+        }
+
+        // Check for saved template on page load
+        function checkSavedTemplate() {
+            const templateData = getSavedTemplate();
+            
+            if (templateData) {
+                try {
+                    const gjs = document.querySelector('#gjs');
+                    
+                    // Apply saved template
+                    gjs.innerHTML = templateData.html;
+                    
+                    // Add the CSS to the page
+                    const styleElement = document.createElement('style');
+                    styleElement.textContent = templateData.css;
+                    styleElement.setAttribute('data-custom', 'true');
+                    document.head.appendChild(styleElement);
+                    
+                    console.log('Saved template loaded successfully');
+                } catch (error) {
+                    console.error('Error loading saved template:', error);
+                }
+            }
+        }
+
+        // Initialize the website in view mode
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is logged in (simulate this)
+            const urlParams = new URLSearchParams(window.location.search);
+            isLoggedIn = urlParams.has('user') || localStorage.getItem('userLoggedIn') === 'true';
+            
+            if (isLoggedIn) {
+                localStorage.setItem('userLoggedIn', 'true');
+            }
+            
+            const gjs = document.querySelector('#gjs');
+            gjs.style.height = 'auto';
+            gjs.style.border = 'none';
+            
+            // Store original content
+            storeOriginalContent();
+            
+            // Check for saved template
+            checkSavedTemplate();
+            
+            // Simple mobile menu toggle
+            const hamburger = document.querySelector('.hamburger');
+            const navMenu = document.querySelector('.nav-menu');
+            
+            if (hamburger && navMenu) {
+                hamburger.addEventListener('click', function() {
+                    navMenu.classList.toggle('active');
+                });
+            }
+            
+            // Set up toggle button
+            const toggleBtn = document.querySelector('.editor-toggle');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleEditor();
+                });
+            }
+            
+            // Set up template buttons
+            const saveBtn = document.getElementById('saveTemplateBtn');
+            const loadBtn = document.getElementById('loadTemplateBtn');
+            const resetBtn = document.getElementById('resetTemplateBtn');
+            
+            if (saveBtn) saveBtn.addEventListener('click', saveTemplate);
+            if (loadBtn) loadBtn.addEventListener('click', loadTemplate);
+            if (resetBtn) resetBtn.addEventListener('click', resetTemplate);
+            
+            // Show user panel if logged in and not in editor mode
+            if (isLoggedIn && !isEditorMode) {
+                document.getElementById('userPanel').classList.remove('hidden');
+            }
+        });
+    </script>
+
+    <style>
+        /* Additional styles for mobile menu */
+        @media (max-width: 768px) {
+            .nav-menu {
+                position: fixed;
+                left: -100%;
+                top: 70px;
+                flex-direction: column;
+                background-color: white;
+                width: 100%;
+                text-align: center;
+                transition: 0.3s;
+                box-shadow: 0 10px 27px rgba(0, 0, 0, 0.05);
+                z-index: 999;
+            }
+
+            .nav-menu.active {
+                left: 0;
+            }
+
+            .nav-menu li {
+                margin: 2.5rem 0;
+            }
+
+            .hamburger.active .bar:nth-child(2) {
+                opacity: 0;
+            }
+
+            .hamburger.active .bar:nth-child(1) {
+                transform: translateY(8px) rotate(45deg);
+            }
+
+            .hamburger.active .bar:nth-child(3) {
+                transform: translateY(-8px) rotate(-45deg);
+            }
+        }
+
+        /* GrapesJS Editor specific styles */
+        .gjs-cv-canvas {
+            background: white;
+        }
+
+        .editor-row {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            z-index: 9998;
+        }
+
+        .panel__switcher button {
+            background: #444;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            margin: 0 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        .panel__switcher button:hover {
+            background: #555;
+        }
+
+        .panel__switcher button.active {
+            background: var(--primary-color);
+        }
+    </style>
+</body>
+
+</html>

@@ -1,0 +1,24 @@
+<div class="deal-card">
+    <div class="deal-image">
+        <img src="{{ deal.image }}" alt="{{ deal.title }}" onerror="this.src='https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400&h=250&fit=crop'">
+        {% if deal.badge %}
+        <div class="deal-badge {% if deal.badge == 'New Arrivals' %}new{% endif %}">{{ deal.badge }}</div>
+        {% endif %}
+        {% if deal.timer %}
+        <div class="deal-timer">
+            <span class="timer-text">Ends in:</span>
+            <div class="timer">
+                <span class="time-unit">{{ deal.timer.hours }}</span>
+                <span class="time-unit">{{ deal.timer.minutes }}</span>
+                <span class="time-unit">{{ deal.timer.seconds }}</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    <div class="deal-content">
+        <h3>{{ deal.title }}</h3>
+        <p>{{ deal.description }}</p>
+        <a href="{{ deal.link }}" class="deal-btn">{{ deal.buttonText }}</a>
+    </div>
+</div>
+

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - Ornativa</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Open+Sans:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav id="main-nav" class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><img src="assets/images/logo.png" alt=""></a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="shop.html">Collections</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="about.html">About Us</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="contact.html">Contact</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <a href="login.html" class="nav-link"><i class="bi bi-person-circle"></i></a>
+                    <a href="cart.html" class="nav-link"><i class="bi bi-cart"></i></a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Banner -->
+    <section
+        class="hero-banner contact-hero-banner text-white d-flex align-items-center justify-content-center text-center">
+        <div class="container">
+            <h1 class="display-3 fw-bold">Contact Us</h1>
+            <p class="lead">We’d love to hear from you</p>
+        </div>
+    </section>
+
+    <!-- Contact Form & Info Cards Section -->
+    <section class="container my-5">
+        <div class="row">
+            <!-- Contact Form -->
+            <div class="col-lg-7 mb-4 mb-lg-0">
+                <div class="card shadow-lg border-0 rounded-3 p-4">
+                    <div class="card-body">
+                        <h4 class="mb-4 text-primary-gold">Send Us a Message</h4>
+                        <form id="contactForm" class="needs-validation" novalidate>
+                            <div class="mb-3">
+                                <label for="contactName" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="contactName" required>
+                                <div class="invalid-feedback">Please enter your name.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contactEmail" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="contactEmail" required>
+                                <div class="invalid-feedback">Please enter a valid email address.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contactSubject" class="form-label">Subject</label>
+                                <input type="text" class="form-control" id="contactSubject" required>
+                                <div class="invalid-feedback">Please enter a subject.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="contactMessage" class="form-label">Message</label>
+                                <textarea class="form-control rounded-4" id="contactMessage" rows="5"
+                                    required></textarea>
+                                <div class="invalid-feedback">Please enter your message.</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary-gold w-100 rounded-pill py-2">Submit
+                                Message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Info Cards -->
+            <div class="col-lg-5">
+                <div class="card shadow-lg border-0 rounded-3 p-4 bg-light-gold h-100">
+                    <div class="card-body d-flex flex-column justify-content-center">
+                        <h4 class="mb-4 text-primary-gold">Reach Us Directly</h4>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-geo-alt-fill text-primary-gold fs-4 me-3"></i>
+                            <div>
+                                <h6 class="mb-0 fw-bold">Address</h6>
+                                <p class="mb-0 text-muted">123 Jewelry Street, Gemstone City, 12345</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-telephone-fill text-primary-gold fs-4 me-3"></i>
+                            <div>
+                                <h6 class="mb-0 fw-bold">Phone</h6>
+                                <p class="mb-0 text-muted">+1 (123) 456-7890</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="bi bi-envelope-fill text-primary-gold fs-4 me-3"></i>
+                            <div>
+                                <h6 class="mb-0 fw-bold">Email</h6>
+                                <p class="mb-0 text-muted">info@jewelco.com</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mt-3">
+                            <i class="bi bi-share-fill text-primary-gold fs-4 me-3"></i>
+                            <div>
+                                <h6 class="mb-0 fw-bold">Follow Us</h6>
+                                <div class="social-icons mt-1">
+                                    <a href="#" class="text-dark me-3"><i class="bi bi-instagram"></i></a>
+                                    <a href="#" class="text-dark me-3"><i class="bi bi-facebook"></i></a>
+                                    <a href="#" class="text-dark"><i class="bi bi-twitter"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Map Section -->
+    <section class="container-fluid my-5">
+        <div class="map-container rounded-3 shadow-lg overflow-hidden">
+            <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.251493722718!2d144.9630573153164!3d-37.81627927975176!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad642b9e6e8c7c7%3A0xf6f6f6f6f6f6f6f6!2sFederation%20Square!5e0!3m2!1sen!2sau!4v1678234567890!5m2!1sen!2sau"
+                width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+    </section>
+
+    <!-- Newsletter Subscription Banner -->
+    <section id="newsletter" class="py-5 bg-dark text-white text-center">
+        <div class="container">
+            <h2 class="display-4 mb-3">Be the First to Know</h2>
+            <p class="lead mb-4">Get updates on new arrivals & exclusive offers.</p>
+            <form class="row justify-content-center">
+                <div class="col-md-6 col-lg-4">
+                    <div class="input-group mb-3">
+                        <input type="email" class="form-control" placeholder="Enter your email"
+                            aria-label="Enter your email">
+                        <button class="btn btn-primary" type="submit">Subscribe</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="main-footer" class="bg-dark text-white py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4">Shop Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white-50">Rings</a></li>
+                        <li><a href="#" class="text-white-50">Necklaces</a></li>
+                        <li><a href="#" class="text-white-50">Bracelets</a></li>
+                        <li><a href="#" class="text-white-50">Earrings</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4">Customer Support</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="privacy.html" class="text-white-50">Privacy Policy</a></li>
+                        <li><a href="return.html" class="text-white-50">Returns</a></li>
+                        <li><a href="shipping.html" class="text-white-50">Shipping</a></li>
+                        <li><a href="terms.html" class="text-white-50">Terms & Conditions</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4">About Brand</h5>
+                    <p class="text-white-50">Discover our story, commitment to craftsmanship, and ethical sourcing
+                        practices.</p>
+                    <a href="#" class="btn btn-sm btn-outline-light">Read More</a>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h5 class="text-uppercase mb-4">Contact Info</h5>
+                    <p class="text-white-50">123 Jewelry Street, Gemstone City, 12345</p>
+                    <p class="text-white-50">Email: info@brand.com</p>
+                    <p class="text-white-50">Phone: +1 (123) 456-7890</p>
+                    <div class="social-icons mt-3">
+                        <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4 border-white-50">
+            <div class="text-center text-white-50">
+                <small>&copy; 2023 Jewelry Brand. All rights reserved.</small>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <!-- Custom JavaScript -->
+    <script src="assets/js/script.js"></script>
+</body>
+
+</html>

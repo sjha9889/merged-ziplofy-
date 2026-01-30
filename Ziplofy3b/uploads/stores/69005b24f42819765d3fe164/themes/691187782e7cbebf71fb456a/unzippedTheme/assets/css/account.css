@@ -1,0 +1,38 @@
+/* Account Page - isolated styles */
+.account-page{background:#f6f8fb;padding:40px 0}
+.account-container{max-width:1200px;margin:0 auto;padding:0 20px}
+
+/* Dashboard layout */
+.account-dashboard{display:grid;grid-template-columns:280px 1fr;gap:24px}
+.account-sidebar{background:#fff;border:1px solid #e6eaf0;border-radius:12px;overflow:hidden}
+.acc-user{padding:18px;border-bottom:1px solid #e6eaf0;background:#f8fbff}
+.acc-user h3{margin:0;color:#0f172a;font-size:1.1rem}
+.acc-user p{margin:4px 0 0 0;color:#64748b;font-size:.9rem}
+.acc-nav{display:grid}
+.acc-nav a{padding:12px 18px;color:#0f172a;text-decoration:none;border-bottom:1px solid #eef2f6;display:flex;justify-content:space-between;align-items:center}
+.acc-nav a:hover{background:#f8fbff}
+
+.account-content{display:grid;gap:24px}
+.acc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.acc-stat{background:#fff;border:1px solid #e6eaf0;border-radius:12px;padding:16px}
+.acc-stat .num{font-size:1.6rem;font-weight:900;color:#0f172a}
+.acc-stat .label{color:#64748b}
+
+.acc-card{background:#fff;border:1px solid #e6eaf0;border-radius:12px;padding:16px}
+.acc-card h2{margin:0 0 10px 0;color:#0f172a;font-size:1.2rem}
+.acc-card p{color:#64748b}
+.account-actions{margin-top:14px}
+.account-actions .btn{display:inline-block;padding:10px 16px;border-radius:10px;background:linear-gradient(90deg,#2563eb,#22d3ee);color:#fff;text-decoration:none;font-weight:800}
+
+/* Orders */
+.orders-table{width:100%;border-collapse:collapse}
+.orders-table th,.orders-table td{padding:10px;border-bottom:1px solid #eef2f6;text-align:left;color:#0f172a}
+.orders-table th{background:#f8fbff;color:#334155}
+.order-status{padding:4px 10px;border-radius:999px;font-weight:700;font-size:.85rem}
+.st-shipped{background:#e8fff3;color:#0f7a3b}
+.st-pending{background:#fff7e6;color:#9a6700}
+.st-cancel{background:#ffe8e8;color:#b42318}
+
+@media(max-width:1000px){.account-dashboard{grid-template-columns:1fr}.acc-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.acc-grid{grid-template-columns:1fr}}
+

@@ -1,0 +1,219 @@
+/* Drawer Styles */
+.offcanvas-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(15, 23, 42, 0.55) !important;
+    backdrop-filter: blur(2px) !important;
+    z-index: 1040 !important;
+    opacity: 0;
+    visibility: hidden;
+    display: none;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+
+.offcanvas-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    display: block !important;
+}
+
+.offcanvas-panel {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    width: min(420px, 90vw) !important;
+    height: 100vh !important;
+    background: #0f172a !important;
+    color: #fff !important;
+    z-index: 1050 !important;
+    display: none !important;
+    flex-direction: column !important;
+    transform: translateX(100%);
+    transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border-radius: 0;
+    box-shadow: -30px 0 60px rgba(15, 23, 42, 0.45) !important;
+}
+
+.offcanvas-panel.active {
+    display: flex !important;
+    transform: translateX(0);
+}
+
+/* Filter Panel - slides from left */
+.filter-panel {
+    left: 0 !important;
+    right: auto !important;
+    transform: translateX(-100%) !important;
+    box-shadow: 30px 0 60px rgba(15, 23, 42, 0.45) !important;
+}
+
+.filter-panel.active {
+    transform: translateX(0) !important;
+}
+
+.offcanvas-header {
+    padding: 1.25rem 1.5rem !important;
+    background: linear-gradient(120deg, #ffb703, #ffd333) !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.offcanvas-title {
+    font-size: 1.35rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+}
+
+.offcanvas-close {
+    border: none !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: #fff !important;
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 12px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: transform 0.2s ease, background 0.2s ease !important;
+}
+
+.offcanvas-close:hover {
+    background: rgba(255, 255, 255, 0.35) !important;
+    transform: translateY(-2px) !important;
+}
+
+.offcanvas-body {
+    flex: 1 !important;
+    overflow-y: auto !important;
+    padding: 1.5rem !important;
+    background: #f8f9fc !important;
+    color: #0f172a !important;
+}
+
+.offcanvas-footer {
+    padding: 1.5rem !important;
+    background: #ffffff !important;
+    box-shadow: 0 -15px 30px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Cart Panel content */
+.cart-panel .cart-drawer-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.cart-panel .cart-drawer-item:last-child {
+    border-bottom: none;
+}
+
+.cart-panel .cart-drawer-item-image {
+    width: 88px;
+    height: 88px;
+    border-radius: 16px;
+    object-fit: cover;
+    background: #fff5e6;
+    box-shadow: 0 10px 25px rgba(251, 133, 0, 0.2);
+}
+
+.cart-panel .cart-drawer-item-title {
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 0.25rem;
+}
+
+.cart-panel .cart-drawer-item-price {
+    font-weight: 500;
+    color: #64748b;
+}
+
+.cart-panel .cart-drawer-item-quantity {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.cart-panel .cart-drawer-item-quantity input {
+    width: 54px;
+    text-align: center;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.cart-panel .cart-drawer-item-remove {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.cart-panel .cart-drawer-item-remove:hover {
+    background: #ef4444;
+    color: #fff;
+}
+
+#cart-drawer-footer .btn {
+    width: 100%;
+    margin-bottom: 0.75rem;
+    border-radius: 12px;
+    font-weight: 600;
+    padding: 0.85rem 1rem;
+}
+
+#cart-drawer-footer .btn-primary {
+    background: linear-gradient(120deg, #ffb703, #fb8500);
+    border: none;
+    box-shadow: 0 12px 22px rgba(251, 133, 0, 0.4);
+}
+
+#cart-drawer-footer .btn-outline-dark {
+    border-color: #0f172a;
+    color: #0f172a;
+}
+
+#cart-drawer-footer .btn-outline-dark:hover {
+    background: #0f172a;
+    color: #fff;
+}
+
+#cart-drawer-total {
+    font-size: 1.25rem;
+    color: #0f172a;
+}
+
+/* Nav panel items */
+.nav-panel .nav-link {
+    padding: 0.9rem 0;
+    border-bottom: 1px solid #e2e8f0;
+    color: #0f172a;
+    text-transform: capitalize;
+}
+
+.nav-panel .nav-link:last-child {
+    border-bottom: none;
+}
+
+.nav-panel .dropdown-menu {
+    position: static !important;
+    float: none;
+    width: 100%;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+
+body.drawer-open {
+    overflow: hidden;
+}
+
+@media (max-width: 575.98px) {
+    .offcanvas-panel {
+        width: 100% !important;
+    }
+}
+

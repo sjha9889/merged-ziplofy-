@@ -1,0 +1,18 @@
+<a href="product-details.html?id={{ product.id }}" class="trend-card">
+    <div class="trend-image-wrapper">
+        <img src="{{ product.image }}" alt="{{ product.title }}" onerror="this.src='https://via.placeholder.com/280x220?text=No+Image'">
+        <div class="product-actions">
+            <button class="action-btn" type="button" aria-label="Toggle wishlist" data-product="{{ product.id }}" data-product-action="wishlist">
+                <i class="fa fa-heart"></i>
+            </button>
+            <button class="action-btn" type="button" aria-label="Quick view" data-product="{{ product.id }}" data-product-action="quick-view">
+                <i class="fa fa-eye"></i>
+            </button>
+        </div>
+    </div>
+    <div class="trend-info">
+        <h4>{{ product.title }}</h4>
+        <span class="price">₹{{ product.price }}</span>
+    </div>
+</a>
+

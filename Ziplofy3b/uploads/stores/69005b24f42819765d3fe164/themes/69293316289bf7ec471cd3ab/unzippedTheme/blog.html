@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog - ShoppingMart</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/cart-sidebar.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header id="masthead" class="site-header">
+        <div class="header-wrap">
+            <!-- Top Header Bar -->
+            <div class="top-header">
+                <div class="top-bar">
+                    <div class="container">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="widget-contact">
+                                    <ul class="list-inline mb-0">
+                                        <li class="list-inline-item">
+                                            <i class="fas fa-phone"></i>
+                                            <a href="tel:+1234567890">+1 (234) 567-890</a>
+                                        </li>
+                                        <li class="list-inline-item">
+                                            <i class="fas fa-envelope"></i>
+                                            <a href="mailto:info@shoppingcart.com">info@shoppingcart.com</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="right-top-bar">
+                                    <div class="social-links">
+                                        <a href="#" class="me-2"><i class="fab fa-facebook"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-instagram"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-pinterest"></i></a>
+                                    </div>
+                                    <div class="user-account">
+                                        <a href="login.html" class="account-link me-3">
+                                            <i class="fas fa-user me-1"></i>Login
+                                        </a>
+                                        <a href="register.html" class="account-link">
+                                            <i class="fas fa-user-plus me-1"></i>Register
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Site Branding -->
+            <div id="site-branding">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <div class="site-logo">
+                                <a href="index.html">
+                                    <h1 class="site-title">ShoppingMart</h1>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="search-box">
+                                <form class="search-form">
+                                    <div class="input-group">
+                                        <input type="search" class="form-control" placeholder="Search products...">
+                                        <button class="btn btn-primary" type="submit">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="header-right">
+                                <div class="cart-wishlist">
+                                    <a href="cart.html" class="cart-btn me-3">
+                                        <i class="fas fa-shopping-cart"></i>
+                                        <span class="cart-count">0</span>
+                                        <span class="cart-text">Cart</span>
+                                    </a>
+                                    <a href="wishlist.html" class="wishlist-btn">
+                                        <i class="fas fa-heart"></i>
+                                        <span class="wishlist-count">0</span>
+                                        <span class="wishlist-text">Wishlist</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Navigation -->
+            <nav id="sticky-header" class="main-navigation">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="main-header">
+                                <nav class="navbar navbar-expand-lg">
+                                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                                        <span class="navbar-toggler-icon"></span>
+                                    </button>
+                                    <div class="collapse navbar-collapse" id="navbarNav">
+                                        <ul class="navbar-nav me-auto">
+                                            <li class="nav-item">
+                                                <a class="nav-link active" href="index.html">Home</a>
+                                            </li>
+                                            <li class="nav-item dropdown">
+                                                <a class="nav-link" href="shop.html" role="button">Shop</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="about.html">About</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="contact.html">Contact</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="blog.html">Blog</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <section class="page-header bg-light py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1 class="page-title">Our Blog</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                            <li class="breadcrumb-item active">Blog</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cart Sidebar -->
+    <div id="cart-sidebar" class="cart-sidebar">
+        <div class="cart-sidebar-header">
+            <h3>Shopping Cart</h3>
+            <button class="cart-close-btn" id="cart-close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-sidebar-content">
+            <div class="cart-items" id="cart-items">
+                <!-- Cart items will be added here dynamically -->
+                <div class="empty-cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <p>Your cart is empty</p>
+                    <a href="shop.html" class="btn btn-primary">Continue Shopping</a>
+                </div>
+            </div>
+        </div>
+        <div class="cart-sidebar-footer">
+            <div class="cart-total">
+                <div class="total-row">
+                    <span>Subtotal:</span>
+                    <span id="cart-subtotal">$0.00</span>
+                </div>
+                <div class="total-row">
+                    <span>Shipping:</span>
+                    <span id="cart-shipping">$0.00</span>
+                </div>
+                <div class="total-row total-final">
+                    <span>Total:</span>
+                    <span id="cart-total">$0.00</span>
+                </div>
+            </div>
+            <div class="cart-actions">
+                <a href="cart.html" class="btn btn-outline-primary">View Cart</a>
+                <a href="checkout.html" class="btn btn-primary">Checkout</a>
+            </div>
+        </div>
+    </div>
+    <!-- End Cart Sidebar -->
+
+    <!-- Cart Sidebar Overlay -->
+    <div class="cart-sidebar-overlay"></div>
+
+    <!-- Main Content -->
+    <div id="content" class="site-content">
+        <div class="container">
+            <div class="row">
+                <!-- Blog Posts -->
+                <div class="col-lg-8">
+                    <!-- Featured Post -->
+                    <article class="blog-post mb-5">
+                        <div class="blog-post-img">
+                            <img src="https://images.unsplash.com/photo-1518779578993-ec3579fee39f?w=1200&q=80&auto=format&fit=crop" alt="Featured Post" class="img-fluid rounded-3 shadow-sm">
+                        </div>
+                        <div class="blog-content">
+                            <div class="blog-meta">
+                                <span><i class="fas fa-calendar"></i> December 15, 2024</span>
+                                <span><i class="fas fa-user"></i> By Admin</span>
+                                <span><i class="fas fa-comments"></i> 5 Comments</span>
+                            </div>
+                            <h2><a href="blog-details.html">The Future of E-commerce: Trends to Watch in 2024</a></h2>
+                            <p>E-commerce continues to evolve at a rapid pace, with new technologies and consumer behaviors shaping the industry. In this comprehensive guide, we explore the key trends that will define online shopping in 2024 and beyond.</p>
+                            <a href="blog-details.html" class="btn btn-outline-primary">Read More</a>
+                        </div>
+                    </article>
+
+                    <!-- Blog Posts Grid -->
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <article class="blog-post">
+                                <div class="blog-post-img">
+                                    <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?w=800&q=80&auto=format&fit=crop" alt="Blog Post" class="img-fluid rounded-3">
+                                </div>
+                                <div class="blog-content">
+                                    <div class="blog-meta">
+                                        <span><i class="fas fa-calendar"></i> December 10, 2024</span>
+                                        <span><i class="fas fa-user"></i> By Admin</span>
+                                    </div>
+                                    <h4><a href="blog-details.html">10 Tips for Successful Online Shopping</a></h4>
+                                    <p>Learn how to make the most of your online shopping experience with these expert tips and tricks.</p>
+                                    <a href="blog-details.html" class="btn btn-sm btn-outline-primary">Read More</a>
+                                </div>
+                            </article>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <article class="blog-post">
+                                <div class="blog-post-img">
+                                    <img src="https://images.unsplash.com/photo-1520975867597-0f5a9f7f5af7?w=800&q=80&auto=format&fit=crop" alt="Blog Post" class="img-fluid rounded-3">
+                                </div>
+                                <div class="blog-content">
+                                    <div class="blog-meta">
+                                        <span><i class="fas fa-calendar"></i> December 8, 2024</span>
+                                        <span><i class="fas fa-user"></i> By Admin</span>
+                                    </div>
+                                    <h4><a href="blog-details.html">Sustainable Shopping: Making Eco-Friendly Choices</a></h4>
+                                    <p>Discover how to shop sustainably and make environmentally conscious purchasing decisions.</p>
+                                    <a href="blog-details.html" class="btn btn-sm btn-outline-primary">Read More</a>
+                                </div>
+                            </article>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <article class="blog-post">
+                                <div class="blog-post-img">
+                                    <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80&auto=format&fit=crop" alt="Blog Post" class="img-fluid rounded-3">
+                                </div>
+                                <div class="blog-content">
+                                    <div class="blog-meta">
+                                        <span><i class="fas fa-calendar"></i> December 5, 2024</span>
+                                        <span><i class="fas fa-user"></i> By Admin</span>
+                                    </div>
+                                    <h4><a href="blog-details.html">Mobile Shopping: The Rise of Smartphone Commerce</a></h4>
+                                    <p>Explore how mobile devices are revolutionizing the way we shop online.</p>
+                                    <a href="blog-details.html" class="btn btn-sm btn-outline-primary">Read More</a>
+                                </div>
+                            </article>
+                        </div>
+                        
+                        <div class="col-md-6 mb-4">
+                            <article class="blog-post">
+                                <div class="blog-post-img">
+                                    <img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&q=80&auto=format&fit=crop" alt="Blog Post" class="img-fluid rounded-3">
+                                </div>
+                                <div class="blog-content">
+                                    <div class="blog-meta">
+                                        <span><i class="fas fa-calendar"></i> December 3, 2024</span>
+                                        <span><i class="fas fa-user"></i> By Admin</span>
+                                    </div>
+                                    <h4><a href="blog-details.html">Holiday Shopping Guide 2024</a></h4>
+                                    <p>Get ready for the holiday season with our comprehensive shopping guide and gift ideas.</p>
+                                    <a href="blog-details.html" class="btn btn-sm btn-outline-primary">Read More</a>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+
+                    <!-- Pagination -->
+                    <nav aria-label="Blog pagination" class="mt-5">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1">Previous</a>
+                            </li>
+                            <li class="page-item active">
+                                <a class="page-link" href="#">1</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">2</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">3</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">Next</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <div class="sidebar">
+                        <!-- Search Widget -->
+                        <div class="widget mb-4">
+                            <h3 class="widget-title">Search</h3>
+                            <form class="search-form">
+                                <div class="input-group">
+                                    <input type="search" class="form-control" placeholder="Search blog...">
+                                    <button class="btn btn-primary" type="submit">
+                                        <i class="fas fa-search"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Categories Widget -->
+                        <div class="widget mb-4">
+                            <h3 class="widget-title">Categories</h3>
+                            <ul class="list-unstyled">
+                                <li><a href="#">E-commerce (5)</a></li>
+                                <li><a href="#">Shopping Tips (3)</a></li>
+                                <li><a href="#">Technology (4)</a></li>
+                                <li><a href="#">Lifestyle (2)</a></li>
+                                <li><a href="#">Reviews (6)</a></li>
+                            </ul>
+                        </div>
+
+                        <!-- Recent Posts Widget -->
+                        <div class="widget mb-4">
+                            <h3 class="widget-title">Recent Posts</h3>
+                            <div class="recent-posts">
+                                <div class="recent-post-item mb-3">
+                                    <div class="row">
+                                        <div class="col-4">
+                                            <img src="https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=400&q=80&auto=format&fit=crop" alt="Recent Post" class="img-fluid rounded">
+                                        </div>
+                                        <div class="col-8">
+                                            <h6><a href="blog-details.html">Top 10 Gadgets of 2024</a></h6>
+                                            <small class="text-muted">December 12, 2024</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="recent-post-item mb-3">
+                                    <div class="row">
+                                        <div class="col-4">
+                                            <img src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?w=400&q=80&auto=format&fit=crop" alt="Recent Post" class="img-fluid rounded">
+                                        </div>
+                                        <div class="col-8">
+                                            <h6><a href="blog-details.html">Winter Fashion Trends</a></h6>
+                                            <small class="text-muted">December 10, 2024</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="recent-post-item mb-3">
+                                    <div class="row">
+                                        <div class="col-4">
+                                            <img src="https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=400&q=80&auto=format&fit=crop" alt="Recent Post" class="img-fluid rounded">
+                                        </div>
+                                        <div class="col-8">
+                                            <h6><a href="blog-details.html">Home Decor Ideas</a></h6>
+                                            <small class="text-muted">December 8, 2024</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tags Widget -->
+                        <div class="widget mb-4">
+                            <h3 class="widget-title">Tags</h3>
+                            <div class="tag-cloud">
+                                <a href="#" class="badge bg-light text-dark me-1 mb-1">Shopping</a>
+                                <a href="#" class="badge bg-light text-dark me-1 mb-1">E-commerce</a>
+                                <a href="#" class="badge bg-light text-dark me-1 mb-1">Technology</a>
+                                <a href="#" class="badge bg-light text-dark me-1 mb-1">Fashion</a>
+                                <a href="#" class="badge bg-light text-dark me-1 mb-1">Lifestyle</a>
+                                <a href="#" class="badge bg-light text-dark me-1 mb-1">Reviews</a>
+                                <a href="#" class="badge bg-light text-dark me-1 mb-1">Tips</a>
+                                <a href="#" class="badge bg-light text-dark me-1 mb-1">Trends</a>
+                            </div>
+                        </div>
+
+                        <!-- Newsletter Widget -->
+                        <div class="widget">
+                            <h3 class="widget-title">Newsletter</h3>
+                            <p>Subscribe to our newsletter for the latest updates and exclusive offers.</p>
+                            <form class="newsletter-form">
+                                <div class="mb-3">
+                                    <input type="email" class="form-control" placeholder="Your email address" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Subscribe</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="colophon" class="site-footer">
+        <div class="widget-wrap">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="widget">
+                            <h3 class="widget-title">About Us</h3>
+                            <p>We are a leading e-commerce platform offering the best products at competitive prices. Our mission is to provide exceptional shopping experiences.</p>
+                            <div class="social-links">
+                                <a href="#" class="me-2"><i class="fab fa-facebook"></i></a>
+                                <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
+                                <a href="#" class="me-2"><i class="fab fa-instagram"></i></a>
+                                <a href="#" class="me-2"><i class="fab fa-pinterest"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="widget">
+                            <h3 class="widget-title">Quick Links</h3>
+                            <ul class="list-unstyled">
+                                <li><a href="index.html">Home</a></li>
+                                <li><a href="about.html">About Us</a></li>
+                                <li><a href="shop.html">Products</a></li>
+                                <li><a href="contact.html">Contact</a></li>
+                                <li><a href="blog.html">Blog</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="widget">
+                            <h3 class="widget-title">Customer Service</h3>
+                            <ul class="list-unstyled">
+                                <li><a href="shipping.html">Shipping Info</a></li>
+                                <li><a href="returns.html">Returns</a></li>
+                                <li><a href="size-guide.html">Size Guide</a></li>
+                                <li><a href="faq.html">FAQ</a></li>
+                                <li><a href="support.html">Support</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="widget">
+                            <h3 class="widget-title">Contact Info</h3>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-map-marker-alt me-2"></i>123 Shopping Street, City, State 12345</li>
+                                <li><i class="fas fa-phone me-2"></i>+1 (234) 567-890</li>
+                                <li><i class="fas fa-envelope me-2"></i>info@shoppingcart.com</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="site-info">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="copyright">
+                            <p>&copy; 2024 ShoppingMart. All rights reserved. | Designed by <a href="#">Ziplofy</a></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="payment-cards text-end">
+                            <i class="fab fa-cc-visa fa-2x me-2"></i>
+                            <i class="fab fa-cc-mastercard fa-2x me-2"></i>
+                            <i class="fab fa-cc-paypal fa-2x me-2"></i>
+                            <i class="fab fa-cc-amex fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Go to Top Button -->
+    <button type="button" class="go-to-top" id="goToTop">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Custom JS -->
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/cart-sidebar.js"></script>
+</body>
+</html>

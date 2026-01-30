@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - ShoppingMart</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/cart-sidebar.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header id="masthead" class="site-header">
+        <div class="header-wrap">
+            <!-- Top Header Bar -->
+            <div class="top-header">
+                <div class="top-bar">
+                    <div class="container">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="widget-contact">
+                                    <ul class="list-inline mb-0">
+                                        <li class="list-inline-item">
+                                            <i class="fas fa-phone"></i>
+                                            <a href="tel:+1234567890">+1 (234) 567-890</a>
+                                        </li>
+                                        <li class="list-inline-item">
+                                            <i class="fas fa-envelope"></i>
+                                            <a href="mailto:info@shoppingcart.com">info@shoppingcart.com</a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="right-top-bar">
+                                    <div class="social-links">
+                                        <a href="#" class="me-2"><i class="fab fa-facebook"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-instagram"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-pinterest"></i></a>
+                                    </div>
+                                    <div class="user-account">
+                                        <a href="login.html" class="account-link me-3">
+                                            <i class="fas fa-user me-1"></i>Login
+                                        </a>
+                                        <a href="register.html" class="account-link">
+                                            <i class="fas fa-user-plus me-1"></i>Register
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Site Branding -->
+            <div id="site-branding">
+                <div class="container">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <div class="site-logo">
+                                <a href="index.html">
+                                    <h1 class="site-title">ShoppingMart</h1>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="search-box">
+                                <form class="search-form">
+                                    <div class="input-group">
+                                        <input type="search" class="form-control" placeholder="Search products...">
+                                        <button class="btn btn-primary" type="submit">
+                                            <i class="fas fa-search"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="header-right">
+                                <div class="cart-wishlist">
+                                    <a href="cart.html" class="cart-btn me-3">
+                                        <i class="fas fa-shopping-cart"></i>
+                                        <span class="cart-count">0</span>
+                                        <span class="cart-text">Cart</span>
+                                    </a>
+                                    <a href="wishlist.html" class="wishlist-btn">
+                                        <i class="fas fa-heart"></i>
+                                        <span class="wishlist-count">0</span>
+                                        <span class="wishlist-text">Wishlist</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Navigation -->
+            <nav id="sticky-header" class="main-navigation">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="main-header">
+                                <nav class="navbar navbar-expand-lg">
+                                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                                        <span class="navbar-toggler-icon"></span>
+                                    </button>
+                                    <div class="collapse navbar-collapse" id="navbarNav">
+                                        <ul class="navbar-nav me-auto">
+                                            <li class="nav-item">
+                                                <a class="nav-link active" href="index.html">Home</a>
+                                            </li>
+                                            <li class="nav-item dropdown">
+                                                <a class="nav-link" href="shop.html" role="button">Shop</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="about.html">About</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="contact.html">Contact</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link" href="blog.html">Blog</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <section class="page-header bg-light py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1 class="page-title">About Us</h1>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                            <li class="breadcrumb-item active">About</li>
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Cart Sidebar -->
+    <div id="cart-sidebar" class="cart-sidebar">
+        <div class="cart-sidebar-header">
+            <h3>Shopping Cart</h3>
+            <button class="cart-close-btn" id="cart-close-btn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-sidebar-content">
+            <div class="cart-items" id="cart-items">
+                <!-- Cart items will be added here dynamically -->
+                <div class="empty-cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <p>Your cart is empty</p>
+                    <a href="shop.html" class="btn btn-primary">Continue Shopping</a>
+                </div>
+            </div>
+        </div>
+        <div class="cart-sidebar-footer">
+            <div class="cart-total">
+                <div class="total-row">
+                    <span>Subtotal:</span>
+                    <span id="cart-subtotal">$0.00</span>
+                </div>
+                <div class="total-row">
+                    <span>Shipping:</span>
+                    <span id="cart-shipping">$0.00</span>
+                </div>
+                <div class="total-row total-final">
+                    <span>Total:</span>
+                    <span id="cart-total">$0.00</span>
+                </div>
+            </div>
+            <div class="cart-actions">
+                <a href="cart.html" class="btn btn-outline-primary">View Cart</a>
+                <a href="checkout.html" class="btn btn-primary">Checkout</a>
+            </div>
+        </div>
+    </div>
+    <!-- End Cart Sidebar -->
+
+    <!-- Cart Sidebar Overlay -->
+    <div class="cart-sidebar-overlay"></div>
+
+    <!-- Main Content -->
+    <div id="content" class="site-content">
+        <div class="container">
+            <!-- About Section -->
+            <section class="about-section py-5">
+                <div class="row align-items-center">
+                    <div class="col-lg-6">
+                        <h2>Welcome to ShoppingCart</h2>
+                        <p class="lead">We are a leading e-commerce platform dedicated to providing exceptional shopping experiences for our customers worldwide.</p>
+                        <p>Founded in 2020, ShoppingCart has grown from a small startup to one of the most trusted online shopping destinations. Our mission is to make quality products accessible to everyone while maintaining the highest standards of customer service.</p>
+                        <p>We believe that shopping should be convenient, enjoyable, and secure. That's why we've built our platform with cutting-edge technology and user-friendly design to ensure your shopping experience is nothing short of excellent.</p>
+                    </div>
+                    <div class="col-lg-6">
+                        <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=1200&q=80&auto=format&fit=crop" alt="About Us" class="img-fluid rounded">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Our Values -->
+            <section class="values-section py-5 bg-light">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12 text-center mb-5">
+                            <h2>Our Core Values</h2>
+                            <p class="lead">The principles that guide everything we do</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-4">
+                            <div class="text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-shield-alt fa-3x text-primary"></i>
+                                </div>
+                                <h4>Trust & Security</h4>
+                                <p>We prioritize the security of your personal information and ensure safe transactions with advanced encryption technology.</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-4">
+                            <div class="text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-heart fa-3x text-primary"></i>
+                                </div>
+                                <h4>Customer First</h4>
+                                <p>Our customers are at the heart of everything we do. We're committed to providing exceptional service and support.</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-4">
+                            <div class="text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-leaf fa-3x text-primary"></i>
+                                </div>
+                                <h4>Sustainability</h4>
+                                <p>We're committed to sustainable practices and eco-friendly packaging to reduce our environmental impact.</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-4">
+                            <div class="text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-rocket fa-3x text-primary"></i>
+                                </div>
+                                <h4>Innovation</h4>
+                                <p>We continuously innovate to improve your shopping experience with the latest technology and features.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Our Team -->
+            <section class="team-section py-5">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12 text-center mb-5">
+                            <h2>Meet Our Team</h2>
+                            <p class="lead">The passionate people behind ShoppingCart</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-4">
+                            <div class="card border-0 shadow-sm">
+                                <img src="https://images.unsplash.com/photo-1544723795-3fb6469f5b39?w=600&q=80&auto=format&fit=crop" class="card-img-top" alt="Team Member">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Sarah Johnson</h5>
+                                    <p class="text-muted">CEO & Founder</p>
+                                    <p class="card-text">Visionary leader with 15+ years in e-commerce, passionate about creating exceptional customer experiences.</p>
+                                    <div class="social-links">
+                                        <a href="#" class="me-2"><i class="fab fa-linkedin"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-facebook"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-4">
+                            <div class="card border-0 shadow-sm">
+                                <img src="https://images.unsplash.com/photo-1544006659-f0b21884ce1d?w=600&q=80&auto=format&fit=crop" class="card-img-top" alt="Team Member">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Michael Chen</h5>
+                                    <p class="text-muted">CTO</p>
+                                    <p class="card-text">Technology expert focused on building scalable and secure e-commerce solutions for our platform.</p>
+                                    <div class="social-links">
+                                        <a href="#" class="me-2"><i class="fab fa-linkedin"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-github"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-4">
+                            <div class="card border-0 shadow-sm">
+                                <img src="https://images.unsplash.com/photo-1554151228-14d9def656e4?w=600&q=80&auto=format&fit=crop" class="card-img-top" alt="Team Member">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Emily Rodriguez</h5>
+                                    <p class="text-muted">Head of Customer Service</p>
+                                    <p class="card-text">Customer advocate ensuring every interaction with ShoppingCart exceeds expectations.</p>
+                                    <div class="social-links">
+                                        <a href="#" class="me-2"><i class="fab fa-linkedin"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-instagram"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-4">
+                            <div class="card border-0 shadow-sm">
+                                <img src="https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=600&q=80&auto=format&fit=crop" class="card-img-top" alt="Team Member">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">David Thompson</h5>
+                                    <p class="text-muted">Head of Marketing</p>
+                                    <p class="card-text">Creative strategist driving brand awareness and customer engagement across all channels.</p>
+                                    <div class="social-links">
+                                        <a href="#" class="me-2"><i class="fab fa-linkedin"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
+                                        <a href="#" class="me-2"><i class="fab fa-facebook"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Statistics -->
+            <section class="stats-section py-5 bg-primary text-white">
+                <div class="container">
+                    <div class="row text-center">
+                        <div class="col-lg-3 col-md-6 mb-4">
+                            <div class="stat-item">
+                                <h3 class="display-4 fw-bold">1M+</h3>
+                                <p class="lead">Happy Customers</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-4">
+                            <div class="stat-item">
+                                <h3 class="display-4 fw-bold">50K+</h3>
+                                <p class="lead">Products Available</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-4">
+                            <div class="stat-item">
+                                <h3 class="display-4 fw-bold">99.9%</h3>
+                                <p class="lead">Uptime Guarantee</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-4">
+                            <div class="stat-item">
+                                <h3 class="display-4 fw-bold">24/7</h3>
+                                <p class="lead">Customer Support</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Our Mission -->
+            <section class="mission-section py-5">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-8 mx-auto text-center">
+                            <h2>Our Mission</h2>
+                            <p class="lead">To revolutionize online shopping by providing a seamless, secure, and enjoyable experience that connects customers with the products they love.</p>
+                            <p>We envision a world where shopping is not just a transaction, but an experience that brings joy and convenience to our customers' lives. Through innovation, dedication, and a customer-first approach, we're building the future of e-commerce.</p>
+                            <a href="contact.html" class="btn btn-primary btn-lg">Get in Touch</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="colophon" class="site-footer">
+        <div class="widget-wrap">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="widget">
+                            <h3 class="widget-title">About Us</h3>
+                            <p>We are a leading e-commerce platform offering the best products at competitive prices. Our mission is to provide exceptional shopping experiences.</p>
+                            <div class="social-links">
+                                <a href="#" class="me-2"><i class="fab fa-facebook"></i></a>
+                                <a href="#" class="me-2"><i class="fab fa-twitter"></i></a>
+                                <a href="#" class="me-2"><i class="fab fa-instagram"></i></a>
+                                <a href="#" class="me-2"><i class="fab fa-pinterest"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="widget">
+                            <h3 class="widget-title">Quick Links</h3>
+                            <ul class="list-unstyled">
+                                <li><a href="index.html">Home</a></li>
+                                <li><a href="about.html">About Us</a></li>
+                                <li><a href="products.html">Products</a></li>
+                                <li><a href="contact.html">Contact</a></li>
+                                <li><a href="blog.html">Blog</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="widget">
+                            <h3 class="widget-title">Customer Service</h3>
+                            <ul class="list-unstyled">
+                                <li><a href="shipping.html">Shipping Info</a></li>
+                                <li><a href="returns.html">Returns</a></li>
+                                <li><a href="size-guide.html">Size Guide</a></li>
+                                <li><a href="faq.html">FAQ</a></li>
+                                <li><a href="support.html">Support</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="widget">
+                            <h3 class="widget-title">Contact Info</h3>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-map-marker-alt me-2"></i>123 Shopping Street, City, State 12345</li>
+                                <li><i class="fas fa-phone me-2"></i>+1 (234) 567-890</li>
+                                <li><i class="fas fa-envelope me-2"></i>info@shoppingcart.com</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="site-info">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="copyright">
+                            <p>&copy; 2024 ShoppingCart. All rights reserved. | Designed by <a href="#">Ziplofy</a></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="payment-cards text-end">
+                            <i class="fab fa-cc-visa fa-2x me-2"></i>
+                            <i class="fab fa-cc-mastercard fa-2x me-2"></i>
+                            <i class="fab fa-cc-paypal fa-2x me-2"></i>
+                            <i class="fab fa-cc-amex fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Go to Top Button -->
+    <button type="button" class="go-to-top" id="goToTop">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Custom JS -->
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/cart-sidebar.js"></script>
+</body>
+</html>

@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diamond Pendant Necklace - ORNATIVA</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <h1>ORNATIVA</h1>
+                </div>
+                <ul class="nav-menu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="category.html">Shop</a></li>
+                    <li><a href="category.html">Collections</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <div class="nav-icons">
+                        <a href="#search"><i class="fas fa-search"></i></a>
+                        <a href="#cart"><i class="fas fa-shopping-bag"></i></a>
+                        <a href="account.html"><i class="fas fa-user"></i></a>
+                    </div>
+                </ul>
+                <!-- <div class="nav-icons desktop-only">
+                    <a href="#search"><i class="fas fa-search"></i></a>
+                    <a href="#cart"><i class="fas fa-shopping-bag"></i></a>
+                    <a href="account.html"><i class="fas fa-user"></i></a>
+                </div> -->
+                <div class="hamburger">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero / Breadcrumb -->
+    <section class="product-hero">
+        <div class="container">
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a>
+                <span class="separator">></span>
+                <a href="shop.html">Shop</a>
+                <span class="separator">></span>
+                <a href="category.html">Necklaces</a>
+                <span class="separator">></span>
+                <span class="current">Diamond Pendant</span>
+            </nav>
+        </div>
+    </section>
+
+    <!-- Main Product Section -->
+    <section class="product-detail">
+        <div class="container">
+            <div class="product-layout">
+                <!-- Left Column - Images -->
+                <div class="product-images">
+                    <div class="main-image-container">
+                        <img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80"
+                            alt="Diamond Pendant Necklace" class="main-image" id="mainImage">
+                        <div class="image-overlay">
+                            <button class="zoom-btn" id="zoomBtn">
+                                <i class="fas fa-search-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Thumbnail Slider -->
+                    <div class="thumbnail-slider">
+                        <div class="thumbnail-container">
+                            <img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80"
+                                alt="Diamond Pendant - Front View" class="thumbnail active"
+                                data-main="https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80">
+                            <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80"
+                                alt="Diamond Pendant - Side View" class="thumbnail"
+                                data-main="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80">
+                            <img src="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80"
+                                alt="Diamond Pendant - Detail View" class="thumbnail"
+                                data-main="https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80">
+                            <img src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80"
+                                alt="Diamond Pendant - Back View" class="thumbnail"
+                                data-main="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Details -->
+                <div class="product-details">
+                    <h1 class="product-title">Diamond Pendant Necklace</h1>
+
+                    <!-- Ratings -->
+                    <div class="product-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <span class="rating-text">4.9 (127 reviews)</span>
+                    </div>
+
+                    <!-- Price -->
+                    <div class="product-price">
+                        <span class="current-price">$2,499</span>
+                        <span class="original-price">$2,999</span>
+                        <span class="discount">17% OFF</span>
+                    </div>
+
+                    <!-- Description -->
+                    <p class="product-description">Handcrafted diamond pendant in 18k gold, featuring a brilliant-cut
+                        center stone surrounded by smaller diamonds. This timeless piece combines elegance with
+                        exceptional craftsmanship.</p>
+
+                    <!-- Options -->
+                    <div class="product-options">
+                        <div class="option-group">
+                            <label for="metalType">Metal Type</label>
+                            <select id="metalType" class="option-select">
+                                <option value="gold">18k Gold</option>
+                                <option value="rose-gold">18k Rose Gold</option>
+                                <option value="silver">Sterling Silver</option>
+                            </select>
+                        </div>
+
+                        <div class="option-group">
+                            <label for="chainLength">Chain Length</label>
+                            <select id="chainLength" class="option-select">
+                                <option value="16">16 inches</option>
+                                <option value="18" selected>18 inches</option>
+                                <option value="20">20 inches</option>
+                                <option value="22">22 inches</option>
+                            </select>
+                        </div>
+
+                        <div class="option-group">
+                            <label for="quantity">Quantity</label>
+                            <div class="quantity-selector">
+                                <button class="qty-btn" id="qtyMinus">-</button>
+                                <input type="number" id="quantity" value="1" min="1" max="10" class="qty-input">
+                                <button class="qty-btn" id="qtyPlus">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="product-actions">
+                        <button class="btn btn-primary add-to-cart-btn">
+                            <i class="fas fa-shopping-cart"></i>
+                            Add to Cart
+                        </button>
+                        <button class="btn btn-secondary buy-now-btn">
+                            <i class="fas fa-bolt"></i>
+                            Buy Now
+                        </button>
+                        <button class="btn btn-outline wishlist-btn">
+                            <i class="far fa-heart"></i>
+                        </button>
+                    </div>
+
+                    <!-- Trust Badges -->
+                    <div class="trust-badges">
+                        <div class="trust-badge">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Secure Payment</span>
+                        </div>
+                        <div class="trust-badge">
+                            <i class="fas fa-certificate"></i>
+                            <span>Certified Hallmark</span>
+                        </div>
+                        <div class="trust-badge">
+                            <i class="fas fa-truck"></i>
+                            <span>Free Shipping</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Highlights -->
+    <section class="product-highlights">
+        <div class="container">
+            <div class="highlights-grid">
+                <div class="highlight-item">
+                    <i class="fas fa-gem"></i>
+                    <h3>Authentic Diamonds</h3>
+                    <p>Certified conflict-free diamonds</p>
+                </div>
+                <div class="highlight-item">
+                    <i class="fas fa-undo"></i>
+                    <h3>Free Returns</h3>
+                    <p>30-day return policy</p>
+                </div>
+                <div class="highlight-item">
+                    <i class="fas fa-gift"></i>
+                    <h3>Luxury Packaging</h3>
+                    <p>Premium gift box included</p>
+                </div>
+                <div class="highlight-item">
+                    <i class="fas fa-tools"></i>
+                    <h3>Lifetime Service</h3>
+                    <p>Free cleaning & maintenance</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Product Description & Details Tabs -->
+    <section class="product-tabs">
+        <div class="container">
+            <div class="tabs-container">
+                <div class="tabs-nav">
+                    <button class="tab-btn active" data-tab="description">Description</button>
+                    <button class="tab-btn" data-tab="specifications">Specifications</button>
+                    <button class="tab-btn" data-tab="care">Care Guide</button>
+                </div>
+
+                <div class="tabs-content">
+                    <div class="tab-panel active" id="description">
+                        <h3>Exquisite Craftsmanship</h3>
+                        <p>This stunning diamond pendant necklace represents the pinnacle of jewelry craftsmanship. Each
+                            piece is meticulously handcrafted by our master artisans using traditional techniques passed
+                            down through generations.</p>
+                        <p>The centerpiece features a brilliant-cut diamond of exceptional clarity and color, carefully
+                            selected for its fire and brilliance. The diamond is set in a classic four-prong setting
+                            that maximizes light reflection and showcases the stone's natural beauty.</p>
+                        <p>Surrounding the center stone are smaller accent diamonds that create a halo effect, adding
+                            depth and dimension to the piece. The pendant is suspended from a delicate 18k gold chain
+                            that complements the overall design without overwhelming the focal point.</p>
+                        <p>This necklace is perfect for special occasions, from romantic dinners to formal events, and
+                            will become a treasured heirloom to pass down through generations.</p>
+                    </div>
+
+                    <div class="tab-panel" id="specifications">
+                        <div class="specs-grid">
+                            <div class="spec-item">
+                                <strong>Material:</strong>
+                                <span>18k Gold, Diamond</span>
+                            </div>
+                            <div class="spec-item">
+                                <strong>Center Stone:</strong>
+                                <span>1.0ct Brilliant Cut Diamond</span>
+                            </div>
+                            <div class="spec-item">
+                                <strong>Accent Stones:</strong>
+                                <span>0.25ct Total Weight</span>
+                            </div>
+                            <div class="spec-item">
+                                <strong>Chain Length:</strong>
+                                <span>18 inches (adjustable)</span>
+                            </div>
+                            <div class="spec-item">
+                                <strong>Weight:</strong>
+                                <span>3.2 grams</span>
+                            </div>
+                            <div class="spec-item">
+                                <strong>Clarity:</strong>
+                                <span>VS1-VS2</span>
+                            </div>
+                            <div class="spec-item">
+                                <strong>Color:</strong>
+                                <span>G-H</span>
+                            </div>
+                            <div class="spec-item">
+                                <strong>Certification:</strong>
+                                <span>GIA Certified</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-panel" id="care">
+                        <h3>Caring for Your Diamond Jewelry</h3>
+                        <div class="care-section">
+                            <h4>Daily Care</h4>
+                            <ul>
+                                <li>Store in a soft cloth pouch or jewelry box</li>
+                                <li>Avoid contact with perfumes, lotions, and hairspray</li>
+                                <li>Remove before swimming or exercising</li>
+                                <li>Clean gently with warm soapy water and soft brush</li>
+                            </ul>
+                        </div>
+                        <div class="care-section">
+                            <h4>Professional Cleaning</h4>
+                            <p>We recommend professional cleaning every 6 months to maintain the brilliance of your
+                                diamonds. Our lifetime service includes free cleaning and inspection.</p>
+                        </div>
+                        <div class="care-section">
+                            <h4>Storage</h4>
+                            <p>Store each piece separately to prevent scratching. Use the provided jewelry box or a
+                                soft-lined compartment in your jewelry organizer.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Customer Reviews -->
+    <section class="customer-reviews">
+        <div class="container">
+            <h2 class="section-title">Customer Reviews</h2>
+            <div class="reviews-summary">
+                <div class="rating-overview">
+                    <div class="overall-rating">4.9</div>
+                    <div class="stars-large">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p>Based on 127 reviews</p>
+                </div>
+                <div class="rating-breakdown">
+                    <div class="rating-bar">
+                        <span>5★</span>
+                        <div class="bar">
+                            <div class="fill" style="width: 85%"></div>
+                        </div>
+                        <span>108</span>
+                    </div>
+                    <div class="rating-bar">
+                        <span>4★</span>
+                        <div class="bar">
+                            <div class="fill" style="width: 12%"></div>
+                        </div>
+                        <span>15</span>
+                    </div>
+                    <div class="rating-bar">
+                        <span>3★</span>
+                        <div class="bar">
+                            <div class="fill" style="width: 2%"></div>
+                        </div>
+                        <span>3</span>
+                    </div>
+                    <div class="rating-bar">
+                        <span>2★</span>
+                        <div class="bar">
+                            <div class="fill" style="width: 1%"></div>
+                        </div>
+                        <span>1</span>
+                    </div>
+                    <div class="rating-bar">
+                        <span>1★</span>
+                        <div class="bar">
+                            <div class="fill" style="width: 0%"></div>
+                        </div>
+                        <span>0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="reviews-grid">
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            <h4>Sarah M.</h4>
+                            <div class="review-stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        <span class="review-date">2 days ago</span>
+                    </div>
+                    <p class="review-text">"Absolutely stunning! The diamond sparkles beautifully and the craftsmanship
+                        is exceptional. I've received so many compliments. Worth every penny!"</p>
+                </div>
+
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            <h4>Michael R.</h4>
+                            <div class="review-stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                        </div>
+                        <span class="review-date">1 week ago</span>
+                    </div>
+                    <p class="review-text">"Perfect gift for my wife's anniversary. The packaging was luxurious and the
+                        necklace exceeded expectations. Fast shipping too!"</p>
+                </div>
+
+                <div class="review-card">
+                    <div class="review-header">
+                        <div class="reviewer-info">
+                            <h4>Emma L.</h4>
+                            <div class="review-stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="far fa-star"></i>
+                            </div>
+                        </div>
+                        <span class="review-date">2 weeks ago</span>
+                    </div>
+                    <p class="review-text">"Beautiful piece, though the chain is a bit shorter than expected. Customer
+                        service was helpful in resolving this quickly."</p>
+                </div>
+            </div>
+
+            <div class="write-review">
+                <button class="btn btn-outline write-review-btn" id="writeReviewBtn">
+                    <i class="fas fa-pen"></i>
+                    Write a Review
+                </button>
+            </div>
+
+            <!-- Review Form Modal -->
+            <div class="review-form-modal" id="reviewFormModal">
+                <div class="review-form-container">
+                    <div class="review-form-header">
+                        <h3>Write a Review</h3>
+                        <button class="close-review-form" id="closeReviewForm">&times;</button>
+                    </div>
+                    <form class="review-form" id="reviewForm">
+                        <div class="form-group">
+                            <label for="reviewerName">Your Name</label>
+                            <input type="text" id="reviewerName" name="reviewerName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="reviewerEmail">Email Address</label>
+                            <input type="email" id="reviewerEmail" name="reviewerEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Rating</label>
+                            <div class="rating-input">
+                                <input type="radio" id="star5" name="rating" value="5">
+                                <label for="star5"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star4" name="rating" value="4">
+                                <label for="star4"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star3" name="rating" value="3">
+                                <label for="star3"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star2" name="rating" value="2">
+                                <label for="star2"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="star1" name="rating" value="1">
+                                <label for="star1"><i class="fas fa-star"></i></label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="reviewTitle">Review Title</label>
+                            <input type="text" id="reviewTitle" name="reviewTitle"
+                                placeholder="Summarize your experience">
+                        </div>
+                        <div class="form-group">
+                            <label for="reviewText">Your Review</label>
+                            <textarea id="reviewText" name="reviewText" rows="5"
+                                placeholder="Tell us about your experience with this product" required></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-outline" id="cancelReview">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Submit Review</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Related Products -->
+    <section class="related-products">
+        <div class="container">
+            <h2 class="section-title">You May Also Like</h2>
+            <div class="products-grid">
+                <div class="product-card" data-product="1">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80"
+                            alt="Pearl Drop Necklace">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Pearl Drop Necklace</h3>
+                        <p class="product-price">$899</p>
+                    </div>
+                </div>
+
+                <div class="product-card" data-product="2">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80"
+                            alt="Gold Chain Necklace">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Gold Chain Necklace</h3>
+                        <p class="product-price">$1,299</p>
+                    </div>
+                </div>
+
+                <div class="product-card" data-product="3">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80"
+                            alt="Layered Gold Necklace">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Layered Gold Necklace</h3>
+                        <p class="product-price">$1,599</p>
+                    </div>
+                </div>
+
+                <div class="product-card" data-product="4">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=400&q=80"
+                            alt="Silver Chain Necklace">
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-name">Silver Chain Necklace</h3>
+                        <p class="product-price">$799</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="shop.html">Shop</a></li>
+                        <li><a href="collections.html">Collections</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Policies</h3>
+                    <ul>
+                        <li><a href="shipping.html">Shipping Policy</a></li>
+                        <li><a href="return.html">Returns & Exchanges</a></li>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="t&c.html">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Connect With Us</h3>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-pinterest"></i></a>
+                    </div>
+                    <div class="contact-info">
+                        <p>Email: info@ornativa.com</p>
+                        <p>Phone: (555) 123-4567</p>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 ORNATIVA. All rights reserved. | Crafted with love for jewelry enthusiasts worldwide.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Image Zoom Modal -->
+    <div class="zoom-modal" id="zoomModal">
+        <div class="zoom-content">
+            <span class="zoom-close">&times;</span>
+            <img src="" alt="" id="zoomImage">
+        </div>
+    </div>
+
+    <script src="assets/js/script.js"></script>
+</body>
+
+</html>
