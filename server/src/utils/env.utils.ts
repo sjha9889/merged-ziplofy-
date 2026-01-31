@@ -1,6 +1,11 @@
 import dotenv from 'dotenv';
+import path from 'path';
 
-dotenv.config({});
+const envFile = process.env.DOTENV_CONFIG_PATH
+  ?? `.env.${process.env.NODE_ENV || 'development'}`;
+dotenv.config({ path: path.resolve(process.cwd(), envFile) });
+
+export const loadedEnvFile = envFile;
 
 export function validateEnv(): void {
   const requiredEnvVars = [

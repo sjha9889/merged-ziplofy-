@@ -5,7 +5,7 @@ import { config } from './config';
 import { connectDB } from './config/database.config';
 import { errorMiddleware } from './middleware/error.middleware';
 import { authRouter } from './routes/auth.route';
-import { validateEnv } from './utils/env.utils';
+import { validateEnv, loadedEnvFile } from './utils/env.utils';
 
 // validate environment variables before starting the server
 validateEnv();
@@ -41,5 +41,5 @@ app.use('/api/auth', authRouter);
 app.use(errorMiddleware);
 
 app.listen(process.env.PORT, () => {
-  console.log(`Server running on http://localhost:${process.env.PORT}`);
+  console.log(`Server running on http://localhost:${process.env.PORT} in ${process.env.NODE_ENV || 'development'} mode (using ${loadedEnvFile})`);
 });
