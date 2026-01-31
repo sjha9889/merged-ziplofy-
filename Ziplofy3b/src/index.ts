@@ -66,7 +66,6 @@ import { storeSubdomainRouter } from './routes/store-subdomian.route';
 import { storefrontAuthRouter } from './routes/storefront-auth.route';
 import { cartRouter } from './routes/cart.route';
 import { loginLogRouter } from './routes/login-log.route';
-import { themeInstallRouter } from './routes/theme-install.route';
 import { storeFrontCollectionRouter } from './routes/storefront/storefront-collection.route';
 import { storefrontAmountOffOrderRouter } from './routes/storefront/amount-off-order.route';
 import { storefrontFreeShippingRouter } from './routes/storefront/free-shipping.route';
