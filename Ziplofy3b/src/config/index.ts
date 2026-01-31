@@ -22,9 +22,10 @@ if (NODE_ENV === 'development') {
 } else {
     config = {
         allowedOrigins: [
+            "dashboard.ziplofy.com"
             // Adjust for production admin domain patterns if needed
         ],
-        clientUrl: "http://localhost:5173"
+        clientUrl: "dashboard.ziplofy.com"
     };
 }
 

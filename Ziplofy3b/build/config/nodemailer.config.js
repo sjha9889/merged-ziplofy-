@@ -4,8 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const nodemailer_1 = __importDefault(require("nodemailer"));
-const dotenv_1 = require("dotenv");
-(0, dotenv_1.config)({});
+// Env is loaded by env.utils (imported first in index.ts)
 const transporter = nodemailer_1.default.createTransport({
     service: 'gmail', // You can change this to other services like 'outlook', 'yahoo', etc.
     auth: {

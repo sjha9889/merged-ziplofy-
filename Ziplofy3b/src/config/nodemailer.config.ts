@@ -1,6 +1,5 @@
 import nodemailer from 'nodemailer';
-import {config} from 'dotenv';
-config({});
+// Env is loaded by env.utils (imported first in index.ts)
 
 const transporter = nodemailer.createTransport({
   service: 'gmail', // You can change this to other services like 'outlook', 'yahoo', etc.

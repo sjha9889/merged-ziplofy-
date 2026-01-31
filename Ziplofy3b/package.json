@@ -5,8 +5,8 @@
   "main": "build/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "cross-env NODE_ENV=production node build/index.js",
-    "dev": "cross-env NODE_ENV=development concurrently \"tsc -w\" \"nodemon build/index.js\"",
+    "start": "cross-env DOTENV_CONFIG_PATH=.env.production NODE_ENV=production node build/index.js",
+    "dev": "cross-env DOTENV_CONFIG_PATH=.env.development NODE_ENV=development concurrently \"tsc -w\" \"nodemon build/index.js\"",
     "clean": "rimraf build",
     "seed:variants": "node build/seed/variants/seed.variant.js",
     "seed:packaging": "node build/seed/packaging/seed.packaging.js",
