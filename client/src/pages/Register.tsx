@@ -8,14 +8,16 @@ import { useAuth } from '../contexts/auth.context';
 
 // Define types
 interface RegisterForm {
+  name: string;
   email: string;
   password: string;
   confirmPassword: string;
 }
 
 export default function Register() {
-  const { googleLogin } = useAuth();
+  const { register, googleLogin } = useAuth();
   const [form, setForm] = useState<RegisterForm>({ 
+    name: '',
     email: '', 
     password: '', 
     confirmPassword: '' 
@@ -35,12 +37,13 @@ export default function Register() {
     }
     
     try {
+      await register(form.name, form.email, form.password);
     } catch (error: any) {
       setErr(error.response?.data?.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
-  }, [form.password, form.confirmPassword]);
+  }, [form.name, form.email, form.password, form.confirmPassword, register]);
 
   const handleGoogleSuccess = useCallback(async (cred: CredentialResponse): Promise<void> => {
     try {
@@ -78,6 +81,21 @@ export default function Register() {
               {/* Form */}
               <form onSubmit={onSubmit} className="flex flex-col gap-5">
                 <div className="space-y-4">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                      Full name
+                    </label>
+                    <input
+                      id="name"
+                      type="text"
+                      name="name"
+                      value={form.name}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg bg-white text-base text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-all"
+                      placeholder="John Doe"
+                    />
+                  </div>
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                       Email address

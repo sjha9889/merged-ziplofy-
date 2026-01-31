@@ -19,6 +19,7 @@ export type IUser = {
 interface AuthContextType {
   user: IUser | null;
   login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
   googleLogin: (credential: string) => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: boolean;
@@ -90,6 +91,19 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const register = async (name: string, email: string, password: string): Promise<void> => {
+    try {
+      const { data } = await axiosi.post<IUser>('/auth/register', { name, email, password });
+      safeLocalStorage.setItem("accessToken", data.accessToken);
+      setUser(data);
+      toast.success('Account created successfully!');
+    } catch (error: any) {
+      console.error('Register error:', error);
+      toast.error(error.response?.data?.message || 'Registration failed');
+      throw error;
+    }
+  };
+
   const googleLogin = async (googleJwtToken: string): Promise<void> => {
     try {
       const {data} = await axiosi.post<IUser>('/auth/google', { credential: googleJwtToken });
@@ -115,6 +129,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthContextType = {
     user,
     login,
+    register,
     googleLogin,
     logout,
     isAuthenticated: !!user

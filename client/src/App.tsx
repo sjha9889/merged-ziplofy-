@@ -8,6 +8,7 @@ import Register from './pages/Register';
 
 function App() {
   console.log(`App running in ${import.meta.env.MODE} mode`);
+  console.log(`Vite API URL: ${import.meta.env.VITE_API_URL}`);
   return (
     <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
       <Toaster position="top-right" />

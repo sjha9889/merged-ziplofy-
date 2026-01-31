@@ -2,13 +2,9 @@ import bcrypt from 'bcryptjs';
 import { NextFunction, Request, Response } from 'express';
 import { OAuth2Client } from 'google-auth-library';
 import jwt from 'jsonwebtoken';
-import { GeneralSettings } from '../models/general-settings.model';
-import { NotificationSettings } from '../models/notification-settings.model';
-import { StoreSubdomain } from '../models/store-subdomain';
 import { IUser, User } from '../models/user';
 import { asyncErrorHandler, CustomError } from '../utils/error.utils';
-import { createDefaultMarket } from '../utils/market.utils';
-import { createDefaultStore } from '../utils/store.utils';
+import { createDefaultResourcesForNewUser } from '../utils/store.utils';
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -53,33 +49,7 @@ export const register = asyncErrorHandler(async (req: Request, res: Response, ne
       totalPurchases: 0
     });
 
-    // Create a default store for the new user
-    const store = await createDefaultStore(user);
-
-    // Create default general settings for the store
-    await GeneralSettings.create({ 
-      storeId: store._id,
-      storeName: store.storeName,
-      storeEmail: user.email
-    });
-
-    // Create default notification settings for the store
-    await NotificationSettings.create({
-      storeId: store._id,
-      senderEmail: user.email,
-    });
-
-    // Create default market (India) for the store
-    await createDefaultMarket(store._id);
-
-    // Create a default subdomain mapping for the store
-    const slugBase = (user.name || user.email.split('@')[0] || 'store')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-    const suffix = Math.random().toString(36).slice(2, 6);
-    const subdomain = `${slugBase}-${suffix}`;
-    await StoreSubdomain.create({ storeId: store._id, subdomain });
+    await createDefaultResourcesForNewUser(user);
 
     const token = signAccessToken(user);
 
@@ -139,42 +109,17 @@ export const googleAuth = asyncErrorHandler(async (req: Request, res: Response, 
     let user: IUser | null = await User.findOne({ email: payload.email });
 
     if (!user) {
+      const name = payload.name || payload.email?.split('@')[0] || 'User';
       user = await User.create({
         email: payload.email,
-        name: payload.name,
+        name,
         provider: 'google',
         googleId: payload.sub,
-        status: "Pending",
+        status: 'Active',
         role: "68c2bf34749d79f42291f35a",
       });
 
-      // Create a default store for the new Google user
-      const store = await createDefaultStore(user);
-
-      // Create default general settings for the store
-      await GeneralSettings.create({ 
-        storeId: store._id,
-        storeName: store.storeName,
-        storeEmail: user.email
-      });
-
-      // Create default notification settings for the store
-      await NotificationSettings.create({
-        storeId: store._id,
-        senderEmail: user.email,
-      });
-
-      // Create default market (India) for the store
-      await createDefaultMarket(store._id);
-
-      // Create a default subdomain mapping for the store
-      const slugBase = (user.name || user.email.split('@')[0] || 'store')
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
-      const suffix = Math.random().toString(36).slice(2, 6);
-      const subdomain = `${slugBase}-${suffix}`;
-      await StoreSubdomain.create({ storeId: store._id, subdomain });
+      await createDefaultResourcesForNewUser(user);
     }
 
     const access = signAccessToken(user);
