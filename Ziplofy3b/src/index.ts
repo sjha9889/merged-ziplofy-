@@ -112,6 +112,7 @@ import shippingProfileProductVariantsEntryRouter from './routes/shipping-profile
 import shippingProfileLocationSettingsRouter from './routes/shipping-profile-location-settings.route';
 import triggerRouter from './routes/trigger.route';
 import actionRouter from './routes/action.route';
+
 import automationFlowRouter from './routes/automation-flow.route';
 import { startEmailWorker } from './services/bull-mq/workers/email.worker';
 import { closeEmailQueue } from './services/bull-mq/queues/email.queue';
