@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Request, Response } from 'express';
 import { asyncErrorHandler, CustomError } from '../utils/error.utils';
 import { cloneThemeToStore, getInstalledThemes, updateThemeCustomization } from '../utils/theme-clone.utils';

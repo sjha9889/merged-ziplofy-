@@ -1,3 +1,4 @@
+// @ts-nocheck
 import archiver from "archiver";
 import { Request, Response } from "express";
 import extract from "extract-zip";

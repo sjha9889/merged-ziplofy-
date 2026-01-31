@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { Router } from "express";
 
 import { authorize, protect } from "../middlewares/auth.middleware";

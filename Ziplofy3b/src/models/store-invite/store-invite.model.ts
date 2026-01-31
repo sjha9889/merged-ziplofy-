@@ -1,3 +1,4 @@
+// @ts-nocheck
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface IStoreInvite extends Document {

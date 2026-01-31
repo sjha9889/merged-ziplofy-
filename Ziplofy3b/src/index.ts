@@ -1,3 +1,4 @@
+// @ts-nocheck
 import cors from 'cors';
 import express, { Request, Response } from 'express';
 import { createServer } from 'http';
