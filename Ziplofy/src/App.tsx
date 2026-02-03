@@ -14,12 +14,12 @@ import { SocketProvider } from "./contexts/socket.context";
 import { StoreProvider } from "./contexts/store.context";
 import { UserProvider } from "./contexts/user.context";
 import Navbar from "./pages/Navbar";
-import ThemeEditor from "./pages/themes/ThemeEditor";
-import ThemeLayoutEditor from "./pages/themes/ThemeLayoutEditor";
+import BasicElementor from "./pages/themes/BasicElementor";
+import CustomThemeBuilder from "./pages/themes/CustomThemeBuilder";
 import ThemeCodeEditor from "./pages/themes/ThemeCodeEditor";
 import ThemeCodeEditorFullScreen from "./pages/themes/ThemeCodeEditorFullScreen";
-import CustomThemeBuilder from "./pages/themes/CustomThemeBuilder";
-import BasicElementor from "./pages/themes/BasicElementor";
+import ThemeEditor from "./pages/themes/ThemeEditor";
+import ThemeLayoutEditor from "./pages/themes/ThemeLayoutEditor";
 /** Parent pages (top-level in /pages) */
 import { CategoryProvider } from "./contexts/category.context";
 import { NotificationOverridesProvider } from "./contexts/notification-overrides.context";
@@ -34,7 +34,6 @@ import CustomerDetailsPage from "./pages/CustomerDetailsPage";
 import CustomerSegmentDetailsPage from "./pages/CustomerSegmentDetailsPage";
 import CustomersPage from "./pages/CustomersPage";
 import CustomersSegmentsPage from "./pages/CustomersSegmentsPage";
-import DemoGridPage from "./pages/DemoGridPage";
 import DiscountsPage from "./pages/DiscountsPage";
 import GiftCardDetailPage from "./pages/GiftCardDetailPage";
 import GiftCardsPage from "./pages/GiftCardsPage";
@@ -111,8 +110,8 @@ import PlanSubscriptionsPage from "./pages/settings/PlanSubscriptionsPage";
 import PoliciesSettings from "./pages/settings/PoliciesSettings";
 import RoleDetailsPage from "./pages/settings/RoleDetailsPage";
 import RolesPage from "./pages/settings/RolesPage";
-import SettingsLayout from "./pages/settings/SettingsLayout";
 import SettingsIndex from "./pages/settings/SettingsIndex";
+import SettingsLayout from "./pages/settings/SettingsLayout";
 import SettingsPlaceholder from "./pages/settings/SettingsPlaceholder";
 import ShippingSettings from "./pages/settings/ShippingSettings";
 import ShopMetafieldsPage from "./pages/settings/ShopMetafieldsPage";
@@ -143,6 +142,7 @@ import { CountryTaxOverrideProvider } from "./contexts/country-tax-override.cont
 import { CountryTaxProvider } from "./contexts/country-tax.context";
 import { CountryProvider } from "./contexts/country.context";
 import { CurrencyProvider } from "./contexts/currency.context";
+import { CustomThemesProvider } from "./contexts/custom-themes.context";
 import { CustomerAccountSettingsProvider } from "./contexts/customer-account-settings.context";
 import { CustomerAddressProvider } from "./contexts/customer-address.context";
 import { CustomerSegmentProvider } from "./contexts/customer-segment.context";
@@ -241,8 +241,6 @@ import ShippingProfileCreatePage from "./pages/settings/ShippingProfileCreatePag
 import ShippingProfileDetailsPage from "./pages/settings/ShippingProfileDetailsPage";
 import WebhooksNotificationsPage from "./pages/settings/WebhooksNotificationsPage";
 import AllThemes from "./pages/themes/AllThemes";
-import { Box } from "@mui/material";
-import { CustomThemesProvider } from "./contexts/custom-themes.context";
 // Component to redirect logged-in users away from auth pages
 const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useStorefrontAuth();
@@ -285,17 +283,16 @@ const AdminApp: React.FC = () => {
   const hideSidebar = isCodeFullScreen || isBuilderFullScreen || isBasicElementor;
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
       {!hideSidebar && <Navbar />}
 
-      <Box sx={{ display: "flex", flexGrow: 1, overflow: "hidden", position: "relative" }}>
+      <div style={{ display: "flex", flexGrow: 1, overflow: "hidden", position: "relative" }}>
         {!hideSidebar && <Sidebar />}
 
-        <Box
-          component="main"
-          sx={{
+        <main
+          style={{
             flexGrow: 1,
-            p: hideSidebar ? 0 : 3,
+            padding: hideSidebar ? 0 : "24px",
             overflow: "auto",
             marginTop: hideSidebar ? 0 : `${NAVBAR_HEIGHT}px`,
             marginLeft: hideSidebar ? 0 : `${SIDEBAR_WIDTH}px`,
@@ -310,6 +307,10 @@ const AdminApp: React.FC = () => {
             {/* Top-level */}
             <Route path="/" element={<HomePage />} />
             <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/orders/create" element={<CreateOrderPage />} />
+            <Route path="/orders/abandoned-carts" element={<AbandonedCartsPage />} />
+            <Route path="/orders/abandoned-carts/customer/:customerId" element={<AbandonedCartDetailsPage />} />
+            <Route path="/orders/:id" element={<OrderDetailsPage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/products/:id" element={<ProductDetailsPage />} />
             <Route path="/products/:id/variants/:variantId" element={<ProductVariantDetailsPage />} />
@@ -336,7 +337,15 @@ const AdminApp: React.FC = () => {
             <Route path="/customers/new" element={<NewCustomerPage />} />
             <Route path="/customers/:id" element={<CustomerDetailsPage />} />
             <Route path="/marketing" element={<MarketingPage />} />
+            <Route path="/marketing/campaigns" element={<MarketingCampaignsPage />} />
+            <Route path="/marketing/attribution" element={<MarketingAttributionPage />} />
+            <Route path="/marketing/automations" element={<MarketingAutomationsPage />} />
+            <Route path="/marketing/automations/templates" element={<AutomationTemplatesPage />} />
+            <Route path="/marketing/automations/new" element={<AutomationNewPage />} />
+            <Route path="/marketing/automations/create" element={<AutomationCreatePage />} />
+            <Route path="/marketing/automations/:id" element={<AutomationDetailsPage />} />
             <Route path="/discounts" element={<DiscountsPage />} />
+            <Route path="/discounts/select-discount-to-create" element={<SelectDiscountToCreatePage />} />
             <Route path="/discounts/:id" element={<DiscountDetailsPage />} />
             <Route path="/discounts/pyxgety/:id" element={<BuyXGetYDetailsPage />} />
             <Route path="/discounts/amount-off-order/:id" element={<AmountOffOrderDetailsPage />} />
@@ -346,9 +355,26 @@ const AdminApp: React.FC = () => {
             <Route path="/discounts/new/amount-off-order" element={<AmountOffOrderPage />} />
             <Route path="/discounts/new/free-shipping" element={<FreeShippingPage />} />
             <Route path="/content" element={<ContentPage />} />
+            <Route path="/content/blog-posts" element={<ContentBlogPostsPage />} />
+            <Route path="/content/blog-posts/new" element={<BlogPostCreatePage />} />
+            <Route path="/content/files" element={<ContentFilesPage />} />
+            <Route path="/content/menus" element={<ContentMenusPage />} />
+            <Route path="/content/metaobjects" element={<ContentMetaObjectsPage />} />
+            <Route path="/online-store" element={<OnlineStorePage />} />
+            <Route path="/online-store/preference" element={<OnlineStorePreferencePage />} />
             <Route path="/markets" element={<MarketsPage />} />
+            <Route path="/markets/new" element={<MarketsNewPage />} />
+            <Route path="/markets/catalogs" element={<MarketsCatalogsPage />} />
+            <Route path="/markets/catalogs/new" element={<MarketsCatalogsNewPage />} />
+            <Route path="/markets/catalogs/:id" element={<MarketsCatalogDetailsPage />} />
+            <Route path="/markets/:id" element={<MarketDetailsPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/tag-management" element={<TagManagement />} />
+            <Route path="/tag-management/customer-tags" element={<CustomerTagsPage />} />
+            <Route path="/tag-management/product-tags" element={<ProductTagsPage />} />
+            <Route path="/tag-management/product-types" element={<ProductTypesPage />} />
+            <Route path="/tag-management/transfer-tags" element={<TransferTagsPage />} />
+            <Route path="/tag-management/purchase-order-tags" element={<PurchaseOrderTagsPage />} />
             <Route path="/vendors" element={<VendorsPage />} />
             <Route path="/settings" element={<SettingsLayout />}>
               <Route index element={<SettingsIndex />} />
@@ -416,9 +442,9 @@ const AdminApp: React.FC = () => {
             <Route path="/themes/code/:themeId" element={<ThemeCodeEditor />} />
             <Route path="/themes/code-fullscreen/:themeId" element={<ThemeCodeEditorFullScreen />} />
           </Routes>
-        </Box>
-      </Box>
-    </Box>
+        </main>
+      </div>
+    </div>
   );
 };
 
