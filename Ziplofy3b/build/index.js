@@ -254,7 +254,7 @@ app.use("/api/automation-flows", automation_flow_route_1.default);
 app.use("/api/login-logs", login_log_route_1.loginLogRouter);
 app.use("/api/client", client_theme_route_1.clientThemeRouter);
 app.use("/api/client/theme-files", client_theme_files_route_1.clientThemeFilesRouter);
-app.use("/api/theme-install", themeInstallRouter);
+// app.use("/api/theme-install", themeInstallRouter);
 app.use('/api/checkout-settings', checkout_settings_route_1.default);
 app.use('/api/customer-account-settings', customer_account_settings_route_1.default);
 app.use("/api/custom-themes", custom_theme_route_1.customThemeRouter);
