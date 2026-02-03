@@ -93,7 +93,7 @@ const StoreDropdown: React.FC<StoreDropdownProps> = ({ onStoreChange }) => {
   }, []);
 
   const handleConfirmLogout = useCallback(() => {
-    window.location.href = 'http://localhost:3000?logout=true';
+    window.location.href = `${import.meta.env.VITE_AUTH_MICROSERVICE_FRONTEND_URL}?logout=true`
   }, []);
 
   // Close dropdown when clicking outside

@@ -179,7 +179,6 @@ const ShopifyNavbar: React.FC = () => {
             >
               <QuestionMarkCircleIcon className="w-4 h-4 text-gray-600" />
             </button>
-
           </div>
                       {/* Admin Dropdown */}
             <div className="relative bg-gray-50 rounded border border-gray-200">
