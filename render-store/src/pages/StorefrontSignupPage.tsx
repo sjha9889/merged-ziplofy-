@@ -3,8 +3,8 @@ import { Container, Paper, Typography, TextField, Button, Stack, Link, Divider }
 import GoogleIcon from '@mui/icons-material/Google';
 import { useNavigate } from 'react-router-dom';
 import SlantedImageCarouselWrapper from '../components/SlantedImageCarouselWrapper';
-import { useStorefront } from '../contexts/storefront/store.context';
-import { useStorefrontAuth } from '../contexts/storefront/storefront-auth.context';
+import { useStorefront } from '../contexts/store.context';
+import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 
 const StorefrontSignupPage: React.FC = () => {
   const navigate = useNavigate();

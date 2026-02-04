@@ -13,12 +13,12 @@ import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import SecurityIcon from '@mui/icons-material/Security';
 import SupportAgentIcon from '@mui/icons-material/SupportAgent';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import { useStorefront } from '../contexts/storefront/store.context';
-import { useStorefrontProducts } from '../contexts/storefront/product.context';
-import { useStorefrontCart } from '../contexts/storefront/storefront-cart.context';
-import { useStorefrontAuth } from '../contexts/storefront/storefront-auth.context';
-import type { StorefrontProductItem } from '../contexts/storefront/product.context';
-import { useStorefrontCollections } from '../contexts/storefront/storefront-collections.context';
+import { useStorefront } from '../contexts/store.context';
+import { useStorefrontProducts } from '../contexts/product.context';
+import { useStorefrontCart } from '../contexts/storefront-cart.context';
+import { useStorefrontAuth } from '../contexts/storefront-auth.context';
+import type { StorefrontProductItem } from '../contexts/product.context';
+import { useStorefrontCollections } from '../contexts/storefront-collections.context';
 import StorefrontNavbar from '../components/StorefrontNavbar';
 
 const NAVBAR_HEIGHT = 64;

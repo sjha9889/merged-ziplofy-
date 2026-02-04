@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useState } from 'react';
-import { axiosi } from '../../config/axios.config';
+import { axiosi } from '../config/axios.config';
 import type { StorefrontProductVariant } from './product-variant.context';
 import toast from 'react-hot-toast';
 
@@ -124,7 +124,6 @@ export const StorefrontOrderProvider: React.FC<{ children: React.ReactNode }> = 
       const res = await axiosi.post<CreateOrderResponse>('/storefront/orders', payload);
       if (!res.data.success) throw new Error('Create order failed');
       const created = res.data.data;
-      // Add to local state
       setOrders(prev => [created, ...prev]);
       toast.success('Order placed successfully');
       return created;
@@ -185,4 +184,3 @@ export const useStorefrontOrder = (): StorefrontOrderContextType => {
 };
 
 export default StorefrontOrderContext;
-

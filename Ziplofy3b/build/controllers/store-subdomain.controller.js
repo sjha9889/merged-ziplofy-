@@ -17,15 +17,17 @@ exports.getSubdomainByStoreId = (0, error_utils_1.asyncErrorHandler)(async (req,
     if (!doc) {
         return res.status(404).json({ success: false, message: 'Subdomain not found for store' });
     }
-    // Compose environment-aware preview URL (do not store in DB)
-    const isProd = process.env.NODE_ENV === 'production';
-    const protocol = isProd ? 'https' : 'http';
-    const devPort = isProd ? 3000 : 5173;
-    const baseHost = isProd
-        ? (process.env.ROOT_DOMAIN || 'example.com')
-        : `localhost:${devPort}`;
-    const host = `${doc.subdomain}.${baseHost}`;
-    const url = `${protocol}://${host}`;
+    // Build preview URL from subdomain (not stored in DB)
+    const isProduction = process.env.NODE_ENV === 'production';
+    let url;
+    if (isProduction) {
+        const domain = process.env.ROOT || 'example.com';
+        url = `https://${doc.subdomain}.${domain}`;
+    }
+    else {
+        const port = 5173; // dev server port
+        url = `http://${doc.subdomain}.localhost:${port}`;
+    }
     return res.status(200).json({ success: true, data: { ...doc.toObject(), url } });
 });
 // Public: check if a subdomain is valid and return store basic info

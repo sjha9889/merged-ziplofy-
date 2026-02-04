@@ -1,5 +1,5 @@
 import React, { createContext, ReactNode, useCallback, useContext, useState } from 'react';
-import { axiosi } from '../../config/axios.config';
+import { axiosi } from '../config/axios.config';
 
 // Types
 export interface CustomerAddress {
@@ -193,5 +193,3 @@ export const useCustomerAddresses = (): CustomerAddressContextType => {
 };
 
 export default CustomerAddressContext;
-
-

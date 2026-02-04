@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { axiosi } from '../../config/axios.config';
+import { axiosi } from '../config/axios.config';
 
 // Types
 interface CartItem {
@@ -37,7 +37,7 @@ interface AmountOffOrderContextType {
   totalQuantity: number;
   loading: boolean;
   error: string | null;
-  
+
   // Actions
   fetchEligibleDiscounts: (storeId: string, customerId: string, cartItems: CartItem[]) => Promise<void>;
   amountOffOrderDiscountCodeCheck: (storeId: string, customerId: string, cartItems: CartItem[], discountCode: string) => Promise<AmountOffOrderDiscount | null>;
@@ -63,8 +63,8 @@ export const AmountOffOrderProvider: React.FC<AmountOffOrderProviderProps> = ({ 
 
   // Fetch eligible discounts
   const fetchEligibleDiscounts = useCallback(async (
-    storeId: string, 
-    customerId: string, 
+    storeId: string,
+    customerId: string,
     cartItems: CartItem[]
   ) => {
     try {
@@ -150,7 +150,7 @@ export const AmountOffOrderProvider: React.FC<AmountOffOrderProviderProps> = ({ 
     totalQuantity,
     loading,
     error,
-    
+
     // Actions
     fetchEligibleDiscounts,
     amountOffOrderDiscountCodeCheck,
@@ -167,13 +167,10 @@ export const AmountOffOrderProvider: React.FC<AmountOffOrderProviderProps> = ({ 
 // Custom Hook
 export const useAmountOffOrder = (): AmountOffOrderContextType => {
   const context = useContext(AmountOffOrderContext);
-  
+
   if (context === undefined) {
     throw new Error('useAmountOffOrder must be used within an AmountOffOrderProvider');
   }
-  
+
   return context;
 };
-
-// Export types for use in other components
-export type { AmountOffOrderDiscount, CartItem, AmountOffOrderContextType };

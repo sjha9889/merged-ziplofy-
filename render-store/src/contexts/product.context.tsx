@@ -1,5 +1,5 @@
-import { createContext, useCallback, useContext, useState } from 'react';
-import { axiosi } from '../../config/axios.config';
+import { createContext, useCallback, useContext, useState } from "react";
+import { axiosi } from "../config/axios.config";
 
 export interface StorefrontProductItem {
   _id: string;
@@ -9,7 +9,7 @@ export interface StorefrontProductItem {
   price: number;
   compareAtPrice?: number;
   sku: string;
-  status: 'active' | 'draft';
+  status: "active" | "draft";
   vendor: { _id: string; name: string } | null;
   imageUrls?: string[];
   createdAt: string;
@@ -33,7 +33,7 @@ interface StorefrontProductContextType {
   products: StorefrontProductItem[];
   loading: boolean;
   error: string | null;
-  pagination: StorefrontProductsResponse['pagination'] | null;
+  pagination: StorefrontProductsResponse["pagination"] | null;
   fetchProductsByStoreId: (args: { storeId: string; page?: number; limit?: number }) => Promise<void>;
   clear: () => void;
 }
@@ -44,7 +44,7 @@ export const StorefrontProductProvider: React.FC<{ children: React.ReactNode }> 
   const [products, setProducts] = useState<StorefrontProductItem[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState<StorefrontProductsResponse['pagination'] | null>(null);
+  const [pagination, setPagination] = useState<StorefrontProductsResponse["pagination"] | null>(null);
 
   const fetchProductsByStoreId = useCallback(async (args: { storeId: string; page?: number; limit?: number }) => {
     const { storeId, page = 1, limit = 10 } = args;
@@ -54,11 +54,11 @@ export const StorefrontProductProvider: React.FC<{ children: React.ReactNode }> 
       const res = await axiosi.get<StorefrontProductsResponse>(`/products/public/store/${storeId}`, {
         params: { page, limit },
       });
-      if (!res.data.success) throw new Error('Failed to fetch products');
+      if (!res.data.success) throw new Error("Failed to fetch products");
       setProducts(res.data.data || []);
       setPagination(res.data.pagination || null);
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to fetch products';
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string }; message?: string }; message?: string })?.response?.data?.message ?? (err as { message?: string })?.message ?? "Failed to fetch products";
       setError(msg);
     } finally {
       setLoading(false);
@@ -81,17 +81,13 @@ export const StorefrontProductProvider: React.FC<{ children: React.ReactNode }> 
     clear,
   };
 
-  return (
-    <StorefrontProductContext.Provider value={value}>{children}</StorefrontProductContext.Provider>
-  );
+  return <StorefrontProductContext.Provider value={value}>{children}</StorefrontProductContext.Provider>;
 };
 
 export const useStorefrontProducts = (): StorefrontProductContextType => {
   const ctx = useContext(StorefrontProductContext);
-  if (!ctx) throw new Error('useStorefrontProducts must be used within a StorefrontProductProvider');
+  if (!ctx) throw new Error("useStorefrontProducts must be used within a StorefrontProductProvider");
   return ctx;
 };
 
 export default StorefrontProductContext;
-
-

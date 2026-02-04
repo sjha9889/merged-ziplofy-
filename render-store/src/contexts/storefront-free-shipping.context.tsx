@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { axiosi } from '../../config/axios.config';
+import { axiosi } from '../config/axios.config';
 
 // Types
 export interface FreeShippingDiscount {

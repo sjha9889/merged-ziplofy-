@@ -3,8 +3,8 @@ import { Button, Container, Divider, Link, Paper, Stack, TextField, Typography }
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SlantedImageCarouselWrapper from '../components/SlantedImageCarouselWrapper';
-import { useStorefront } from '../contexts/storefront/store.context';
-import { useStorefrontAuth } from '../contexts/storefront/storefront-auth.context';
+import { useStorefront } from '../contexts/store.context';
+import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 
 const StorefrontLoginPage: React.FC = () => {
   const navigate = useNavigate();

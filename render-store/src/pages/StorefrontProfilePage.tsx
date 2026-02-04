@@ -12,9 +12,9 @@ import { Avatar, Box, Button, Card, CardContent, Chip, Container, Dialog, Dialog
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StorefrontNavbar from '../components/StorefrontNavbar';
-import { CustomerAddress, useCustomerAddresses } from '../contexts/storefront/customer-address-storefront.context';
-import { useStorefront } from '../contexts/storefront/store.context';
-import { useStorefrontAuth } from '../contexts/storefront/storefront-auth.context';
+import { CustomerAddress, useCustomerAddresses } from '../contexts/customer-address-storefront.context';
+import { useStorefront } from '../contexts/store.context';
+import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 import { COUNTRIES } from '../constants/countries';
 
 const NAVBAR_HEIGHT = 64;

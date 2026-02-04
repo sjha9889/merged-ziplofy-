@@ -15,8 +15,8 @@ import {
 } from '@mui/material';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import StorefrontNavbar from '../components/StorefrontNavbar';
-import { useStorefrontAuth } from '../contexts/storefront/storefront-auth.context';
-import { useStorefrontOrder } from '../contexts/storefront/storefront-order.context';
+import { useStorefrontAuth } from '../contexts/storefront-auth.context';
+import { useStorefrontOrder } from '../contexts/storefront-order.context';
 
 const NAVBAR_HEIGHT = 64;
 

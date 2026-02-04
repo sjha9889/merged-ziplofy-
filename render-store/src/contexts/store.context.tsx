@@ -1,6 +1,6 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import { axiosi } from '../../config/axios.config';
-import { StorefrontProductProvider } from './product.context';
+import { createContext, useContext, useEffect, useState } from "react";
+import { axiosi } from "../config/axios.config";
+import { StorefrontProductProvider } from "./product.context";
 
 interface StorefrontContextType {
   isStoreFront: boolean;
@@ -17,14 +17,15 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   useEffect(() => {
     const hostname = window.location.hostname;
-    const parts = hostname.split('.');
-    const possibleSub = parts.length > 1 ? parts[0].toLowerCase() : '';
-    const isAdmin = possibleSub === 'admin';
-    
-    console.log('Storefront detection:', { hostname, parts, possibleSub, isAdmin });
-    
+    let parts = hostname.split(".");
+    let possibleSub = parts.length > 1 ? parts[0].toLowerCase() : "";
+    // Dev: allow VITE_STORE_SUBDOMAIN when running on localhost
+    if (!possibleSub && typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_STORE_SUBDOMAIN) {
+      possibleSub = ((import.meta as any).env.VITE_STORE_SUBDOMAIN as string).toLowerCase();
+    }
+    const isAdmin = possibleSub === "admin";
+
     if (!possibleSub || isAdmin) {
-      console.log('Admin mode detected, skipping storefront logic');
       setStoreFrontChecked(true);
       return;
     }
@@ -32,7 +33,7 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     (async () => {
       try {
         const { data } = await axiosi.get<{ success: boolean; data?: { storeId: string; name: string; description: string } }>(
-          '/store-subdomain/check',
+          "/store-subdomain/check",
           { params: { subdomain: possibleSub } }
         );
         if (data.success && data.data) {
@@ -56,19 +57,15 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
   return (
     <StorefrontContext.Provider value={value}>
-      <StorefrontProductProvider>
-        {children}
-      </StorefrontProductProvider>
+      <StorefrontProductProvider>{children}</StorefrontProductProvider>
     </StorefrontContext.Provider>
   );
 };
 
 export const useStorefront = (): StorefrontContextType => {
   const ctx = useContext(StorefrontContext);
-  if (!ctx) throw new Error('useStorefront must be used within a StorefrontProvider');
+  if (!ctx) throw new Error("useStorefront must be used within a StorefrontProvider");
   return ctx;
 };
 
 export default StorefrontContext;
-
-

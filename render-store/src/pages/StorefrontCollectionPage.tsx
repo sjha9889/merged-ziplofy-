@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { Box, Container, Typography, IconButton, Stack, Chip, Button, Card, CardMedia, CardContent, Badge } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useStorefront } from '../contexts/storefront/store.context';
-import { useStorefrontCollections } from '../contexts/storefront/storefront-collections.context';
-import { useStorefrontAuth } from '../contexts/storefront/storefront-auth.context';
+import { useStorefront } from '../contexts/store.context';
+import { useStorefrontCollections } from '../contexts/storefront-collections.context';
+import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 import StorefrontNavbar from '../components/StorefrontNavbar';
 
 const NAVBAR_HEIGHT = 64;

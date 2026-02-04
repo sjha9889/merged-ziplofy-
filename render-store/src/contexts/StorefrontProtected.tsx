@@ -19,5 +19,3 @@ const StorefrontProtected: React.FC<Props> = ({ children, redirectTo = '/auth/lo
 };
 
 export default StorefrontProtected;
-
-

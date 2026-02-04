@@ -1,7 +1,7 @@
 // src/App.tsx
 import React from "react";
 import { Toaster } from "react-hot-toast";
-import { Route, BrowserRouter as Router, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Route, BrowserRouter as Router, Routes, useLocation } from "react-router-dom";
 
 import HomePage from "./components/HomePage";
 import Sidebar from "./components/Sidebar";
@@ -187,16 +187,6 @@ import { StoreShippingPolicyProvider } from "./contexts/store-shipping-policy.co
 import { StoreTermsPolicyProvider } from "./contexts/store-terms-policy.context";
 import { StoreBillingAddressProvider } from "./contexts/storeBillingAddress.context";
 import { StoreSubdomainProvider } from "./contexts/storeSubdomain.context";
-import { AmountOffOrderProvider } from "./contexts/storefront/amount-off-order.context";
-import { CustomerAddressProvider as CustomerAddressProviderStorefront } from './contexts/storefront/customer-address-storefront.context';
-import { StorefrontProductVariantProvider } from "./contexts/storefront/product-variant.context";
-import { StorefrontProductProvider } from "./contexts/storefront/product.context";
-import { StorefrontProvider, useStorefront } from "./contexts/storefront/store.context";
-import { StorefrontAuthProvider, useStorefrontAuth } from "./contexts/storefront/storefront-auth.context";
-import { StorefrontCartProvider } from "./contexts/storefront/storefront-cart.context";
-import { StorefrontCollectionsProvider } from "./contexts/storefront/storefront-collections.context";
-import { FreeShippingProvider } from "./contexts/storefront/storefront-free-shipping.context";
-import { StorefrontOrderProvider } from "./contexts/storefront/storefront-order.context";
 import { TaxAndDutiesGlobalSettingsProvider } from "./contexts/tax-and-duties-global-settings.context";
 import { TaxRateDefaultProvider } from "./contexts/tax-rate-default.context";
 import { TaxRateOverrideProvider } from "./contexts/tax-rate-override.context";
@@ -217,15 +207,6 @@ import { MetafeildsAndMetaObjectsSettingsPage } from "./pages/MetafeildsAndMetaO
 import OnlineStorePage from "./pages/OnlineStorePage";
 import OnlineStorePreferencePage from "./pages/OnlineStorePreferencePage";
 import SelectDiscountToCreatePage from "./pages/SelectDiscountToCreatePage";
-import StorefrontApp from "./pages/StorefrontApp";
-import StorefrontCollectionPage from "./pages/StorefrontCollectionPage";
-import StorefrontForgotPasswordPage from "./pages/StorefrontForgotPasswordPage";
-import StorefrontLoginPage from "./pages/StorefrontLoginPage";
-import StorefrontMyOrdersPage from "./pages/StorefrontMyOrdersPage";
-import StorefrontProductDetailPage from "./pages/StorefrontProductDetailPage";
-import StorefrontProfilePage from "./pages/StorefrontProfilePage";
-import StorefrontResetPasswordPage from "./pages/StorefrontResetPasswordPage";
-import StorefrontSignupPage from "./pages/StorefrontSignupPage";
 import MarketDetailsPage from "./pages/markets/MarketDetailsPage";
 import MarketsCatalogDetailsPage from "./pages/markets/MarketsCatalogDetailsPage";
 import MarketsCatalogsNewPage from "./pages/markets/MarketsCatalogsNewPage";
@@ -241,30 +222,6 @@ import ShippingProfileCreatePage from "./pages/settings/ShippingProfileCreatePag
 import ShippingProfileDetailsPage from "./pages/settings/ShippingProfileDetailsPage";
 import WebhooksNotificationsPage from "./pages/settings/WebhooksNotificationsPage";
 import AllThemes from "./pages/themes/AllThemes";
-// Component to redirect logged-in users away from auth pages
-const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useStorefrontAuth();
-  const navigate = useNavigate();
-
-  React.useEffect(() => {
-    if (user) {
-      navigate('/');
-    }
-  }, [user, navigate]);
-
-  return user ? null : <>{children}</>;
-};
-
-// Component to redirect unknown routes to homepage
-const RedirectToHome: React.FC = () => {
-  const navigate = useNavigate();
-
-  React.useEffect(() => {
-    navigate('/', { replace: true });
-  }, [navigate]);
-
-  return null;
-};
 
 /** Products children */
 
@@ -448,80 +405,8 @@ const AdminApp: React.FC = () => {
   );
 };
 
-const StorefrontAppWrapper: React.FC = () => {
-  const { checkAuth } = useStorefrontAuth();
-
-  React.useEffect(() => {
-    // checkAuth();
-  }, []);
-
+const App: React.FC = () => {
   return (
-    <StorefrontProductProvider>
-      <StorefrontProductVariantProvider>
-      <StorefrontCartProvider>
-      <StorefrontOrderProvider>
-      <CustomerAddressProviderStorefront>
-      <StorefrontCollectionsProvider>
-      <AmountOffOrderProvider>
-      <FreeShippingProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<StorefrontApp />} />
-          <Route path="/products/:id" element={<StorefrontProductDetailPage />} />
-          <Route path="/auth/login" element={
-            <AuthRoute>
-              <StorefrontLoginPage />
-            </AuthRoute>
-          } />
-          <Route path="/auth/signup" element={
-            <AuthRoute>
-              <StorefrontSignupPage />
-            </AuthRoute>
-          } />
-          <Route path="/auth/forgot-password" element={
-            <AuthRoute>
-              <StorefrontForgotPasswordPage />
-            </AuthRoute>
-          } />
-          <Route path="/auth/reset-password" element={
-            <AuthRoute>
-              <StorefrontResetPasswordPage />
-            </AuthRoute>
-          } />
-          {/* /cart route removed; cart opens via global navbar drawer */}
-          <Route path="/profile" element={<StorefrontProfilePage />} />
-          <Route path="/my-orders" element={<StorefrontMyOrdersPage />} />
-          <Route path="/collections/:collectionId/:urlHandle" element={<StorefrontCollectionPage />} />
-          {/* Catch-all route - redirect to homepage */}
-          <Route path="*" element={<RedirectToHome />} />
-        </Routes>
-      </Router>
-      </FreeShippingProvider>
-      </AmountOffOrderProvider>
-      </StorefrontCollectionsProvider>
-      </CustomerAddressProviderStorefront>
-      </StorefrontOrderProvider>
-      </StorefrontCartProvider>
-      </StorefrontProductVariantProvider>
-    </StorefrontProductProvider>
-  );
-};
-
-const InnerApp: React.FC = () => {
-  const { isStoreFront, storeFrontChecked} = useStorefront();
-
-  // Avoid flashing admin UI while validating a storefront candidate
-  if (!storeFrontChecked) {
-    return null;
-  }
-
-  return (
-    storeFrontChecked && isStoreFront ? (
-      <StorefrontAuthProvider>
-        <StorefrontAppWrapper />
-      </StorefrontAuthProvider>
-    )
-    :(
     <UserProvider>
       <InstalledThemesProvider>
       <AmountOffProductsDiscountProvider>
@@ -706,15 +591,6 @@ const InnerApp: React.FC = () => {
       </AmountOffProductsDiscountProvider>
       </InstalledThemesProvider>
     </UserProvider>
-    )
-  );
-};
-
-const App: React.FC = () => {
-  return (
-    <StorefrontProvider>
-      <InnerApp />
-    </StorefrontProvider>
   );
 };
 

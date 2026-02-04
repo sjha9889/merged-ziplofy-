@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useState } from 'react';
-import { axiosi } from '../../config/axios.config';
+import { axiosi } from '../config/axios.config';
 import type { StorefrontProductVariant } from './product-variant.context';
 
 export interface StorefrontCartItem {
@@ -50,7 +50,6 @@ export const StorefrontCartProvider: React.FC<{ children: React.ReactNode }> = (
       const res = await axiosi.post<{ success: boolean; data: StorefrontCartItem }>(`/storefront/cart`, payload);
       if (!res.data.success) throw new Error('Create cart entry failed');
       const created = res.data.data;
-      // Merge or add in local state
       setItems(prev => {
         const idx = prev.findIndex(i => i._id === created._id);
         if (idx >= 0) {
@@ -153,5 +152,3 @@ export const useStorefrontCart = (): StorefrontCartContextType => {
 };
 
 export default StorefrontCartContext;
-
-

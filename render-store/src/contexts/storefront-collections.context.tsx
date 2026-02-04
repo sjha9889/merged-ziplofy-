@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useState } from 'react';
-import { axiosi } from '../../config/axios.config';
+import { axiosi } from '../config/axios.config';
 import type { StorefrontProductItem } from './product.context';
 
 export interface StorefrontCollection {

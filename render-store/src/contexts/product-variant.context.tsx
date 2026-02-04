@@ -1,10 +1,10 @@
-import { createContext, useCallback, useContext, useState } from 'react';
-import { axiosi } from '../../config/axios.config';
+import { createContext, useCallback, useContext, useState } from "react";
+import { axiosi } from "../config/axios.config";
 
 export interface StorefrontProductVariant {
   _id: string;
   productId: string;
-  optionValues: Record<string, string> | {};
+  optionValues: Record<string, string> | Record<string, never>;
   sku: string;
   barcode: string | null;
   price: number;
@@ -51,12 +51,12 @@ export const StorefrontProductVariantProvider: React.FC<{ children: React.ReactN
       setLoading(true);
       setError(null);
       const res = await axiosi.get<VariantsResponse>(`/product-variants/public/product/${productId}`);
-      if (!res.data.success) throw new Error('Failed to fetch product variants');
+      if (!res.data.success) throw new Error("Failed to fetch product variants");
       setVariants(res.data.data || []);
       setCount(res.data.count || 0);
       return res.data.data || [];
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to fetch product variants';
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string }; message?: string }; message?: string })?.response?.data?.message ?? (err as { message?: string })?.message ?? "Failed to fetch product variants";
       setError(msg);
       return [];
     } finally {
@@ -80,17 +80,13 @@ export const StorefrontProductVariantProvider: React.FC<{ children: React.ReactN
     clear,
   };
 
-  return (
-    <StorefrontProductVariantContext.Provider value={value}>{children}</StorefrontProductVariantContext.Provider>
-  );
+  return <StorefrontProductVariantContext.Provider value={value}>{children}</StorefrontProductVariantContext.Provider>;
 };
 
 export const useStorefrontProductVariants = (): StorefrontProductVariantContextType => {
   const ctx = useContext(StorefrontProductVariantContext);
-  if (!ctx) throw new Error('useStorefrontProductVariants must be used within a StorefrontProductVariantProvider');
+  if (!ctx) throw new Error("useStorefrontProductVariants must be used within a StorefrontProductVariantProvider");
   return ctx;
 };
 
 export default StorefrontProductVariantContext;
-
-

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Container, Paper, Typography, TextField, Button, Stack, Link, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { useStorefrontAuth } from '../contexts/storefront/storefront-auth.context';
-import { useStorefront } from '../contexts/storefront/store.context';
+import { useStorefrontAuth } from '../contexts/storefront-auth.context';
+import { useStorefront } from '../contexts/store.context';
 
 const StorefrontForgotPasswordPage: React.FC = () => {
   const navigate = useNavigate();
