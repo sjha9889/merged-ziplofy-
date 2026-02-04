@@ -4,10 +4,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.checkSubdomain = exports.getSubdomainByStoreId = void 0;
-const error_utils_1 = require("../utils/error.utils");
-const subdomain_model_1 = require("../models/subdomain.model");
 const mongoose_1 = __importDefault(require("mongoose"));
+const config_1 = require("../config");
 const store_model_1 = require("../models/store/store.model");
+const subdomain_model_1 = require("../models/subdomain.model");
+const error_utils_1 = require("../utils/error.utils");
 exports.getSubdomainByStoreId = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const { storeId } = req.params;
     if (!storeId) {
@@ -19,15 +20,8 @@ exports.getSubdomainByStoreId = (0, error_utils_1.asyncErrorHandler)(async (req,
     }
     // Build preview URL from subdomain (not stored in DB)
     const isProduction = process.env.NODE_ENV === 'production';
-    let url;
-    if (isProduction) {
-        const domain = process.env.ROOT || 'example.com';
-        url = `https://${doc.subdomain}.${domain}`;
-    }
-    else {
-        const port = 5173; // dev server port
-        url = `http://${doc.subdomain}.localhost:${port}`;
-    }
+    const protocol = isProduction ? 'https' : 'http';
+    const url = `${protocol}://${doc.subdomain}${config_1.config.storeRenderMicroserviceUrlSuffix}`;
     return res.status(200).json({ success: true, data: { ...doc.toObject(), url } });
 });
 // Public: check if a subdomain is valid and return store basic info

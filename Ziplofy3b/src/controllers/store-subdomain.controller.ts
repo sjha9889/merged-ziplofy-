@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
-import { asyncErrorHandler } from '../utils/error.utils';
-import { Subdomain } from '../models/subdomain.model';
 import mongoose from 'mongoose';
+import { config } from '../config';
 import { Store } from '../models/store/store.model';
+import { Subdomain } from '../models/subdomain.model';
+import { asyncErrorHandler } from '../utils/error.utils';
 
 export const getSubdomainByStoreId = asyncErrorHandler(async (req: Request, res: Response) => {
   const { storeId } = req.params as { storeId: string };
@@ -17,14 +18,8 @@ export const getSubdomainByStoreId = asyncErrorHandler(async (req: Request, res:
 
   // Build preview URL from subdomain (not stored in DB)
   const isProduction = process.env.NODE_ENV === 'production';
-  let url: string;
-  if (isProduction) {
-    const domain = process.env.ROOT || 'example.com';
-    url = `https://${doc.subdomain}.${domain}`;
-  } else {
-    const port = 5173; // dev server port
-    url = `http://${doc.subdomain}.localhost:${port}`;
-  }
+  const protocol = isProduction ? 'https' : 'http';
+  const url = `${protocol}://${doc.subdomain}${config.storeRenderMicroserviceUrlSuffix}`;
 
   return res.status(200).json({ success: true, data: { ...doc.toObject(), url } });
 });

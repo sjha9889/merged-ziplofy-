@@ -1,27 +1,32 @@
-import React, { useEffect } from 'react';
-import { 
-  Box, Container, Typography, Dialog, DialogTitle, DialogContent, DialogActions, 
-  Card, CardActionArea, CardContent, Chip, Stack, Button, Grid, Paper, 
-  Avatar, IconButton, Badge, Fade, Slide, useTheme, useMediaQuery
-} from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import CategoryIcon from '@mui/icons-material/Category';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import StarIcon from '@mui/icons-material/Star';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import LocalShippingIcon from '@mui/icons-material/LocalShipping';
-import SecurityIcon from '@mui/icons-material/Security';
-import SupportAgentIcon from '@mui/icons-material/SupportAgent';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import { useStorefront } from '../contexts/store.context';
-import { useStorefrontProducts } from '../contexts/product.context';
-import { useStorefrontCart } from '../contexts/storefront-cart.context';
-import { useStorefrontAuth } from '../contexts/storefront-auth.context';
-import type { StorefrontProductItem } from '../contexts/product.context';
-import { useStorefrontCollections } from '../contexts/storefront-collections.context';
+import {
+  Box,
+  Button,
+  Card, CardActionArea, CardContent, Chip,
+  Container,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Fade,
+  IconButton,
+  Slide,
+  Stack,
+  Typography,
+  useMediaQuery,
+  useTheme
+} from '@mui/material';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import StorefrontNavbar from '../components/StorefrontNavbar';
-
-const NAVBAR_HEIGHT = 64;
+import type { StorefrontProductItem } from '../contexts/product.context';
+import { useStorefrontProducts } from '../contexts/product.context';
+import { useStorefront } from '../contexts/store.context';
+import { useStorefrontAuth } from '../contexts/storefront-auth.context';
+import { useStorefrontCart } from '../contexts/storefront-cart.context';
+import { useStorefrontCollections } from '../contexts/storefront-collections.context';
 
 const StorefrontApp: React.FC = () => {
   const { storeFrontMeta } = useStorefront();

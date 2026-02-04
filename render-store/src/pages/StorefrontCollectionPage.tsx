@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { Box, Container, Typography, IconButton, Stack, Chip, Button, Card, CardMedia, CardContent, Badge } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useStorefront } from '../contexts/store.context';
 import { useStorefrontCollections } from '../contexts/storefront-collections.context';
@@ -31,114 +30,92 @@ const StorefrontCollectionPage: React.FC = () => {
 
 
 	return (
-		<Box sx={{ bgcolor: '#fafafa', minHeight: '100vh', color: 'text.primary' }}>
-		<StorefrontNavbar showBack />
+		<div className="min-h-screen bg-gray-50 text-gray-900">
+			<StorefrontNavbar showBack />
 
-			<Container maxWidth="lg" sx={{ pt: `${NAVBAR_HEIGHT + 16}px`, pb: 6 }}>
-				{loading && (
-					<Typography variant="body1" color="text.secondary">Loading collection...</Typography>
-				)}
+			<div className="mx-auto max-w-6xl px-4 pb-10" style={{ paddingTop: `${NAVBAR_HEIGHT + 16}px` }}>
+				{loading && <div className="text-sm text-gray-600">Loading collection...</div>}
+
 				{!loading && !collection && (
-					<Stack spacing={2} alignItems="center" sx={{ py: 6 }}>
-						<Typography variant="h5" fontWeight={800}>Collection not found</Typography>
-						<Button variant="outlined" onClick={() => navigate('/')}>Go to Home</Button>
-					</Stack>
+					<div className="py-10 text-center">
+						<div className="text-xl font-extrabold">Collection not found</div>
+						<button
+							type="button"
+							onClick={() => navigate('/')}
+							className="mt-4 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-gray-50"
+						>
+							Go to Home
+						</button>
+					</div>
 				)}
+
 				{collection && (
-					<Box>
-						<Typography variant="h3" fontWeight={800}>{collection.title}</Typography>
-						<Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-							<Chip label={urlHandle} size="small" variant="outlined" />
-							{collection.onlineStorePublishing && <Chip label="Online" color="primary" size="small" />}
-							{collection.pointOfSalePublishing && <Chip label="POS" color="success" size="small" />}
-						</Stack>
-						<Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>{collection.metaDescription || collection.description}</Typography>
-						
-						{/* Products Section */}
-						<Box sx={{ mt: 4 }}>
-							<Typography variant="h5" fontWeight={600} sx={{ mb: 3 }}>
-								Products in this Collection
-							</Typography>
-							
-							{loading && (
-								<Typography variant="body1" color="text.secondary">Loading products...</Typography>
+					<div>
+						<h1 className="text-3xl font-extrabold">{collection.title}</h1>
+						<div className="mt-2 flex flex-wrap items-center gap-2">
+							<span className="rounded-full border border-gray-300 bg-white px-3 py-1 text-xs font-medium text-gray-700">
+								{urlHandle}
+							</span>
+							{collection.onlineStorePublishing && (
+								<span className="rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold text-white">Online</span>
 							)}
-							
+							{collection.pointOfSalePublishing && (
+								<span className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-semibold text-white">POS</span>
+							)}
+						</div>
+						<p className="mt-3 max-w-3xl text-sm text-gray-600">
+							{collection.metaDescription || collection.description}
+						</p>
+
+						<div className="mt-8">
+							<h2 className="text-lg font-semibold">Products in this Collection</h2>
+
+							{loading && <div className="mt-3 text-sm text-gray-600">Loading products...</div>}
 							{!loading && products.length === 0 && (
-								<Typography variant="body1" color="text.secondary">No products found in this collection.</Typography>
+								<div className="mt-3 text-sm text-gray-600">No products found in this collection.</div>
 							)}
-							
+
 							{!loading && products.length > 0 && (
-								<Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' }, gap: 3 }}>
+								<div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
 									{products.map((product) => (
-										<Box key={product._id}>
-											<Card 
-												sx={{ 
-													height: '100%', 
-													display: 'flex', 
-													flexDirection: 'column',
-													cursor: 'pointer',
-													transition: 'all 0.3s ease',
-													'&:hover': {
-														transform: 'translateY(-4px)',
-														boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)'
-													}
-												}}
-												onClick={() => navigate(`/products/${product._id}`)}
-											>
-												{product.imageUrls && product.imageUrls.length > 0 && (
-													<CardMedia
-														component="img"
-														height="200"
-														image={product.imageUrls[0]}
-														alt={product.title}
-														sx={{ objectFit: 'contain' }}
-													/>
+										<button
+											type="button"
+											key={product._id}
+											onClick={() => navigate(`/products/${product._id}`)}
+											className="group rounded-2xl border border-gray-200 bg-white p-3 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+										>
+											<div className="aspect-[4/3] w-full overflow-hidden rounded-xl bg-gray-50">
+												<img
+													src={(product.imageUrls && product.imageUrls[0]) || 'https://via.placeholder.com/600x400?text=Product'}
+													alt={product.title}
+													className="h-full w-full object-contain transition group-hover:scale-[1.02]"
+												/>
+											</div>
+											<div className="mt-3">
+												<div className="truncate text-sm font-semibold text-gray-900">{product.title}</div>
+												{product.vendor && <div className="mt-1 text-xs text-gray-600">by {product.vendor.name}</div>}
+												{product.category && (
+													<div className="mt-2 inline-flex rounded-full border border-gray-300 px-3 py-1 text-xs text-gray-700">
+														{product.category.name}
+													</div>
 												)}
-												<CardContent sx={{ flexGrow: 1 }}>
-													<Typography variant="h6" fontWeight={600} noWrap>
-														{product.title}
-													</Typography>
-													{product.vendor && (
-														<Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-															by {product.vendor.name}
-														</Typography>
+												<div className="mt-3 flex items-center gap-2">
+													<div className="text-sm font-bold text-indigo-600">${String(product.price)}</div>
+													{product.compareAtPrice && product.compareAtPrice > product.price && (
+														<div className="text-xs text-gray-500 line-through">${String(product.compareAtPrice)}</div>
 													)}
-													{product.category && (
-														<Chip 
-															label={product.category.name} 
-															size="small" 
-															variant="outlined" 
-															sx={{ mt: 1 }}
-														/>
-													)}
-													<Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-														<Typography variant="h6" fontWeight={600} color="primary">
-															${product.price}
-														</Typography>
-														{product.compareAtPrice && product.compareAtPrice > product.price && (
-															<Typography variant="body2" color="text.secondary" sx={{ textDecoration: 'line-through' }}>
-																${product.compareAtPrice}
-															</Typography>
-														)}
-													</Stack>
-													{product.sku && (
-														<Typography variant="caption" color="text.secondary">
-															SKU: {product.sku}
-														</Typography>
-													)}
-												</CardContent>
-											</Card>
-										</Box>
+												</div>
+												{product.sku && <div className="mt-1 text-[11px] text-gray-500">SKU: {product.sku}</div>}
+											</div>
+										</button>
 									))}
-								</Box>
+								</div>
 							)}
-						</Box>
-					</Box>
+						</div>
+					</div>
 				)}
-			</Container>
-			
-		</Box>
+			</div>
+		</div>
 	);
 };
 

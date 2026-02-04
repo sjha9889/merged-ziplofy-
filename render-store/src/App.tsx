@@ -1,20 +1,21 @@
 import React from 'react';
 import { Toaster } from 'react-hot-toast';
 import { Route, BrowserRouter as Router, Routes, useNavigate } from 'react-router-dom';
-import { StorefrontProvider } from './contexts/store.context';
-import { StorefrontAuthProvider, useStorefrontAuth } from './contexts/storefront-auth.context';
-import { StorefrontProductVariantProvider } from './contexts/product-variant.context';
-import { StorefrontCartProvider } from './contexts/storefront-cart.context';
-import { StorefrontOrderProvider } from './contexts/storefront-order.context';
-import { CustomerAddressProvider } from './contexts/customer-address-storefront.context';
-import { StorefrontCollectionsProvider } from './contexts/storefront-collections.context';
 import { AmountOffOrderProvider } from './contexts/amount-off-order.context';
+import { CustomerAddressProvider } from './contexts/customer-address-storefront.context';
+import { StorefrontProductVariantProvider } from './contexts/product-variant.context';
+import { StorefrontProvider, useStorefront } from './contexts/store.context';
+import { StorefrontAuthProvider, useStorefrontAuth } from './contexts/storefront-auth.context';
+import { StorefrontCartProvider } from './contexts/storefront-cart.context';
+import { StorefrontCollectionsProvider } from './contexts/storefront-collections.context';
 import { FreeShippingProvider } from './contexts/storefront-free-shipping.context';
+import { StorefrontOrderProvider } from './contexts/storefront-order.context';
+import "./index.css";
 import StorefrontApp from './pages/StorefrontApp';
 import StorefrontCollectionPage from './pages/StorefrontCollectionPage';
 import StorefrontForgotPasswordPage from './pages/StorefrontForgotPasswordPage';
 import StorefrontLoginPage from './pages/StorefrontLoginPage';
-import StorefrontMyOrdersPage from './pages/StorefrontMyOrdersPage';
+import StorefrontMyOrdersPage from './pages/StorefrontMyOrdersPage.tsx';
 import StorefrontProductDetailPage from './pages/StorefrontProductDetailPage';
 import StorefrontProfilePage from './pages/StorefrontProfilePage';
 import StorefrontResetPasswordPage from './pages/StorefrontResetPasswordPage';
@@ -55,6 +56,27 @@ const StorefrontRoutes: React.FC = () => (
   </Router>
 );
 
+const StorefrontEntry: React.FC = () => {
+  const { isStoreFront, storeFrontChecked, storeFrontMeta } = useStorefront();
+
+  if (!storeFrontChecked) {
+    return null;
+  }
+
+  if (!isStoreFront || !storeFrontMeta) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="rounded-xl bg-white px-6 py-4 text-center shadow-sm">
+          <h1 className="text-lg font-semibold text-gray-900">Store not found</h1>
+          <p className="mt-1 text-sm text-gray-500">This store URL is not connected to any storefront.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <StorefrontRoutes />;
+};
+
 function App() {
   return (
     <StorefrontProvider>
@@ -66,7 +88,7 @@ function App() {
                 <StorefrontCollectionsProvider>
                   <AmountOffOrderProvider>
                     <FreeShippingProvider>
-                      <StorefrontRoutes />
+                      <StorefrontEntry />
                     </FreeShippingProvider>
                   </AmountOffOrderProvider>
                 </StorefrontCollectionsProvider>

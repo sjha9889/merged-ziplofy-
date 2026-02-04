@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Paper, Typography, TextField, Button, Stack, Link, Divider } from '@mui/material';
-import GoogleIcon from '@mui/icons-material/Google';
 import { useNavigate } from 'react-router-dom';
+import { FcGoogle } from 'react-icons/fc';
 import SlantedImageCarouselWrapper from '../components/SlantedImageCarouselWrapper';
 import { useStorefront } from '../contexts/store.context';
 import { useStorefrontAuth } from '../contexts/storefront-auth.context';
@@ -22,29 +21,67 @@ const StorefrontSignupPage: React.FC = () => {
   }, [user]);
   return (
     <SlantedImageCarouselWrapper>
-      <Container maxWidth="sm">
-        <Paper elevation={2} sx={{ p: 4, bgcolor: 'rgba(255, 255, 255, 0.98)', backdropFilter: 'blur(10px)' }}>
-          <Typography variant="h5" fontWeight={800}>Create account</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Join us and start shopping.</Typography>
-          <Stack spacing={2} sx={{ mt: 3 }}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <TextField label="First name" fullWidth value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-              <TextField label="Last name" fullWidth value={lastName} onChange={(e) => setLastName(e.target.value)} />
-            </Stack>
-            <TextField label="Email" type="email" fullWidth value={email} onChange={(e) => setEmail(e.target.value)} />
-            <TextField label="Password" type="password" fullWidth value={password} onChange={(e) => setPassword(e.target.value)} />
-            <Button variant="contained" fullWidth disabled={loading} onClick={async () => {
-              if (!storeFrontMeta?.storeId) return;
-              await signup({ storeId: storeFrontMeta.storeId, firstName, lastName, email, password });
-            }}>Create account</Button>
-            <Divider>or</Divider>
-            <Button variant="outlined" startIcon={<GoogleIcon />} fullWidth>Sign up with Google</Button>
-            <Typography variant="body2" color="text.secondary" align="center">
-              Already have an account? <Link component="button" onClick={() => navigate('/auth/login')}>Sign in</Link>
-            </Typography>
-          </Stack>
-        </Paper>
-      </Container>
+      <div className="mx-auto w-full max-w-md px-4">
+        <div className="rounded-2xl bg-white/95 p-6 shadow-lg ring-1 ring-black/5 backdrop-blur">
+          <h1 className="text-xl font-extrabold text-gray-900">Create account</h1>
+          <p className="mt-1 text-sm text-gray-600">Join us and start shopping.</p>
+
+          <div className="mt-6 space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="grid gap-1">
+                <span className="text-sm font-medium text-gray-900">First name</span>
+                <input className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-200" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+              </label>
+              <label className="grid gap-1">
+                <span className="text-sm font-medium text-gray-900">Last name</span>
+                <input className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-200" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+              </label>
+            </div>
+
+            <label className="grid gap-1">
+              <span className="text-sm font-medium text-gray-900">Email</span>
+              <input className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-200" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            </label>
+            <label className="grid gap-1">
+              <span className="text-sm font-medium text-gray-900">Password</span>
+              <input className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-200" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            </label>
+
+            <button
+              type="button"
+              disabled={loading}
+              onClick={async () => {
+                if (!storeFrontMeta?.storeId) return;
+                await signup({ storeId: storeFrontMeta.storeId, firstName, lastName, email, password });
+              }}
+              className="mt-2 w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+            >
+              Create account
+            </button>
+
+            <div className="flex items-center gap-3 py-1">
+              <div className="h-px flex-1 bg-gray-200" />
+              <span className="text-xs text-gray-500">or</span>
+              <div className="h-px flex-1 bg-gray-200" />
+            </div>
+
+            <button
+              type="button"
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-50"
+            >
+              <FcGoogle />
+              Sign up with Google
+            </button>
+
+            <div className="text-center text-sm text-gray-600">
+              Already have an account?{' '}
+              <button type="button" className="font-semibold text-indigo-600 hover:text-indigo-700" onClick={() => navigate('/auth/login')}>
+                Sign in
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </SlantedImageCarouselWrapper>
   );
 };
