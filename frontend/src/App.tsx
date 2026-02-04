@@ -54,8 +54,8 @@ const App = () => {
                     } />
 
                     {/* Default redirect */}
-                    <Route path="/" element={<Navigate to="/themes" replace />} />
-                    <Route path="*" element={<Navigate to="/themes" replace />} />
+                    <Route path="/" element={<Navigate to="/admin/login" replace />} />
+                    <Route path="*" element={<Navigate to="/admin/login" replace />} />
                   </Routes>
                 </Router>
               </AssignedDevelopersProvider>
