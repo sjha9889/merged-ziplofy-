@@ -1,28 +1,19 @@
-import AddIcon from '@mui/icons-material/Add';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import EmailIcon from '@mui/icons-material/Email';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import PhoneIcon from '@mui/icons-material/Phone';
-import StarIcon from '@mui/icons-material/Star';
-import StarBorderIcon from '@mui/icons-material/StarBorder';
-import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
-import { Avatar, Box, Button, Card, CardContent, Chip, Container, Dialog, DialogActions, DialogContent, DialogTitle, Divider, FormControl, FormControlLabel, Grid, IconButton, InputLabel, List, ListItem, ListItemSecondaryAction, ListItemText, MenuItem, Paper, Select, Stack, Switch, TextField, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
+import { FaStar } from 'react-icons/fa';
+import { FiCalendar, FiEdit, FiMail, FiMapPin, FiPhone, FiPlus, FiStar, FiTrash2 } from 'react-icons/fi';
+import { HiShieldCheck } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import StorefrontNavbar from '../components/StorefrontNavbar';
-import { CustomerAddress, useCustomerAddresses } from '../contexts/customer-address-storefront.context';
-import { useStorefront } from '../contexts/store.context';
-import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 import { COUNTRIES } from '../constants/countries';
+import type { CustomerAddress } from '../contexts/customer-address-storefront.context';
+import { useCustomerAddresses } from '../contexts/customer-address-storefront.context';
+import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 
 const NAVBAR_HEIGHT = 64;
 
 const StorefrontProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const { storeFrontMeta } = useStorefront();
-  const { user, checkAuth, updateUser, loading: updateLoading } = useStorefrontAuth();
+  const { user, updateUser, loading: updateLoading } = useStorefrontAuth();
   const { 
     addresses, 
     loading: addressesLoading, 
@@ -33,21 +24,18 @@ const StorefrontProfilePage: React.FC = () => {
     deleteCustomerAddress
   } = useCustomerAddresses();
 
-  // Name editing state
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameForm, setNameForm] = useState({
     firstName: '',
     lastName: ''
   });
 
-  // Preferences editing state
   const [isEditingPreferences, setIsEditingPreferences] = useState(false);
   const [preferencesForm, setPreferencesForm] = useState({
     agreedToMarketingEmails: false,
     agreedToSmsMarketing: false
   });
 
-  // Address management state
   const [addressDialogOpen, setAddressDialogOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<CustomerAddress | null>(null);
   const [addressForm, setAddressForm] = useState<Partial<CustomerAddress>>({
@@ -73,14 +61,12 @@ const StorefrontProfilePage: React.FC = () => {
     }
   }, [user?._id, fetchCustomerAddressesByCustomerId, navigate]);
 
-  // Redirect to login if not authenticated
   useEffect(() => {
     if (!user) {
       navigate('/auth/login');
     }
   }, [user, navigate]);
 
-  // Load user's first and last name into form when user changes
   useEffect(() => {
     if (user) {
       setAddressForm(prev => ({
@@ -99,8 +85,6 @@ const StorefrontProfilePage: React.FC = () => {
     }
   }, [user]);
 
-
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -109,7 +93,6 @@ const StorefrontProfilePage: React.FC = () => {
     });
   };
 
-  // Name editing functions
   const handleEditName = () => {
     setIsEditingName(true);
     setNameForm({
@@ -132,7 +115,6 @@ const StorefrontProfilePage: React.FC = () => {
 
   const handleSaveName = async () => {
     if (!user?._id) return;
-
     try {
       await updateUser(user._id, {
         firstName: nameForm.firstName,
@@ -144,7 +126,6 @@ const StorefrontProfilePage: React.FC = () => {
     }
   };
 
-  // Preferences editing functions
   const handleEditPreferences = () => {
     setIsEditingPreferences(true);
     setPreferencesForm({
@@ -167,7 +148,6 @@ const StorefrontProfilePage: React.FC = () => {
 
   const handleSavePreferences = async () => {
     if (!user?._id) return;
-
     try {
       await updateUser(user._id, {
         agreedToMarketingEmails: preferencesForm.agreedToMarketingEmails,
@@ -179,10 +159,8 @@ const StorefrontProfilePage: React.FC = () => {
     }
   };
 
-  // Set default address function
   const handleSetDefaultAddress = async (addressId: string) => {
     if (!user?._id) return;
-
     try {
       await updateUser(user._id, {
         defaultAddress: addressId
@@ -192,7 +170,6 @@ const StorefrontProfilePage: React.FC = () => {
     }
   };
 
-  // Address management functions
   const handleAddAddress = () => {
     setEditingAddress(null);
     setAddressForm({
@@ -215,7 +192,6 @@ const StorefrontProfilePage: React.FC = () => {
   const handleEditAddress = (address: CustomerAddress) => {
     setEditingAddress(address);
     setAddressForm(address);
-    // Check if the address type is not one of the predefined types
     if (address.addressType && !['home', 'work', 'other'].includes(address.addressType)) {
       setCustomAddressType(address.addressType);
       setAddressForm(prev => ({ ...prev, addressType: 'other' }));
@@ -239,21 +215,16 @@ const StorefrontProfilePage: React.FC = () => {
 
   const handleSaveAddress = async () => {
     if (!user?._id) return;
-
     try {
-      // Prepare the address data with custom type if needed
       const addressData = {
         ...addressForm,
         addressType: addressForm.addressType === 'other' && customAddressType.trim() 
           ? customAddressType.trim() 
           : addressForm.addressType
       };
-
       if (editingAddress) {
-        // Update existing address
         await updateCustomerAddress(editingAddress._id, addressData);
       } else {
-        // Add new address
         await addCustomerAddress({
           customerId: user._id,
           ...addressData
@@ -274,679 +245,548 @@ const StorefrontProfilePage: React.FC = () => {
   };
 
   if (!user) {
-    return null; // Will redirect to login
+    return null;
   }
 
   return (
-    <Box sx={{ bgcolor: '#fafafa', minHeight: '100vh', color: 'text.primary' }}>
+    <div className="min-h-screen bg-gray-50 text-gray-900">
       <StorefrontNavbar showBack />
 
-      <Container maxWidth="md" sx={{ pt: `${NAVBAR_HEIGHT + 32}px`, pb: 6 }}>
+      <div className="max-w-3xl mx-auto px-4" style={{ paddingTop: `${NAVBAR_HEIGHT + 32}px`, paddingBottom: '24px' }}>
         {/* Welcome Message */}
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
-          <Typography 
-            variant="h3" 
-            fontWeight={800} 
-            sx={{ 
-              mb: 2,
-              background: 'linear-gradient(45deg, #1976d2, #42a5f5)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-extrabold mb-4 bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
             Hello, {user.firstName} 👋
-          </Typography>
-          <Typography variant="h6" color="text.secondary">
-            Welcome to your profile
-          </Typography>
-        </Box>
+          </h1>
+          <p className="text-xl text-gray-600">Welcome to your profile</p>
+        </div>
 
         {/* Profile Information Card */}
-        <Card elevation={2} sx={{ borderRadius: 3, overflow: 'hidden' }}>
-          <CardContent sx={{ p: 4 }}>
-            <Stack spacing={3}>
-              {/* Profile Header */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 2 }}>
-                <Avatar 
-                  sx={{ 
-                    width: 80, 
-                    height: 80, 
-                    bgcolor: 'primary.main',
-                    fontSize: '2rem',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  {user.firstName.charAt(0).toUpperCase()}{user.lastName.charAt(0).toUpperCase()}
-                </Avatar>
-                <Box sx={{ flex: 1 }}>
-                  {isEditingName ? (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <Box sx={{ display: 'flex', gap: 2 }}>
-                        <TextField
-                          label="First Name"
-                          value={nameForm.firstName}
-                          onChange={(e) => handleNameFormChange('firstName', e.target.value)}
-                          size="small"
-                          sx={{ flex: 1 }}
-                        />
-                        <TextField
-                          label="Last Name"
-                          value={nameForm.lastName}
-                          onChange={(e) => handleNameFormChange('lastName', e.target.value)}
-                          size="small"
-                          sx={{ flex: 1 }}
-                        />
-                      </Box>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Button
-                          variant="contained"
-                          size="small"
-                          onClick={handleSaveName}
-                          disabled={updateLoading || !nameForm.firstName.trim() || !nameForm.lastName.trim()}
-                        >
-                          {updateLoading ? 'Saving...' : 'Save'}
-                        </Button>
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          onClick={handleCancelEditName}
-                          disabled={updateLoading}
-                        >
-                          Cancel
-                        </Button>
-                      </Box>
-                    </Box>
-                  ) : (
-                    <Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Typography variant="h4" fontWeight={700}>
-                          {user.firstName} {user.lastName}
-                        </Typography>
-                        <IconButton
-                          size="small"
-                          onClick={handleEditName}
-                          sx={{ 
-                            bgcolor: 'primary.50',
-                            '&:hover': { bgcolor: 'primary.100' }
-                          }}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                      <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-                        {user.isVerified && (
-                          <Chip 
-                            icon={<VerifiedUserIcon />} 
-                            label="Verified" 
-                            color="success" 
-                            size="small" 
-                          />
-                        )}
-                        <Chip 
-                          label={user.language} 
-                          variant="outlined" 
-                          size="small" 
-                        />
-                      </Stack>
-                    </Box>
-                  )}
-                </Box>
-              </Box>
-
-              <Divider />
-
-              {/* Contact Information */}
-              <Box>
-                <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>
-                  Contact Information
-                </Typography>
-                <Stack spacing={2}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <EmailIcon color="primary" />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Email Address
-                      </Typography>
-                      <Typography variant="body1" fontWeight={500}>
-                        {user.email}
-                      </Typography>
-                    </Box>
-                  </Box>
-                  
-                  {user.phoneNumber && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <PhoneIcon color="primary" />
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          Phone Number
-                        </Typography>
-                        <Typography variant="body1" fontWeight={500}>
-                          {user.phoneNumber}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  )}
-                </Stack>
-              </Box>
-
-              <Divider />
-
-              {/* Account Information */}
-              <Box>
-                <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>
-                  Account Information
-                </Typography>
-                <Stack spacing={2}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <CalendarTodayIcon color="primary" />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Member Since
-                      </Typography>
-                      <Typography variant="body1" fontWeight={500}>
-                        {formatDate(user.createdAt)}
-                      </Typography>
-                    </Box>
-                  </Box>
-                  
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <CalendarTodayIcon color="primary" />
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Last Updated
-                      </Typography>
-                      <Typography variant="body1" fontWeight={500}>
-                        {formatDate(user.updatedAt)}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Stack>
-              </Box>
-
-              <Divider />
-
-              {/* Preferences */}
-              <Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6" fontWeight={600}>
-                    Preferences
-                  </Typography>
-                  {!isEditingPreferences && (
-                    <IconButton
-                      size="small"
-                      onClick={handleEditPreferences}
-                      sx={{ 
-                        bgcolor: 'primary.50',
-                        '&:hover': { bgcolor: 'primary.100' }
-                      }}
-                    >
-                      <EditIcon fontSize="small" />
-                    </IconButton>
-                  )}
-                </Box>
-                
-                {isEditingPreferences ? (
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={preferencesForm.agreedToMarketingEmails}
-                          onChange={(e) => handlePreferencesFormChange('agreedToMarketingEmails', e.target.checked)}
-                          color="primary"
-                        />
-                      }
-                      label={
-                        <Box>
-                          <Typography variant="body1" fontWeight={500}>
-                            Marketing Emails
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Receive promotional emails and updates
-                          </Typography>
-                        </Box>
-                      }
-                      labelPlacement="start"
-                      sx={{ 
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-start',
-                        margin: 0,
-                        width: '100%'
-                      }}
-                    />
-                    
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={preferencesForm.agreedToSmsMarketing}
-                          onChange={(e) => handlePreferencesFormChange('agreedToSmsMarketing', e.target.checked)}
-                          color="primary"
-                        />
-                      }
-                      label={
-                        <Box>
-                          <Typography variant="body1" fontWeight={500}>
-                            SMS Marketing
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            Receive promotional text messages
-                          </Typography>
-                        </Box>
-                      }
-                      labelPlacement="start"
-                      sx={{ 
-                        justifyContent: 'space-between',
-                        alignItems: 'flex-start',
-                        margin: 0,
-                        width: '100%'
-                      }}
-                    />
-                    
-                    <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        onClick={handleSavePreferences}
-                        disabled={updateLoading}
+        <div className="rounded-2xl overflow-hidden bg-white shadow-md border border-gray-200 mb-6">
+          <div className="p-8 space-y-6">
+            {/* Profile Header */}
+            <div className="flex items-center gap-6 mb-4">
+              <div className="w-20 h-20 rounded-full bg-indigo-600 flex items-center justify-center text-white text-2xl font-bold">
+                {user.firstName.charAt(0).toUpperCase()}{user.lastName.charAt(0).toUpperCase()}
+              </div>
+              <div className="flex-1">
+                {isEditingName ? (
+                  <div className="flex flex-col gap-4">
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        placeholder="First Name"
+                        value={nameForm.firstName}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleNameFormChange('firstName', e.target.value)}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Last Name"
+                        value={nameForm.lastName}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleNameFormChange('lastName', e.target.value)}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={handleSaveName}
+                        disabled={updateLoading || !nameForm.firstName.trim() || !nameForm.lastName.trim()}
+                        className="px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        {updateLoading ? 'Saving...' : 'Save Preferences'}
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={handleCancelEditPreferences}
+                        {updateLoading ? 'Saving...' : 'Save'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancelEditName}
                         disabled={updateLoading}
+                        className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                       >
                         Cancel
-                      </Button>
-                    </Box>
-                  </Box>
+                      </button>
+                    </div>
+                  </div>
                 ) : (
-                  <Stack spacing={1}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Marketing Emails
-                      </Typography>
-                      <Chip 
-                        label={user.agreedToMarketingEmails ? 'Enabled' : 'Disabled'} 
-                        color={user.agreedToMarketingEmails ? 'success' : 'default'}
-                        size="small"
-                      />
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body2" color="text.secondary">
-                        SMS Marketing
-                      </Typography>
-                      <Chip 
-                        label={user.agreedToSmsMarketing ? 'Enabled' : 'Disabled'} 
-                        color={user.agreedToSmsMarketing ? 'success' : 'default'}
-                        size="small"
-                      />
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Tax Collection
-                      </Typography>
-                      <Chip 
-                        label={user.collectTax.replace('_', ' ').toUpperCase()} 
-                        color="info"
-                        size="small"
-                      />
-                    </Box>
-                  </Stack>
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-3xl font-bold">{user.firstName} {user.lastName}</h2>
+                      <button
+                        type="button"
+                        onClick={handleEditName}
+                        className="p-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+                      >
+                        <FiEdit className="w-4 h-4 text-indigo-600" />
+                      </button>
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                      {user.isVerified && (
+                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-green-50 text-green-700 text-xs font-medium">
+                          <HiShieldCheck className="w-3 h-3" />
+                          Verified
+                        </span>
+                      )}
+                      <span className="px-2 py-1 rounded-full border border-gray-300 text-gray-700 text-xs font-medium">
+                        {user.language}
+                      </span>
+                    </div>
+                  </div>
                 )}
-              </Box>
-            </Stack>
-          </CardContent>
-        </Card>
+              </div>
+            </div>
+
+            <hr className="border-gray-200" />
+
+            {/* Contact Information */}
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Contact Information</h3>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <FiMail className="w-5 h-5 text-indigo-600" />
+                  <div>
+                    <p className="text-sm text-gray-600">Email Address</p>
+                    <p className="font-medium">{user.email}</p>
+                  </div>
+                </div>
+                {user.phoneNumber && (
+                  <div className="flex items-center gap-4">
+                    <FiPhone className="w-5 h-5 text-indigo-600" />
+                    <div>
+                      <p className="text-sm text-gray-600">Phone Number</p>
+                      <p className="font-medium">{user.phoneNumber}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <hr className="border-gray-200" />
+
+            {/* Account Information */}
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Account Information</h3>
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <FiCalendar className="w-5 h-5 text-indigo-600" />
+                  <div>
+                    <p className="text-sm text-gray-600">Member Since</p>
+                    <p className="font-medium">{formatDate(user.createdAt)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <FiCalendar className="w-5 h-5 text-indigo-600" />
+                  <div>
+                    <p className="text-sm text-gray-600">Last Updated</p>
+                    <p className="font-medium">{formatDate(user.updatedAt)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <hr className="border-gray-200" />
+
+            {/* Preferences */}
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-semibold">Preferences</h3>
+                {!isEditingPreferences && (
+                  <button
+                    type="button"
+                    onClick={handleEditPreferences}
+                    className="p-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+                  >
+                    <FiEdit className="w-4 h-4 text-indigo-600" />
+                  </button>
+                )}
+              </div>
+              
+              {isEditingPreferences ? (
+                <div className="flex flex-col gap-6">
+                  <label className="flex items-start justify-between cursor-pointer">
+                    <div>
+                      <p className="font-medium">Marketing Emails</p>
+                      <p className="text-sm text-gray-600">Receive promotional emails and updates</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={preferencesForm.agreedToMarketingEmails}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePreferencesFormChange('agreedToMarketingEmails', e.target.checked)}
+                      className="mt-1 w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                    />
+                  </label>
+                  <label className="flex items-start justify-between cursor-pointer">
+                    <div>
+                      <p className="font-medium">SMS Marketing</p>
+                      <p className="text-sm text-gray-600">Receive promotional text messages</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={preferencesForm.agreedToSmsMarketing}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handlePreferencesFormChange('agreedToSmsMarketing', e.target.checked)}
+                      className="mt-1 w-5 h-5 text-indigo-600 rounded focus:ring-indigo-500"
+                    />
+                  </label>
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      type="button"
+                      onClick={handleSavePreferences}
+                      disabled={updateLoading}
+                      className="px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50"
+                    >
+                      {updateLoading ? 'Saving...' : 'Save Preferences'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelEditPreferences}
+                      disabled={updateLoading}
+                      className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Marketing Emails</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      user.agreedToMarketingEmails ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {user.agreedToMarketingEmails ? 'Enabled' : 'Disabled'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">SMS Marketing</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      user.agreedToSmsMarketing ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {user.agreedToSmsMarketing ? 'Enabled' : 'Disabled'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Tax Collection</span>
+                    <span className="px-2 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">
+                      {user.collectTax.replace('_', ' ').toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
         {/* Address Management Section */}
-        <Card elevation={2} sx={{ borderRadius: 3, overflow: 'hidden', mt: 3 }}>
-          <CardContent sx={{ p: 4 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <LocationOnIcon color="primary" />
-                <Typography variant="h6" fontWeight={600}>
-                  Address Management
-                </Typography>
-              </Box>
-              <Button
-                variant="contained"
-                startIcon={<AddIcon />}
+        <div className="rounded-2xl overflow-hidden bg-white shadow-md border border-gray-200">
+          <div className="p-8">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-3">
+                <FiMapPin className="w-6 h-6 text-indigo-600" />
+                <h3 className="text-xl font-semibold">Address Management</h3>
+              </div>
+              <button
+                type="button"
                 onClick={handleAddAddress}
-                sx={{ borderRadius: 2 }}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition-colors"
               >
+                <FiPlus className="w-4 h-4" />
                 Add Address
-              </Button>
-            </Box>
+              </button>
+            </div>
 
             {addressesError && (
-              <Paper 
-                elevation={0} 
-                sx={{ 
-                  p: 3, 
-                  bgcolor: 'error.50',
-                  borderRadius: 2,
-                  border: '1px solid',
-                  borderColor: 'error.200',
-                  mb: 2
-                }}
-              >
-                <Typography variant="body2" color="error.main">
-                  Error loading addresses: {addressesError}
-                </Typography>
-              </Paper>
+              <div className="p-4 mb-4 bg-red-50 border border-red-200 rounded-xl">
+                <p className="text-sm text-red-700">Error loading addresses: {addressesError}</p>
+              </div>
             )}
 
             {addressesLoading ? (
-              <Box sx={{ textAlign: 'center', py: 4 }}>
-                <Typography variant="body1" color="text.secondary">
-                  Loading addresses...
-                </Typography>
-              </Box>
+              <div className="text-center py-8">
+                <p className="text-gray-600">Loading addresses...</p>
+              </div>
             ) : addresses.length === 0 ? (
-              <Paper 
-                elevation={0} 
-                sx={{ 
-                  p: 4, 
-                  textAlign: 'center', 
-                  bgcolor: 'grey.50',
-                  borderRadius: 2,
-                  border: '2px dashed',
-                  borderColor: 'grey.300'
-                }}
-              >
-                <LocationOnIcon sx={{ fontSize: 48, color: 'grey.400', mb: 2 }} />
-                <Typography variant="h6" color="text.secondary" gutterBottom>
-                  No addresses saved
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Add your first address to get started
-                </Typography>
-                <Button variant="outlined" onClick={handleAddAddress}>
+              <div className="p-8 text-center bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                <FiMapPin className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h4 className="text-lg text-gray-600 mb-2">No addresses saved</h4>
+                <p className="text-sm text-gray-600 mb-4">Add your first address to get started</p>
+                <button
+                  type="button"
+                  onClick={handleAddAddress}
+                  className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+                >
                   Add Your First Address
-                </Button>
-              </Paper>
+                </button>
+              </div>
             ) : (
-              <List>
-                {addresses.map((address, index) => (
-                  <ListItem
+              <div className="space-y-4">
+                {addresses.map((address) => (
+                  <div
                     key={address._id}
-                    sx={{
-                      border: '1px solid',
-                      borderColor: 'grey.200',
-                      borderRadius: 2,
-                      mb: 2,
-                      bgcolor: 'white'
-                    }}
+                    className="p-4 border border-gray-200 rounded-xl bg-white"
                   >
-                    <ListItemText
-                      primary={
-                        <Box>
-                          <Typography variant="h6" fontWeight={600}>
-                            {address.firstName} {address.lastName}
-                          </Typography>
-                          <Chip 
-                            label={address.addressType?.toUpperCase() || 'Home'} 
-                            size="small" 
-                            color="primary" 
-                            sx={{ mt: 1 }}
-                          />
-                        </Box>
-                      }
-                      secondary={
-                        <Box sx={{ mt: 1 }}>
-                          <Typography variant="body2" color="text.secondary">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h4 className="text-lg font-semibold">{address.firstName} {address.lastName}</h4>
+                          <span className="px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-medium">
+                            {(address.addressType || 'HOME').toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <p>
                             {address.company && `${address.company}, `}
                             {address.address}
                             {address.apartment && `, ${address.apartment}`}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {address.city}, {address.state} {address.pinCode}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {address.country}
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                            📞 {address.phoneNumber}
-                          </Typography>
-                        </Box>
-                      }
-                    />
-                    <ListItemSecondaryAction>
-                      <Stack direction="row" spacing={1}>
+                          </p>
+                          <p>{address.city}, {address.state} {address.pinCode}</p>
+                          <p>{address.country}</p>
+                          <p className="mt-2">📞 {address.phoneNumber}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
                         {user.defaultAddress === address._id ? (
-                          <Chip
-                            icon={<StarIcon />}
-                            label="Default"
-                            color="primary"
-                            size="small"
-                            sx={{ mr: 1 }}
-                          />
+                          <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-medium mr-2">
+                            <FaStar className="w-3 h-3 fill-indigo-700" />
+                            Default
+                          </span>
                         ) : (
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            startIcon={<StarBorderIcon />}
+                          <button
+                            type="button"
                             onClick={() => handleSetDefaultAddress(address._id!)}
                             disabled={updateLoading}
-                            sx={{ mr: 1 }}
+                            className="inline-flex items-center gap-1 px-3 py-1 rounded-lg border border-gray-300 text-sm hover:bg-gray-50 disabled:opacity-50 mr-2"
                           >
+                            <FiStar className="w-3 h-3" />
                             Make Default
-                          </Button>
+                          </button>
                         )}
-                        <IconButton
-                          edge="end"
+                        <button
+                          type="button"
                           onClick={() => handleEditAddress(address)}
-                          color="primary"
+                          className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                         >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          edge="end"
+                          <FiEdit className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => handleDeleteAddress(address._id!)}
-                          color="error"
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Stack>
-                    </ListItemSecondaryAction>
-                  </ListItem>
+                          <FiTrash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 ))}
-              </List>
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Address Form Dialog */}
-        <Dialog 
-          open={addressDialogOpen} 
-          onClose={handleCloseAddressDialog}
-          maxWidth="md"
-          fullWidth
-          PaperProps={{
-            sx: { borderRadius: 3 }
-          }}
-        >
-          <DialogTitle>
-            <Typography variant="h6" fontWeight={600}>
-              {editingAddress ? 'Edit Address' : 'Add New Address'}
-            </Typography>
-          </DialogTitle>
-          <DialogContent>
-            <Grid container spacing={3} sx={{ mt: 1 }}>
-              {/* Address Type */}
-              <Grid item xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel>Address Type</InputLabel>
-                  <Select
-                    value={addressForm.addressType}
-                    onChange={(e) => handleAddressFormChange('addressType', e.target.value)}
-                    label="Address Type"
-                  >
-                    <MenuItem value="home">Home</MenuItem>
-                    <MenuItem value="work">Work</MenuItem>
-                    <MenuItem value="other">Other</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid>
+        {addressDialogOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={handleCloseAddressDialog}>
+            <div className="bg-white rounded-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-xl font-semibold">{editingAddress ? 'Edit Address' : 'Add New Address'}</h2>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Address Type */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Address Type</label>
+                    <select
+                      value={addressForm.addressType}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleAddressFormChange('addressType', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      <option value="home">Home</option>
+                      <option value="work">Work</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
 
-              {/* Custom Address Type - Only show when "Other" is selected */}
-              {addressForm.addressType === 'other' && (
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Custom Address Type"
-                    placeholder="Enter address type (e.g., Vacation Home, Office, etc.)"
-                    value={customAddressType}
-                    onChange={(e) => setCustomAddressType(e.target.value)}
-                    required
-                    helperText="Please specify the type of address"
-                  />
-                </Grid>
-              )}
+                  {addressForm.addressType === 'other' && (
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Custom Address Type <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Enter address type (e.g., Vacation Home, Office, etc.)"
+                        value={customAddressType}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCustomAddressType(e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Please specify the type of address</p>
+                    </div>
+                  )}
 
-              {/* Name Fields */}
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="First Name"
-                  value={addressForm.firstName}
-                  onChange={(e) => handleAddressFormChange('firstName', e.target.value)}
-                  required
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="Last Name"
-                  value={addressForm.lastName}
-                  onChange={(e) => handleAddressFormChange('lastName', e.target.value)}
-                  required
-                />
-              </Grid>
+                  {/* Name Fields */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      First Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={addressForm.firstName}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAddressFormChange('firstName', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Last Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={addressForm.lastName}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAddressFormChange('lastName', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      required
+                    />
+                  </div>
 
-              {/* Company */}
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Company (Optional)"
-                  value={addressForm.company}
-                  onChange={(e) => handleAddressFormChange('company', e.target.value)}
-                />
-              </Grid>
+                  {/* Company */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Company (Optional)</label>
+                    <input
+                      type="text"
+                      value={addressForm.company}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAddressFormChange('company', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
 
-              {/* Address */}
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Address"
-                  value={addressForm.address}
-                  onChange={(e) => handleAddressFormChange('address', e.target.value)}
-                  required
-                  multiline
-                  rows={2}
-                />
-              </Grid>
+                  {/* Address */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Address <span className="text-red-500">*</span>
+                    </label>
+                    <textarea
+                      value={addressForm.address}
+                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleAddressFormChange('address', e.target.value)}
+                      rows={2}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      required
+                    />
+                  </div>
 
-              {/* Apartment */}
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Apartment, suite, etc. (Optional)"
-                  value={addressForm.apartment}
-                  onChange={(e) => handleAddressFormChange('apartment', e.target.value)}
-                />
-              </Grid>
+                  {/* Apartment */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Apartment, suite, etc. (Optional)</label>
+                    <input
+                      type="text"
+                      value={addressForm.apartment}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAddressFormChange('apartment', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
 
-              {/* City and State */}
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="City"
-                  value={addressForm.city}
-                  onChange={(e) => handleAddressFormChange('city', e.target.value)}
-                  required
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="State/Province"
-                  value={addressForm.state}
-                  onChange={(e) => handleAddressFormChange('state', e.target.value)}
-                  required
-                />
-              </Grid>
+                  {/* City and State */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      City <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={addressForm.city}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAddressFormChange('city', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      State/Province <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={addressForm.state}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAddressFormChange('state', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      required
+                    />
+                  </div>
 
-              {/* Country and Pin Code */}
-              <Grid item xs={6}>
-                <FormControl fullWidth required>
-                  <InputLabel>Country</InputLabel>
-                  <Select
-                    value={addressForm.country}
-                    onChange={(e) => handleAddressFormChange('country', e.target.value)}
-                    label="Country"
-                    sx={{ minWidth: 200 }}
-                  >
-                    {COUNTRIES.map((country) => (
-                      <MenuItem key={country.code} value={country.code}>
-                        {country.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={6}>
-                <TextField
-                  fullWidth
-                  label="Postal Code"
-                  value={addressForm.pinCode}
-                  onChange={(e) => handleAddressFormChange('pinCode', e.target.value)}
-                  required
-                />
-              </Grid>
+                  {/* Country and Pin Code */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Country <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={addressForm.country}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleAddressFormChange('country', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                      {COUNTRIES.map((country) => (
+                        <option key={country.code} value={country.code}>
+                          {country.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Postal Code <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={addressForm.pinCode}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAddressFormChange('pinCode', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      required
+                    />
+                  </div>
 
-              {/* Phone Number */}
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Phone Number"
-                  value={addressForm.phoneNumber}
-                  onChange={(e) => handleAddressFormChange('phoneNumber', e.target.value)}
-                  required
-                />
-              </Grid>
-            </Grid>
-          </DialogContent>
-          <DialogActions sx={{ p: 3 }}>
-            <Button onClick={handleCloseAddressDialog}>
-              Cancel
-            </Button>
-            <Button 
-              variant="contained" 
-              onClick={handleSaveAddress}
-              disabled={
-                addressesLoading || 
-                !addressForm.firstName || 
-                !addressForm.lastName || 
-                !addressForm.address || 
-                !addressForm.city || 
-                !addressForm.state || 
-                !addressForm.country || 
-                !addressForm.pinCode || 
-                !addressForm.phoneNumber ||
-                (addressForm.addressType === 'other' && !customAddressType.trim())
-              }
-            >
-              {addressesLoading ? 'Saving...' : (editingAddress ? 'Update Address' : 'Save Address')}
-            </Button>
-          </DialogActions>
-        </Dialog>
-      </Container>
-    </Box>
+                  {/* Phone Number */}
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Phone Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      value={addressForm.phoneNumber}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAddressFormChange('phoneNumber', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 border-t border-gray-200 flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={handleCloseAddressDialog}
+                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveAddress}
+                  disabled={
+                    addressesLoading || 
+                    !addressForm.firstName || 
+                    !addressForm.lastName || 
+                    !addressForm.address || 
+                    !addressForm.city || 
+                    !addressForm.state || 
+                    !addressForm.country || 
+                    !addressForm.pinCode || 
+                    !addressForm.phoneNumber ||
+                    (addressForm.addressType === 'other' && !customAddressType.trim())
+                  }
+                  className="px-6 py-2 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {addressesLoading ? 'Saving...' : (editingAddress ? 'Update Address' : 'Save Address')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

@@ -1,25 +1,7 @@
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import StarIcon from '@mui/icons-material/Star';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import {
-  Box,
-  Button,
-  Card, CardActionArea, CardContent, Chip,
-  Container,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Fade,
-  IconButton,
-  Slide,
-  Stack,
-  Typography,
-  useMediaQuery,
-  useTheme
-} from '@mui/material';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { FiShoppingCart, FiTrendingUp } from 'react-icons/fi';
+import { FaStar } from 'react-icons/fa';
 import StorefrontNavbar from '../components/StorefrontNavbar';
 import type { StorefrontProductItem } from '../contexts/product.context';
 import { useStorefrontProducts } from '../contexts/product.context';
@@ -32,14 +14,12 @@ const StorefrontApp: React.FC = () => {
   const { storeFrontMeta } = useStorefront();
   const { products, loading, error, pagination, fetchProductsByStoreId } = useStorefrontProducts();
   const { user, logout, checkAuth } = useStorefrontAuth();
-  const { items, getCartByCustomerId } = useStorefrontCart();
+  const { getCartByCustomerId } = useStorefrontCart();
   const { collections, loading: collectionsLoading, error: collectionsError, fetchCollectionsByStoreId } = useStorefrontCollections();
   const navigate = useNavigate();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [search, setSearch] = React.useState<string>('');
-  const [confirmLogoutOpen, setConfirmLogoutOpen] = React.useState(false);
-  const [heroLoaded, setHeroLoaded] = React.useState(false);
+  const [search, setSearch] = useState<string>('');
+  const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
+  const [heroLoaded, setHeroLoaded] = useState(false);
 
   useEffect(() => {
     if (storeFrontMeta?.storeId) {
@@ -47,241 +27,169 @@ const StorefrontApp: React.FC = () => {
     }
   }, [storeFrontMeta?.storeId]);
 
-  // Fetch collections for this store
   useEffect(() => {
     if (storeFrontMeta?.storeId) {
       fetchCollectionsByStoreId(storeFrontMeta.storeId);
     }
   }, [storeFrontMeta?.storeId]);
 
-  // Check authentication on page load
   useEffect(() => {
     checkAuth();
   }, [checkAuth]);
 
-  // Load cart for logged-in user so navbar badge stays in sync
   useEffect(() => {
     if (user?._id) {
       getCartByCustomerId(user._id).catch(() => {});
     }
   }, [user?._id]);
 
-  // Trigger hero animation
   useEffect(() => {
     const timer = setTimeout(() => setHeroLoaded(true), 300);
     return () => clearTimeout(timer);
   }, []);
 
-  const categories = [
-    'All', 'Apparel', 'Shoes', 'Accessories', 'Electronics', 'Home', 'Beauty'
-  ];
-
   return (
-    <Box sx={{ bgcolor: '#fafafa', minHeight: '100vh', color: 'text.primary' }}>
+    <div className="min-h-screen bg-gray-50 text-gray-900">
       {/* Navbar */}
       <StorefrontNavbar showSearch searchValue={search} onSearchChange={setSearch} />
 
       {/* Confirm Logout Modal */}
-      <Dialog open={confirmLogoutOpen} onClose={() => setConfirmLogoutOpen(false)}>
-        <DialogTitle>Logout</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary">Are you sure you want to logout?</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfirmLogoutOpen(false)}>No</Button>
-          <Button color="error" variant="contained" onClick={() => { logout(); setConfirmLogoutOpen(false); }}>Yes</Button>
-        </DialogActions>
-      </Dialog>
+      {confirmLogoutOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setConfirmLogoutOpen(false)}>
+          <div className="rounded-2xl bg-white p-6 shadow-xl max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-xl font-bold mb-4">Logout</h2>
+            <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                type="button"
+                onClick={() => setConfirmLogoutOpen(false)}
+                className="px-4 py-2 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                No
+              </button>
+              <button
+                type="button"
+                onClick={() => { logout(); setConfirmLogoutOpen(false); }}
+                className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Hero Section */}
-      <Box sx={{ 
-        position: 'relative',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        color: 'white',
-        overflow: 'hidden',
-        minHeight: '70vh',
-        display: 'flex',
-        alignItems: 'center'
-      }}>
+      <div className="relative bg-gradient-to-br from-indigo-500 via-purple-500 to-purple-600 text-white overflow-hidden min-h-[70vh] flex items-center">
         {/* Background Pattern */}
-        <Box sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-          opacity: 0.3
-        }} />
+        <div
+          className="absolute inset-0 opacity-30"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
         
-        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-          <Fade in={heroLoaded} timeout={800}>
-            <Box>
-              <Typography 
-                variant={isMobile ? "h3" : "h2"} 
-                fontWeight={900} 
-                sx={{ 
-                  mb: 2,
-                  background: 'linear-gradient(45deg, #ffffff 30%, #f0f0f0 90%)',
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  textShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                }}
-              >
-                {storeFrontMeta?.name || 'Our Store'}
-              </Typography>
-              <Typography 
-                variant={isMobile ? "h6" : "h5"} 
-                sx={{ 
-                  opacity: 0.9,
-                  maxWidth: isMobile ? '100%' : '70%',
-                  lineHeight: 1.6
-                }}
-              >
-                {storeFrontMeta?.description || 'Discover amazing products at unbeatable prices'}
-              </Typography>
-            </Box>
-          </Fade>
-        </Container>
-      </Box>
-
+        <div className="relative z-10 max-w-7xl mx-auto px-4 w-full">
+          <div className={`transition-opacity duration-800 ${heroLoaded ? 'opacity-100' : 'opacity-0'}`}>
+            <h1 className={`text-4xl md:text-5xl font-black mb-4 bg-gradient-to-r from-white to-gray-100 bg-clip-text text-transparent`}>
+              {storeFrontMeta?.name || 'Our Store'}
+            </h1>
+            <p className="text-lg md:text-xl opacity-90 max-w-3xl">
+              {storeFrontMeta?.description || 'Discover amazing products at unbeatable prices'}
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Collections Section */}
-      <Box sx={{ py: 8, bgcolor: '#f8f9fa' }}>
-        <Container maxWidth="lg">
-          <Box sx={{ textAlign: 'center', mb: 6 }}>
-            <Typography variant="h4" fontWeight={800} sx={{ mb: 2 }}>
-              Shop by Collections
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
+      <div className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-extrabold mb-4">Shop by Collections</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
               Discover our curated collections featuring the latest trends and timeless classics
-            </Typography>
-          </Box>
+            </p>
+          </div>
 
           {collectionsLoading && (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="body1" color="text.secondary">Loading collections...</Typography>
-            </Box>
+            <div className="text-center py-8">
+              <p className="text-gray-600">Loading collections...</p>
+            </div>
           )}
           {collectionsError && (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="body1" color="error">{collectionsError}</Typography>
-            </Box>
+            <div className="text-center py-8">
+              <p className="text-red-600">{collectionsError}</p>
+            </div>
           )}
 
           {!collectionsLoading && collections.length > 0 && (
-            <Box sx={{ 
-              display: 'grid', 
-              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
-              gap: 3
-            }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {collections.map((c, index) => (
-                <Slide direction="up" in={heroLoaded} timeout={600 + index * 100} key={c._id}>
-                  <Card 
-                    sx={{ 
-                      height: '100%',
-                      borderRadius: 3,
-                      overflow: 'hidden',
-                      transition: 'all 0.3s ease',
-                      '&:hover': {
-                        transform: 'translateY(-8px)',
-                        boxShadow: '0 20px 40px rgba(0,0,0,0.1)'
-                      }
-                    }}
+                <div
+                  key={c._id}
+                  className={`h-full rounded-2xl overflow-hidden bg-white shadow-sm border border-gray-200 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl ${
+                    heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                  }`}
+                  style={{ transitionDelay: `${index * 100}ms` }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => navigate(`/collections/${c._id}/${c.urlHandle}`)}
+                    className="w-full h-full text-left"
                   >
-                    <CardActionArea 
-                      sx={{ height: '100%', p: 0 }} 
-                      onClick={() => navigate(`/collections/${c._id}/${c.urlHandle}`)}
-                    >
-                      <Box sx={{ 
-                        height: 200, 
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        position: 'relative'
-                      }}>
-                        <Typography variant="h4" fontWeight={800} color="white" sx={{ opacity: 0.9 }}>
-                          {c.title.charAt(0)}
-                        </Typography>
-                        <Box sx={{
-                          position: 'absolute',
-                          top: 16,
-                          right: 16,
-                          display: 'flex',
-                          gap: 1
-                        }}>
-                          {c.onlineStorePublishing && (
-                            <Chip size="small" label="Online" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }} />
-                          )}
-                          {c.pointOfSalePublishing && (
-                            <Chip size="small" label="POS" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }} />
-                          )}
-                        </Box>
-                      </Box>
-                      <CardContent sx={{ p: 3 }}>
-                        <Typography variant="h6" fontWeight={700} sx={{ mb: 1 }}>
-                          {c.title}
-                        </Typography>
-                        <Typography 
-                          variant="body2" 
-                          color="text.secondary" 
-                          sx={{ 
-                            display: '-webkit-box', 
-                            WebkitLineClamp: 2, 
-                            WebkitBoxOrient: 'vertical', 
-                            overflow: 'hidden',
-                            mb: 2
-                          }}
-                        >
-                          {c.metaDescription || c.description}
-                        </Typography>
-                        <Chip 
-                          size="small" 
-                          variant="outlined" 
-                          label={c.urlHandle}
-                          sx={{ fontSize: '0.75rem' }}
-                        />
-                      </CardContent>
-                    </CardActionArea>
-                  </Card>
-                </Slide>
+                    <div className="h-48 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center relative">
+                      <h3 className="text-4xl font-black text-white opacity-90">
+                        {c.title.charAt(0)}
+                      </h3>
+                      <div className="absolute top-4 right-4 flex gap-2">
+                        {c.onlineStorePublishing && (
+                          <span className="px-2 py-1 rounded-full bg-white/20 text-white text-xs font-medium">Online</span>
+                        )}
+                        {c.pointOfSalePublishing && (
+                          <span className="px-2 py-1 rounded-full bg-white/20 text-white text-xs font-medium">POS</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <h3 className="text-xl font-bold mb-2">{c.title}</h3>
+                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                        {c.metaDescription || c.description}
+                      </p>
+                      <span className="inline-block px-3 py-1 rounded-full border border-gray-300 text-xs text-gray-700">
+                        {c.urlHandle}
+                      </span>
+                    </div>
+                  </button>
+                </div>
               ))}
-            </Box>
+            </div>
           )}
-        </Container>
-      </Box>
+        </div>
+      </div>
 
       {/* Featured Products Section */}
-      <Box sx={{ py: 8, bgcolor: 'white' }}>
-        <Container maxWidth="lg">
-          <Box sx={{ textAlign: 'center', mb: 6 }}>
-            <Typography variant="h4" fontWeight={800} sx={{ mb: 2 }}>
-              Featured Products
-            </Typography>
-            <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
+      <div className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-extrabold mb-4">Featured Products</h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
               Handpicked products that our customers love
-            </Typography>
-          </Box>
+            </p>
+          </div>
 
           {loading && (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="body1" color="text.secondary">Loading products...</Typography>
-            </Box>
+            <div className="text-center py-8">
+              <p className="text-gray-600">Loading products...</p>
+            </div>
           )}
           {error && (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
-              <Typography variant="body1" color="error">{error}</Typography>
-            </Box>
+            <div className="text-center py-8">
+              <p className="text-red-600">{error}</p>
+            </div>
           )}
 
           {!loading && (
-            <Box sx={{ 
-              display: 'grid', 
-              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(4, 1fr)' },
-              gap: 3
-            }}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {products
                 .filter((p) => {
                   if (!search) return true;
@@ -291,148 +199,118 @@ const StorefrontApp: React.FC = () => {
                   return inTitle || inVendor;
                 })
                 .map((p, index) => (
-                  <Slide direction="up" in={heroLoaded} timeout={800 + index * 100} key={p._id}>
-                    <Box>
-                      <ProductCard product={p} onClick={() => navigate(`/products/${p._id}`)} />
-                    </Box>
-                  </Slide>
+                  <div
+                    key={p._id}
+                    className={`${
+                      heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                    }`}
+                    style={{ transitionDelay: `${(index + 1) * 100}ms` }}
+                  >
+                    <ProductCard product={p} onClick={() => navigate(`/products/${p._id}`)} />
+                  </div>
                 ))}
-            </Box>
+            </div>
           )}
 
           {pagination?.hasNext && (
-            <Box sx={{ textAlign: 'center', mt: 6 }}>
-              <Button 
-                variant="outlined" 
-                size="large"
+            <div className="text-center mt-12">
+              <button
+                type="button"
                 onClick={() => storeFrontMeta?.storeId && fetchProductsByStoreId({ storeId: storeFrontMeta.storeId, page: (pagination?.page || 1) + 1, limit: pagination?.limit || 12 })}
-                sx={{
-                  px: 4,
-                  py: 1.5,
-                  borderRadius: 3,
-                  textTransform: 'none',
-                  fontWeight: 600
-                }}
+                className="px-8 py-3 rounded-2xl border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
               >
                 Load More Products
-              </Button>
-            </Box>
+              </button>
+            </div>
           )}
-        </Container>
-      </Box>
+        </div>
+      </div>
 
       {/* Footer */}
-      <Box component="footer" sx={{ 
-        background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)',
-        color: 'white',
-        py: 6
-      }}>
-        <Container maxWidth="lg">
-          <Box sx={{ 
-            display: 'grid', 
-            gridTemplateColumns: { xs: '1fr', md: '2fr 1fr 1fr 2fr' },
-            gap: 4
-          }}>
-            <Box>
-              <Typography variant="h6" fontWeight={700} sx={{ mb: 2 }}>
-                {storeFrontMeta?.name || 'Our Store'}
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.8, mb: 2 }}>
+      <footer className="bg-gradient-to-br from-gray-800 to-gray-700 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="text-xl font-bold mb-4">{storeFrontMeta?.name || 'Our Store'}</h3>
+              <p className="text-gray-300 mb-4 text-sm">
                 {storeFrontMeta?.description || 'Your trusted online shopping destination for quality products at great prices.'}
-              </Typography>
-              <Stack direction="row" spacing={1}>
-                <IconButton size="small" sx={{ color: 'white', opacity: 0.8 }}>
-                  <TrendingUpIcon />
-                </IconButton>
-                <IconButton size="small" sx={{ color: 'white', opacity: 0.8 }}>
-                  <ShoppingCartIcon />
-                </IconButton>
-              </Stack>
-            </Box>
-            <Box>
-              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-                Quick Links
-              </Typography>
-              <Stack spacing={1}>
-                <Button size="small" sx={{ color: 'white', opacity: 0.8, justifyContent: 'flex-start', p: 0 }}>
+              </p>
+              <div className="flex gap-2">
+                <button type="button" className="p-2 text-white/80 hover:text-white transition-colors">
+                  <FiTrendingUp className="w-5 h-5" />
+                </button>
+                <button type="button" className="p-2 text-white/80 hover:text-white transition-colors">
+                  <FiShoppingCart className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Quick Links</h4>
+              <div className="flex flex-col gap-2">
+                <button type="button" className="text-left text-white/80 hover:text-white text-sm transition-colors">
                   About Us
-                </Button>
-                <Button size="small" sx={{ color: 'white', opacity: 0.8, justifyContent: 'flex-start', p: 0 }}>
+                </button>
+                <button type="button" className="text-left text-white/80 hover:text-white text-sm transition-colors">
                   Contact
-                </Button>
-                <Button size="small" sx={{ color: 'white', opacity: 0.8, justifyContent: 'flex-start', p: 0 }}>
+                </button>
+                <button type="button" className="text-left text-white/80 hover:text-white text-sm transition-colors">
                   FAQ
-                </Button>
-              </Stack>
-            </Box>
-            <Box>
-              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-                Support
-              </Typography>
-              <Stack spacing={1}>
-                <Button size="small" sx={{ color: 'white', opacity: 0.8, justifyContent: 'flex-start', p: 0 }}>
+                </button>
+              </div>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Support</h4>
+              <div className="flex flex-col gap-2">
+                <button type="button" className="text-left text-white/80 hover:text-white text-sm transition-colors">
                   Help Center
-                </Button>
-                <Button size="small" sx={{ color: 'white', opacity: 0.8, justifyContent: 'flex-start', p: 0 }}>
+                </button>
+                <button type="button" className="text-left text-white/80 hover:text-white text-sm transition-colors">
                   Shipping Info
-                </Button>
-                <Button size="small" sx={{ color: 'white', opacity: 0.8, justifyContent: 'flex-start', p: 0 }}>
+                </button>
+                <button type="button" className="text-left text-white/80 hover:text-white text-sm transition-colors">
                   Returns
-                </Button>
-              </Stack>
-            </Box>
-            <Box>
-              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-                Newsletter
-              </Typography>
-              <Typography variant="body2" sx={{ opacity: 0.8, mb: 2 }}>
+                </button>
+              </div>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-4">Newsletter</h4>
+              <p className="text-gray-300 mb-4 text-sm">
                 Subscribe to get updates on new products and exclusive offers.
-              </Typography>
-              <Stack direction="row" spacing={1}>
-                <Button 
-                  variant="outlined" 
-                  size="small"
-                  sx={{ 
-                    borderColor: 'rgba(255,255,255,0.3)', 
-                    color: 'white',
-                    '&:hover': { borderColor: 'white' }
-                  }}
-                >
-                  Subscribe
-                </Button>
-              </Stack>
-            </Box>
-          </Box>
-          <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.1)', mt: 4, pt: 3 }}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} alignItems="center" justifyContent="space-between" spacing={2}>
-              <Typography variant="body2" sx={{ opacity: 0.8 }}>
-                © {new Date().getFullYear()} {storeFrontMeta?.name || 'Our Store'}. All rights reserved.
-              </Typography>
-              <Stack direction="row" spacing={2}>
-                <Button size="small" sx={{ color: 'white', opacity: 0.8 }}>
-                  Privacy Policy
-                </Button>
-                <Button size="small" sx={{ color: 'white', opacity: 0.8 }}>
-                  Terms of Service
-                </Button>
-              </Stack>
-            </Stack>
-          </Box>
-        </Container>
-      </Box>
-    </Box>
+              </p>
+              <button
+                type="button"
+                className="px-4 py-2 rounded-xl border border-white/30 text-white hover:border-white transition-colors text-sm"
+              >
+                Subscribe
+              </button>
+            </div>
+          </div>
+          <div className="border-t border-white/10 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-gray-300 text-sm">
+              © {new Date().getFullYear()} {storeFrontMeta?.name || 'Our Store'}. All rights reserved.
+            </p>
+            <div className="flex gap-4">
+              <button type="button" className="text-white/80 hover:text-white text-sm transition-colors">
+                Privacy Policy
+              </button>
+              <button type="button" className="text-white/80 hover:text-white text-sm transition-colors">
+                Terms of Service
+              </button>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 };
 
 export default StorefrontApp;
 
-
-
 // Modern Product Card with enhanced design
 const ProductCard: React.FC<{ product: StorefrontProductItem; onClick: () => void }> = ({ product, onClick }) => {
   const images = Array.isArray(product.imageUrls) && product.imageUrls.length > 0 ? product.imageUrls : ['https://via.placeholder.com/600x400?text=Product'];
-  const [idx, setIdx] = React.useState(0);
-  const [isHovered, setIsHovered] = React.useState(false);
+  const [idx, setIdx] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
 
   React.useEffect(() => {
     if (images.length <= 1) return;
@@ -447,198 +325,89 @@ const ProductCard: React.FC<{ product: StorefrontProductItem; onClick: () => voi
     : 0;
 
   return (
-    <Card
-      sx={{
-        height: '100%',
-        position: 'relative',
-        overflow: 'hidden',
-        cursor: 'pointer',
-        borderRadius: 3,
-        border: '1px solid #f0f0f0',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        '&:hover': { 
-          transform: 'translateY(-8px)',
-          boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-          '& .product-image': {
-            transform: 'scale(1.05)'
-          }
-        },
-      }}
+    <div
+      className="h-full relative overflow-hidden rounded-2xl border border-gray-200 cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-xl"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <CardActionArea 
-        onClick={onClick} 
-        sx={{ 
-          height: '100%', 
-          display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'stretch',
-          p: 0
-        }}
+      <button
+        type="button"
+        onClick={onClick}
+        className="w-full h-full flex flex-col"
       >
-        <Box sx={{ 
-          position: 'relative', 
-          height: 240,
-          overflow: 'hidden',
-          background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
-        }}>
+        <div className="relative h-60 overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200">
           {images.map((src, i) => (
-            <Box
+            <img
               key={i}
-              component="img"
-              className="product-image"
+              className={`product-image absolute inset-0 w-full h-full object-contain transition-opacity duration-600 ${
+                i === idx ? 'opacity-100' : 'opacity-0'
+              }`}
               src={src}
               alt={product.title}
-              sx={{
-                position: 'absolute',
-                inset: 0,
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                opacity: i === idx ? 1 : 0,
-                transition: 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-              }}
             />
           ))}
           
           {/* Discount Badge */}
           {discountPercentage > 0 && (
-            <Box sx={{
-              position: 'absolute',
-              top: 12,
-              left: 12,
-              bgcolor: '#ff4757',
-              color: 'white',
-              px: 1.5,
-              py: 0.5,
-              borderRadius: 2,
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              zIndex: 2
-            }}>
+            <div className="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-lg text-xs font-bold z-10">
               -{discountPercentage}%
-            </Box>
+            </div>
           )}
 
           {/* Wishlist Button */}
-          <Box sx={{
-            position: 'absolute',
-            top: 12,
-            right: 12,
-            opacity: isHovered ? 1 : 0,
-            transition: 'opacity 0.3s ease',
-            zIndex: 2
-          }}>
-            <IconButton 
-              size="small" 
-              sx={{ 
-                bgcolor: 'rgba(255,255,255,0.9)',
-                '&:hover': { bgcolor: 'white' }
-              }}
+          <div className={`absolute top-3 right-3 z-10 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+            <button
+              type="button"
+              className="p-2 bg-white/90 hover:bg-white rounded-lg transition-colors"
             >
-              <StarIcon fontSize="small" />
-            </IconButton>
-          </Box>
+              <FaStar className="w-4 h-4 text-gray-600" />
+            </button>
+          </div>
 
           {/* Quick View Overlay */}
           {isHovered && (
-            <Box sx={{
-              position: 'absolute',
-              bottom: 12,
-              left: 12,
-              right: 12,
-              opacity: isHovered ? 1 : 0,
-              transition: 'opacity 0.3s ease',
-              zIndex: 2
-            }}>
-              <Button
-                variant="contained"
-                size="small"
-                fullWidth
-                sx={{
-                  bgcolor: 'rgba(0,0,0,0.8)',
-                  color: 'white',
-                  borderRadius: 2,
-                  textTransform: 'none',
-                  fontWeight: 600,
-                  '&:hover': {
-                    bgcolor: 'rgba(0,0,0,0.9)'
-                  }
-                }}
+            <div className="absolute bottom-3 left-3 right-3 z-10 transition-opacity duration-300">
+              <button
+                type="button"
+                className="w-full py-2 rounded-lg bg-black/80 text-white font-semibold hover:bg-black/90 transition-colors text-sm"
               >
                 Quick View
-              </Button>
-            </Box>
+              </button>
+            </div>
           )}
-        </Box>
+        </div>
 
-        <CardContent sx={{ flexGrow: 1, p: 3 }}>
-          <Typography 
-            variant="h6" 
-            fontWeight={700} 
-            sx={{ 
-              mb: 0.5,
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              lineHeight: 1.3
-            }}
-          >
+        <div className="flex-1 p-6">
+          <h3 className="text-lg font-bold mb-1 line-clamp-2 leading-tight">
             {product.title}
-          </Typography>
+          </h3>
           
-          <Typography 
-            variant="body2" 
-            color="text.secondary" 
-            sx={{ 
-              mb: 1.5,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.5
-            }}
-          >
-            <Box sx={{ 
-              width: 6, 
-              height: 6, 
-              borderRadius: '50%', 
-              bgcolor: '#667eea' 
-            }} />
-            {product.vendor?.name || 'Brand'}
-          </Typography>
+          <div className="flex items-center gap-1 mb-3">
+            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+            <span className="text-sm text-gray-600">{product.vendor?.name || 'Brand'}</span>
+          </div>
 
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
-            <Typography variant="h6" fontWeight={800} color="primary">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xl font-extrabold text-indigo-600">
               ${(product.price / 100).toFixed(2)}
-            </Typography>
+            </span>
             {product.compareAtPrice && product.compareAtPrice > product.price && (
-              <Typography 
-                variant="body2" 
-                color="text.secondary" 
-                sx={{ 
-                  textDecoration: 'line-through',
-                  opacity: 0.7
-                }}
-              >
+              <span className="text-sm text-gray-500 line-through">
                 ${(product.compareAtPrice / 100).toFixed(2)}
-              </Typography>
+              </span>
             )}
-          </Stack>
+          </div>
 
           {/* Rating */}
-          <Stack direction="row" alignItems="center" spacing={0.5}>
-            <StarIcon sx={{ fontSize: 16, color: '#ffc107' }} />
-            <StarIcon sx={{ fontSize: 16, color: '#ffc107' }} />
-            <StarIcon sx={{ fontSize: 16, color: '#ffc107' }} />
-            <StarIcon sx={{ fontSize: 16, color: '#ffc107' }} />
-            <StarIcon sx={{ fontSize: 16, color: '#e0e0e0' }} />
-            <Typography variant="caption" color="text.secondary" sx={{ ml: 0.5 }}>
-              (4.0)
-            </Typography>
-          </Stack>
-        </CardContent>
-      </CardActionArea>
-    </Card>
+          <div className="flex items-center gap-1">
+            {[1, 2, 3, 4].map((i) => (
+              <FaStar key={i} className="w-4 h-4 text-yellow-400" />
+            ))}
+            <FaStar className="w-4 h-4 text-gray-300" />
+            <span className="text-xs text-gray-500 ml-1">(4.0)</span>
+          </div>
+        </div>
+      </button>
+    </div>
   );
 };

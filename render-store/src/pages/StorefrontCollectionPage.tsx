@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useStorefront } from '../contexts/store.context';
 import { useStorefrontCollections } from '../contexts/storefront-collections.context';
-import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 import StorefrontNavbar from '../components/StorefrontNavbar';
 
 const NAVBAR_HEIGHT = 64;
@@ -12,7 +11,6 @@ const StorefrontCollectionPage: React.FC = () => {
 	const { collectionId, urlHandle } = useParams();
 	const { storeFrontMeta } = useStorefront();
 	const { collections, products, fetchCollectionsByStoreId, fetchProductsInCollection, loading } = useStorefrontCollections();
-	const { user } = useStorefrontAuth();
 
 	useEffect(() => {
 		if (storeFrontMeta?.storeId && collections.length === 0) {
