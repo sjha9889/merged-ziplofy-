@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
-import { Route, BrowserRouter as Router, Routes, useNavigate } from 'react-router-dom';
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import { AmountOffOrderProvider } from './contexts/amount-off-order.context';
 import { CustomerAddressProvider } from './contexts/customer-address-storefront.context';
 import { StorefrontProductVariantProvider } from './contexts/product-variant.context';
@@ -22,20 +22,33 @@ import StorefrontResetPasswordPage from './pages/StorefrontResetPasswordPage';
 import StorefrontSignupPage from './pages/StorefrontSignupPage';
 
 const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useStorefrontAuth();
-  const navigate = useNavigate();
-  React.useEffect(() => {
-    if (user) navigate('/');
-  }, [user, navigate]);
-  return user ? null : <>{children}</>;
+  const { user, checkAuth, loading } = useStorefrontAuth();
+  
+  // Check auth on mount to ensure user state is initialized
+  useEffect(() => {
+    checkAuth().catch(() => {});
+  }, [checkAuth]);
+  
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#fefcf8]">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#e8e0d5] border-t-[#d4af37]" />
+      </div>
+    );
+  }
+  
+  // If user is logged in, redirect to home page
+  if (user) {
+    return <Navigate to="/" replace />;
+  }
+  
+  // Otherwise, show the auth page (login/signup)
+  return <>{children}</>;
 };
 
 const RedirectToHome: React.FC = () => {
-  const navigate = useNavigate();
-  React.useEffect(() => {
-    navigate('/', { replace: true });
-  }, [navigate]);
-  return null;
+  return <Navigate to="/" replace />;
 };
 
 const StorefrontRoutes: React.FC = () => (

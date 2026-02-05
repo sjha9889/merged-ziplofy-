@@ -25,6 +25,7 @@ else {
         allowedOrigins: [
             // Allow any subdomain of ziplofy.com (e.g., gibberish.ziplofy.com, dashboard.ziplofy.com)
             /^https?:\/\/([a-z0-9-]+\.)*ziplofy\.com$/i,
+            "https://admin.ziplofy.com"
         ],
         clientUrl: "https://dashboard.ziplofy.com",
         storeRenderMicroserviceUrlSuffix: ".ziplofy.com"

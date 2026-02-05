@@ -69,45 +69,45 @@ const StorefrontResetPasswordPage: React.FC = () => {
   // Show loading if no token yet
   if (!token) {
     return (
-      <div className="min-h-screen bg-gray-50 px-4 py-10">
-        <div className="mx-auto w-full max-w-md rounded-2xl bg-white p-6 text-center shadow ring-1 ring-black/5">
-          <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-gray-300 border-t-indigo-600" />
-          <p className="mt-3 text-sm text-gray-600">Validating reset token...</p>
+      <div className="min-h-screen bg-[#fefcf8] px-4 py-10 flex items-center justify-center">
+        <div className="mx-auto w-full max-w-md rounded-lg bg-white border border-[#e8e0d5] p-6 text-center shadow-lg">
+          <div className="mx-auto h-6 w-6 animate-spin rounded-full border-2 border-[#e8e0d5] border-t-[#d4af37]" />
+          <p className="mt-3 text-sm text-[#2b1e1e]">Validating reset token...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-10">
-      <div className="mx-auto w-full max-w-md rounded-2xl bg-white p-6 shadow ring-1 ring-black/5">
-        <h1 className="text-xl font-extrabold text-gray-900">Reset Password</h1>
-        <p className="mt-1 text-sm text-gray-600">Enter your new password below.</p>
+    <div className="min-h-screen bg-[#fefcf8] px-4 py-10 flex items-center justify-center">
+      <div className="mx-auto w-full max-w-md rounded-lg bg-white border border-[#e8e0d5] p-6 shadow-lg">
+        <h1 className="text-xl font-extrabold text-[#0c100c]" style={{ fontFamily: 'var(--font-serif)' }}>Reset Password</h1>
+        <p className="mt-1 text-sm text-[#2b1e1e]">Enter your new password below.</p>
 
         {passwordError && (
-          <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
+          <div className="mt-4 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
             {passwordError}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-3">
           <label className="grid gap-1">
-            <span className="text-sm font-medium text-gray-900">New Password</span>
+            <span className="text-sm font-medium text-[#0c100c]">New Password</span>
             <input
-              className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-200"
+              className="w-full rounded-lg border border-[#e8e0d5] bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] text-[#0c100c]"
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
               disabled={loading}
             />
-            <span className="text-xs text-gray-500">Password must be at least 6 characters long</span>
+            <span className="text-xs text-[#2b1e1e]">Password must be at least 6 characters long</span>
           </label>
 
           <label className="grid gap-1">
-            <span className="text-sm font-medium text-gray-900">Confirm New Password</span>
+            <span className="text-sm font-medium text-[#0c100c]">Confirm New Password</span>
             <input
-              className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-200"
+              className="w-full rounded-lg border border-[#e8e0d5] bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] text-[#0c100c]"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -119,17 +119,18 @@ const StorefrontResetPasswordPage: React.FC = () => {
           <button
             type="submit"
             disabled={loading || !newPassword.trim() || !confirmPassword.trim()}
-            className="w-full rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50"
+            className="w-full rounded-lg bg-gradient-to-r from-[#d4af37] to-[#e6c547] px-4 py-2 text-sm font-semibold text-[#0c100c] hover:shadow-lg disabled:opacity-50 transition-all"
+            style={{ boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)' }}
           >
             {loading ? 'Resetting...' : 'Reset Password'}
           </button>
         </form>
 
-        <div className="mt-4 text-center text-sm text-gray-600">
+        <div className="mt-4 text-center text-sm text-[#2b1e1e]">
           Remember your password?{' '}
           <button
             type="button"
-            className="font-semibold text-indigo-600 hover:text-indigo-700"
+            className="font-semibold text-[#d4af37] hover:text-[#b8941f] transition-colors"
             onClick={() => navigate('/auth/login')}
           >
             Back to login

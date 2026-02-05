@@ -151,24 +151,24 @@ const StorefrontProductDetailPage: React.FC = () => {
 
   if (!product) {
     return (
-      <div className="min-h-screen bg-gray-50 text-gray-900">
+      <div className="min-h-screen bg-[#fefcf8] text-[#0c100c]">
         <StorefrontNavbar showBack showSearch searchValue={search} onSearchChange={setSearch} />
         <div className="max-w-3xl mx-auto px-4" style={{ paddingTop: `${NAVBAR_HEIGHT + 32}px`, paddingBottom: '24px' }}>
-          <h2 className="text-lg text-gray-600 text-center">Product not found</h2>
+          <h2 className="text-lg text-[#2b1e1e] text-center">Product not found</h2>
           <div className="flex justify-center mt-4">
-            <button type="button" onClick={() => navigate(-1)} className="px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50">
+            <button type="button" onClick={() => navigate(-1)} className="px-4 py-2 rounded-lg border border-[#e8e0d5] hover:bg-[#f5f1e8] text-[#0c100c] transition-colors">
               Go back
             </button>
           </div>
         </div>
-        <footer className="border-t border-gray-200 py-6 bg-white mt-12">
+        <footer className="border-t border-[#e8e0d5] py-6 bg-[#fefcf8] mt-12">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <p className="text-sm text-gray-600">© {new Date().getFullYear()} {storeFrontMeta?.name || ''}. All rights reserved.</p>
+              <p className="text-sm text-[#2b1e1e]">© {new Date().getFullYear()} {storeFrontMeta?.name || ''}. All rights reserved.</p>
               <div className="flex gap-4">
-                <button type="button" className="text-sm text-indigo-600 hover:text-indigo-700">Privacy</button>
-                <button type="button" className="text-sm text-indigo-600 hover:text-indigo-700">Terms</button>
-                <button type="button" className="text-sm text-indigo-600 hover:text-indigo-700">Contact</button>
+                <button type="button" className="text-sm text-[#2b1e1e] hover:text-[#d4af37] transition-colors">Privacy</button>
+                <button type="button" className="text-sm text-[#2b1e1e] hover:text-[#d4af37] transition-colors">Terms</button>
+                <button type="button" className="text-sm text-[#2b1e1e] hover:text-[#d4af37] transition-colors">Contact</button>
               </div>
             </div>
           </div>
@@ -183,57 +183,57 @@ const StorefrontProductDetailPage: React.FC = () => {
     : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900">
+    <div className="min-h-screen bg-[#fefcf8] text-[#0c100c]">
       <StorefrontNavbar showBack showSearch searchValue={search} onSearchChange={setSearch} />
 
       {/* Breadcrumbs */}
-      <div className="max-w-7xl mx-auto px-4" style={{ paddingTop: `${NAVBAR_HEIGHT + 16}px` }}>
-        <nav className={`mb-6 transition-opacity duration-400 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="flex items-center gap-2 text-sm">
-            <button type="button" onClick={() => navigate('/')} className="text-gray-600 hover:text-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" style={{ paddingTop: `${NAVBAR_HEIGHT + 24}px` }}>
+        <nav className={`mb-8 transition-opacity duration-400 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="flex items-center gap-2 text-xs text-[#2b1e1e]">
+            <button type="button" onClick={() => navigate('/')} className="hover:text-[#d4af37] transition-colors">
               Home
             </button>
-            <span className="text-gray-400">/</span>
-            <button type="button" className="text-gray-600 hover:text-gray-900">
+            <span>/</span>
+            <button type="button" className="hover:text-[#d4af37] transition-colors">
               {product.category?.name || 'Category'}
             </button>
-            <span className="text-gray-400">/</span>
-            <span className="text-gray-900">{product.title}</span>
+            <span>/</span>
+            <span className="text-[#0c100c]">{product.title}</span>
           </div>
         </nav>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 pb-12">
-        <div className="flex flex-col lg:flex-row gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
           {/* Product Images */}
           <div className={`w-full lg:w-1/2 flex-shrink-0 transition-opacity duration-600 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
-            <div className="rounded-2xl overflow-hidden shadow-lg border border-gray-200 relative bg-white">
+            <div className="rounded-lg overflow-hidden border border-[#e8e0d5] relative bg-white">
               {discountPercentage > 0 && (
-                <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-lg text-sm font-bold z-10">
+                <div className="absolute top-3 left-3 bg-[#d4af37] text-[#0c100c] px-2.5 py-1 rounded-md text-xs font-bold z-10">
                   -{discountPercentage}%
                 </div>
               )}
               <button
                 type="button"
                 onClick={() => setIsWishlisted(!isWishlisted)}
-                className="absolute top-4 right-4 bg-white/90 hover:bg-white rounded-lg p-2 z-10 transition-colors"
+                className="absolute top-3 right-3 bg-white/95 hover:bg-white rounded-lg p-2 z-10 transition-colors shadow-sm"
               >
-                <FiHeart className={`w-5 h-5 ${isWishlisted ? 'text-red-500 fill-red-500' : 'text-gray-600'}`} />
+                <FiHeart className={`w-4 h-4 ${isWishlisted ? 'text-red-500 fill-red-500' : 'text-[#0c100c]'}`} />
               </button>
               <img
                 src={images[currentImageIndex]}
                 alt={product.title}
-                className="w-full h-96 md:h-[500px] object-contain transition-all duration-300"
+                className="w-full h-80 md:h-[500px] object-contain transition-all duration-300"
               />
               {images.length > 1 && (
-                <div className="flex gap-2 p-4 overflow-x-auto scrollbar-hide">
+                <div className="flex gap-2 p-4 overflow-x-auto scrollbar-hide border-t border-[#e8e0d5]">
                   {images.map((img, index) => (
                     <button
                       key={index}
                       type="button"
                       onClick={() => setCurrentImageIndex(index)}
-                      className={`flex-shrink-0 w-15 h-15 rounded-lg overflow-hidden border-2 transition-all ${
-                        currentImageIndex === index ? 'border-indigo-500 opacity-100' : 'border-transparent opacity-70 hover:opacity-100'
+                      className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                        currentImageIndex === index ? 'border-[#d4af37] opacity-100' : 'border-[#e8e0d5] opacity-60 hover:opacity-100'
                       }`}
                     >
                       <img src={img} alt={`${product.title} ${index + 1}`} className="w-full h-full object-contain" />
@@ -246,50 +246,50 @@ const StorefrontProductDetailPage: React.FC = () => {
 
           {/* Product Info */}
           <div className={`flex-1 transition-opacity duration-800 ${pageLoaded ? 'opacity-100' : 'opacity-0'}`}>
-            <div className="p-8 rounded-2xl border border-gray-200 bg-white">
-              <h1 className="text-3xl font-extrabold mb-2">{product.title}</h1>
+            <div className="p-8 rounded-lg border border-[#e8e0d5] bg-white">
+              <h1 className="text-3xl font-bold mb-2 text-[#0c100c]" style={{ fontFamily: 'var(--font-serif)' }}>{product.title}</h1>
               
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex items-center gap-1">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-0.5">
                   {[1, 2, 3, 4].map((i) => (
-                    <FaStar key={i} className="w-4 h-4 text-yellow-400" />
+                    <FaStar key={i} className="w-3.5 h-3.5 text-[#d4af37] fill-[#d4af37]" />
                   ))}
-                  <FaStar className="w-4 h-4 text-gray-300" />
+                  <FaStar className="w-3.5 h-3.5 text-[#e8e0d5]" />
                 </div>
-                <span className="text-sm text-gray-600">(4.5) • 128 reviews</span>
+                <span className="text-xs text-[#2b1e1e]">(4.5) • 128 reviews</span>
               </div>
 
               <div className="flex flex-wrap gap-2 mb-6">
                 {product.vendor?.name && (
-                  <span className="px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-sm font-medium">
+                  <span className="px-2.5 py-1 rounded-md bg-[#f5f1e8] text-[#0c100c] text-xs font-medium">
                     {product.vendor.name}
                   </span>
                 )}
                 {product.category?.name && (
-                  <span className="px-3 py-1 rounded-full border border-gray-300 text-gray-700 text-sm font-medium">
+                  <span className="px-2.5 py-1 rounded-md border border-[#e8e0d5] text-[#2b1e1e] text-xs font-medium">
                     {product.category.name}
                   </span>
                 )}
                 {product.status && (
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                    product.status === 'active' ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-600'
+                  <span className={`px-2.5 py-1 rounded-md text-xs font-medium ${
+                    product.status === 'active' ? 'bg-green-50 text-green-700' : 'bg-[#f5f1e8] text-[#2b1e1e]'
                   }`}>
                     {product.status}
                   </span>
                 )}
               </div>
 
-              <div className="flex items-center gap-4 mb-6">
-                <span className="text-3xl font-extrabold text-indigo-600">
+              <div className="flex items-baseline gap-3 mb-6">
+                <span className="text-3xl font-bold text-[#d4af37]">
                   ${(product.price / 100).toFixed(2)}
                 </span>
                 {product.compareAtPrice && product.compareAtPrice > product.price && (
-                  <span className="text-xl text-gray-500 line-through">
+                  <span className="text-lg text-[#2b1e1e]/60 line-through">
                     ${(product.compareAtPrice / 100).toFixed(2)}
                   </span>
                 )}
                 {discountPercentage > 0 && (
-                  <span className="px-2 py-1 rounded-lg bg-red-500 text-white text-sm font-semibold">
+                  <span className="px-2 py-0.5 rounded-md bg-[#d4af37]/10 text-[#d4af37] text-xs font-semibold">
                     Save {discountPercentage}%
                   </span>
                 )}
@@ -298,22 +298,22 @@ const StorefrontProductDetailPage: React.FC = () => {
               {/* Variants Selection */}
               {!variantsLoading && (
                 variants.length === 1 && variants[0]?.isSynthetic ? (
-                  <p className="text-sm text-gray-600 mb-6">This product has no variants.</p>
+                  <p className="text-sm text-[#2b1e1e] mb-6">This product has no variants.</p>
                 ) : (
                   <div className="mb-6">
                     {optionAxes.map(axis => (
                       <div key={axis.name} className="mb-4">
-                        <h3 className="text-base font-semibold mb-2">{axis.name}</h3>
+                        <h3 className="text-sm font-semibold mb-2.5 text-[#0c100c]">{axis.name}</h3>
                         <div className="flex flex-wrap gap-2">
                           {axis.values.map(val => (
                             <button
                               key={val}
                               type="button"
                               onClick={() => handleSelectOption(axis.name, val)}
-                              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                              className={`px-3 py-1.5 text-sm rounded-lg font-medium transition-colors ${
                                 selectedOptions[axis.name] === val
-                                  ? 'bg-indigo-600 text-white hover:bg-indigo-700'
-                                  : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                                  ? 'bg-[#d4af37] text-[#0c100c] hover:bg-[#e6c547]'
+                                  : 'border border-[#e8e0d5] text-[#2b1e1e] hover:bg-[#f5f1e8]'
                               }`}
                             >
                               {val}
@@ -326,77 +326,71 @@ const StorefrontProductDetailPage: React.FC = () => {
                 )
               )}
 
-              <p className="text-gray-600 mb-8 leading-relaxed">{product.description}</p>
+              <p className="text-sm text-[#2b1e1e] mb-8 leading-relaxed">{product.description}</p>
 
               <div className="flex flex-col sm:flex-row gap-3 mb-6">
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className="flex-1 px-8 py-4 rounded-2xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                  className="flex-1 px-6 py-3 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#e6c547] text-[#0c100c] text-sm font-semibold hover:shadow-lg transition-all"
+                  style={{ boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)' }}
                 >
                   Add to Cart
                 </button>
                 <button
                   type="button"
                   onClick={handleBuyNow}
-                  className="flex-1 px-8 py-4 rounded-2xl bg-green-600 text-white font-semibold hover:bg-green-700 transition-all hover:-translate-y-0.5 hover:shadow-lg"
+                  className="flex-1 px-6 py-3 rounded-lg border border-[#0c100c] text-[#0c100c] text-sm font-semibold hover:bg-[#0c100c] hover:text-[#fefcf8] transition-colors"
                 >
                   Buy Now
                 </button>
-                <button
-                  type="button"
-                  onClick={() => navigate('/cart')}
-                  className="px-8 py-4 rounded-2xl border-2 border-indigo-600 text-indigo-600 font-semibold hover:bg-indigo-50 transition-colors"
-                >
-                  View Cart
-                </button>
               </div>
 
-              <div className="flex gap-4 mb-6">
-                <button type="button" className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
-                  <FiShare2 className="w-5 h-5" />
+              <div className="flex gap-3 mb-6">
+                <button type="button" className="p-2 text-[#2b1e1e] hover:bg-[#f5f1e8] rounded-lg transition-colors">
+                  <FiShare2 className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsWishlisted(!isWishlisted)}
                   className={`p-2 rounded-lg transition-colors ${
-                    isWishlisted ? 'text-red-500 hover:bg-red-50' : 'text-indigo-600 hover:bg-indigo-50'
+                    isWishlisted ? 'text-red-500 hover:bg-red-50' : 'text-[#2b1e1e] hover:bg-[#f5f1e8]'
                   }`}
                 >
-                  <FiHeart className={`w-5 h-5 ${isWishlisted ? 'fill-red-500' : ''}`} />
+                  <FiHeart className={`w-4 h-4 ${isWishlisted ? 'fill-red-500' : ''}`} />
                 </button>
               </div>
 
-              <hr className="my-6 border-gray-200" />
+              <hr className="my-6 border-[#e8e0d5]" />
 
               <div className="mb-6">
-                <h3 className="text-xl font-semibold mb-4">Why Choose This Product?</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
-                      <FaShippingFast className="w-5 h-5 text-indigo-600" />
+                <h3 className="text-base font-semibold mb-4 text-[#0c100c]" style={{ fontFamily: 'var(--font-serif)' }}>Why Choose This Product?</h3>
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-[#f5f1e8] flex items-center justify-center flex-shrink-0">
+                      <FaShippingFast className="w-4 h-4 text-[#d4af37]" />
                     </div>
                     <div>
-                      <h4 className="font-semibold">Free Shipping</h4>
-                      <p className="text-sm text-gray-600">On orders over $50</p>
+                      <h4 className="text-sm font-semibold text-[#0c100c]">Free Shipping</h4>
+                      <p className="text-xs text-[#2b1e1e] mt-0.5">On orders over $50</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
-                      <FaShieldAlt className="w-5 h-5 text-indigo-600" />
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-[#f5f1e8] flex items-center justify-center flex-shrink-0">
+                      <FaShieldAlt className="w-4 h-4 text-[#d4af37]" />
                     </div>
                     <div>
-                      <h4 className="font-semibold">Secure Payment</h4>
-                      <p className="text-sm text-gray-600">Your data is protected</p>
+                      <h4 className="text-sm font-semibold text-[#0c100c]">Secure Payment</h4>
+                      <p className="text-xs text-[#2b1e1e] mt-0.5">Your data is protected</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
-                      <FaHeadset className="w-5 h-5 text-indigo-600" />
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-[#f5f1e8] flex items-center justify-center flex-shrink-0">
+                      <FaHeadset className="w-4 h-4 text-[#d4af37]" />
                     </div>
                     <div>
-                      <h4 className="font-semibold">24/7 Support</h4>
-                      <p className="text-sm text-gray-600">We're here to help</p>
+                      <h4 className="text-sm font-semibold text-[#0c100c]">24/7 Support</h4>
+                      <p className="text-xs text-[#2b1e1e] mt-0.5">We're here to help</p>
                     </div>
                   </div>
                 </div>
@@ -406,16 +400,16 @@ const StorefrontProductDetailPage: React.FC = () => {
         </div>
       </div>
 
-      <footer className="border-t border-gray-200 py-8 bg-white mt-12">
-        <div className="max-w-7xl mx-auto px-4">
+      <footer className="border-t border-[#e8e0d5] py-8 bg-[#fefcf8] mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-xs text-[#2b1e1e]">
               © {new Date().getFullYear()} {storeFrontMeta?.name || ''}. All rights reserved.
             </p>
             <div className="flex gap-4">
-              <button type="button" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">Privacy</button>
-              <button type="button" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">Terms</button>
-              <button type="button" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">Contact</button>
+              <button type="button" className="text-xs text-[#2b1e1e] hover:text-[#d4af37] font-medium transition-colors">Privacy</button>
+              <button type="button" className="text-xs text-[#2b1e1e] hover:text-[#d4af37] font-medium transition-colors">Terms</button>
+              <button type="button" className="text-xs text-[#2b1e1e] hover:text-[#d4af37] font-medium transition-colors">Contact</button>
             </div>
           </div>
         </div>
@@ -425,45 +419,45 @@ const StorefrontProductDetailPage: React.FC = () => {
 
       {/* Quick Checkout Popup (Buy Now) */}
       {quickCheckoutOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setQuickCheckoutOpen(false)}>
-          <div className="bg-white rounded-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setQuickCheckoutOpen(false)}>
+          <div className="bg-[#fefcf8] rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#e8e0d5]">
               <div className="flex items-center gap-3">
-                <button type="button" onClick={() => setQuickCheckoutOpen(false)} className="p-1 hover:bg-gray-100 rounded-lg">
-                  <FiArrowLeft className="w-5 h-5" />
+                <button type="button" onClick={() => setQuickCheckoutOpen(false)} className="p-1 hover:bg-[#f5f1e8] rounded-lg transition-colors">
+                  <FiArrowLeft className="w-5 h-5 text-[#0c100c]" />
                 </button>
-                <h2 className="text-xl font-extrabold">{storeFrontMeta?.name || 'Store'}</h2>
+                <h2 className="text-lg font-semibold text-[#0c100c]" style={{ fontFamily: 'var(--font-serif)' }}>{storeFrontMeta?.name || 'Store'}</h2>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-600">100% Secured Payment</span>
-                <FiLock className="w-4 h-4 text-gray-600" />
+                <span className="text-xs text-[#2b1e1e]">100% Secured Payment</span>
+                <FiLock className="w-4 h-4 text-[#2b1e1e]" />
               </div>
             </div>
             <div className="p-0">
-              <div className="px-6 py-3 text-gray-600 font-bold text-sm">DELIVERY DETAILS</div>
+              <div className="px-6 py-3 text-[#0c100c] font-bold text-sm">DELIVERY DETAILS</div>
 
               {/* Order Summary */}
               <div className="px-6 pb-3">
-                <div className="p-4 rounded-xl border border-gray-200">
+                <div className="p-4 rounded-lg border border-[#e8e0d5]">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <FiTruck className="w-5 h-5 text-gray-600" />
+                      <FiTruck className="w-5 h-5 text-[#d4af37]" />
                       <div>
-                        <h3 className="font-extrabold">Order Summary</h3>
-                        <span className="inline-block px-2 py-1 rounded-full bg-green-50 text-green-700 text-xs mt-1">
+                        <h3 className="font-semibold text-[#0c100c]">Order Summary</h3>
+                        <span className="inline-block px-2 py-1 rounded-md bg-[#d4af37]/10 text-[#d4af37] text-xs mt-1">
                           ${((product.compareAtPrice || product.price) > product.price ? ((product.compareAtPrice! - product.price)/100).toFixed(2) : '0.00')} saved so far
                         </span>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">1 item</p>
+                      <p className="text-sm text-[#2b1e1e]">1 item</p>
                       <div className="flex items-center gap-2">
                         {product.compareAtPrice && product.compareAtPrice > product.price && (
-                          <span className="text-sm text-gray-500 line-through">
+                          <span className="text-sm text-[#2b1e1e]/60 line-through">
                             ${(product.compareAtPrice/100).toFixed(2)}
                           </span>
                         )}
-                        <span className="text-lg font-extrabold">${(product.price/100).toFixed(2)}</span>
+                        <span className="text-lg font-bold text-[#d4af37]">${(product.price/100).toFixed(2)}</span>
                       </div>
                     </div>
                   </div>
@@ -472,32 +466,32 @@ const StorefrontProductDetailPage: React.FC = () => {
 
               {/* Address Section */}
               <div className="px-6 pb-3">
-                <div className="p-4 rounded-xl border border-gray-200">
+                <div className="p-4 rounded-lg border border-[#e8e0d5]">
                   <div className="flex justify-between items-start mb-4">
                     <div className="pr-4 min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <FiMapPin className="w-5 h-5 text-gray-600" />
-                        <h3 className="font-extrabold">Deliver To {user?.firstName || ''}</h3>
+                        <FiMapPin className="w-5 h-5 text-[#d4af37]" />
+                        <h3 className="font-semibold text-[#0c100c]">Deliver To {user?.firstName || ''}</h3>
                       </div>
-                      <p className="text-sm whitespace-pre-wrap">
+                      <p className="text-sm whitespace-pre-wrap text-[#2b1e1e]">
                         {addresses.find(a => a._id === selectedShippingAddressId)?.address || 'Select a shipping address'}
                       </p>
-                      {user?.email && <p className="text-sm text-gray-600 mt-1">{user.email}</p>}
+                      {user?.email && <p className="text-sm text-[#2b1e1e] mt-1">{user.email}</p>}
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <button type="button" className="px-3 py-1 rounded-lg border border-gray-300 text-sm hover:bg-gray-50">
+                      <button type="button" className="px-3 py-1 rounded-lg border border-[#e8e0d5] text-sm hover:bg-[#f5f1e8] text-[#0c100c] transition-colors">
                         Change
                       </button>
-                      <span className="px-2 py-1 rounded-full bg-black text-white text-xs">Tap To Edit Address</span>
+                      <span className="px-2 py-1 rounded-md bg-[#0c100c] text-[#fefcf8] text-xs">Tap To Edit Address</span>
                     </div>
                   </div>
 
                   <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Shipping Address</label>
+                    <label className="block text-sm font-medium text-[#0c100c] mb-2">Shipping Address</label>
                     <select
                       value={selectedShippingAddressId}
                       onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedShippingAddressId(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                      className="w-full px-3 py-2 text-sm border border-[#e8e0d5] rounded-lg focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] outline-none bg-white text-[#0c100c]"
                     >
                       {addresses.map((a) => (
                         <option key={a._id} value={a._id}>{a.firstName} {a.lastName} — {a.city}</option>
@@ -505,11 +499,11 @@ const StorefrontProductDetailPage: React.FC = () => {
                     </select>
                   </div>
 
-                  <div className="p-3 mt-3 rounded-xl border border-gray-200">
+                  <div className="p-3 mt-3 rounded-lg border border-[#e8e0d5]">
                     <div className="flex flex-col sm:flex-row gap-2 items-center">
-                      <span className="text-sm font-bold">Free Shipping</span>
-                      <span className="text-sm text-gray-600">Get it by 10 Nov, 9 AM</span>
-                      <span className="px-2 py-1 rounded-full bg-green-50 text-green-700 text-xs font-medium">Free</span>
+                      <span className="text-sm font-semibold text-[#0c100c]">Free Shipping</span>
+                      <span className="text-sm text-[#2b1e1e]">Get it by 10 Nov, 9 AM</span>
+                      <span className="px-2 py-1 rounded-md bg-[#d4af37]/10 text-[#d4af37] text-xs font-medium">Free</span>
                     </div>
                   </div>
                 </div>
@@ -517,30 +511,30 @@ const StorefrontProductDetailPage: React.FC = () => {
 
               {/* Offers & Rewards */}
               <div className="px-6 pb-6">
-                <h3 className="text-base font-extrabold text-gray-600 mb-2">OFFERS & REWARDS</h3>
-                <div className="rounded-xl border border-gray-200 overflow-hidden">
-                  <div className="bg-green-50 text-green-700 font-bold px-4 py-2">
+                <h3 className="text-base font-semibold text-[#0c100c] mb-2">OFFERS & REWARDS</h3>
+                <div className="rounded-lg border border-[#e8e0d5] overflow-hidden">
+                  <div className="bg-[#d4af37]/10 text-[#d4af37] font-bold px-4 py-2">
                     You saved $0.00
                   </div>
                   <div className="p-4">
                     <div className="relative">
-                      <FiTag className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
+                      <FiTag className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#2b1e1e]" />
                       <input
                         type="text"
                         placeholder="Enter coupon code"
                         value={couponCode}
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCouponCode(e.target.value)}
-                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                        className="w-full pl-10 pr-3 py-2 text-sm border border-[#e8e0d5] rounded-lg focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] outline-none bg-white text-[#0c100c]"
                       />
                     </div>
                     <div className="flex justify-between items-center mt-2">
                       <div className="flex items-center gap-2">
-                        <button type="button" className="p-1 hover:bg-gray-100 rounded-lg">
-                          <FiTag className="w-4 h-4 text-gray-600" />
+                        <button type="button" className="p-1 hover:bg-[#f5f1e8] rounded-lg transition-colors">
+                          <FiTag className="w-4 h-4 text-[#2b1e1e]" />
                         </button>
-                        <span className="text-sm">8 coupons available</span>
+                        <span className="text-sm text-[#2b1e1e]">8 coupons available</span>
                       </div>
-                      <button type="button" className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
+                      <button type="button" className="text-sm text-[#2b1e1e] hover:text-[#d4af37] font-medium transition-colors">
                         View All
                       </button>
                     </div>
@@ -548,11 +542,11 @@ const StorefrontProductDetailPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex gap-3 justify-end">
+            <div className="px-6 py-4 border-t border-[#e8e0d5] flex gap-3 justify-end">
               <button
                 type="button"
                 onClick={() => setQuickCheckoutOpen(false)}
-                className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+                className="px-4 py-2 text-sm rounded-lg border border-[#e8e0d5] text-[#0c100c] hover:bg-[#f5f1e8] transition-colors"
               >
                 Cancel
               </button>
@@ -560,7 +554,8 @@ const StorefrontProductDetailPage: React.FC = () => {
                 type="button"
                 onClick={handlePlaceOrder}
                 disabled={!selectedShippingAddressId || orderLoading}
-                className="px-6 py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 text-sm rounded-lg bg-gradient-to-r from-[#d4af37] to-[#e6c547] text-[#0c100c] font-semibold hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                style={{ boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)' }}
               >
                 {orderLoading ? 'Processing...' : 'Pay Now'}
               </button>
