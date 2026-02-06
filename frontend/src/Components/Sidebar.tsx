@@ -10,6 +10,7 @@ import {
   FaChevronDown,
   FaUserShield,
 } from "react-icons/fa";
+import { useAdminAuth } from "../contexts/admin-auth.context";
 import "./Sidebar.css";
 
 interface SidebarProps {
@@ -22,6 +23,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeItem, onSelect }) => {
   const [openSection, setOpenSection] = useState<string>("");
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAdminAuth();
+
+  // Format role name for display (e.g., "support-admin" -> "Support Admin")
+  const formatRoleName = (roleName: string | undefined): string => {
+    if (!roleName) return "Admin";
+    
+    // Split by hyphen and capitalize each word
+    return roleName
+      .split("-")
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
+  const displayRoleName = formatRoleName(user?.roleName);
 
   const toggle = (section: string) => {
     setOpenSection((prev) => (prev === section ? "" : section));
@@ -45,7 +60,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeItem, onSelect }) => {
     >
       <div className="sidebar-header">
         <FaUserShield className="sidebar-icon" />
-        <span>Super Admin</span>
+        <span>{displayRoleName}</span>
       </div>
 
       <ul className="sidebar-menu">

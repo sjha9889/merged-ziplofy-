@@ -55,10 +55,10 @@
 .elementor-top-bar {
   background: #ffffff !important;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
-  height: 56px !important;
+  height: 46px !important;
   display: flex !important;
   align-items: center !important;
-  padding: 0 24px !important;
+  padding: 0 16px !important;
   color: #000000 !important;
   backdrop-filter: blur(20px) !important;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1) !important;
@@ -69,7 +69,9 @@
 .elementor-top-bar-left {
   display: flex !important;
   align-items: center !important;
-  gap: 8px !important;
+  gap: 6px !important;
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
 }
 
 .elementor-top-bar-center {
@@ -77,27 +79,30 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 12px !important;
+  gap: 6px !important;
+  min-width: 0 !important;
 }
 
 .elementor-top-bar-right {
   display: flex !important;
   align-items: center !important;
-  gap: 8px !important;
+  gap: 6px !important;
+  flex: 0 1 auto !important;
 }
 
 .elementor-top-bar-icon {
-  width: 40px !important;
-  height: 40px !important;
+  width: 30px !important;
+  height: 30px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   cursor: pointer !important;
-  border-radius: 10px !important;
+  border-radius: 6px !important;
   color: rgba(0, 0, 0, 0.6) !important;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  font-size: 17px !important;
+  font-size: 13.5px !important;
   background: transparent !important;
+  flex-shrink: 0 !important;
 }
 
 .elementor-top-bar-icon:hover {
@@ -110,15 +115,15 @@
   background: #000000 !important;
   color: #ffffff !important;
   border: 1px solid #000000 !important;
-  padding: 10px 22px !important;
-  border-radius: 10px !important;
+  padding: 6px 14px !important;
+  border-radius: 6px !important;
   font-weight: 600 !important;
-  font-size: 13px !important;
+  font-size: 11px !important;
   cursor: pointer !important;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  margin-right: 10px !important;
-  letter-spacing: 0.3px !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+  margin-right: 6px !important;
+  letter-spacing: 0.2px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
 .elementor-preview-btn:hover {
@@ -135,14 +140,14 @@
   background: #000000 !important;
   color: #ffffff !important;
   border: 1px solid #000000 !important;
-  padding: 10px 22px !important;
-  border-radius: 10px !important;
+  padding: 6px 14px !important;
+  border-radius: 6px !important;
   font-weight: 700 !important;
-  font-size: 13px !important;
+  font-size: 11px !important;
   cursor: pointer !important;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-  letter-spacing: 0.3px !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
+  letter-spacing: 0.2px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
 }
 
 .elementor-publish-btn:hover {
@@ -835,23 +840,23 @@
 
 .elementor-device-switcher {
   display: flex !important;
-  gap: 6px !important;
-  padding: 10px 20px !important;
+  gap: 4px !important;
+  padding: 6px 12px !important;
   align-items: center !important;
 }
 
 .elementor-device-btn {
-  width: 40px !important;
-  height: 40px !important;
+  width: 28px !important;
+  height: 28px !important;
   border: none !important;
   background: transparent !important;
   color: rgba(0, 0, 0, 0.45) !important;
   cursor: pointer !important;
-  border-radius: 10px !important;
+  border-radius: 6px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  font-size: 17px !important;
+  font-size: 12.5px !important;
   transition: all 0.25s ease !important;
 }
 
@@ -875,15 +880,44 @@
 }
 
 .elementor-center-actions .elementor-top-bar-icon {
-  width: 40px !important;
-  height: 40px !important;
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 12.5px !important;
 }
 
 .elementor-right-actions {
   display: flex !important;
   gap: 4px !important;
   align-items: center !important;
-  padding: 10px 20px !important;
+  padding: 6px 12px !important;
+}
+
+/* Hide settings icons in center section */
+.elementor-top-bar-center .elementor-top-bar-icon[title*="Settings"],
+.elementor-top-bar-center .elementor-top-bar-icon[title*="settings"],
+.elementor-top-bar-center .elementor-top-bar-icon[title*="Style"],
+.elementor-top-bar-center .elementor-top-bar-icon[title*="style"] {
+  display: none !important;
+}
+
+/* Ensure page manager button has proper spacing and doesn't get squished */
+.elementor-top-bar-center [data-page-manager] {
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.elementor-top-bar-center [data-page-manager] button {
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+.elementor-top-bar-center [data-page-manager] button span:first-child {
+  display: inline-block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 
 /* Right Panel placeholder (hidden in WordPress-style layout) */

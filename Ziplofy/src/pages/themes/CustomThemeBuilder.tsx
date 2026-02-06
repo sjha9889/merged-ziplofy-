@@ -10268,13 +10268,13 @@ ${linkStylesheetTag}  <style>
           
           {/* Editable Theme Name */}
           <div style={{ 
-            marginLeft: '16px', 
+            marginLeft: '12px', 
             display: 'flex', 
             alignItems: 'center',
-            gap: '8px'
+            gap: '6px'
           }}>
             <span style={{ 
-              fontSize: '11px', 
+              fontSize: '10px', 
               color: 'rgba(0, 0, 0, 0.4)',
               fontWeight: 600,
               letterSpacing: '0.5px',
@@ -10294,14 +10294,19 @@ ${linkStylesheetTag}  <style>
                 background: 'rgba(0, 0, 0, 0.02)',
                 border: '1px solid rgba(0, 0, 0, 0.1)',
                 borderRadius: '6px',
-                padding: '6px 12px',
+                padding: '5px 12px',
                 color: '#000',
-                fontSize: '13px',
+                fontSize: '12px',
                 fontWeight: 500,
-                minWidth: '180px',
-                maxWidth: '250px',
+                minWidth: '140px',
+                maxWidth: '340px',
+                width: 'auto',
+                flex: '1 1 auto',
                 outline: 'none',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
               }}
               onFocus={(e) => {
                 e.target.style.borderColor = '#00d2be';
@@ -10330,17 +10335,17 @@ ${linkStylesheetTag}  <style>
               background: canUndo ? 'rgba(0, 0, 0, 0.05)' : 'rgba(0, 0, 0, 0.02)',
               border: '1px solid rgba(0, 0, 0, 0.1)',
               borderRadius: '6px',
-              padding: '6px 10px',
+              padding: '5px 10px',
               color: canUndo ? '#000' : 'rgba(0, 0, 0, 0.3)',
               cursor: canUndo ? 'pointer' : 'not-allowed',
-              fontSize: '13px',
+              fontSize: '11px',
               fontWeight: 500,
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
               transition: 'all 0.2s ease',
               opacity: canUndo ? 1 : 0.5,
-              marginLeft: '8px',
+              marginLeft: '6px',
             }}
             onMouseEnter={(e) => {
               if (canUndo) {
@@ -10370,17 +10375,17 @@ ${linkStylesheetTag}  <style>
               background: canRedo ? 'rgba(0, 0, 0, 0.05)' : 'rgba(0, 0, 0, 0.02)',
               border: '1px solid rgba(0, 0, 0, 0.1)',
               borderRadius: '6px',
-              padding: '6px 10px',
+              padding: '5px 10px',
               color: canRedo ? '#000' : 'rgba(0, 0, 0, 0.3)',
               cursor: canRedo ? 'pointer' : 'not-allowed',
-              fontSize: '13px',
+              fontSize: '11px',
               fontWeight: 500,
               display: 'flex',
               alignItems: 'center',
               gap: '4px',
               transition: 'all 0.2s ease',
               opacity: canRedo ? 1 : 0.5,
-              marginLeft: '4px',
+              marginLeft: '5px',
             }}
             onMouseEnter={(e) => {
               if (canRedo) {
@@ -10456,37 +10461,31 @@ ${linkStylesheetTag}  <style>
           >
             ⊞
           </div>
-          <div 
-            className="elementor-top-bar-icon" 
-            title="Settings"
-            onClick={() => {
-              setActiveSidebarSection('style');
-              setIsLeftSidebarCollapsed(false);
-            }}
-            style={{ cursor: 'pointer' }}
-          >
-            ⚙
-          </div>
         </div>
         <div className="elementor-top-bar-center">
-          <div data-page-manager style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 8, zIndex: 10000 }}>
+          <div data-page-manager style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 6, zIndex: 10000 }}>
             <button
               onClick={() => setShowPageManager(!showPageManager)}
               style={{
-                padding: '8px 16px',
+                padding: '6px 14px',
                 background: 'rgba(0, 210, 190, 0.08)',
                 border: '1px solid rgba(0, 210, 190, 0.3)',
-                borderRadius: '8px',
+                borderRadius: '6px',
                 color: '#00b8a8',
                 cursor: 'pointer',
-                fontSize: 13,
+                fontSize: 11,
                 fontWeight: 500,
                 display: 'flex',
                 alignItems: 'center',
-                gap: 6,
+                gap: 5,
                 transition: 'all 0.2s ease',
                 position: 'relative',
                 zIndex: 10001,
+                maxWidth: '340px',
+                minWidth: '120px',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = 'rgba(0, 210, 190, 0.15)';
@@ -10497,32 +10496,32 @@ ${linkStylesheetTag}  <style>
                 e.currentTarget.style.borderColor = 'rgba(0, 210, 190, 0.3)';
               }}
             >
-              <span>{pages.find(p => p.id === currentPageId)?.name || 'Home'}</span>
-              <span style={{ fontSize: 10, transition: 'transform 0.2s ease', transform: showPageManager ? 'rotate(180deg)' : 'rotate(0deg)' }}>▼</span>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' }}>{pages.find(p => p.id === currentPageId)?.name || 'Home'}</span>
+              <span style={{ fontSize: 9, transition: 'transform 0.2s ease', transform: showPageManager ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }}>▼</span>
             </button>
             {showPageManager && (
               <div style={{
                 position: 'absolute',
                 top: '100%',
                 left: 0,
-                marginTop: 8,
+                marginTop: 6,
                 background: 'linear-gradient(145deg, #1a1a22 0%, #141418 100%)',
                 border: '1px solid rgba(0, 210, 190, 0.3)',
-                borderRadius: 10,
-                minWidth: 280,
-                maxHeight: 450,
+                borderRadius: 8,
+                minWidth: 240,
+                maxHeight: 400,
                 overflowY: 'auto',
                 zIndex: 99999,
                 boxShadow: '0 12px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05), 0 0 20px rgba(0, 210, 190, 0.15)',
                 backdropFilter: 'blur(10px)',
               }}>
                 <div style={{ 
-                  padding: '12px 16px', 
+                  padding: '10px 12px', 
                   borderBottom: '1px solid rgba(255, 255, 255, 0.08)', 
-                  fontSize: 10, 
+                  fontSize: 9, 
                   color: 'rgba(0, 210, 190, 0.8)', 
                   fontWeight: 700,
-                  letterSpacing: '1px',
+                  letterSpacing: '0.5px',
                   textTransform: 'uppercase',
                   background: 'rgba(0, 210, 190, 0.05)'
                 }}>
@@ -10667,17 +10666,6 @@ ${linkStylesheetTag}  <style>
                 </div>
               </div>
             )}
-          </div>
-          <div 
-            className="elementor-top-bar-icon" 
-            title="Settings"
-            onClick={() => {
-              setActiveSidebarSection('style');
-              setIsLeftSidebarCollapsed(false);
-            }}
-            style={{ cursor: 'pointer' }}
-          >
-            ⚙
           </div>
           <div className="elementor-device-switcher">
             <button
