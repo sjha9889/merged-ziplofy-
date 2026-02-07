@@ -59,4 +59,4 @@ jobs:
             cd ${{ secrets.ZIPLOFY3B_EC2_DEPLOY_PATH }}
             npm i
             pm2 delete all || true
-            pm2 start npm -- start
+            pm2 start npm -- run start
