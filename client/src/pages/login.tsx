@@ -1,9 +1,9 @@
 import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { useCallback, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import ziplofyLogo from '../assets/ziplofy-logo.png';
 import SlantedImageCarouselWrapper from '../components/SlantedImageCarouselWrapper';
 import { useAuth } from '../contexts/auth.context';
-import ziplofyLogo from '../assets/ziplofy-logo.png';
 
 // Define types
 interface LoginFormData {
