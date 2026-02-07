@@ -27,9 +27,9 @@ const AdminLogin: React.FC = () => {
       <form className="admin-login-card" onSubmit={handleSubmit}>
         <h2>Admin Login</h2>
         {error && <div className="error">{error}</div>}
-        <label>Email</label>
+        <label>Email - updated</label>
         <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        <label>Password</label>
+        <label>Password - updated</label>
         <div className="password-field">
           <input type={show ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} required />
           <button className="toggle" type="button" onClick={() => setShow(s => !s)}>{show ? "Hide" : "Show"}</button>
