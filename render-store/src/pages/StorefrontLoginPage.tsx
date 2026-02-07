@@ -20,7 +20,7 @@ const StorefrontLoginPage: React.FC = () => {
 
           <div className="mt-6 space-y-3">
             <label className="grid gap-1">
-              <span className="text-sm font-medium text-[#0c100c]">Email</span>
+              <span className="text-sm font-medium text-[#0c100c]">Email - updated</span>
               <input
                 className="w-full rounded-lg border border-[#e8e0d5] bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] text-[#0c100c]"
                 type="email"
@@ -29,7 +29,7 @@ const StorefrontLoginPage: React.FC = () => {
               />
             </label>
             <label className="grid gap-1">
-              <span className="text-sm font-medium text-[#0c100c]">Password</span>
+              <span className="text-sm font-medium text-[#0c100c]">Password - updated</span>
               <input
                 className="w-full rounded-lg border border-[#e8e0d5] bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] text-[#0c100c]"
                 type="password"
