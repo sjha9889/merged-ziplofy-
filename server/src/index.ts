@@ -28,7 +28,7 @@ app.use(cors({
 // Health check route
 app.get('/api/health', (req: Request, res: Response) => {
   res.status(200).json({ 
-    status: 'ok',
+    status: 'ok -updated',
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
