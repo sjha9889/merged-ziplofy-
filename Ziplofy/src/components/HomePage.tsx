@@ -171,7 +171,7 @@ export default function HomePage() {
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            Getting Started
+            Getting Started - updated
           </button>
         </div>
 
