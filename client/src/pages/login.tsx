@@ -73,7 +73,7 @@ export default function Login() {
                 <div className="space-y-4">
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                      Email address
+                      Email address - updated
                     </label>
                     <input
                       id="email"
@@ -88,7 +88,7 @@ export default function Login() {
                   </div>
                   <div>
                     <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                      Password
+                      Password - updated
                     </label>
                     <input
                       id="password"
