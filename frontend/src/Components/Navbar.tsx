@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
   FaBell,
   FaChartPie,
@@ -16,6 +16,7 @@ import { useAddEventListener } from "../hooks/useAddEventListener";
 import "./Navbar.css";
 import NotificationPopup from "./NotificationPopup";
 import Sidebar from "./Sidebar"; // Import Sidebar
+import { useAdminAuth } from "../contexts/admin-auth.context";
 import ClientList from "./pages/ClientList";
 import DevAdmin from "./pages/DevAdmin";
 import DevRequests from "./pages/DevRequests";
@@ -29,8 +30,7 @@ import RaiseTask from "./pages/RaiseTask";
 import RolesPermission from "./pages/RolesPermission";
 import SupportDeveloper from "./pages/SupportDeveloper";
 import ThemeDeveloper from "./pages/ThemeDeveloper";
-import ThemeInstallation from "./pages/ThemeInstallation";
-import ThemeCustomize from "./pages/ThemeCustomize";
+import ThemeEditPage from "./pages/ThemeEditPage";
 import Ticket from "./pages/Ticket";
 
 // Optional: type for active menu items
@@ -52,6 +52,7 @@ type MenuItem =
   | "Dashboard";
 
 const Navbar = () => {
+  const location = useLocation();
 
   useEffect(() => {
     console.log("App mode (theme):", import.meta.env.MODE);
@@ -61,7 +62,11 @@ const Navbar = () => {
   
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
-  const [activeMenu, setActiveMenu] = useState<MenuItem>("Dashboard");
+  // Initialize activeMenu from sessionStorage if available, otherwise default to Dashboard
+  const [activeMenu, setActiveMenu] = useState<MenuItem>(() => {
+    const savedMenu = sessionStorage.getItem('activeMenu') as MenuItem;
+    return savedMenu || "Dashboard";
+  });
   const [notificationPopupOpen, setNotificationPopupOpen] = useState<boolean>(false);
 
   // Notifications context
@@ -84,6 +89,8 @@ const Navbar = () => {
       console.log("Notifications added to context state successfully!");
     }
   });
+
+  const { user, logout } = useAdminAuth();
 
   return (
     <>
@@ -118,7 +125,7 @@ const Navbar = () => {
           <input type="text" placeholder="Search" className="search-input" />
         </div>
 
-        {/* Right: Actions */}
+        {/* Right: Actions + User */}
         <div className="navbar-actions">
           <button className="icon-tile tile-slate" aria-label="Fullscreen">
             <FaExpand />
@@ -148,6 +155,13 @@ const Navbar = () => {
           <button className="icon-tile tile-yellow" aria-label="Analytics">
             <FaChartPie />
           </button>
+          {user && (
+            <div className="user-info">
+              <button className="logout-button" aria-label="Logout" onClick={logout}>
+                Logout
+              </button>
+            </div>
+          )}
           <button
             ref={notificationButtonRef}
             className="icon-tile tile-blue has-badge"
@@ -173,6 +187,13 @@ const Navbar = () => {
       {/* Sidebar */}
       <Sidebar
         isOpen={sidebarOpen}
+        activeItem={activeMenu}
+        onSelect={(item: string) => {
+          const menuItem = item as MenuItem;
+          setActiveMenu(menuItem);
+          // Save to sessionStorage so it persists across navigation
+          sessionStorage.setItem('activeMenu', menuItem);
+        }}
       />
 
       {/* Main content */}
@@ -184,36 +205,34 @@ const Navbar = () => {
           transition: "margin-left 0.3s ease",
         }}
       >
-        <Routes>
-          <Route path="/client-list" element={<ClientList />} />
-          <Route path="/payment" element={<Payment />} />
-          <Route path="/invoice" element={<Invoice />} />
-          <Route path="/manage-user" element={<ManageUser />} />
-          <Route path="/roles-permission" element={<RolesPermission />} />
-          <Route path="/domain" element={<Domain />} />
-          <Route path="/ticket" element={<Ticket />} />
-          <Route path="/raise-task" element={<RaiseTask />} />
-          <Route path="/live-support" element={<LiveSupport />} />
-          <Route path="/membership-plan" element={<MembershipPlan />} />
-          <Route path="/dev-admin" element={<DevAdmin />} />
-          <Route path="/theme-developer" element={<ThemeDeveloper />} />
-          <Route path="/theme-installation" element={<ThemeInstallation storeId="default-store-id" />} />
-          <Route path="/theme-customize/:installationId" element={<ThemeCustomize />} />
-          <Route path="/support-developer" element={<SupportDeveloper />} />
-          <Route path="/hire-developer-requests" element={<DevRequests />} />
-          <Route path="/dashboard" element={
-            <div className="dashboard">
-              <h1>Dashboard</h1>
-              <p>Welcome to the admin dashboard!</p>
-            </div>
-          } />
-          <Route path="/" element={
-            <div className="dashboard">
-              <h1>Dashboard</h1>
-              <p>Welcome to the admin dashboard!</p>
-            </div>
-          } />
-        </Routes>
+        {(() => {
+          const isEditPage = location.pathname.startsWith('/admin/themes/edit/');
+          console.log('📍 Navbar main-content render:', { pathname: location.pathname, isEditPage, activeMenu });
+          
+          if (isEditPage) {
+            console.log('✅ Rendering ThemeEditPage');
+            return <ThemeEditPage />;
+          }
+          
+          return (
+            <>
+              {activeMenu === "Client List" && <ClientList />}
+              {activeMenu === "Payment" && <Payment />}
+              {activeMenu === "Invoice" && <Invoice />}
+              {activeMenu === "Manage User" && <ManageUser />}
+              {activeMenu === "Roles & Permission" && <RolesPermission />}
+              {activeMenu === "Domain" && <Domain />}
+              {activeMenu === "Ticket" && <Ticket />}
+              {activeMenu === "Raise Task" && <RaiseTask />}
+              {activeMenu === "Live Support" && <LiveSupport />}
+              {activeMenu === "Membership Plan" && <MembershipPlan />}
+              {activeMenu === "Dev Admin" && <DevAdmin />}
+              {activeMenu === "Theme Developer" && <ThemeDeveloper />}
+              {activeMenu === "Support Developer" && <SupportDeveloper />}
+              {activeMenu === "Hire Developer Requests" && <DevRequests />}
+            </>
+          );
+        })()}
       </div>
 
       {/* Notification Popup */}

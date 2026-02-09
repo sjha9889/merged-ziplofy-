@@ -9,40 +9,6 @@
   margin-bottom: 16px;
 }
 
-.tab-navigation {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.tab-button {
-  padding: 10px 20px;
-  border: 1px solid #d1d5db;
-  background: white;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  color: #6b7280;
-  transition: all 0.2s;
-}
-
-.tab-button:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
-}
-
-.tab-button.active {
-  background: #3b82f6;
-  border-color: #3b82f6;
-  color: white;
-}
-
-.tab-button.active:hover {
-  background: #2563eb;
-  border-color: #2563eb;
-}
-
 .header-actions {
   display: flex;
   gap: 12px;

@@ -9,3 +9,5 @@ const AdminProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 export default AdminProtectedRoute;
+
+

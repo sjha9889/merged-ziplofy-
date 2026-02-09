@@ -339,9 +339,96 @@
   border-color: #475569;
 }
 
+/* Logout Button Styling */
+.logout-button {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  border: 1px solid #dc2626;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+  min-width: 80px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.logout-button:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+  border-color: #b91c1c;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+}
+
+.logout-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+}
+
+.logout-button::before {
+  content: "🚪";
+  font-size: 12px;
+}
+
+/* Dark theme logout button */
+.navbar.dark .logout-button {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  border-color: #dc2626;
+  color: #ffffff;
+}
+
+.navbar.dark .logout-button:hover {
+  background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+  border-color: #b91c1c;
+}
+
+/* User info container styling */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.user-info:hover {
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+  border-color: #94a3b8;
+}
+
+.navbar.dark .user-info {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  border-color: #374151;
+}
+
+.navbar.dark .user-info:hover {
+  background: linear-gradient(135deg, #111827 0%, #0f172a 100%);
+  border-color: #475569;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .navbar-search {
     display: none; /* hide search on small screens */
+  }
+  
+  .logout-button {
+    min-width: 60px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .user-info {
+    gap: 8px;
+    padding: 2px 6px;
   }
 }

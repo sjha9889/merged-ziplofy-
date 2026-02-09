@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./Ticket.css";
+import { PermissionGate } from "../PermissionGate";
 
 interface TicketData {
   id: number;
@@ -50,7 +51,9 @@ const Ticket: React.FC = () => {
         </div>
         <div className="header-actions">
           <button className="icon-button">{/* Settings Icon SVG */}</button>
-          <button className="icon-button">{/* Upload Icon SVG */}</button>
+          <PermissionGate action="upload" section="Support" subsection="Ticket">
+            <button className="icon-button">{/* Upload Icon SVG */}</button>
+          </PermissionGate>
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./ManageUser.css";
+import { PermissionGate } from "../PermissionGate";
 
 // Define a User type
 interface User {
@@ -110,7 +111,9 @@ const ManageUser: React.FC = () => {
           <button className="btn ghost">
             <span className="icon">⚙</span> Export
           </button>
-          <button className="btn primary">Add User</button>
+          <PermissionGate action="upload" section="User Management" subsection="Manage User">
+            <button className="btn primary">Add User</button>
+          </PermissionGate>
         </div>
       </div>
 
@@ -222,13 +225,17 @@ const ManageUser: React.FC = () => {
                   <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                   <td>
                     <div className="action-buttons">
-                      <button className="btn small ghost">Edit</button>
-                      <button
-                        className="btn small danger"
-                        onClick={() => handleDeleteUser(user._id)}
-                      >
-                        Delete
-                      </button>
+                      <PermissionGate action="edit" section="User Management" subsection="Manage User">
+                        <button className="btn small ghost">Edit</button>
+                      </PermissionGate>
+                      <PermissionGate action="edit" section="User Management" subsection="Manage User">
+                        <button
+                          className="btn small danger"
+                          onClick={() => handleDeleteUser(user._id)}
+                        >
+                          Delete
+                        </button>
+                      </PermissionGate>
                     </div>
                   </td>
                 </tr>

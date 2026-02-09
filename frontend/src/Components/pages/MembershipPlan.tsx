@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./MembershipPlan.css";
+import { PermissionGate } from "../PermissionGate";
 
 // Define TypeScript interfaces
 interface Feature {
@@ -112,10 +113,12 @@ const MembershipPlan: React.FC = () => {
               }}
             />
           </div>
-          <button className="add-btn">
-            <span className="btn-icon">{/* Add SVG from public folder here */}</span>
-            Add Membership
-          </button>
+          <PermissionGate action="upload" section="Membership" subsection="Membership Plan">
+            <button className="add-btn">
+              <span className="btn-icon">{/* Add SVG from public folder here */}</span>
+              Add Membership
+            </button>
+          </PermissionGate>
         </div>
 
         {/* Billing Toggle */}
@@ -165,8 +168,10 @@ const MembershipPlan: React.FC = () => {
                 ))}
               </div>
 
-              {/* Choose Button */}
-              <button className="choose-btn">Choose</button>
+              {/* Choose Button - treat as edit */}
+              <PermissionGate action="edit" section="Membership" subsection="Membership Plan">
+                <button className="choose-btn">Choose</button>
+              </PermissionGate>
             </div>
           ))}
         </div>

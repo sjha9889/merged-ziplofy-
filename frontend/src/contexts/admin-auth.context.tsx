@@ -14,7 +14,8 @@ type AdminAuthContextValue = {
   user: AdminUser | null;
   token: string | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ twoFactorRequired?: boolean; email?: string } | void>;
+  verifyOtp: (email: string, code: string) => Promise<void>;
   logout: () => void;
 };
 
@@ -83,22 +84,50 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const res = await axios.post("/auth/admin/login", { email, password });
+      // 2FA step 1
+      try {
+        const step1 = await axios.post('/auth/admin/login-step1', { email, password });
+        const data = step1.data;
+        const body = data.data || data;
+        if (body.twoFactorRequired) {
+          return { twoFactorRequired: true, email: body.context?.email || email };
+        }
+      } catch (e: any) {
+        // Fallback to legacy login if 2FA endpoints not present
+        if (!e?.response || e.response.status === 404 || e.response.status >= 500) {
+          const res = await axios.post("/auth/admin/login", { email, password });
+          const response = res.data;
+          const { accessToken, user } = response.data || response;
+          localStorage.setItem("admin_token", accessToken);
+          setToken(accessToken);
+          setUser(user);
+          localStorage.setItem('userRole', user.role || user.roleName);
+          localStorage.setItem('isSuperAdmin', user.superAdmin ? 'true' : 'false');
+          localStorage.setItem('userEmail', user.email);
+          localStorage.setItem('userData', JSON.stringify({
+            role: user.role || user.roleName,
+            superAdmin: user.superAdmin,
+            email: user.email,
+            ...user
+          }));
+          return;
+        }
+        throw e;
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyOtp = async (email: string, code: string) => {
+    setLoading(true);
+    try {
+      const res = await axios.post('/auth/admin/verify-otp', { email, code });
       const response = res.data;
-      
-      console.log("🔍 Login response:", response);
-      
-      // Extract data from the nested response structure
       const { accessToken, user } = response.data || response;
-      
-      console.log("🔍 Extracted login data:", { accessToken, user });
-      
       localStorage.setItem("admin_token", accessToken);
       setToken(accessToken);
       setUser(user);
-      
-      // Store user data in localStorage for persistence
-      console.log("🔍 Storing user data during login:", user);
       localStorage.setItem('userRole', user.role || user.roleName);
       localStorage.setItem('isSuperAdmin', user.superAdmin ? 'true' : 'false');
       localStorage.setItem('userEmail', user.email);
@@ -128,6 +157,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     token,
     loading,
     login,
+    verifyOtp,
     logout,
   }), [user, token, loading]);
 
@@ -139,3 +169,5 @@ export const useAdminAuth = () => {
   if (!ctx) throw new Error("useAdminAuth must be used within AdminAuthProvider");
   return ctx;
 };
+
+

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import {
   FaUsers,
   FaWallet,
@@ -10,7 +9,7 @@ import {
   FaChevronDown,
   FaUserShield,
 } from "react-icons/fa";
-import { useAdminAuth } from "../contexts/admin-auth.context";
+import { usePermissions } from "../hooks/usePermissions";
 import "./Sidebar.css";
 
 interface SidebarProps {
@@ -21,34 +20,81 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeItem, onSelect }) => {
   const [openSection, setOpenSection] = useState<string>("");
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { user } = useAdminAuth();
-
-  // Format role name for display (e.g., "support-admin" -> "Support Admin")
-  const formatRoleName = (roleName: string | undefined): string => {
-    if (!roleName) return "Admin";
-    
-    // Split by hyphen and capitalize each word
-    return roleName
-      .split("-")
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
-
-  const displayRoleName = formatRoleName(user?.roleName);
+  const { hasViewPermission, loading, permissions, user } = usePermissions();
 
   const toggle = (section: string) => {
     setOpenSection((prev) => (prev === section ? "" : section));
   };
 
-  const handleNavigation = (path: string) => {
-    navigate(path);
-    if (onSelect) {
-      onSelect(path);
-    }
-  };
+  // Show loading state while fetching permissions
+  if (loading) {
+    return (
+      <aside className={`sidebar ${isOpen ? "open" : ""}`} style={{ width: isOpen ? "250px" : "60px", transition: "width 0.3s ease" }}>
+        <div style={{ padding: "20px", textAlign: "center" }}>
+          <div style={{ fontSize: "14px", color: "#666" }}>Loading permissions...</div>
+        </div>
+      </aside>
+    );
+  }
 
+  // Fallback: if no permissions are loaded and user is super-admin, show all sections
+  const isSuperAdmin = user?.roleName === 'super-admin' || localStorage.getItem('isSuperAdmin') === 'true';
+  const hasAnyPermissions = Object.keys(permissions).length > 0;
+  
+  console.log('🔍 Sidebar render check:', { loading, isSuperAdmin, hasAnyPermissions, permissions });
+  
+  // Emergency fallback: if user is super-admin and no permissions loaded, show all sections
+  const shouldShowAllSections = isSuperAdmin && !hasAnyPermissions;
+  console.log('🔍 Should show all sections:', shouldShowAllSections);
+  
+  if (shouldShowAllSections) {
+    console.log('🚨 EMERGENCY FALLBACK: Showing all sections for super-admin user');
+  }
+
+  // Derived visibility: show parent section if any subsection is viewable
+  const canSeeUserManagement = shouldShowAllSections ||
+    hasViewPermission("User Management") ||
+    hasViewPermission("User Management", "Manage User") ||
+    hasViewPermission("User Management", "Roles and Permission");
+
+  const canSeeMembership = shouldShowAllSections ||
+    hasViewPermission("Membership") ||
+    hasViewPermission("Membership", "Membership Plan");
+
+  const canSeeDeveloper = shouldShowAllSections ||
+    hasViewPermission("Developer") ||
+    hasViewPermission("Developer", "Dev Admin") ||
+    hasViewPermission("Developer", "Theme Developer") ||
+    hasViewPermission("Developer", "Support Developer") ||
+    hasViewPermission("Developer", "Hire Developer Requests");
+
+  const canSeeSupport = shouldShowAllSections ||
+    hasViewPermission("Support") ||
+    hasViewPermission("Support", "Domain") ||
+    hasViewPermission("Support", "Ticket") ||
+    hasViewPermission("Support", "Raise Task") ||
+    hasViewPermission("Support", "Live Support");
+
+  // Debug user data for role display
+  console.log('🔍 Sidebar user data:', { 
+    user, 
+    roleName: user?.roleName, 
+    role: user?.role,
+    displayRole: user?.roleName || user?.role || 'Loading...'
+  });
+  
+  // Additional debugging for role display
+  console.log('🔍 Role display logic:', {
+    'user?.roleName': user?.roleName,
+    'user?.role': user?.role,
+    'localStorage.userRole': localStorage.getItem('userRole'),
+    'loading': loading,
+    'final display': user?.roleName || user?.role || localStorage.getItem('userRole') || (loading ? 'Loading...' : 'User')
+  });
+  
+  // Debug the actual user object structure
+  console.log('🔍 Full user object in Sidebar:', user);
+  
   return (
     <aside
       className={`sidebar ${isOpen ? "open" : ""}`}
@@ -60,182 +106,226 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeItem, onSelect }) => {
     >
       <div className="sidebar-header">
         <FaUserShield className="sidebar-icon" />
-        <span>{displayRoleName}</span>
+        <span style={{ 
+          textTransform: 'capitalize',
+          fontWeight: '600',
+          color: '#374151'
+        }}>
+          {user?.roleName || user?.role || localStorage.getItem('userRole') || (loading ? 'Loading...' : 'User')}
+        </span>
       </div>
 
       <ul className="sidebar-menu">
         <p className="sidebar-section-title">Main Menu</p>
 
-        <li
-          className={location.pathname === "/client-list" ? "active" : ""}
-          onClick={() => handleNavigation("/client-list")}
-        >
-          <FaUsers className="menu-icon" />
-          <span>Client List</span>
-        </li>
-
-        <li
-          className={location.pathname === "/payment" ? "active" : ""}
-          onClick={() => handleNavigation("/payment")}
-        >
-          <FaWallet className="menu-icon" />
-          <span>Payment</span>
-        </li>
-        <li
-          className={location.pathname === "/invoice" ? "active" : ""}
-          onClick={() => handleNavigation("/invoice")}
-        >
-          <FaWallet className="menu-icon" />
-          <span>Invoice</span>
-        </li>
-
-        <p className="sidebar-section-title">User & Access</p>
-
-        <li
-          className={`has-sub ${openSection === "UserManagement" ? "open" : ""}`}
-          onClick={() => toggle("UserManagement")}
-        >
-          <div className="menu-row">
-            <FaUserCog className="menu-icon" />
-            <span>User Management</span>
-            <FaChevronDown className={`chev ${openSection === "UserManagement" ? "rotated" : ""}`} />
-          </div>
-        </li>
-        {openSection === "UserManagement" && (
-          <ul className="submenu">
-            <li
-              className={location.pathname === "/manage-user" ? "active" : ""}
-              onClick={() => handleNavigation("/manage-user")}
-            >
-              <span className="dot">•</span>
-              <span>Manage User</span>
-            </li>
-            <li
-              className={location.pathname === "/roles-permission" ? "active" : ""}
-              onClick={() => handleNavigation("/roles-permission")}
-            >
-              <span className="dot">•</span>
-              <span>Roles and Permission</span>
-            </li>
-          </ul>
+        {(hasViewPermission("Client List") || shouldShowAllSections) && (
+          <li
+            className={activeItem === "Client List" ? "active" : ""}
+            onClick={() => onSelect && onSelect("Client List")}
+          >
+            <FaUsers className="menu-icon" />
+            <span>Client List</span>
+          </li>
         )}
 
-        <p className="sidebar-section-title">Membership</p>
-        <li
-          className={`has-sub ${openSection === "Membership" ? "open" : ""}`}
-          onClick={() => toggle("Membership")}
-        >
-          <div className="menu-row">
-            <FaIdBadge className="menu-icon" />
-            <span>Membership</span>
-            <FaChevronDown className="chev" />
-          </div>
-        </li>
-        {openSection === "Membership" && (
-          <ul className="submenu">
-            <li
-              className={location.pathname === "/membership-plan" ? "active" : ""}
-              onClick={() => handleNavigation("/membership-plan")}
-            >
-              <span className="dot">•</span>
-              <span>Membership Plan</span>
-            </li>
-          </ul>
+        {(hasViewPermission("Payment") || shouldShowAllSections) && (
+          <li
+            className={activeItem === "Payment" ? "active" : ""}
+            onClick={() => onSelect && onSelect("Payment")}
+          >
+            <FaWallet className="menu-icon" />
+            <span>Payment</span>
+          </li>
         )}
 
-        <p className="sidebar-section-title">Developer</p>
-        <li
-          className={`has-sub ${openSection === "Developer" ? "open" : ""}`}
-          onClick={() => toggle("Developer")}
-        >
-          <div className="menu-row">
-            <FaCode className="menu-icon" />
-            <span>Developer</span>
-            <FaChevronDown className="chev" />
-          </div>
-        </li>
-        {openSection === "Developer" && (
-          <ul className="submenu">
-            <li
-              className={location.pathname === "/dev-admin" ? "active" : ""}
-              onClick={() => handleNavigation("/dev-admin")}
-            >
-              <span className="dot">•</span>
-              <span>Dev Admin</span>
-            </li>
-            <li
-              className={location.pathname === "/theme-developer" ? "active" : ""}
-              onClick={() => handleNavigation("/theme-developer")}
-            >
-              <span className="dot">•</span>
-              <span>Theme Developer</span>
-            </li>
-            <li
-              className={location.pathname === "/theme-installation" ? "active" : ""}
-              onClick={() => handleNavigation("/theme-installation")}
-            >
-              <span className="dot">•</span>
-              <span>Theme Installation</span>
-            </li>
-            <li
-              className={location.pathname === "/support-developer" ? "active" : ""}
-              onClick={() => handleNavigation("/support-developer")}
-            >
-              <span className="dot">•</span>
-              <span>Support Developer</span>
-            </li>
-            <li
-              className={location.pathname === "/hire-developer-requests" ? "active" : ""}
-              onClick={() => handleNavigation("/hire-developer-requests")}
-            >
-              <span className="dot">•</span>
-              <span>Hire Developer Requests</span>
-            </li>
-          </ul>
+        {(hasViewPermission("Invoice") || shouldShowAllSections) && (
+          <li
+            className={activeItem === "Invoice" ? "active" : ""}
+            onClick={() => onSelect && onSelect("Invoice")}
+          >
+            <FaWallet className="menu-icon" />
+            <span>Invoice</span>
+          </li>
         )}
 
-        <p className="sidebar-section-title">Support</p>
-        <li
-          className={`has-sub ${openSection === "Support" ? "open" : ""}`}
-          onClick={() => toggle("Support")}
-        >
-          <div className="menu-row">
-            <FaLifeRing className="menu-icon" />
-            <span>Support</span>
-            <FaChevronDown className="chev" />
-          </div>
-        </li>
-        {openSection === "Support" && (
-          <ul className="submenu">
+        {canSeeUserManagement && (
+          <>
+            <p className="sidebar-section-title">User & Access</p>
+
             <li
-              className={location.pathname === "/domain" ? "active" : ""}
-              onClick={() => handleNavigation("/domain")}
+              className={`has-sub ${openSection === "UserManagement" ? "open" : ""}`}
+              onClick={() => toggle("UserManagement")}
             >
-              <span className="dot">•</span>
-              <span>Domain</span>
+              <div className="menu-row">
+                <FaUserCog className="menu-icon" />
+                <span>User Management</span>
+                <FaChevronDown className={`chev ${openSection === "UserManagement" ? "rotated" : ""}`} />
+              </div>
             </li>
+            {openSection === "UserManagement" && (
+              <ul className="submenu">
+                {hasViewPermission("User Management", "Manage User") && (
+                  <li
+                    className={activeItem === "Manage User" ? "active" : ""}
+                    onClick={() => onSelect && onSelect("Manage User")}
+                  >
+                    <span className="dot">•</span>
+                    <span>Manage User</span>
+                  </li>
+                )}
+                {hasViewPermission("User Management", "Roles and Permission") && (
+                  <li
+                    className={activeItem === "Roles & Permission" ? "active" : ""}
+                    onClick={() => onSelect && onSelect("Roles & Permission")}
+                  >
+                    <span className="dot">•</span>
+                    <span>Roles and Permission</span>
+                  </li>
+                )}
+              </ul>
+            )}
+          </>
+        )}
+
+        {canSeeMembership && (
+          <>
+            <p className="sidebar-section-title">Membership</p>
             <li
-              className={location.pathname === "/ticket" ? "active" : ""}
-              onClick={() => handleNavigation("/ticket")}
+              className={`has-sub ${openSection === "Membership" ? "open" : ""}`}
+              onClick={() => toggle("Membership")}
             >
-              <span className="dot">•</span>
-              <span>Ticket</span>
+              <div className="menu-row">
+                <FaIdBadge className="menu-icon" />
+                <span>Membership</span>
+                <FaChevronDown className="chev" />
+              </div>
             </li>
+            {openSection === "Membership" && (
+              <ul className="submenu">
+                {hasViewPermission("Membership", "Membership Plan") && (
+                  <li
+                    className={activeItem === "Membership Plan" ? "active" : ""}
+                    onClick={() => onSelect && onSelect("Membership Plan")}
+                  >
+                    <span className="dot">•</span>
+                    <span>Membership Plan</span>
+                  </li>
+                )}
+              </ul>
+            )}
+          </>
+        )}
+
+        {canSeeDeveloper && (
+          <>
+            <p className="sidebar-section-title">Developer</p>
             <li
-              className={location.pathname === "/raise-task" ? "active" : ""}
-              onClick={() => handleNavigation("/raise-task")}
+              className={`has-sub ${openSection === "Developer" ? "open" : ""}`}
+              onClick={() => toggle("Developer")}
             >
-              <span className="dot">•</span>
-              <span>Raise Task</span>
+              <div className="menu-row">
+                <FaCode className="menu-icon" />
+                <span>Developer</span>
+                <FaChevronDown className="chev" />
+              </div>
             </li>
+            {openSection === "Developer" && (
+              <ul className="submenu">
+                {hasViewPermission("Developer", "Dev Admin") && (
+                  <li
+                    className={activeItem === "Dev Admin" ? "active" : ""}
+                    onClick={() => onSelect && onSelect("Dev Admin")}
+                  >
+                    <span className="dot">•</span>
+                    <span>Dev Admin</span>
+                  </li>
+                )}
+                {hasViewPermission("Developer", "Theme Developer") && (
+                  <li
+                    className={activeItem === "Theme Developer" ? "active" : ""}
+                    onClick={() => onSelect && onSelect("Theme Developer")}
+                  >
+                    <span className="dot">•</span>
+                    <span>Theme Developer</span>
+                  </li>
+                )}
+                {hasViewPermission("Developer", "Support Developer") && (
+                  <li
+                    className={activeItem === "Support Developer" ? "active" : ""}
+                    onClick={() => onSelect && onSelect("Support Developer")}
+                  >
+                    <span className="dot">•</span>
+                    <span>Support Developer</span>
+                  </li>
+                )}
+                {hasViewPermission("Developer", "Hire Developer Requests") && (
+                  <li
+                    className={activeItem === "Hire Developer Requests" ? "active" : ""}
+                    onClick={() => onSelect && onSelect("Hire Developer Requests")}
+                  >
+                    <span className="dot">•</span>
+                    <span>Hire Developer Requests</span>
+                  </li>
+                )}
+              </ul>
+            )}
+          </>
+        )}
+
+        {canSeeSupport && (
+          <>
+            <p className="sidebar-section-title">Support</p>
             <li
-              className={location.pathname === "/live-support" ? "active" : ""}
-              onClick={() => handleNavigation("/live-support")}
+              className={`has-sub ${openSection === "Support" ? "open" : ""}`}
+              onClick={() => toggle("Support")}
             >
-              <span className="dot">•</span>
-              <span>Live Support</span>
+              <div className="menu-row">
+                <FaLifeRing className="menu-icon" />
+                <span>Support</span>
+                <FaChevronDown className="chev" />
+              </div>
             </li>
-          </ul>
+            {openSection === "Support" && (
+              <ul className="submenu">
+                {hasViewPermission("Support", "Domain") && (
+                  <li
+                    className={activeItem === "Domain" ? "active" : ""}
+                    onClick={() => onSelect && onSelect("Domain")}
+                  >
+                    <span className="dot">•</span>
+                    <span>Domain</span>
+                  </li>
+                )}
+                {hasViewPermission("Support", "Ticket") && (
+                  <li
+                    className={activeItem === "Ticket" ? "active" : ""}
+                    onClick={() => onSelect && onSelect("Ticket")}
+                  >
+                    <span className="dot">•</span>
+                    <span>Ticket</span>
+                  </li>
+                )}
+                {hasViewPermission("Support", "Raise Task") && (
+                  <li
+                    className={activeItem === "Raise Task" ? "active" : ""}
+                    onClick={() => onSelect && onSelect("Raise Task")}
+                  >
+                    <span className="dot">•</span>
+                    <span>Raise Task</span>
+                  </li>
+                )}
+                {hasViewPermission("Support", "Live Support") && (
+                  <li
+                    className={activeItem === "Live Support" ? "active" : ""}
+                    onClick={() => onSelect && onSelect("Live Support")}
+                  >
+                    <span className="dot">•</span>
+                    <span>Live Support</span>
+                  </li>
+                )}
+              </ul>
+            )}
+          </>
         )}
       </ul>
     </aside>

@@ -223,8 +223,11 @@ export const usePermissions = () => {
       console.log(`🔍 Checking subsection ${subsection} permissions:`, subsectionPermissions);
 
       if (!subsectionPermissions) {
-        console.log(`🔍 No subsection permissions found for: ${subsection}`);
-        return false;
+        console.log(`🔍 No subsection permissions found for: ${subsection}. Falling back to section-level view permission.`);
+        const fallback = sectionPermissions.permissions.includes('view') ||
+                         sectionPermissions.permissions.includes('edit') ||
+                         sectionPermissions.permissions.includes('upload');
+        return fallback;
       }
 
       // If user has edit or upload permission, they automatically have view permission
@@ -270,8 +273,9 @@ export const usePermissions = () => {
       console.log(`🔍 Checking subsection ${subsection} edit permissions:`, subsectionPermissions);
 
       if (!subsectionPermissions) {
-        console.log(`🔍 No subsection permissions found for: ${subsection}`);
-        return false;
+        console.log(`🔍 No subsection edit permissions found for: ${subsection}. Falling back to section-level edit permission.`);
+        const fallback = sectionPermissions.permissions.includes('edit');
+        return fallback;
       }
 
       const hasPermission = subsectionPermissions.includes('edit');

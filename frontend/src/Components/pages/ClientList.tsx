@@ -1,6 +1,5 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import "./ClientList.css";
-import LoginLogs from "./LoginLogs";
 
 // ---------------------- Types ----------------------
 interface Client {
@@ -235,7 +234,6 @@ const ClientList: React.FC = () => {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
-  const [activeTab, setActiveTab] = useState<'clients' | 'login-logs'>('clients');
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     limit: 10,
@@ -328,155 +326,134 @@ const ClientList: React.FC = () => {
     <div className="main-content">
       <div className="page">
         <div className="page-header">
-          <h2>Client Management</h2>
-          <div className="tab-navigation">
-            <button
-              className={`tab-button ${activeTab === 'clients' ? 'active' : ''}`}
-              onClick={() => setActiveTab('clients')}
+          <h2>Client List</h2>
+          <div className="header-actions">
+            <input
+              type="search"
+              placeholder="Search clients..."
+              className="search-input"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="filter-select"
             >
-              Client List
-            </button>
-            <button
-              className={`tab-button ${activeTab === 'login-logs' ? 'active' : ''}`}
-              onClick={() => setActiveTab('login-logs')}
-            >
-              Login Activity
+              <option value="All">All Statuses</option>
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+              <option value="Pending">Pending</option>
+            </select>
+            <button className="btn primary" onClick={() => setShowModal(true)}>
+              Add New Client
             </button>
           </div>
         </div>
 
-        {activeTab === 'clients' && (
-          <>
-            <div className="header-actions">
-              <input
-                type="search"
-                placeholder="Search clients..."
-                className="search-input"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="filter-select"
-              >
-                <option value="All">All Statuses</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-                <option value="Pending">Pending</option>
-              </select>
-              <button className="btn primary" onClick={() => setShowModal(true)}>
-                Add New Client
-              </button>
-            </div>
-
-            {error && (
-              <div className="error-alert">
-                {error}
-                <button onClick={() => setError("")}>×</button>
-              </div>
-            )}
-
-            <div className="table-card">
-              {loading ? (
-                <div className="loading">Loading clients...</div>
-              ) : clients.length === 0 ? (
-                <div className="no-data">
-                  {searchTerm || statusFilter !== "All"
-                    ? "No clients match your search criteria"
-                    : "No clients found. Add your first client!"}
-                </div>
-              ) : (
-                <>
-                  <table className="table">
-                    <thead>
-                      <tr>
-                        <th style={{ textAlign: "left" }}>Client Name</th>
-                        <th style={{ textAlign: "left" }}>Email</th>
-                        <th style={{ textAlign: "left" }}>Total Purchases</th>
-                        <th style={{ textAlign: "left" }}>Status</th>
-                        <th style={{ textAlign: "left" }}>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {clients.map((client) => (
-                        <tr key={client._id}>
-                          <td style={{ textAlign: "left" }}>{client.name}</td>
-                          <td style={{ textAlign: "left" }}>{client.email}</td>
-                          <td style={{ textAlign: "left" }}>
-                            ${client.totalPurchases.toFixed(2)}
-                          </td>
-                          <td style={{ textAlign: "left" }}>
-                            <span
-                              className={`status-badge ${client.status.toLowerCase()}`}
-                            >
-                              {client.status}
-                            </span>
-                          </td>
-                          <td style={{ textAlign: "left" }}>
-                            <button
-                              className="btn view"
-                              style={{ marginRight: "6px" }}
-                              onClick={() => openEditModal(client)}
-                            >
-                              View
-                            </button>
-                            <button
-                              className="btn edit"
-                              onClick={() => openEditModal(client)}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              className="btn delete"
-                              onClick={() => handleDeleteClient(client._id)}
-                              style={{ marginLeft: "6px" }}
-                            >
-                              Delete
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-
-                  {pagination.totalPages > 1 && (
-                    <div className="pagination">
-                      <button
-                        onClick={() => handlePageChange(pagination.page - 1)}
-                        disabled={pagination.page === 1}
-                      >
-                        Previous
-                      </button>
-
-                      <span>
-                        Page {pagination.page} of {pagination.totalPages}
-                      </span>
-
-                      <button
-                        onClick={() => handlePageChange(pagination.page + 1)}
-                        disabled={pagination.page === pagination.totalPages}
-                      >
-                        Next
-                      </button>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-
-            {showModal && (
-              <ClientModal
-                client={editingClient}
-                onClose={closeModal}
-                onSubmit={editingClient ? handleEditClient : handleAddClient}
-                mode={editingClient ? "edit" : "add"}
-              />
-            )}
-          </>
+        {error && (
+          <div className="error-alert">
+            {error}
+            <button onClick={() => setError("")}>×</button>
+          </div>
         )}
 
-        {activeTab === 'login-logs' && <LoginLogs />}
+        <div className="table-card">
+          {loading ? (
+            <div className="loading">Loading clients...</div>
+          ) : clients.length === 0 ? (
+            <div className="no-data">
+              {searchTerm || statusFilter !== "All"
+                ? "No clients match your search criteria"
+                : "No clients found. Add your first client!"}
+            </div>
+          ) : (
+            <>
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "left" }}>Client Name</th>
+                    <th style={{ textAlign: "left" }}>Email</th>
+                    <th style={{ textAlign: "left" }}>Total Purchases</th>
+                    <th style={{ textAlign: "left" }}>Status</th>
+                    <th style={{ textAlign: "left" }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {clients.map((client) => (
+                    <tr key={client._id}>
+                      <td style={{ textAlign: "left" }}>{client.name}</td>
+                      <td style={{ textAlign: "left" }}>{client.email}</td>
+                      <td style={{ textAlign: "left" }}>
+                        ${client.totalPurchases.toFixed(2)}
+                      </td>
+                      <td style={{ textAlign: "left" }}>
+                        <span
+                          className={`status-badge ${client.status.toLowerCase()}`}
+                        >
+                          {client.status}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: "left" }}>
+                        <button
+                          className="btn view"
+                          style={{ marginRight: "6px" }}
+                          onClick={() => openEditModal(client)}
+                        >
+                          View
+                        </button>
+                        <button
+                          className="btn edit"
+                          onClick={() => openEditModal(client)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn delete"
+                          onClick={() => handleDeleteClient(client._id)}
+                          style={{ marginLeft: "6px" }}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              {pagination.totalPages > 1 && (
+                <div className="pagination">
+                  <button
+                    onClick={() => handlePageChange(pagination.page - 1)}
+                    disabled={pagination.page === 1}
+                  >
+                    Previous
+                  </button>
+
+                  <span>
+                    Page {pagination.page} of {pagination.totalPages}
+                  </span>
+
+                  <button
+                    onClick={() => handlePageChange(pagination.page + 1)}
+                    disabled={pagination.page === pagination.totalPages}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {showModal && (
+          <ClientModal
+            client={editingClient}
+            onClose={closeModal}
+            onSubmit={editingClient ? handleEditClient : handleAddClient}
+            mode={editingClient ? "edit" : "add"}
+          />
+        )}
       </div>
     </div>
   );
