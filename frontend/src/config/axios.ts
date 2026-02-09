@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Type-safe environment variable access
 const getBaseURL = (): string => {
-    return import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000/api';
+    return import.meta.env.VITE_BACKEND_URL || 'https://backend.ziplofy.com';
 };
 
 const axiosi = axios.create({
