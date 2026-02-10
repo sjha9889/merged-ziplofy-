@@ -16,9 +16,9 @@ exports.getInventoryLevelsByLocation = (0, error_utils_1.asyncErrorHandler)(asyn
     const inventoryLevels = await inventory_level_model_1.InventoryLevelModel.find({ locationId })
         .populate({
         path: 'variantId',
-        select: 'sku optionValues productId',
+        select: 'sku optionValues productId images',
         match: { isInventoryTrackingEnabled: true, depricated: false },
-        populate: { path: 'productId', select: 'title imageUrl' },
+        populate: { path: 'productId', select: 'title imageUrls' },
     })
         .lean();
     // Filter out entries where variant did not match (tracking disabled)
@@ -54,8 +54,8 @@ exports.updateInventoryLevel = (0, error_utils_1.asyncErrorHandler)(async (req, 
     })
         .populate({
         path: 'variantId',
-        select: 'sku optionValues productId',
-        populate: { path: 'productId', select: 'title imageUrl' },
+        select: 'sku optionValues productId images',
+        populate: { path: 'productId', select: 'title imageUrls' },
     });
     if (!updated) {
         throw new error_utils_1.CustomError('Inventory level not found', 404);

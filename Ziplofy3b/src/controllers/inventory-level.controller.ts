@@ -14,9 +14,9 @@ export const getInventoryLevelsByLocation = asyncErrorHandler(async (req: Reques
   const inventoryLevels = await InventoryLevelModel.find({ locationId })
     .populate({
       path: 'variantId',
-      select: 'sku optionValues productId',
+      select: 'sku optionValues productId images',
       match: { isInventoryTrackingEnabled: true, depricated: false },
-      populate: { path: 'productId', select: 'title imageUrl' },
+      populate: { path: 'productId', select: 'title imageUrls' },
     })
     .lean();
 
@@ -59,8 +59,8 @@ export const updateInventoryLevel: RequestHandler = asyncErrorHandler(async (req
   })
     .populate({
       path: 'variantId',
-      select: 'sku optionValues productId',
-      populate: { path: 'productId', select: 'title imageUrl' },
+      select: 'sku optionValues productId images',
+      populate: { path: 'productId', select: 'title imageUrls' },
     });
 
   if (!updated) {

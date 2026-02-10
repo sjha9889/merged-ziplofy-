@@ -57,7 +57,7 @@ const OrderItem: React.FC<OrderItemProps> = ({
           onClick={() => onView?.(order.orderId)}
           className="text-sm font-medium text-gray-900 hover:text-gray-700 hover:underline transition-colors cursor-pointer"
         >
-          {order.orderId}
+          {order.orderId ?? '—'}
         </button>
       </td>
 
@@ -102,7 +102,7 @@ const OrderItem: React.FC<OrderItemProps> = ({
       {/* Items */}
       <td className="px-4 py-4">
         <span className="text-sm text-gray-600">
-          {order.items}items
+          {order.items} items
         </span>
       </td>
 

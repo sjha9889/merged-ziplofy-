@@ -1,6 +1,6 @@
-import mongoose, { Types } from 'mongoose';
 import { Request, Response } from 'express';
-import { Order, OrderItem, CustomerAddress } from '../../models';
+import mongoose, { Types } from 'mongoose';
+import { CustomerAddress, Order, OrderItem } from '../../models';
 import { asyncErrorHandler, CustomError } from '../../utils/error.utils';
 
 export const createOrder = asyncErrorHandler(async (req: Request, res: Response) => {

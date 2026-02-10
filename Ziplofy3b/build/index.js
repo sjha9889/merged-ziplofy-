@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.io = exports.userIdToSocketIdMap = void 0;
 // @ts-nocheck
 // Load env first (uses .env.development or .env.production based on DOTENV_CONFIG_PATH)
-require("./utils/env.utils");
 const cors_1 = __importDefault(require("cors"));
 const express_1 = __importDefault(require("express"));
 const http_1 = require("http");
@@ -58,6 +57,7 @@ const transfer_route_1 = require("./routes/transfer.route");
 const user_route_1 = require("./routes/user.route");
 const vendor_route_1 = require("./routes/vendor.route");
 const socket_1 = require("./socket");
+require("./utils/env.utils");
 const env_utils_1 = require("./utils/env.utils");
 // Ensure Mongoose registers dependent models used via refs (e.g., Supplier)
 const theme_controller_1 = require("./controllers/theme.controller");

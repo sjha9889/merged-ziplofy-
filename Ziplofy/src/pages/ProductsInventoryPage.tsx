@@ -267,11 +267,11 @@ const ProductsInventoryPage: React.FC = () => {
                       return (
                         <tr key={lvl._id} className="hover:bg-gray-50 group">
                           <td className="px-3 py-2 whitespace-nowrap">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3">
                               <img
-                                src={lvl.variantId.productId.imageUrl || undefined}
+                                src={lvl.variantId.images?.[0] || lvl.variantId.productId.imageUrls?.[0] || undefined}
                                 alt={lvl.variantId.productId.title}
-                                className="w-6 h-6 rounded-full object-cover bg-gray-200"
+                                className="w-12 h-12 rounded-lg object-cover bg-gray-200 flex-shrink-0"
                                 onError={(e) => {
                                   (e.target as HTMLImageElement).style.display = 'none';
                                 }}

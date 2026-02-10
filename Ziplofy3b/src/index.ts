@@ -1,6 +1,5 @@
 // @ts-nocheck
 // Load env first (uses .env.development or .env.production based on DOTENV_CONFIG_PATH)
-import './utils/env.utils';
 import cors from 'cors';
 import express, { Request, Response } from 'express';
 import { createServer } from 'http';
@@ -52,7 +51,8 @@ import { transferRouter } from './routes/transfer.route';
 import { userRouter } from './routes/user.route';
 import { vendorRouter } from './routes/vendor.route';
 import { registerSocketHandlers } from './socket';
-import { validateEnv, loadedEnvFile } from './utils/env.utils';
+import './utils/env.utils';
+import { loadedEnvFile, validateEnv } from './utils/env.utils';
 // Ensure Mongoose registers dependent models used via refs (e.g., Supplier)
 import { getAllThemesPublic } from './controllers/theme.controller';
 import './models/supplier/supplier.model';

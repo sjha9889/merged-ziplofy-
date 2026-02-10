@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeftIcon,
@@ -11,89 +11,38 @@ import {
   CalendarIcon,
 } from '@heroicons/react/24/outline';
 import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
-
-// Dummy order data
-const getDummyOrder = (orderId: string) => ({
-  orderId: orderId || '#1002',
-  orderDate: '2024-02-11T10:30:00Z',
-  status: 'fulfilled',
-  paymentStatus: 'paid',
-  items: [
-    {
-      id: '1',
-      name: 'Classic White T-Shirt',
-      sku: 'TSH-001-WHT',
-      image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=200&h=200&fit=crop',
-      quantity: 2,
-      price: 29.99,
-      total: 59.98,
-    },
-    {
-      id: '2',
-      name: 'Denim Jeans',
-      sku: 'JNS-002-BLU',
-      image: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=200&h=200&fit=crop',
-      quantity: 1,
-      price: 79.99,
-      total: 79.99,
-    },
-    {
-      id: '3',
-      name: 'Leather Sneakers',
-      sku: 'SNK-003-BLK',
-      image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop',
-      quantity: 1,
-      price: 129.99,
-      total: 129.99,
-    },
-  ],
-  customer: {
-    name: 'Wade Warren',
-    email: 'wade.warren@example.com',
-    phone: '+1 (555) 123-4567',
-  },
-  shippingAddress: {
-    name: 'Wade Warren',
-    address: '123 Main Street',
-    apartment: 'Apt 4B',
-    city: 'New York',
-    state: 'NY',
-    zipCode: '10001',
-    country: 'United States',
-    phone: '+1 (555) 123-4567',
-  },
-  billingAddress: {
-    name: 'Wade Warren',
-    address: '123 Main Street',
-    apartment: 'Apt 4B',
-    city: 'New York',
-    state: 'NY',
-    zipCode: '10001',
-    country: 'United States',
-  },
-  payment: {
-    method: 'Credit Card',
-    cardLast4: '4242',
-    status: 'paid',
-  },
-  summary: {
-    subtotal: 269.96,
-    tax: 21.60,
-    shipping: 9.99,
-    total: 301.55,
-  },
-  notes: 'Please leave package at front door. Ring doorbell twice.',
-  createdAt: '2024-02-11T10:30:00Z',
-  updatedAt: '2024-02-12T14:20:00Z',
-});
+import { useAdminOrders } from '../contexts/admin-order.context';
+import type { AdminOrder, AdminOrderAddressRef, AdminOrderCustomerRef } from '../contexts/admin-order.context';
 
 const OrderDetailsPage: React.FC = () => {
-  const { orderId } = useParams<{ orderId: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const order = getDummyOrder(orderId || '');
+  const { getOrderById } = useAdminOrders();
+  const [order, setOrder] = useState<AdminOrder | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchOrder = useCallback(async () => {
+    if (!id) return;
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await getOrderById(id);
+      setOrder(data);
+    } catch {
+      setOrder(null);
+      setError('Failed to load order');
+    } finally {
+      setLoading(false);
+    }
+  }, [id, getOrderById]);
+
+  useEffect(() => {
+    fetchOrder();
+  }, [fetchOrder]);
 
   const formatCurrency = (amount: number) => {
-    return `$${amount.toFixed(2)}`;
+    return `$${Number(amount).toFixed(2)}`;
   };
 
   const formatDate = (dateString: string) => {
@@ -106,6 +55,60 @@ const OrderDetailsPage: React.FC = () => {
       minute: '2-digit',
     });
   };
+
+  const formatAddressName = (addr: AdminOrderAddressRef | undefined) => {
+    if (!addr) return '—';
+    return [addr.firstName, addr.lastName].filter(Boolean).join(' ').trim() || '—';
+  };
+
+  const formatPaymentMethod = (method?: string) => {
+    if (!method) return '—';
+    const map: Record<string, string> = {
+      credit_card: 'Credit Card',
+      paypal: 'PayPal',
+      cod: 'Cash on Delivery',
+      other: 'Other',
+    };
+    return map[method] || method;
+  };
+
+  const getCustomerName = (customer?: AdminOrderCustomerRef) => {
+    if (!customer) return '—';
+    return [customer.firstName, customer.lastName].filter(Boolean).join(' ').trim() || customer.email || '—';
+  };
+
+  if (loading) {
+    return (
+      <GridBackgroundWrapper>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block h-10 w-10 animate-spin rounded-full border-2 border-gray-300 border-t-gray-900" />
+            <p className="mt-3 text-sm text-gray-600">Loading order...</p>
+          </div>
+        </div>
+      </GridBackgroundWrapper>
+    );
+  }
+
+  if (error || !order) {
+    return (
+      <GridBackgroundWrapper>
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-sm text-red-600">{error || 'Order not found'}</p>
+            <button
+              onClick={() => navigate('/orders')}
+              className="mt-4 text-sm font-medium text-gray-900 hover:underline"
+            >
+              Back to Orders
+            </button>
+          </div>
+        </div>
+      </GridBackgroundWrapper>
+    );
+  }
+
+  const displayOrderId = order._id?.length === 24 ? `#${order._id.slice(-6).toUpperCase()}` : order._id;
 
   return (
     <GridBackgroundWrapper>
@@ -122,60 +125,75 @@ const OrderDetailsPage: React.FC = () => {
                 Back
               </button>
               <div>
-                <h1 className="text-xl font-medium text-gray-900">Order {order.orderId}</h1>
-                <p className="text-sm text-gray-600 mt-0.5">{formatDate(order.orderDate)}</p>
+                <h1 className="text-xl font-medium text-gray-900">Order {displayOrderId}</h1>
+                <p className="text-sm text-gray-600 mt-0.5">{formatDate(order.orderDate || order.createdAt || '')}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <span
                 className={`px-2.5 py-1 rounded text-xs font-medium ${
-                  order.status === 'fulfilled'
+                  order.status === 'delivered' || order.status === 'shipped'
                     ? 'bg-green-100 text-green-700'
-                    : order.status === 'pending'
+                    : order.status === 'pending' || order.status === 'paid'
                     ? 'bg-orange-100 text-orange-700'
-                    : 'bg-gray-100 text-gray-700'
+                    : order.status === 'cancelled'
+                    ? 'bg-gray-100 text-gray-700'
+                    : 'bg-orange-100 text-orange-700'
                 }`}
               >
-                {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                {order.status?.charAt(0).toUpperCase()}{order.status?.slice(1)}
               </span>
               <span
                 className={`px-2.5 py-1 rounded text-xs font-medium ${
                   order.paymentStatus === 'paid'
                     ? 'bg-green-100 text-green-700'
+                    : order.paymentStatus === 'refunded'
+                    ? 'bg-gray-100 text-gray-700'
                     : 'bg-orange-100 text-orange-700'
                 }`}
               >
-                {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+                {order.paymentStatus?.charAt(0).toUpperCase()}{order.paymentStatus?.slice(1)}
               </span>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Main Content */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Order Items */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <ShoppingBagIcon className="w-5 h-5 text-gray-600" />
-                  <h2 className="text-base font-medium text-gray-900">Order Items</h2>
-                </div>
-                <div className="space-y-4">
-                  {order.items.map((item, index) => (
-                    <div key={item.id}>
+          <div className="flex flex-col gap-6">
+            {/* Order Items */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <ShoppingBagIcon className="w-5 h-5 text-gray-600" />
+                <h2 className="text-base font-medium text-gray-900">Order Items</h2>
+              </div>
+              <div className="space-y-4">
+                {order.items?.map((item, index) => {
+                  const variant = item.productVariantId;
+                  const product = variant?.productId;
+                  const name = product?.title || 'Product';
+                  const image =
+                    variant?.images?.[0] || product?.imageUrls?.[0] || undefined;
+                  const sku = variant?.sku || '—';
+                  return (
+                    <div key={item._id}>
                       <div className="flex gap-4">
-                        <div className="w-20 h-20 bg-gray-100 rounded flex-shrink-0 overflow-hidden">
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/80?text=Product';
-                            }}
-                          />
+                        <div className="w-20 h-20 bg-gray-100 rounded shrink-0 overflow-hidden">
+                          {image ? (
+                            <img
+                              src={image}
+                              alt={name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://via.placeholder.com/80?text=Product';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
+                              No image
+                            </div>
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-sm font-medium text-gray-900 mb-1">{item.name}</h3>
-                          <p className="text-xs text-gray-600 mb-2">SKU: {item.sku}</p>
+                          <h3 className="text-sm font-medium text-gray-900 mb-1">{name}</h3>
+                          <p className="text-xs text-gray-600 mb-2">SKU: {sku}</p>
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-gray-600">
                               Quantity: {item.quantity} × {formatCurrency(item.price)}
@@ -186,25 +204,24 @@ const OrderDetailsPage: React.FC = () => {
                           </div>
                         </div>
                       </div>
-                      {index < order.items.length - 1 && (
+                      {index < (order.items?.length ?? 0) - 1 && (
                         <div className="border-t border-gray-200 mt-4" />
                       )}
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-
-              {/* Order Notes */}
-              {order.notes && (
-                <div className="bg-white rounded-lg border border-gray-200 p-6">
-                  <h2 className="text-base font-medium text-gray-900 mb-3">Order Notes</h2>
-                  <p className="text-sm text-gray-600">{order.notes}</p>
-                </div>
-              )}
             </div>
 
-            {/* Right Column - Sidebar */}
-            <div className="space-y-6">
+            {/* Order Notes */}
+            {order.notes && (
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <h2 className="text-base font-medium text-gray-900 mb-3">Order Notes</h2>
+                <p className="text-sm text-gray-600">{order.notes}</p>
+              </div>
+            )}
+
+            {/* Order Summary */}
               {/* Order Summary */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
                 <div className="flex items-center gap-2 mb-4">
@@ -214,21 +231,21 @@ const OrderDetailsPage: React.FC = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Subtotal</span>
-                    <span className="text-gray-900 font-medium">{formatCurrency(order.summary.subtotal)}</span>
+                    <span className="text-gray-900 font-medium">{formatCurrency(order.subtotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Tax</span>
-                    <span className="text-gray-900 font-medium">{formatCurrency(order.summary.tax)}</span>
+                    <span className="text-gray-900 font-medium">{formatCurrency(order.tax)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Shipping</span>
-                    <span className="text-gray-900 font-medium">{formatCurrency(order.summary.shipping)}</span>
+                    <span className="text-gray-900 font-medium">{formatCurrency(order.shippingCost)}</span>
                   </div>
                   <div className="border-t border-gray-200 pt-2 mt-2">
                     <div className="flex justify-between">
                       <span className="text-sm font-medium text-gray-900">Total</span>
                       <span className="text-base font-medium text-gray-900">
-                        {formatCurrency(order.summary.total)}
+                        {formatCurrency(order.total)}
                       </span>
                     </div>
                   </div>
@@ -244,57 +261,75 @@ const OrderDetailsPage: React.FC = () => {
                 <div className="space-y-3">
                   <div>
                     <p className="text-xs text-gray-600 mb-1">Name</p>
-                    <p className="text-sm font-medium text-gray-900">{order.customer.name}</p>
+                    <p className="text-sm font-medium text-gray-900">{getCustomerName(order.customerId)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-600 mb-1">Email</p>
-                    <p className="text-sm text-gray-900">{order.customer.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-600 mb-1">Phone</p>
-                    <p className="text-sm text-gray-900">{order.customer.phone}</p>
+                    <p className="text-sm text-gray-900">{order.customerId?.email || '—'}</p>
                   </div>
                 </div>
               </div>
 
               {/* Shipping Address */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <TruckIcon className="w-5 h-5 text-gray-600" />
-                  <h2 className="text-base font-medium text-gray-900">Shipping Address</h2>
+              {order.shippingAddressId && (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <TruckIcon className="w-5 h-5 text-gray-600" />
+                    <h2 className="text-base font-medium text-gray-900">Shipping Address</h2>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-900">{formatAddressName(order.shippingAddressId)}</p>
+                    {order.shippingAddressId.address && (
+                      <p className="text-sm text-gray-600">{order.shippingAddressId.address}</p>
+                    )}
+                    {order.shippingAddressId.apartment && (
+                      <p className="text-sm text-gray-600">{order.shippingAddressId.apartment}</p>
+                    )}
+                    {(order.shippingAddressId.city || order.shippingAddressId.state || order.shippingAddressId.pinCode) && (
+                      <p className="text-sm text-gray-600">
+                        {[order.shippingAddressId.city, order.shippingAddressId.state, order.shippingAddressId.pinCode]
+                          .filter(Boolean)
+                          .join(', ')}
+                      </p>
+                    )}
+                    {order.shippingAddressId.country && (
+                      <p className="text-sm text-gray-600">{order.shippingAddressId.country}</p>
+                    )}
+                    {order.shippingAddressId.phoneNumber && (
+                      <p className="text-sm text-gray-600 mt-2">Phone: {order.shippingAddressId.phoneNumber}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-900">{order.shippingAddress.name}</p>
-                  <p className="text-sm text-gray-600">{order.shippingAddress.address}</p>
-                  {order.shippingAddress.apartment && (
-                    <p className="text-sm text-gray-600">{order.shippingAddress.apartment}</p>
-                  )}
-                  <p className="text-sm text-gray-600">
-                    {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zipCode}
-                  </p>
-                  <p className="text-sm text-gray-600">{order.shippingAddress.country}</p>
-                  <p className="text-sm text-gray-600 mt-2">Phone: {order.shippingAddress.phone}</p>
-                </div>
-              </div>
+              )}
 
               {/* Billing Address */}
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <MapPinIcon className="w-5 h-5 text-gray-600" />
-                  <h2 className="text-base font-medium text-gray-900">Billing Address</h2>
+              {order.billingAddressId && (
+                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <MapPinIcon className="w-5 h-5 text-gray-600" />
+                    <h2 className="text-base font-medium text-gray-900">Billing Address</h2>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-gray-900">{formatAddressName(order.billingAddressId)}</p>
+                    {order.billingAddressId.address && (
+                      <p className="text-sm text-gray-600">{order.billingAddressId.address}</p>
+                    )}
+                    {order.billingAddressId.apartment && (
+                      <p className="text-sm text-gray-600">{order.billingAddressId.apartment}</p>
+                    )}
+                    {(order.billingAddressId.city || order.billingAddressId.state || order.billingAddressId.pinCode) && (
+                      <p className="text-sm text-gray-600">
+                        {[order.billingAddressId.city, order.billingAddressId.state, order.billingAddressId.pinCode]
+                          .filter(Boolean)
+                          .join(', ')}
+                      </p>
+                    )}
+                    {order.billingAddressId.country && (
+                      <p className="text-sm text-gray-600">{order.billingAddressId.country}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-900">{order.billingAddress.name}</p>
-                  <p className="text-sm text-gray-600">{order.billingAddress.address}</p>
-                  {order.billingAddress.apartment && (
-                    <p className="text-sm text-gray-600">{order.billingAddress.apartment}</p>
-                  )}
-                  <p className="text-sm text-gray-600">
-                    {order.billingAddress.city}, {order.billingAddress.state} {order.billingAddress.zipCode}
-                  </p>
-                  <p className="text-sm text-gray-600">{order.billingAddress.country}</p>
-                </div>
-              </div>
+              )}
 
               {/* Payment Information */}
               <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -305,21 +340,20 @@ const OrderDetailsPage: React.FC = () => {
                 <div className="space-y-3">
                   <div>
                     <p className="text-xs text-gray-600 mb-1">Payment Method</p>
-                    <p className="text-sm font-medium text-gray-900">{order.payment.method}</p>
-                    {order.payment.cardLast4 && (
-                      <p className="text-xs text-gray-600 mt-1">•••• •••• •••• {order.payment.cardLast4}</p>
-                    )}
+                    <p className="text-sm font-medium text-gray-900">{formatPaymentMethod(order.paymentMethod)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-600 mb-1">Payment Status</p>
                     <span
                       className={`inline-block px-2.5 py-1 rounded text-xs font-medium ${
-                        order.payment.status === 'paid'
+                        order.paymentStatus === 'paid'
                           ? 'bg-green-100 text-green-700'
+                          : order.paymentStatus === 'refunded'
+                          ? 'bg-gray-100 text-gray-700'
                           : 'bg-orange-100 text-orange-700'
                       }`}
                     >
-                      {order.payment.status.charAt(0).toUpperCase() + order.payment.status.slice(1)}
+                      {order.paymentStatus?.charAt(0).toUpperCase()}{order.paymentStatus?.slice(1)}
                     </span>
                   </div>
                 </div>
@@ -334,7 +368,7 @@ const OrderDetailsPage: React.FC = () => {
                 <div className="space-y-3">
                   <div>
                     <p className="text-xs text-gray-600 mb-1">Order Date</p>
-                    <p className="text-sm text-gray-900">{formatDate(order.orderDate)}</p>
+                    <p className="text-sm text-gray-900">{formatDate(order.orderDate || order.createdAt || '')}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-600 mb-1">Created At</p>
@@ -346,7 +380,6 @@ const OrderDetailsPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
           </div>
         </div>
       </div>

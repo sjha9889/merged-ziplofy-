@@ -88,7 +88,7 @@ const updateRolesDirectly = async () => {
       // Update the role directly in the database
       await rolesCollection.updateOne(
         { _id: role._id },
-        { 
+        {
           $set: { 
             permissions: newPermissions,
             isSuperAdmin: role.name === 'super-admin' || role.isSuperAdmin,

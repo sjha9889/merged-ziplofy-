@@ -4,8 +4,13 @@ import { axiosi } from '../config/axios.config';
 export interface AdminOrderItemVariant {
   _id: string;
   sku?: string;
-  title?: string;
+  optionValues?: Record<string, string>;
   images?: string[];
+  productId?: {
+    _id: string;
+    title?: string;
+    imageUrls?: string[];
+  };
 }
 
 export interface AdminOrderItem {
@@ -21,7 +26,7 @@ export interface AdminOrderItem {
 
 export interface AdminOrderStoreRef {
   _id: string;
-  name?: string;
+  storeName?: string;
 }
 
 export interface AdminOrderCustomerRef {
@@ -70,11 +75,17 @@ interface GetOrdersByStoreIdResponse {
   count: number;
 }
 
+interface GetOrderByIdResponse {
+  success: boolean;
+  data: AdminOrder;
+}
+
 interface AdminOrderContextValue {
   orders: AdminOrder[];
   loading: boolean;
   error: string | null;
   getOrdersByStoreId: (storeId: string) => Promise<AdminOrder[]>;
+  getOrderById: (orderId: string) => Promise<AdminOrder | null>;
   clear: () => void;
 }
 
@@ -88,6 +99,18 @@ export const AdminOrderProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const clear = useCallback(() => {
     setOrders([]);
     setError(null);
+  }, []);
+
+  const getOrderById = useCallback(async (orderId: string): Promise<AdminOrder | null> => {
+    try {
+      const res = await axiosi.get<GetOrderByIdResponse>(`/orders/${orderId}`);
+      if (!res.data.success) throw new Error('Failed to fetch order');
+      return res.data.data || null;
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to fetch order';
+      setError(msg);
+      throw err;
+    }
   }, []);
 
   const getOrdersByStoreId = useCallback(async (storeId: string): Promise<AdminOrder[]> => {
@@ -108,8 +131,8 @@ export const AdminOrderProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   }, []);
 
   const value = useMemo<AdminOrderContextValue>(
-    () => ({ orders, loading, error, getOrdersByStoreId, clear }),
-    [orders, loading, error, getOrdersByStoreId, clear]
+    () => ({ orders, loading, error, getOrdersByStoreId, getOrderById, clear }),
+    [orders, loading, error, getOrdersByStoreId, getOrderById, clear]
   );
 
   return (

@@ -8,10 +8,11 @@ export interface InventoryLevel {
     _id: string;
     sku: string;
     optionValues: Record<string, string>;
+    images?: string[];
     productId: {
       _id: string;
       title: string;
-      imageUrl: string | null;
+      imageUrls?: string[];
     };
   };
   locationId: string; // not populated by controller (id only)

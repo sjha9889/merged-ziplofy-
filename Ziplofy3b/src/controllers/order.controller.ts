@@ -1,5 +1,5 @@
-import mongoose, { Types } from 'mongoose';
 import { Request, Response } from 'express';
+import mongoose, { Types } from 'mongoose';
 import { Order, OrderItem } from '../models';
 import { asyncErrorHandler, CustomError } from '../utils/error.utils';
 
@@ -12,7 +12,7 @@ export const getOrdersByStoreId = asyncErrorHandler(async (req: Request, res: Re
 
   const orders = await Order.find({ storeId: new Types.ObjectId(storeId) })
     .populate([
-      { path: 'storeId', select: 'name' },
+      { path: 'storeId', select: 'storeName' },
       { path: 'customerId', select: '-password' },
       { path: 'shippingAddressId' },
       { path: 'billingAddressId' },
@@ -24,16 +24,10 @@ export const getOrdersByStoreId = asyncErrorHandler(async (req: Request, res: Re
   const ordersWithItems = await Promise.all(
     orders.map(async (order) => {
       const items = await OrderItem.find({ orderId: order._id })
-        .populate('productVariantId', {
-          cost: 0,
-          profit: 0,
-          marginPercent: 0,
-          unitPriceTotalAmount: 0,
-          unitPriceTotalAmountMetric: 0,
-          unitPriceBaseMeasure: 0,
-          unitPriceBaseMeasureMetric: 0,
-          hsCode: 0,
-          isInventoryTrackingEnabled: 0,
+        .populate({
+          path: 'productVariantId',
+          select: 'sku optionValues images productId',
+          populate: { path: 'productId', select: 'title imageUrls' },
         })
         .lean();
 
@@ -48,6 +42,42 @@ export const getOrdersByStoreId = asyncErrorHandler(async (req: Request, res: Re
     success: true,
     data: ordersWithItems,
     count: ordersWithItems.length,
+  });
+});
+
+export const getOrderById = asyncErrorHandler(async (req: Request, res: Response) => {
+  const { id } = req.params as { id: string };
+
+  if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+    throw new CustomError('Valid order ID is required', 400);
+  }
+
+  const order = await Order.findById(id)
+    .populate([
+      { path: 'storeId', select: 'storeName' },
+      { path: 'customerId', select: '-password' },
+      { path: 'shippingAddressId' },
+      { path: 'billingAddressId' },
+    ])
+    .lean();
+
+  if (!order) {
+    throw new CustomError('Order not found', 404);
+  }
+
+  const items = await OrderItem.find({ orderId: order._id })
+    .populate({
+      path: 'productVariantId',
+      select: 'sku optionValues images productId',
+      populate: { path: 'productId', select: 'title imageUrls' },
+    })
+    .lean();
+
+  const orderWithItems = { ...order, items };
+
+  res.status(200).json({
+    success: true,
+    data: orderWithItems,
   });
 });
 
