@@ -1,24 +1,28 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiShoppingCart, FiHeart, FiArrowRight, FiTruck, FiShield, FiHeadphones, FiCheck } from 'react-icons/fi';
 import { FaStar, FaFacebook, FaTwitter, FaInstagram, FaPinterest } from 'react-icons/fa';
 import StorefrontNavbar from '../components/StorefrontNavbar';
+import AuthPopup from '../components/AuthPopup';
 import type { StorefrontProductItem } from '../contexts/product.context';
 import { useStorefrontProducts } from '../contexts/product.context';
 import { useStorefront } from '../contexts/store.context';
 import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 import { useStorefrontCart } from '../contexts/storefront-cart.context';
 import { useStorefrontCollections } from '../contexts/storefront-collections.context';
+import { useStorefrontProductVariants } from '../contexts/product-variant.context';
 
 const StorefrontApp: React.FC = () => {
   const { storeFrontMeta } = useStorefront();
   const { products, loading, pagination, fetchProductsByStoreId } = useStorefrontProducts();
   const { user, logout, checkAuth } = useStorefrontAuth();
-  const { getCartByCustomerId } = useStorefrontCart();
+  const { getCartByCustomerId, createCartEntry } = useStorefrontCart();
+  const { fetchVariantsByProductId } = useStorefrontProductVariants();
   const { collections, loading: collectionsLoading, fetchCollectionsByStoreId } = useStorefrontCollections();
   const navigate = useNavigate();
   const [search, setSearch] = useState<string>('');
   const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
+  const [authPopupOpen, setAuthPopupOpen] = useState(false);
 
   useEffect(() => {
     if (storeFrontMeta?.storeId) {
@@ -41,6 +45,34 @@ const StorefrontApp: React.FC = () => {
       getCartByCustomerId(user._id).catch(() => {});
     }
   }, [user?._id]);
+
+  const handleAddToCartFromCard = useCallback(
+    async (product: StorefrontProductItem, e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!storeFrontMeta?.storeId) return;
+      if (!user) {
+        setAuthPopupOpen(true);
+        return;
+      }
+      try {
+        const variants = await fetchVariantsByProductId(product._id);
+        const realVariants = variants.filter((v) => !v.isSynthetic);
+        const variantToAdd = realVariants.length === 1 ? realVariants[0] : variants[0];
+        if (variantToAdd) {
+          await createCartEntry({
+            storeId: storeFrontMeta.storeId,
+            productVariantId: variantToAdd._id,
+            quantity: 1,
+          });
+        } else {
+          navigate(`/products/${product._id}`);
+        }
+      } catch {
+        navigate(`/products/${product._id}`);
+      }
+    },
+    [storeFrontMeta?.storeId, user, fetchVariantsByProductId, createCartEntry, navigate]
+  );
 
   return (
     <div className="min-h-screen bg-white">
@@ -266,7 +298,12 @@ const StorefrontApp: React.FC = () => {
                   return p.title?.toLowerCase().includes(q) || (p.vendor?.name || '').toLowerCase().includes(q);
                 })
                 .map((p) => (
-                  <ProductCard key={p._id} product={p} onClick={() => navigate(`/products/${p._id}`)} />
+                  <ProductCard
+                    key={p._id}
+                    product={p}
+                    onClick={() => navigate(`/products/${p._id}`)}
+                    onAddToCart={handleAddToCartFromCard}
+                  />
                 ))}
             </div>
           )}
@@ -391,6 +428,8 @@ const StorefrontApp: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      <AuthPopup open={authPopupOpen} onClose={() => setAuthPopupOpen(false)} />
     </div>
   );
 };
@@ -470,10 +509,11 @@ const CollectionCard: React.FC<{
 };
 
 // Modern Product Card Component
-const ProductCard: React.FC<{ 
-  product: StorefrontProductItem; 
+const ProductCard: React.FC<{
+  product: StorefrontProductItem;
   onClick: () => void;
-}> = ({ product, onClick }) => {
+  onAddToCart: (product: StorefrontProductItem, e: React.MouseEvent) => void;
+}> = ({ product, onClick, onAddToCart }) => {
   const images = Array.isArray(product.imageUrls) && product.imageUrls.length > 0 
     ? product.imageUrls 
     : ['https://via.placeholder.com/600x400?text=Product'];
@@ -581,10 +621,7 @@ const ProductCard: React.FC<{
           {/* Add to Cart Button */}
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              // Handle add to cart logic here
-            }}
+            onClick={(e) => onAddToCart(product, e)}
             className="w-full py-2.5 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#e6c547] text-[#0c100c] text-sm font-semibold hover:shadow-lg transition-all opacity-0 group-hover:opacity-100 transition-opacity duration-300"
             style={{ boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)' }}
           >

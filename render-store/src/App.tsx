@@ -10,6 +10,7 @@ import { StorefrontCartProvider } from './contexts/storefront-cart.context';
 import { StorefrontCollectionsProvider } from './contexts/storefront-collections.context';
 import { FreeShippingProvider } from './contexts/storefront-free-shipping.context';
 import { StorefrontOrderProvider } from './contexts/storefront-order.context';
+import ScrollToTop from './components/ScrollToTop';
 import "./index.css";
 import StorefrontApp from './pages/StorefrontApp';
 import StorefrontCollectionPage from './pages/StorefrontCollectionPage';
@@ -53,6 +54,7 @@ const RedirectToHome: React.FC = () => {
 
 const StorefrontRoutes: React.FC = () => (
   <Router>
+    <ScrollToTop />
     <Toaster position="top-center" toastOptions={{ duration: 4000, style: { background: '#363636', color: '#fff' } }} />
     <Routes>
       <Route path="/" element={<StorefrontApp />} />

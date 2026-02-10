@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useState } from 'react';
+import toast from 'react-hot-toast';
 import { axiosi } from '../config/axios.config';
 import type { StorefrontProductVariant } from './product-variant.context';
 
@@ -59,6 +60,8 @@ export const StorefrontCartProvider: React.FC<{ children: React.ReactNode }> = (
         }
         return [created, ...prev];
       });
+      toast.dismiss();
+      toast.success('Product added to cart');
       return created;
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || 'Create cart entry failed';
