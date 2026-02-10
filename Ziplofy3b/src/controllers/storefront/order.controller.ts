@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import mongoose, { Types } from 'mongoose';
 import { CustomerAddress, Order, OrderItem } from '../../models';
 import { asyncErrorHandler, CustomError } from '../../utils/error.utils';
+import { getOrderConfirmationEmailBody, sendEmail } from '../../utils/email.utils';
 
 export const createOrder = asyncErrorHandler(async (req: Request, res: Response) => {
   const user = req.storefrontUser;
@@ -149,6 +150,24 @@ export const createOrder = asyncErrorHandler(async (req: Request, res: Response)
       isInventoryTrackingEnabled: 0,
     },
   });
+
+  // Send order confirmation email to customer (non-blocking - don't fail order if email fails)
+  if (user.email) {
+    try {
+      const customerName = [user.firstName, user.lastName].filter(Boolean).join(' ').trim() || 'Customer';
+      await sendEmail({
+        to: user.email,
+        subject: 'Order Confirmed - Ziplofy',
+        body: getOrderConfirmationEmailBody({
+          customerName,
+          orderId: String(order._id),
+          total: order.total,
+        }),
+      });
+    } catch (emailErr) {
+      console.error('Failed to send order confirmation email:', emailErr);
+    }
+  }
 
   res.status(201).json({
     success: true,

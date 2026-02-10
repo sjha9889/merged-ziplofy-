@@ -37,6 +37,7 @@ exports.getOrdersByCustomerId = exports.createOrder = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const models_1 = require("../../models");
 const error_utils_1 = require("../../utils/error.utils");
+const email_utils_1 = require("../../utils/email.utils");
 exports.createOrder = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const user = req.storefrontUser;
     if (!user)
@@ -139,6 +140,24 @@ exports.createOrder = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
             isInventoryTrackingEnabled: 0,
         },
     });
+    // Send order confirmation email to customer (non-blocking - don't fail order if email fails)
+    if (user.email) {
+        try {
+            const customerName = [user.firstName, user.lastName].filter(Boolean).join(' ').trim() || 'Customer';
+            await (0, email_utils_1.sendEmail)({
+                to: user.email,
+                subject: 'Order Confirmed - Ziplofy',
+                body: (0, email_utils_1.getOrderConfirmationEmailBody)({
+                    customerName,
+                    orderId: String(order._id),
+                    total: order.total,
+                }),
+            });
+        }
+        catch (emailErr) {
+            console.error('Failed to send order confirmation email:', emailErr);
+        }
+    }
     res.status(201).json({
         success: true,
         data: {
