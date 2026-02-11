@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Search, Check, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import "./MembershipPlan.css";
 
 interface Feature {
@@ -17,7 +17,6 @@ interface Plan {
 }
 
 const MembershipPlan: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState<string>("");
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
 
   const plans: Plan[] = [
@@ -69,27 +68,11 @@ const MembershipPlan: React.FC = () => {
     },
   ];
 
-  const filteredPlans = plans.filter(
-    (p) =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   return (
     <div className="membership-plans-page">
       {/* Header */}
       <div className="mp-header">
         <h1 className="mp-title">Membership Plans</h1>
-        <div className="mp-search">
-          <Search size={18} className="mp-search-icon" />
-          <input
-            type="text"
-            placeholder="Search plans"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="mp-search-input"
-          />
-        </div>
       </div>
 
       {/* Plan selection section */}
@@ -115,7 +98,7 @@ const MembershipPlan: React.FC = () => {
 
       {/* Plans grid */}
       <div className="mp-cards">
-        {filteredPlans.map((plan, idx) => (
+        {plans.map((plan, idx) => (
           <div
             key={idx}
             className={`mp-card ${plan.isPopular ? "mp-card-popular" : ""}`}

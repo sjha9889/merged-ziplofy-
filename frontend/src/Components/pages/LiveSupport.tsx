@@ -1,7 +1,15 @@
-import React, { useState } from "react";
-import "./HelpCenter.css";
+import React, { useState, useMemo } from "react";
+import {
+  Search,
+  RefreshCw,
+  RotateCcw,
+  Upload,
+  MessageCircle,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import "./LiveSupport.css";
 
-// Define a Chat type
 interface Chat {
   id: number;
   name: string;
@@ -13,192 +21,272 @@ interface Chat {
 
 const LiveSupport: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [showEntries, setShowEntries] = useState<number>(10);
+  const [sortBy, setSortBy] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [entriesPerPage] = useState<number>(10);
 
   const chats: Chat[] = [
-    {
-      id: 1,
-      name: "shishir",
-      email: "info@techwyzo.in",
-      category: "Domain",
-      status: "Resolved",
-      created: "21 Jul 2025 05:00 PM",
-    },
-    {
-      id: 2,
-      name: "shishir",
-      email: "info@techwyzo.in",
-      category: "Domain",
-      status: "Resolved",
-      created: "19 Jul 2025 02:04 PM",
-    },
+    { id: 1, name: "Shishir Kumar", email: "info@techwyzo.in", category: "Domain", status: "Resolved", created: "21 Jul 2025 05:00 PM" },
+    { id: 2, name: "Priya Sharma", email: "priya@example.com", category: "Billing", status: "Active", created: "20 Jul 2025 02:30 PM" },
+    { id: 3, name: "Rajesh Patel", email: "rajesh@startup.io", category: "Technical", status: "Pending", created: "19 Jul 2025 02:04 PM" },
+    { id: 4, name: "Shishir Kumar", email: "info@techwyzo.in", category: "Domain", status: "Resolved", created: "19 Jul 2025 11:00 AM" },
+    { id: 5, name: "Anita Verma", email: "anita@business.com", category: "Account", status: "On Hold", created: "18 Jul 2025 04:15 PM" },
+    { id: 6, name: "Vikram Singh", email: "vikram@tech.co", category: "Technical", status: "Active", created: "18 Jul 2025 09:30 AM" },
   ];
 
-  const totalNewChats = chats.length;
+  const filteredChats = useMemo(() => {
+    let result = [...chats];
 
-  // Optional: filter chats based on search term
-  const filteredChats = chats.filter(
-    (chat) =>
-      chat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      chat.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      chat.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      chat.status.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(
+        (c) =>
+          c.name.toLowerCase().includes(term) ||
+          c.email.toLowerCase().includes(term) ||
+          c.category.toLowerCase().includes(term) ||
+          c.status.toLowerCase().includes(term)
+      );
+    }
+
+    if (statusFilter !== "all") {
+      result = result.filter((c) => c.status.toLowerCase() === statusFilter.toLowerCase());
+    }
+
+    if (sortBy) {
+      result = [...result].sort((a, b) => {
+        switch (sortBy) {
+          case "name":
+            return a.name.localeCompare(b.name);
+          case "email":
+            return a.email.localeCompare(b.email);
+          case "status":
+            return a.status.localeCompare(b.status);
+          case "created":
+            return new Date(b.created).getTime() - new Date(a.created).getTime();
+          default:
+            return 0;
+        }
+      });
+    }
+
+    return result;
+  }, [chats, searchTerm, statusFilter, sortBy]);
+
+  const paginatedChats = useMemo(() => {
+    const start = (currentPage - 1) * entriesPerPage;
+    return filteredChats.slice(start, start + entriesPerPage);
+  }, [filteredChats, currentPage, entriesPerPage]);
+
+  const totalPages = Math.ceil(filteredChats.length / entriesPerPage);
+
+  const stats = useMemo(() => ({
+    total: chats.length,
+    active: chats.filter((c) => c.status.toLowerCase() === "active").length,
+    resolved: chats.filter((c) => c.status.toLowerCase() === "resolved").length,
+    pending: chats.filter((c) => c.status.toLowerCase() === "pending").length + chats.filter((c) => c.status.toLowerCase() === "on hold").length,
+  }), [chats]);
+
+  const handleExport = () => {
+    const headers = ["#", "Name", "Email", "Category", "Status", "Created"];
+    const rows = filteredChats.map((c) => [c.id, c.name, c.email, c.category, c.status, c.created]);
+    const csv = [headers.join(","), ...rows.map((r) => r.map((v) => `"${v}"`).join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `live-support-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleReset = () => {
+    setSearchTerm("");
+    setSortBy("");
+    setStatusFilter("all");
+    setCurrentPage(1);
+  };
+
+  const getStatusClass = (status: string) => {
+    const s = status.toLowerCase();
+    if (s === "resolved") return "resolved";
+    if (s === "active") return "active";
+    if (s === "pending") return "pending";
+    if (s === "on hold") return "onhold";
+    return "pending";
+  };
+
+  const startIndex = filteredChats.length === 0 ? 0 : (currentPage - 1) * entriesPerPage + 1;
+  const endIndex = Math.min(currentPage * entriesPerPage, filteredChats.length);
 
   return (
-    <div className="help-center-container">
+    <div className="live-support-container">
       {/* Header */}
-      <div className="header">
-        <div className="header-content">
-          <div className="header-left">
-            <h1 className="title">Help Center</h1>
-            <span className="chat-count">Total New Chat: {totalNewChats}</span>
-          </div>
-          <div className="header-actions">
-            <button className="icon-btn">
-              <svg
-                className="icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="12" r="3" />
-                <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1" />
-              </svg>
-            </button>
-            <button className="icon-btn">
-              <svg
-                className="icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M7 17L17 7M17 7H7M17 7V17" />
-              </svg>
-            </button>
-          </div>
+      <div className="ls-header">
+        <div className="header-left">
+          <h1>Live Support</h1>
+          <nav className="breadcrumbs">Dashboard &gt; Live Support</nav>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="main-content">
-        {/* Search */}
-        <div className="search-section">
-          <div className="search-container">
-            <svg
-              className="search-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.35-4.35" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search Leads"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
-          </div>
+      {/* Stats Cards */}
+      <div className="ls-stats">
+        <div className="ls-stat-card total">
+          <div className="ls-stat-label">Total Chats</div>
+          <div className="ls-stat-value">{stats.total}</div>
+        </div>
+        <div className="ls-stat-card active">
+          <div className="ls-stat-label">Active</div>
+          <div className="ls-stat-value">{stats.active}</div>
+        </div>
+        <div className="ls-stat-card resolved">
+          <div className="ls-stat-label">Resolved</div>
+          <div className="ls-stat-value">{stats.resolved}</div>
+        </div>
+        <div className="ls-stat-card pending">
+          <div className="ls-stat-label">Pending</div>
+          <div className="ls-stat-value">{stats.pending}</div>
+        </div>
+      </div>
+
+      {/* Controls */}
+      <div className="ls-controls">
+        <div className="ls-controls-left">
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            className="ls-sort-select"
+          >
+            <option value="">Sort</option>
+            <option value="name">Name</option>
+            <option value="email">Email</option>
+            <option value="status">Status</option>
+            <option value="created">Date</option>
+          </select>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="ls-status-filter"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="resolved">Resolved</option>
+            <option value="pending">Pending</option>
+            <option value="on hold">On Hold</option>
+          </select>
+
+          <button type="button" className="ls-control-btn export-btn" onClick={handleExport}>
+            <Upload size={16} />
+            Export
+          </button>
+          <button type="button" className="ls-control-btn reset-btn" onClick={handleReset}>
+            <RotateCcw size={16} />
+            Reset
+          </button>
+          <button type="button" className="ls-control-btn reload-btn" onClick={() => window.location.reload()}>
+            <RefreshCw size={16} />
+            Reload
+          </button>
         </div>
 
-        {/* Table */}
-        <div className="table-container">
-          <table className="data-table">
+        <div className="ls-search-box">
+          <Search size={16} className="search-icon" />
+          <input
+            type="text"
+            placeholder="Search chats..."
+            value={searchTerm}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1);
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="ls-table-container">
+        {paginatedChats.length === 0 ? (
+          <div className="ls-empty-state">
+            <MessageCircle size={48} />
+            <h3>No chats found</h3>
+            <p>
+              {searchTerm || statusFilter !== "all"
+                ? "Try adjusting your search or filters"
+                : "Support chats will appear here when customers reach out"}
+            </p>
+          </div>
+        ) : (
+          <table className="ls-table">
             <thead>
               <tr>
-                <th className="col-number">#</th>
-                <th className="col-name">Name</th>
-                <th className="col-email">Email</th>
-                <th className="col-category">Category</th>
-                <th className="col-status">Status</th>
-                <th className="col-created">Created</th>
-                <th className="col-action">Action</th>
+                <th>#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
-              {filteredChats.map((chat) => (
+              {paginatedChats.map((chat) => (
                 <tr key={chat.id}>
-                  <td className="col-number">{chat.id}</td>
-                  <td className="col-name">{chat.name}</td>
-                  <td className="col-email">{chat.email}</td>
-                  <td className="col-category">{chat.category}</td>
-                  <td className="col-status">
-                    <span className={`status-badge ${chat.status.toLowerCase()}`}>
+                  <td>{chat.id}</td>
+                  <td>{chat.name}</td>
+                  <td>{chat.email}</td>
+                  <td>{chat.category}</td>
+                  <td>
+                    <span className={`ls-status-badge ${getStatusClass(chat.status)}`}>
                       {chat.status}
                     </span>
                   </td>
-                  <td className="col-created">{chat.created}</td>
-                  <td className="col-action">
-                    <button className="action-btn">Open Chat</button>
+                  <td>{chat.created}</td>
+                  <td>
+                    <button className="ls-action-btn" onClick={() => console.log("Open chat:", chat.id)}>
+                      <MessageCircle size={14} />
+                      Open Chat
+                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        )}
+      </div>
 
-        {/* Bottom Controls */}
-        <div className="bottom-controls">
-          <div className="entries-control">
-            <span className="show-label">Show</span>
-            <div className="select-container">
-              <select
-                value={showEntries}
-                onChange={(e) => setShowEntries(Number(e.target.value))}
-                className="entries-select"
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-              <svg
-                className="select-arrow"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </div>
-            <span className="entries-label">entries</span>
-          </div>
-
-          {/* Pagination */}
-          <div className="pagination">
-            <button className="page-btn prev-btn">
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
+      {/* Pagination */}
+      {paginatedChats.length > 0 && (
+        <div className="ls-bottom-controls">
+          <span className="ls-entries-info">
+            Showing {startIndex} to {endIndex} of {filteredChats.length} entries
+          </span>
+          <div className="ls-pagination">
+            <button
+              className="ls-page-btn"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft size={16} />
               Prev
             </button>
-            <button className="page-btn current-page">1</button>
-            <button className="page-btn next-btn">
+            <button className="ls-page-btn current" disabled>
+              {currentPage}
+            </button>
+            <button
+              className="ls-page-btn"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage >= totalPages}
+            >
               Next
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M9 18l6-6-6-6" />
-              </svg>
+              <ChevronRight size={16} />
             </button>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
