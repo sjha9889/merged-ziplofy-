@@ -1,7 +1,53 @@
-.admin-dashboard{padding:24px;color:#e5e7eb;background:#0f172a;min-height:100vh}
-.admin-dashboard header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.admin-dashboard .meta{display:flex;gap:12px;align-items:center}
-.admin-dashboard .badge{padding:4px 8px;border-radius:999px;font-size:12px;border:1px solid #334155}
-button{background:#334155;border:1px solid #475569;color:#e5e7eb;border-radius:8px;padding:8px 12px;cursor:pointer}
+.admin-dashboard {
+  padding: 24px 28px;
+  color: #1e293b;
+  background: #ffffff;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.admin-dashboard header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding: 24px 28px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.08);
+}
+
+.admin-dashboard .meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.admin-dashboard .badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #93c5fd;
+}
+
+.admin-dashboard button {
+  background: #2563eb;
+  border: none;
+  color: #fff;
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.admin-dashboard button:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
 
 

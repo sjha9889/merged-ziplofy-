@@ -1,9 +1,7 @@
 import React, { useState } from "react";
-import { Search, Plus } from "lucide-react";
+import { Search, Check, X } from "lucide-react";
 import "./MembershipPlan.css";
-import { PermissionGate } from "../PermissionGate";
 
-// Define TypeScript interfaces
 interface Feature {
   name: string;
   included: boolean;
@@ -11,144 +9,143 @@ interface Feature {
 
 interface Plan {
   name: string;
-  price: number;
+  priceMonthly: number;
+  priceYearly: number;
+  description: string;
   features: Feature[];
+  isPopular?: boolean;
 }
 
 const MembershipPlan: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [billingCycle, setBillingCycle] = useState<"monthly" | "annually">("monthly");
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
 
   const plans: Plan[] = [
     {
-      name: "Basic",
-      price: billingCycle === "monthly" ? 50 : 500,
+      name: "Monthly Plan",
+      priceMonthly: 499,
+      priceYearly: 4990,
+      description: "For most businesses that want to optimize web queries",
       features: [
-        { name: "10 Contacts", included: true },
-        { name: "10 Leads", included: true },
-        { name: "20 Companies", included: true },
-        { name: "50 Campaigns", included: true },
-        { name: "100 Projects", included: true },
-        { name: "Deals", included: false },
-        { name: "Tasks", included: false },
-        { name: "Pipelines", included: false },
+        { name: "500 Orders", included: true },
+        { name: "Unlock every feature", included: true },
+        { name: "Custom integrations", included: true },
+        { name: "24/7 Support", included: true },
+        { name: "Fast processing", included: false },
+        { name: "Modern Landing Page", included: true },
+        { name: "Single Product Landing Page", included: true },
       ],
     },
     {
-      name: "Business",
-      price: billingCycle === "monthly" ? 200 : 2000,
+      name: "Monthly Plan",
+      priceMonthly: 999,
+      priceYearly: 9990,
+      description: "For most businesses that want to optimize web queries",
       features: [
-        { name: "20 Contacts", included: true },
-        { name: "20 Leads", included: true },
-        { name: "50 Companies", included: true },
-        { name: "Unlimited Campaigns", included: true },
-        { name: "Unlimited Projects", included: true },
-        { name: "Deals", included: false },
-        { name: "Tasks", included: false },
-        { name: "Pipelines", included: false },
+        { name: "1000 Orders", included: true },
+        { name: "Unlock every feature", included: true },
+        { name: "Custom integrations", included: true },
+        { name: "24/7 Support", included: true },
+        { name: "Fast processing", included: true },
+        { name: "Modern Landing Page", included: true },
+        { name: "Single Product Landing Page", included: true },
       ],
     },
     {
-      name: "Enterprise",
-      price: billingCycle === "monthly" ? 400 : 4000,
+      name: "Monthly Plan",
+      priceMonthly: 1599,
+      priceYearly: 15990,
+      description: "For most businesses that want to optimize web queries",
       features: [
-        { name: "Unlimited Contacts", included: true },
-        { name: "Unlimited Leads", included: true },
-        { name: "Unlimited Companies", included: true },
-        { name: "Unlimited Campaigns", included: true },
-        { name: "Unlimited Projects", included: true },
-        { name: "Deals", included: true },
-        { name: "Tasks", included: true },
-        { name: "Pipelines", included: true },
+        { name: "Unlimited order", included: true },
+        { name: "Unlock every feature", included: true },
+        { name: "Custom integrations", included: true },
+        { name: "24/7 Support", included: true },
+        { name: "Fast processing", included: true },
+        { name: "Modern Landing Page", included: true },
+        { name: "Single Product Landing Page", included: true },
       ],
+      isPopular: true,
     },
   ];
 
+  const filteredPlans = plans.filter(
+    (p) =>
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      p.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="membership-container">
+    <div className="membership-plans-page">
       {/* Header */}
-      <div className="header">
-        <div className="header-content">
-          <h1 className="title">Membership Plans</h1>
+      <div className="mp-header">
+        <h1 className="mp-title">Membership Plans</h1>
+        <div className="mp-search">
+          <Search size={18} className="mp-search-icon" />
+          <input
+            type="text"
+            placeholder="Search plans"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="mp-search-input"
+          />
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="main-content">
-        {/* Search and Add Button */}
-        <div className="top-controls">
-          <div className="search-container">
-            <Search size={18} className="search-icon" />
-            <input
-              type="text"
-              placeholder="Search Plan"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
-          </div>
-          <PermissionGate action="upload" section="Membership" subsection="Membership Plan">
-            <button className="add-btn">
-              <Plus size={18} />
-              Add Membership
-            </button>
-          </PermissionGate>
+      {/* Plan selection section */}
+      <div className="mp-section">
+        <h2 className="mp-section-title">
+          Select the <span className="mp-highlight">best plan</span> for your needs
+        </h2>
+        <div className="mp-toggle">
+          <span className={`mp-toggle-label ${billingCycle === "monthly" ? "active" : ""}`}>
+            Monthly Plan
+          </span>
+          <button
+            className={`mp-toggle-switch ${billingCycle === "yearly" ? "yearly" : ""}`}
+            onClick={() => setBillingCycle(billingCycle === "monthly" ? "yearly" : "monthly")}
+          >
+            <span className="mp-toggle-thumb" />
+          </button>
+          <span className={`mp-toggle-label ${billingCycle === "yearly" ? "active" : ""}`}>
+            Yearly Plan
+          </span>
         </div>
+      </div>
 
-        {/* Billing Toggle */}
-        <div className="billing-toggle-container">
-          <div className="billing-toggle">
-            <span className={`billing-label ${billingCycle === "monthly" ? "active" : ""}`}>
-              Monthly
-            </span>
-            <button
-              onClick={() =>
-                setBillingCycle(billingCycle === "monthly" ? "annually" : "monthly")
-              }
-              className={`toggle-switch ${billingCycle === "annually" ? "switched" : ""}`}
-            >
-              <span className="toggle-thumb"></span>
-            </button>
-            <span className={`billing-label ${billingCycle === "annually" ? "active" : ""}`}>
-              Annually
-            </span>
-          </div>
-        </div>
-
-        {/* Plans Grid */}
-        <div className="plans-grid">
-          {plans.map((plan: Plan) => (
-            <div key={plan.name} className="plan-card">
-              {/* Plan Header */}
-              <div className="plan-header">
-                <h3 className={`plan-name ${plan.name.toLowerCase()}`}>{plan.name}</h3>
-                <div className="plan-price">
-                  <span className="price">${plan.price}</span>
-                  <span className="period">
-                    / {billingCycle === "monthly" ? "month" : "year"}
-                  </span>
-                </div>
+      {/* Plans grid */}
+      <div className="mp-cards">
+        {filteredPlans.map((plan, idx) => (
+          <div
+            key={idx}
+            className={`mp-card ${plan.isPopular ? "mp-card-popular" : ""}`}
+          >
+            {plan.isPopular && <div className="mp-popular-tag">Most Popular</div>}
+            <div className="mp-card-header">
+              <h3 className="mp-card-title">{plan.name}</h3>
+              <p className="mp-card-desc">{plan.description}</p>
+              <div className="mp-card-price">
+                <span className="mp-price-amount">₹{billingCycle === "monthly" ? plan.priceMonthly : plan.priceYearly}</span>
+                <span className="mp-price-period">/{billingCycle === "monthly" ? "mo" : "yr"}</span>
               </div>
-
-              {/* Features List */}
-              <div className="features-list">
-                {plan.features.map((feature: Feature, index: number) => (
-                  <div key={index} className="feature-item">
-                    <div className={`feature-icon ${feature.included ? "included" : "excluded"}`}>
-                      {feature.included ? "✓" : "✕"}
-                    </div>
-                    <span className="feature-name">{feature.name}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Choose Button - treat as edit */}
-              <PermissionGate action="edit" section="Membership" subsection="Membership Plan">
-                <button className="choose-btn">Choose</button>
-              </PermissionGate>
             </div>
-          ))}
-        </div>
+            <button className={`mp-active-btn ${plan.isPopular ? "mp-active-btn-solid" : ""}`}>
+              Active Plan
+            </button>
+            <ul className="mp-features">
+              {plan.features.map((f, i) => (
+                <li key={i} className="mp-feature">
+                  {f.included ? (
+                    <Check size={18} className="mp-feature-check" />
+                  ) : (
+                    <X size={18} className="mp-feature-x" />
+                  )}
+                  <span>{f.name}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -1,165 +1,72 @@
-import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
-import { Search, Plus, ChevronLeft, ChevronRight, Edit, Trash2, Eye, X } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Search, ChevronLeft, ChevronRight, Edit, Trash2, Eye, X } from "lucide-react";
+import axios from "../../config/axios";
+import { EditVerificationModal } from "../EditVerificationModal";
 import "./ClientList.css";
 
 // ---------------------- Types ----------------------
-interface Client {
+interface User {
   _id: string;
   name: string;
   email: string;
-  status: "Active" | "Inactive" | "Pending";
-  totalPurchases: number;
+  role: string;
+  status: "active" | "inactive" | "suspended";
+  createdAt: string;
 }
 
-interface Pagination {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
-
-interface ClientModalProps {
-  client?: Client | null;
+interface UserModalProps {
+  user?: User | null;
   onClose: () => void;
-  onSubmit: (data: ClientFormData) => Promise<void>;
+  onSubmit: (data: UserFormData) => Promise<void>;
   mode?: "add" | "edit";
 }
 
-interface ClientFormData {
+interface UserFormData {
   name: string;
   email: string;
-  status: "Active" | "Inactive" | "Pending";
+  status: "active" | "inactive" | "suspended";
 }
 
-// ---------------------- Client Service ----------------------
-const clientService = {
-  getClients: async (token: string, params: Record<string, any> = {}) => {
-    const queryString = new URLSearchParams(params).toString();
-    const response = await fetch(`/api/clients?${queryString}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) throw new Error("Failed to fetch clients");
-    return response.json();
-  },
-
-  getClient: async (token: string, id: string) => {
-    const response = await fetch(`/api/clients/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) throw new Error("Failed to fetch client");
-    return response.json();
-  },
-
-  createClient: async (token: string, clientData: ClientFormData) => {
-    const response = await fetch("/api/clients", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(clientData),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to create client");
-    }
-
-    return response.json();
-  },
-
-  updateClient: async (
-    token: string,
-    id: string,
-    clientData: ClientFormData
-  ) => {
-    const response = await fetch(`/api/clients/${id}`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(clientData),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to update client");
-    }
-
-    return response.json();
-  },
-
-  deleteClient: async (token: string, id: string) => {
-    const response = await fetch(`/api/clients/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to delete client");
-    }
-
-    return response.json();
-  },
-};
-
-// ---------------------- Client Modal ----------------------
-const ClientModal: React.FC<ClientModalProps> = ({
-  client,
+// ---------------------- User Modal ----------------------
+const UserModal: React.FC<UserModalProps> = ({
+  user,
   onClose,
   onSubmit,
   mode = "add",
 }) => {
-  const [formData, setFormData] = useState<ClientFormData>({
-    name: client?.name || "",
-    email: client?.email || "",
-    status: client?.status || "Active",
+  const [formData, setFormData] = useState<UserFormData>({
+    name: user?.name || "",
+    email: user?.email || "",
+    status: (user?.status as "active" | "inactive" | "suspended") || "active",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-
     try {
       await onSubmit(formData);
       onClose();
     } catch (error: any) {
-      setErrors({ submit: error.message });
+      setErrors({ submit: error.response?.data?.message || error.message });
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>{mode === "add" ? "Add New Client" : "Edit Client"}</h3>
+          <h3>{mode === "add" ? "Add New User" : "Edit User"}</h3>
           <button className="close-btn" onClick={onClose}>
             <X size={20} />
           </button>
@@ -167,7 +74,7 @@ const ClientModal: React.FC<ClientModalProps> = ({
 
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-group">
-            <label htmlFor="name">Client Name</label>
+            <label htmlFor="name">Name</label>
             <input
               type="text"
               id="name"
@@ -188,6 +95,7 @@ const ClientModal: React.FC<ClientModalProps> = ({
               value={formData.email}
               onChange={handleChange}
               required
+              disabled={mode === "edit"}
             />
             {errors.email && <span className="error">{errors.email}</span>}
           </div>
@@ -200,9 +108,9 @@ const ClientModal: React.FC<ClientModalProps> = ({
               value={formData.status}
               onChange={handleChange}
             >
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-              <option value="Pending">Pending</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="suspended">Suspended</option>
             </select>
           </div>
 
@@ -213,11 +121,7 @@ const ClientModal: React.FC<ClientModalProps> = ({
               Cancel
             </button>
             <button type="submit" disabled={isSubmitting} className="btn primary">
-              {isSubmitting
-                ? "Saving..."
-                : mode === "add"
-                ? "Add Client"
-                : "Update Client"}
+              {isSubmitting ? "Saving..." : mode === "add" ? "Add User" : "Update"}
             </button>
           </div>
         </form>
@@ -226,101 +130,160 @@ const ClientModal: React.FC<ClientModalProps> = ({
   );
 };
 
-// ---------------------- Client List ----------------------
+const ADMIN_ROLES = ["super-admin", "support-admin", "client-admin", "developer-admin"];
+
+// ---------------------- Client List (Client users only - non-admin) ----------------------
 const ClientList: React.FC = () => {
-  const [clients, setClients] = useState<Client[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const [showModal, setShowModal] = useState(false);
-  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [statusFilter, setStatusFilter] = useState<string>("All");
-  const [pagination, setPagination] = useState<Pagination>({
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [roles, setRoles] = useState<{ _id: string; name: string }[]>([]);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [pendingEditData, setPendingEditData] = useState<{ userId: string; data: UserFormData } | null>(null);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const [allClientUsers, setAllClientUsers] = useState<User[]>([]);
+  const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
     total: 0,
     totalPages: 1,
   });
 
-  const getAuthToken = () => localStorage.getItem("authToken") || "";
+  const fetchRoles = async () => {
+    try {
+      const res = await axios.get("/roles");
+      const data = res.data?.data || res.data || [];
+      setRoles(Array.isArray(data) ? data : []);
+    } catch {
+      setRoles([]);
+    }
+  };
 
-  const fetchClients = async (page = 1) => {
+  const fetchUsers = async () => {
     try {
       setLoading(true);
-      const token = getAuthToken();
-
-      if (!token) throw new Error("Authentication required");
-
-      const params: Record<string, any> = {
-        page,
-        limit: pagination.limit,
+      setError("");
+      const params: Record<string, string> = {
+        page: "1",
+        limit: "500",
+        search: searchTerm,
+        status: statusFilter,
+        role: roleFilter,
       };
+      const res = await axios.get("/user", { params });
+      const data = res.data?.data || [];
 
-      if (searchTerm) params.search = searchTerm;
-      if (statusFilter !== "All") params.status = statusFilter;
+      const normalized = (Array.isArray(data) ? data : []).map((u: any) => ({
+        ...u,
+        role:
+          typeof u.role === "object" && u.role?.name
+            ? u.role.name
+            : typeof u.role === "string"
+            ? u.role
+            : "",
+      }));
 
-      const response = await clientService.getClients(token, params);
+      // Client List: show only client users (exclude admin roles)
+      const clientUsers = normalized.filter(
+        (u: any) => !ADMIN_ROLES.includes((u.role || "").toLowerCase())
+      );
 
-      setClients(response.data);
-      setPagination({
-        page: response.currentPage,
-        limit: pagination.limit,
-        total: response.total,
-        totalPages: response.totalPages,
-      });
+      setAllClientUsers(clientUsers);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message || "Failed to fetch users");
+      setAllClientUsers([]);
     } finally {
       setLoading(false);
     }
   };
 
+  // Paginate client users for display
+  const paginatedUsers = allClientUsers.slice(
+    (pagination.page - 1) * pagination.limit,
+    pagination.page * pagination.limit
+  );
+  const totalClientUsers = allClientUsers.length;
+  const totalPages = Math.ceil(totalClientUsers / pagination.limit) || 1;
+
   useEffect(() => {
-    fetchClients();
+    fetchRoles();
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(() => fetchClients(1), 500);
-    return () => clearTimeout(timer);
-  }, [searchTerm, statusFilter]);
+    setPagination((p) => ({ ...p, page: 1 }));
+    fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, statusFilter, roleFilter]);
 
-  const handleAddClient = async (clientData: ClientFormData) => {
-    const token = getAuthToken();
-    await clientService.createClient(token, clientData);
-    fetchClients(pagination.page);
+  const handleEditUser = async (formData: UserFormData) => {
+    if (!editingUser) return;
+    setPendingEditData({ userId: editingUser._id, data: formData });
+    setShowOtpModal(true);
   };
 
-  const handleEditClient = async (clientData: ClientFormData) => {
-    if (!editingClient) return;
-    const token = getAuthToken();
-    await clientService.updateClient(token, editingClient._id, clientData);
-    setEditingClient(null);
-    fetchClients(pagination.page);
-  };
-
-  const handleDeleteClient = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this client?")) return;
+  const executeEditWithOtp = async (otp: string) => {
+    if (!pendingEditData) return;
     try {
-      const token = getAuthToken();
-      await clientService.deleteClient(token, id);
-      fetchClients(pagination.page);
+      await axios.put(`/user/${pendingEditData.userId}`, {
+        name: pendingEditData.data.name,
+        email: pendingEditData.data.email,
+        status: pendingEditData.data.status,
+        editOtp: otp,
+      });
+      setPendingEditData(null);
+      setShowOtpModal(false);
+      closeModal();
+      fetchUsers();
     } catch (err: any) {
-      setError(err.message);
+      setError(err.response?.data?.message || "Failed to update user");
     }
   };
 
-  const openEditModal = (client: Client) => {
-    setEditingClient(client);
+  const handleOtpVerified = (otp: string) => {
+    if (pendingEditData) {
+      executeEditWithOtp(otp);
+    } else if (pendingDeleteId) {
+      executeDeleteWithOtp(otp);
+    }
+  };
+
+  const handleDeleteUser = (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
+    setPendingDeleteId(id);
+    setShowOtpModal(true);
+  };
+
+  const executeDeleteWithOtp = async (otp: string) => {
+    if (!pendingDeleteId) return;
+    try {
+      await axios.delete(`/user/${pendingDeleteId}`, { data: { editOtp: otp } });
+      setPendingDeleteId(null);
+      setShowOtpModal(false);
+      fetchUsers();
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message);
+    }
+  };
+
+  const openEditModal = (user: User) => {
+    setEditingUser(user);
     setShowModal(true);
   };
 
   const closeModal = () => {
     setShowModal(false);
-    setEditingClient(null);
+    setEditingUser(null);
   };
 
   const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= pagination.totalPages) fetchClients(newPage);
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPagination((p) => ({ ...p, page: newPage }));
+    }
   };
 
   return (
@@ -333,7 +296,7 @@ const ClientList: React.FC = () => {
               <Search size={18} className="search-icon" />
               <input
                 type="search"
-                placeholder="Search clients..."
+                placeholder="Search by name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -343,15 +306,25 @@ const ClientList: React.FC = () => {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="filter-select"
             >
-              <option value="All">All Statuses</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-              <option value="Pending">Pending</option>
+              <option value="all">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+              <option value="suspended">Suspended</option>
             </select>
-            <button className="btn primary" onClick={() => setShowModal(true)}>
-              <Plus size={18} />
-              Add New Client
-            </button>
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">All Roles</option>
+              {roles
+                .filter((r) => !ADMIN_ROLES.includes(r.name.toLowerCase()))
+                .map((r) => (
+                  <option key={r._id} value={r.name}>
+                    {r.name.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                  </option>
+                ))}
+            </select>
           </div>
         </div>
 
@@ -364,57 +337,57 @@ const ClientList: React.FC = () => {
 
         <div className="table-card">
           {loading ? (
-            <div className="loading">Loading clients...</div>
-          ) : clients.length === 0 ? (
+            <div className="loading">Loading users...</div>
+          ) : paginatedUsers.length === 0 ? (
             <div className="no-data">
-              {searchTerm || statusFilter !== "All"
-                ? "No clients match your search criteria"
-                : "No clients found. Add your first client!"}
+              {searchTerm || statusFilter !== "all" || roleFilter !== "all"
+                ? "No users match your search criteria"
+                : "No users found."}
             </div>
           ) : (
             <>
               <table className="table">
                 <thead>
                   <tr>
-                    <th style={{ textAlign: "left" }}>Client Name</th>
+                    <th style={{ textAlign: "left" }}>Name</th>
                     <th style={{ textAlign: "left" }}>Email</th>
-                    <th style={{ textAlign: "left" }}>Total Purchases</th>
                     <th style={{ textAlign: "left" }}>Status</th>
+                    <th style={{ textAlign: "left" }}>Created</th>
                     <th style={{ textAlign: "left" }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {clients.map((client) => (
-                    <tr key={client._id}>
-                      <td style={{ textAlign: "left" }}>{client.name}</td>
-                      <td style={{ textAlign: "left" }}>{client.email}</td>
-                      <td style={{ textAlign: "left" }}>
-                        ${client.totalPurchases.toFixed(2)}
-                      </td>
+                  {paginatedUsers.map((user) => (
+                    <tr key={user._id}>
+                      <td style={{ textAlign: "left" }}>{user.name}</td>
+                      <td style={{ textAlign: "left" }}>{user.email}</td>
                       <td style={{ textAlign: "left" }}>
                         <span
-                          className={`status-badge ${client.status.toLowerCase()}`}
+                          className={`status-badge ${user.status.toLowerCase()}`}
                         >
-                          {client.status}
+                          {user.status}
                         </span>
+                      </td>
+                      <td style={{ textAlign: "left" }}>
+                        {new Date(user.createdAt).toLocaleDateString()}
                       </td>
                       <td style={{ textAlign: "left" }}>
                         <div className="action-buttons">
                           <button
                             className="btn view"
-                            onClick={() => openEditModal(client)}
+                            onClick={() => openEditModal(user)}
                           >
                             <Eye size={14} /> View
                           </button>
                           <button
                             className="btn edit"
-                            onClick={() => openEditModal(client)}
+                            onClick={() => openEditModal(user)}
                           >
                             <Edit size={14} /> Edit
                           </button>
                           <button
                             className="btn delete"
-                            onClick={() => handleDeleteClient(client._id)}
+                            onClick={() => handleDeleteUser(user._id)}
                           >
                             <Trash2 size={14} /> Delete
                           </button>
@@ -425,7 +398,7 @@ const ClientList: React.FC = () => {
                 </tbody>
               </table>
 
-              {pagination.totalPages > 1 && (
+              {totalPages > 1 && (
                 <div className="pagination">
                   <button
                     onClick={() => handlePageChange(pagination.page - 1)}
@@ -435,12 +408,12 @@ const ClientList: React.FC = () => {
                   </button>
 
                   <span>
-                    Page {pagination.page} of {pagination.totalPages}
+                    Page {pagination.page} of {totalPages}
                   </span>
 
                   <button
                     onClick={() => handlePageChange(pagination.page + 1)}
-                    disabled={pagination.page === pagination.totalPages}
+                    disabled={pagination.page === totalPages}
                   >
                     Next <ChevronRight size={16} />
                   </button>
@@ -451,13 +424,24 @@ const ClientList: React.FC = () => {
         </div>
 
         {showModal && (
-          <ClientModal
-            client={editingClient}
+          <UserModal
+            user={editingUser}
             onClose={closeModal}
-            onSubmit={editingClient ? handleEditClient : handleAddClient}
-            mode={editingClient ? "edit" : "add"}
+            onSubmit={handleEditUser}
+            mode="edit"
           />
         )}
+
+        <EditVerificationModal
+          isOpen={showOtpModal}
+          onClose={() => {
+            setShowOtpModal(false);
+            setPendingEditData(null);
+            setPendingDeleteId(null);
+          }}
+          onVerified={handleOtpVerified}
+          requireVerification={true}
+        />
       </div>
     </div>
   );

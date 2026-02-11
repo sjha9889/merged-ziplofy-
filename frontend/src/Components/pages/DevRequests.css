@@ -10,10 +10,10 @@
   justify-content: space-between;
   margin-bottom: 32px;
   padding: 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   border-radius: 12px;
   color: white;
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
 }
 
 .header-left {
@@ -130,8 +130,8 @@
 
 .stat-card svg {
   font-size: 24px;
-  color: #667eea;
-  background: #f0f4ff;
+  color: #2563eb;
+  background: #dbeafe;
   padding: 12px;
   border-radius: 8px;
 }

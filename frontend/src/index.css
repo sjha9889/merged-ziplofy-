@@ -4,17 +4,34 @@
   box-sizing: border-box;
 }
 
+/* Admin panel theme: blue, white, yellow, green */
+:root {
+  --admin-primary: #2563eb;
+  --admin-primary-hover: #1d4ed8;
+  --admin-primary-light: #dbeafe;
+  --admin-primary-surface: #eff6ff;
+  --admin-bg: #ffffff;
+  --admin-surface: #f8fafc;
+  --admin-edit: #fef9c3;
+  --admin-edit-text: #854d0e;
+  --admin-edit-border: #fde68a;
+  --admin-success: #22c55e;
+  --admin-success-light: #dcfce7;
+  --admin-error: #dc2626;
+  --admin-error-light: #fef2f2;
+}
+
 body {
   font-family: 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
   color: #0f172a;
   line-height: 1.5;
-  background-color: #f6f7fb;
+  background-color: #ffffff;
 }
 
 .main-content {
   font-size: 0.8em;
-  background: #f6f7fb;
-  min-height: calc(100vh - 60px);
+  background: #ffffff;
+  min-height: calc(100vh - 56px);
 }
 
 .main-content input,
@@ -64,4 +81,14 @@ textarea {
 
 .page-header {
   margin-top: 8px;
+}
+
+/* Dark theme */
+[data-theme="dark"] body {
+  background-color: #111827;
+  color: #e5e7eb;
+}
+
+[data-theme="dark"] .main-content {
+  background: #111827;
 }

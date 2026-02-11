@@ -28,6 +28,8 @@ interface Filters {
   status: "all" | "active" | "inactive" | "suspended";
 }
 
+const ADMIN_ROLES = ["super-admin", "support-admin", "client-admin", "developer-admin"];
+
 const ManageUser: React.FC = () => {
   const { hasEditPermission } = usePermissions();
   const canEditManageUser = hasEditPermission("User Management", "Manage User");
@@ -81,7 +83,7 @@ const ManageUser: React.FC = () => {
         search: searchTerm,
         role: filters.role,
         status: filters.status,
-        limit: "100",
+        limit: "500",
       };
       const response = await axios.get("/user", { params });
       const data = response.data?.data || [];
@@ -95,7 +97,11 @@ const ManageUser: React.FC = () => {
             ? u.role
             : "",
       }));
-      setUsers(normalized);
+      // Manage User: show only admin users (super-admin, support-admin, client-admin, developer-admin)
+      const adminUsers = normalized.filter((u: any) =>
+        ADMIN_ROLES.includes((u.role || "").toLowerCase())
+      );
+      setUsers(adminUsers);
     } catch (error) {
       console.error("Error fetching users:", error);
       setUsers([]);
@@ -293,7 +299,9 @@ const ManageUser: React.FC = () => {
           onChange={(e) => setFilters({ ...filters, role: e.target.value })}
         >
           <option value="all">All Roles</option>
-          {roles.map((role) => (
+          {roles
+            .filter((r) => ADMIN_ROLES.includes(r.name.toLowerCase()))
+            .map((role) => (
               <option key={role._id} value={role.name}>
                 {role.name.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
               </option>

@@ -947,7 +947,7 @@ const RolesPermission: React.FC = () => {
                               }
                             }}
                             disabled={!canEdit}
-                            className={`perm-btn ${isActive ? "active" : ""}`}
+                            className={`perm-btn ${permission} ${isActive ? "active" : ""}`}
                           >
                             {permission}
                           </button>
@@ -995,7 +995,7 @@ const RolesPermission: React.FC = () => {
                           key={permission}
                           onClick={() => canEdit && togglePermission(openDialog.roleId, openDialog.section, permission)}
                           disabled={!canEdit}
-                          className={`perm-btn ${isActive ? "active" : ""}`}
+                          className={`perm-btn ${permission} ${isActive ? "active" : ""}`}
                         >
                           {permission}
                         </button>

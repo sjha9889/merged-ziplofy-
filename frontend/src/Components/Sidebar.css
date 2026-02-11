@@ -1,12 +1,39 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
+/* Sidebar toggle - positioned with sidebar at left edge */
+.sidebar-toggle-tab {
+  position: fixed;
+  top: 72px;
+  left: 10px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #ffffff 0%, #fafaf9 100%);
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 60;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  pointer-events: auto;
+}
+
+.sidebar-toggle-tab:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
 /* Sidebar container */
 .sidebar {
   position: fixed;
-  top: 70px;
+  top: 72px;
   left: 10px;
   width: 260px;
-  height: calc(100% - 80px);
+  height: calc(100% - 82px);
   background: linear-gradient(180deg, #ffffff 0%, #fafaf9 100%);
   border: 1px solid #e5e7eb;
   border-radius: 16px;

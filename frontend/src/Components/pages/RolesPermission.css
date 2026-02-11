@@ -1,10 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 .roles-permission-page {
-  --rp-primary: #0ea5e9;
-  --rp-primary-hover: #0284c7;
-  --rp-surface: #e0f2fe;
-  --rp-bg: #f0f9ff;
+  --rp-primary: #2563eb;
+  --rp-primary-hover: #1d4ed8;
+  --rp-surface: #f8fafc;
+  --rp-bg: #ffffff;
   --rp-radius: 12px;
   --rp-radius-sm: 8px;
 
@@ -17,17 +17,17 @@
 .roles-permission-page .roles-header {
   padding: 24px 28px;
   margin-bottom: 24px;
-  background: linear-gradient(135deg, #bae6fd 0%, #e0f2fe 100%);
-  border: 1px solid #7dd3fc;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: var(--rp-radius);
-  color: #0c4a6e;
-  box-shadow: 0 1px 2px rgba(14, 165, 233, 0.1);
+  color: #1e293b;
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.08);
 }
 
 .roles-permission-page .roles-title {
   font-size: 24px;
   font-weight: 600;
-  color: #0c4a6e;
+  color: #1e293b;
   margin: 0;
   letter-spacing: -0.02em;
 }
@@ -52,16 +52,17 @@
 }
 
 .roles-permission-page .btn-icon.settings {
-  background: rgba(255, 255, 255, 0.7);
-  color: #0284c7;
+  background: #f8fafc;
+  color: #2563eb;
+  border: 1px solid #93c5fd;
 }
 
 .roles-permission-page .btn-icon.settings:hover {
-  background: #7dd3fc;
+  background: #eff6ff;
 }
 
 .roles-permission-page .btn-icon.add {
-  background: #0ea5e9;
+  background: #2563eb;
   color: #fff;
   padding: 10px 20px;
   width: auto;
@@ -69,7 +70,7 @@
 }
 
 .roles-permission-page .btn-icon.add:hover {
-  background: #0284c7;
+  background: #1d4ed8;
   transform: translateY(-1px);
 }
 
@@ -92,8 +93,8 @@
 
 .roles-permission-page .search-box input:focus {
   outline: none;
-  border-color: #0ea5e9;
-  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.25);
+  border-color: var(--rp-primary);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
 
 .roles-permission-page .search-box .search-icon {
@@ -124,8 +125,8 @@
   text-align: left;
   font-size: 12px;
   font-weight: 600;
-  color: #0369a1;
-  background: #f0f9ff;
+  color: #1d4ed8;
+  background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -152,12 +153,12 @@
 }
 
 .roles-permission-page .role-badge.super-admin {
-  background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+  background: linear-gradient(135deg, #93c5fd 0%, #2563eb 100%);
   color: white;
 }
 
 .roles-permission-page .role-badge.regular {
-  background: #0ea5e9;
+  background: #2563eb;
   color: white;
 }
 
@@ -172,12 +173,12 @@
 }
 
 .roles-permission-page .permission-card:hover {
-  border-color: #7dd3fc;
-  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.15);
+  border-color: #93c5fd;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
 }
 
 .roles-permission-page .permission-card-header {
-  background: #f0f9ff;
+  background: #f8fafc;
   padding: 12px 16px;
   border-bottom: 1px solid #e5e7eb;
   font-weight: 600;
@@ -212,7 +213,7 @@
 .roles-permission-page .permission-dialog-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(14, 165, 233, 0.08);
+  background: rgba(37, 99, 235, 0.06);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -282,9 +283,22 @@
 }
 
 .roles-permission-page .perm-btn.active {
-  background: #0ea5e9;
+  background: var(--rp-primary);
   color: white;
-  border-color: #0ea5e9;
+  border-color: var(--rp-primary);
+}
+
+.roles-permission-page .perm-btn.edit.active {
+  background: #fef9c3;
+  color: #854d0e;
+  border-color: #fde68a;
+}
+
+.roles-permission-page .perm-btn.view.active,
+.roles-permission-page .perm-btn.upload.active {
+  background: var(--rp-primary);
+  color: white;
+  border-color: var(--rp-primary);
 }
 
 .roles-permission-page .perm-btn:disabled {
@@ -319,7 +333,7 @@
 }
 
 .roles-permission-page .btn-save {
-  background: #0ea5e9;
+  background: var(--rp-primary);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -331,7 +345,7 @@
 }
 
 .roles-permission-page .btn-save:hover {
-  background: #0284c7;
+  background: var(--rp-primary-hover);
 }
 
 /* Loading */
@@ -346,8 +360,8 @@
 .roles-permission-page .roles-loading-cell .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(14, 165, 233, 0.2);
-  border-top-color: #0ea5e9;
+  border: 3px solid rgba(37, 99, 235, 0.2);
+  border-top-color: var(--rp-primary);
   border-radius: 50%;
   animation: rp-spin 0.8s linear infinite;
   flex-shrink: 0;
