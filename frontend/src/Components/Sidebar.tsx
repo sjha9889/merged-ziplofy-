@@ -36,7 +36,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, activeItem, onSelec
           className="sidebar-toggle-tab"
           aria-label="Toggle sidebar"
           onClick={() => onToggle?.()}
-          title={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+          title="Expand sidebar"
         >
           <FaBars />
         </button>
@@ -109,14 +109,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, activeItem, onSelec
   
   return (
     <>
-      <button
-        className="sidebar-toggle-tab"
-        aria-label="Toggle sidebar"
-        onClick={() => onToggle?.()}
-        title={isOpen ? "Collapse sidebar" : "Expand sidebar"}
-      >
-        <FaBars />
-      </button>
+      {!isOpen && (
+        <button
+          className="sidebar-toggle-tab"
+          aria-label="Toggle sidebar"
+          onClick={() => onToggle?.()}
+          title="Expand sidebar"
+        >
+          <FaBars />
+        </button>
+      )}
       <aside
         className={`sidebar ${isOpen ? "open" : ""}`}
       >
@@ -129,6 +131,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, activeItem, onSelec
         }}>
           {user?.roleName || user?.role || localStorage.getItem('userRole') || (loading ? 'Loading...' : 'User')}
         </span>
+        {isOpen && (
+          <button
+            className="sidebar-toggle-in-header"
+            aria-label="Collapse sidebar"
+            onClick={() => onToggle?.()}
+            title="Collapse sidebar"
+          >
+            <FaBars />
+          </button>
+        )}
       </div>
 
       <ul className="sidebar-menu">
