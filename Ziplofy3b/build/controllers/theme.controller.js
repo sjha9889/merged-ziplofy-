@@ -15,6 +15,9 @@ const installed_themes_model_1 = require("../models/installed-themes.model");
 const theme_model_1 = require("../models/theme.model");
 const custom_theme_model_1 = require("../models/custom-theme.model");
 const recent_installations_model_1 = require("../models/recent-installations.model");
+const edit_verification_otp_model_1 = require("../models/edit-verification-otp.model");
+const role_model_1 = require("../models/role.model");
+const user_model_1 = require("../models/user.model");
 const error_utils_1 = require("../utils/error.utils");
 // Helper function to create organized theme directory structure per requirements
 const createThemeDirectory = (themeName) => {
@@ -339,6 +342,32 @@ exports.updateTheme = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
 });
 exports.deleteTheme = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const { id } = req.params;
+    const { editOtp } = req.body || {};
+    // OTP required for all users (including super-admin) - sent to super-admin email
+    const otp = editOtp || req.headers["x-edit-otp"];
+    if (!otp || typeof otp !== "string") {
+        throw new error_utils_1.CustomError("Edit verification OTP is required. Request OTP to be sent to super-admin email.", 403);
+    }
+    const superAdminRole = await role_model_1.Role.findOne({ name: "super-admin" });
+    if (!superAdminRole)
+        throw new error_utils_1.CustomError("Super-admin role not found", 500);
+    const superAdminUser = await user_model_1.User.findOne({ role: superAdminRole._id });
+    if (!superAdminUser)
+        throw new error_utils_1.CustomError("No super-admin found", 500);
+    const superAdminEmail = superAdminUser.email;
+    const otpRecord = await edit_verification_otp_model_1.EditVerificationOtp.findOne({ email: superAdminEmail });
+    if (!otpRecord)
+        throw new error_utils_1.CustomError("OTP expired or not found. Please request a new code.", 400);
+    if (otpRecord.expiresAt < new Date()) {
+        await edit_verification_otp_model_1.EditVerificationOtp.deleteMany({ email: superAdminEmail });
+        throw new error_utils_1.CustomError("OTP expired. Please request a new code.", 400);
+    }
+    if (otpRecord.code !== otp.trim()) {
+        otpRecord.attempts += 1;
+        await otpRecord.save();
+        throw new error_utils_1.CustomError("Invalid verification code", 401);
+    }
+    await edit_verification_otp_model_1.EditVerificationOtp.deleteMany({ email: superAdminEmail });
     console.log('🗑️ Delete theme request received:', {
         themeId: id,
         user: req.user?.name,

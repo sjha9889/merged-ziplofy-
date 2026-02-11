@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "../../config/axios";
+import { Search, Plus, X } from "lucide-react";
 import "./RolesPermission.css";
 import { useAdminAuth } from "../../contexts/admin-auth.context";
 
@@ -661,24 +662,16 @@ const RolesPermission: React.FC = () => {
   };
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#f9fafb" }}>
+    <div className="roles-permission-page" style={{ padding: "28px 32px" }}>
       {/* Header */}
       <div className="roles-header">
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
           <h1 className="roles-title">Roles</h1>
           {canModifyPermissions && (
             <div className="header-actions">
-              <button className="btn-icon settings">
-                <span className="icon">⚙️</span>
-              </button>
               <button className="btn-icon add">
-                <span className="icon plus">+</span>
+                <Plus size={18} />
+                Add New Roles
               </button>
             </div>
           )}
@@ -688,21 +681,21 @@ const RolesPermission: React.FC = () => {
       {/* Authorization Warning */}
       {!canModifyPermissions && (
         <div style={{
-          backgroundColor: "#fef3c7",
-          border: "1px solid #f59e0b",
-          borderRadius: "8px",
-          padding: "16px",
-          margin: "16px 24px",
+          backgroundColor: "#e0f2fe",
+          border: "1px solid #7dd3fc",
+          borderRadius: "12px",
+          padding: "20px 28px",
+          marginBottom: "24px",
           display: "flex",
           alignItems: "center",
-          gap: "12px"
+          gap: "16px"
         }}>
           <span style={{ fontSize: "20px" }}>⚠️</span>
           <div>
-            <h3 style={{ margin: "0 0 4px 0", color: "#92400e", fontSize: "16px" }}>
+            <h3 style={{ margin: "0 0 4px 0", color: "#0c4a6e", fontSize: "16px" }}>
               Read-Only Access
             </h3>
-            <p style={{ margin: 0, color: "#a16207", fontSize: "14px" }}>
+            <p style={{ margin: 0, color: "#0369a1", fontSize: "14px" }}>
               Only Super Admin can modify role permissions. You can view the current permissions but cannot make changes.
             </p>
           </div>
@@ -710,71 +703,25 @@ const RolesPermission: React.FC = () => {
       )}
 
       {/* Main Content */}
-      <div style={{ padding: "24px" }}>
-        <div
-          style={{
-            backgroundColor: "white",
-            borderRadius: "8px",
-            boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
-            border: "1px solid #e5e7eb",
-          }}
-        >
+      <div className="roles-card">
           {/* Top Controls */}
-          <div
-            style={{
-              padding: "16px 24px",
-              borderBottom: "1px solid #e5e7eb",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <div style={{ position: "relative" }}>
-                <svg
-                  className="search-icon"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.35-4.35" />
-                </svg>
+          <div style={{ padding: "20px 28px", borderBottom: "1px solid #e5e7eb" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
+              <div className="search-box">
+                <Search size={18} className="search-icon" />
                 <input
                   type="text"
                   placeholder="Search Roles"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  style={{
-                    paddingLeft: "40px",
-                    paddingRight: "16px",
-                    paddingTop: "8px",
-                    paddingBottom: "8px",
-                    width: "320px",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    outline: "none",
-                  }}
                 />
               </div>
-              <button
-                className="btn-icon add"
-                style={{ padding: "8px 16px", width: "auto", gap: "8px" }}
-              >
-                <span className="icon plus">+</span>
-                Add New Roles
-              </button>
             </div>
           </div>
 
           {/* Table */}
           <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <table className="roles-table">
               <thead>
                 <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
                   <th
@@ -816,8 +763,11 @@ const RolesPermission: React.FC = () => {
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan={3} style={{ textAlign: "center", padding: "40px" }}>
-                      Loading roles...
+                    <td colSpan={3} style={{ textAlign: "center", padding: "48px" }}>
+                      <div className="roles-loading-cell">
+                        <div className="loading-spinner" aria-hidden="true" />
+                        <span className="roles-loading-text">Loading roles...</span>
+                      </div>
                     </td>
                   </tr>
                 ) : error ? (
@@ -860,25 +810,8 @@ const RolesPermission: React.FC = () => {
                         width: "200px", // Fixed width for role names
                       }}
                     >
-                        <div style={{ 
-                          display: "flex", 
-                          alignItems: "center", 
-                          // justifyContent: "center", // Center the role name
-                          gap: "8px",
-                          width: "100%"
-                        }}>
-                          <span
-                            style={{
-                              padding: "6px 12px",
-                              backgroundColor: role.isSuperAdmin ? "#fbbf24" : "#3b82f6",
-                              color: role.isSuperAdmin ? "#92400e" : "#ffffff",
-                              borderRadius: "6px",
-                              fontSize: "14px",
-                              fontWeight: "600",
-                              textTransform: "capitalize",
-                              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                            }}
-                          >
+                        <div>
+                          <span className={`role-badge ${role.isSuperAdmin ? "super-admin" : "regular"}`}>
                             {role.isSuperAdmin ? "Super Admin" : role.name.replace('-', ' ')}
                           </span>
                         </div>
@@ -899,40 +832,16 @@ const RolesPermission: React.FC = () => {
                           width: "100%"
                         }}>
                           {sidebarSections.map((section) => (
-                            <div key={`${role._id}-${section}`} style={{ 
-                              border: "1px solid #e5e7eb", 
-                              borderRadius: "6px", 
-                              overflow: "hidden",
-                              backgroundColor: canModifyPermissions ? "#ffffff" : "#f9fafb",
-                              boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-                              opacity: canModifyPermissions ? 1 : 0.7,
-                              cursor: canModifyPermissions ? "pointer" : "not-allowed",
-                              // Ensure consistent height
-                            }}>
-                              <div style={{ 
-                                backgroundColor: "#f8fafc", 
-                                padding: "8px 12px", 
-                                borderBottom: "1px solid #e5e7eb",
-                                cursor: "pointer",
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                fontWeight: "600",
-                                fontSize: "13px",
-                                color: "#374151",
-                                minHeight: "36px"
-                              }}
+                            <div 
+                              key={`${role._id}-${section}`} 
+                              className="permission-card"
+                              style={{ opacity: canModifyPermissions ? 1 : 0.7, cursor: canModifyPermissions ? "pointer" : "default" }}
                               onClick={() => canModifyPermissions && openPermissionDialog(role._id, section)}
-                              >
-                                <span style={{ fontSize: "12px", fontWeight: "600" }}>{section}</span>
-                                <span style={{ 
-                                  fontSize: "10px", 
-                                  color: canModifyPermissions ? "#6b7280" : "#9ca3af"
-                                }}>
-                                  {canModifyPermissions ? "⚙️" : "👁️"}
-                                </span>
+                            >
+                              <div className="permission-card-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <span>{section}</span>
+                                <span style={{ fontSize: "12px", color: "#94a3b8" }}>{canModifyPermissions ? "⚙️" : "👁️"}</span>
                               </div>
-                              
                             </div>
                           ))}
                         </div>
@@ -945,158 +854,47 @@ const RolesPermission: React.FC = () => {
           </div>
 
           {/* Bottom Controls */}
-          <div
-            style={{
-              padding: "16px 24px",
-              borderTop: "1px solid #e5e7eb",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
+          <div style={{ padding: "20px 28px", borderTop: "1px solid #e5e7eb", background: "#f0f9ff" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "14px", color: "#374151" }}>Show</span>
-                <div style={{ position: "relative" }}>
-                  <select
-                    value={showEntries}
-                    onChange={(e) => setShowEntries(Number(e.target.value))}
-                    style={{
-                      backgroundColor: "white",
-                      border: "1px solid #d1d5db",
-                      borderRadius: "4px",
-                      padding: "4px 24px 4px 12px",
-                      fontSize: "14px",
-                      outline: "none",
-                      appearance: "none",
-                    }}
-                  >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                    <option value={100}>100</option>
-                  </select>
-                  <span
-                    style={{
-                      position: "absolute",
-                      right: "8px",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      color: "#9ca3af",
-                      pointerEvents: "none",
-                    }}
-                  >
-                    ▼
-                  </span>
-                </div>
+                <span style={{ fontSize: "14px", color: "#64748b" }}>Show</span>
+                <select
+                  value={showEntries}
+                  onChange={(e) => setShowEntries(Number(e.target.value))}
+                  style={{
+                    backgroundColor: "white",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: "8px",
+                    padding: "8px 32px 8px 12px",
+                    fontSize: "14px",
+                    outline: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
               </div>
 
-              {/* Pagination */}
-              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                <button
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                    padding: "8px 12px",
-                    fontSize: "14px",
-                    color: "#6b7280",
-                    backgroundColor: "transparent",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                  }}
-                >
-                  ◀ Prev
-                </button>
-                <button
-                  style={{
-                    padding: "8px 12px",
-                    fontSize: "14px",
-                    backgroundColor: "#fb923c",
-                    color: "white",
-                    borderRadius: "4px",
-                    border: "none",
-                    fontWeight: 500,
-                    cursor: "pointer",
-                  }}
-                >
-                  1
-                </button>
-                <button
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                    padding: "8px 12px",
-                    fontSize: "14px",
-                    color: "#6b7280",
-                    backgroundColor: "transparent",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                  }}
-                >
-                  Next ▶
-                </button>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <button className="pagination-btn" disabled>◀ Prev</button>
+                <button className="pagination-btn active">1</button>
+                <button className="pagination-btn">Next ▶</button>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
       {/* Permission Dialog */}
       {openDialog && (
-        <div style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 1000
-        }}>
-          <div style={{
-            backgroundColor: "white",
-            borderRadius: "8px",
-            padding: "24px",
-            maxWidth: "500px",
-            width: "90%",
-            maxHeight: "80vh",
-            overflow: "auto",
-            boxShadow: "0 10px 25px rgba(0, 0, 0, 0.2)"
-          }}>
-            <div style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: "20px"
-            }}>
-              <h3 style={{
-                margin: 0,
-                fontSize: "18px",
-                fontWeight: "600",
-                color: "#111827"
-              }}>
-                {canModifyPermissions ? "Edit" : "View"} Permissions - {openDialog.section}
-              </h3>
-              <button
-                onClick={closePermissionDialog}
-                style={{
-                  backgroundColor: "transparent",
-                  border: "none",
-                  fontSize: "20px",
-                  cursor: "pointer",
-                  color: "#6b7280"
-                }}
-              >
-                ✕
+        <div className="permission-dialog-overlay">
+          <div className="permission-dialog">
+            <div className="permission-dialog-header">
+              <h3>{canModifyPermissions ? "Edit" : "View"} Permissions - {openDialog.section}</h3>
+              <button className="dialog-close-btn" onClick={closePermissionDialog}>
+                <X size={20} />
               </button>
             </div>
 
@@ -1149,21 +947,7 @@ const RolesPermission: React.FC = () => {
                               }
                             }}
                             disabled={!canEdit}
-                            style={{
-                              backgroundColor: isActive ? "#22c55e" : "#ffffff",
-                              color: isActive ? "#ffffff" : "#6b7280",
-                              border: isActive ? "1px solid #22c55e" : "1px solid #d1d5db",
-                              padding: "4px 8px",
-                              borderRadius: "4px",
-                              fontSize: "12px",
-                              textTransform: "capitalize",
-                              fontWeight: "500",
-                              cursor: canEdit ? "pointer" : "not-allowed",
-                              transition: "all 0.2s ease",
-                              opacity: canEdit ? 1 : 0.6,
-                              boxShadow: isActive ? "0 2px 4px rgba(34, 197, 94, 0.3)" : "0 1px 2px rgba(0, 0, 0, 0.1)",
-                              minWidth: "60px"
-                            }}
+                            className={`perm-btn ${permission} ${isActive ? "active" : ""}`}
                           >
                             {permission}
                           </button>
@@ -1211,21 +995,7 @@ const RolesPermission: React.FC = () => {
                           key={permission}
                           onClick={() => canEdit && togglePermission(openDialog.roleId, openDialog.section, permission)}
                           disabled={!canEdit}
-                          style={{
-                            backgroundColor: isActive ? "#22c55e" : "#ffffff",
-                            color: isActive ? "#ffffff" : "#6b7280",
-                            border: isActive ? "1px solid #22c55e" : "1px solid #d1d5db",
-                            padding: "4px 8px",
-                            borderRadius: "4px",
-                            fontSize: "12px",
-                            textTransform: "capitalize",
-                            fontWeight: "500",
-                            cursor: canEdit ? "pointer" : "not-allowed",
-                            transition: "all 0.2s ease",
-                            opacity: canEdit ? 1 : 0.6,
-                            boxShadow: isActive ? "0 2px 4px rgba(34, 197, 94, 0.3)" : "0 1px 2px rgba(0, 0, 0, 0.1)",
-                            minWidth: "60px"
-                          }}
+                          className={`perm-btn ${permission} ${isActive ? "active" : ""}`}
                         >
                           {permission}
                         </button>
@@ -1252,58 +1022,15 @@ const RolesPermission: React.FC = () => {
             )}
 
             {canModifyPermissions && hasChangesForRole(openDialog.roleId) && (
-              <div style={{
-                display: "flex",
-                gap: "12px",
-                justifyContent: "center",
-                padding: "16px",
-                backgroundColor: "#f0fdf4",
-                border: "1px solid #22c55e",
-                borderRadius: "6px"
-              }}>
-                <button
-                  onClick={() => cancelChangesForRole(openDialog.roleId)}
-                  style={{
-                    backgroundColor: "#dc2626",
-                    color: "white",
-                    border: "none",
-                    padding: "8px 16px",
-                    borderRadius: "4px",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    transition: "background-color 0.2s ease"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#b91c1c";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#dc2626";
-                  }}
-                >
+              <div className="dialog-actions">
+                <button className="btn-cancel" onClick={() => cancelChangesForRole(openDialog.roleId)}>
                   Cancel
                 </button>
                 <button
+                  className="btn-save"
                   onClick={() => {
                     savePermissionChanges(openDialog.roleId);
                     closePermissionDialog();
-                  }}
-                  style={{
-                    backgroundColor: "#22c55e",
-                    color: "white",
-                    border: "none",
-                    padding: "8px 16px",
-                    borderRadius: "4px",
-                    fontSize: "14px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                    transition: "background-color 0.2s ease"
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#16a34a";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#22c55e";
                   }}
                 >
                   Save Changes

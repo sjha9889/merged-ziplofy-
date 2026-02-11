@@ -2,7 +2,9 @@ import { Toaster } from "react-hot-toast";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Navbar from "./Components/Navbar";
 import { AdminAuthProvider, useAdminAuth } from "./contexts/admin-auth.context";
+import { ThemeProvider } from "./contexts/theme.context";
 import AdminLogin from "./Components/pages/AdminLogin";
+import VerifyEmailSuccess from "./Components/pages/VerifyEmailSuccess";
 import AdminDashboard from "./Components/pages/AdminDashboard";
 import AdminProtectedRoute from "./Components/AdminProtectedRoute";
 import ThemeEditPage from "./Components/pages/ThemeEditPage";
@@ -30,6 +32,7 @@ const App = () => {
         {!isAuthed ? (
           <Routes>
             <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/verify-email" element={<VerifyEmailSuccess />} />
             <Route path="*" element={<Navigate to="/admin/login" replace />} />
           </Routes>
         ) : (
@@ -65,8 +68,9 @@ const App = () => {
 
   return (
     <BrowserRouter>
-      <AdminAuthProvider>
-        <NotificationsProvider>
+      <ThemeProvider>
+        <AdminAuthProvider>
+          <NotificationsProvider>
           <SocketProvider>
             <SupportDevelopersProvider>
               <AssignedDevelopersProvider>
@@ -74,8 +78,9 @@ const App = () => {
               </AssignedDevelopersProvider>
             </SupportDevelopersProvider>
           </SocketProvider>
-        </NotificationsProvider>
-      </AdminAuthProvider>
+          </NotificationsProvider>
+        </AdminAuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 };

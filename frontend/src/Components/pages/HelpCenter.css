@@ -39,7 +39,7 @@
 
 .chat-count {
   font-size: 14px;
-  color: #7c3aed;
+  color: #2563eb;
   font-weight: 500;
 }
 
@@ -189,13 +189,13 @@
 }
 
 .status-badge.resolved {
-  background-color: #10b981;
+  background-color: #22c55e;
   color: white;
 }
 
 /* Action Button */
 .action-btn {
-  background-color: #fb923c;
+  background-color: #2563eb;
   color: white;
   border: none;
   padding: 6px 12px;
@@ -207,7 +207,7 @@
 }
 
 .action-btn:hover {
-  background-color: #f97316;
+  background-color: #1d4ed8;
 }
 
 /* Bottom Controls */
@@ -290,13 +290,13 @@
 }
 
 .page-btn.current-page {
-  background-color: #fb923c;
+  background-color: #2563eb;
   color: white;
   font-weight: 500;
 }
 
 .page-btn.current-page:hover {
-  background-color: #f97316;
+  background-color: #1d4ed8;
 }
 
 .page-btn svg {

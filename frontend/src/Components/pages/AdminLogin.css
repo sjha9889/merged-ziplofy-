@@ -1,13 +1,113 @@
-.admin-login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0f172a}
-.admin-login-card{width:360px;background:#111827;color:#e5e7eb;border:1px solid #1f2937;border-radius:12px;padding:24px;box-shadow:0 10px 25px rgba(0,0,0,.35)}
-.admin-login-card h2{margin:0 0 12px 0}
-.admin-login-card label{display:block;font-size:14px;margin:12px 0 6px;color:#cbd5e1}
-.admin-login-card input{width:100%;padding:10px 12px;border-radius:8px;border:1px solid #374151;background:#0b1220;color:#e5e7eb}
-.password-field{position:relative}
-.password-field .toggle{position:absolute;right:6px;top:6px;background:#0b1220;border:1px solid #374151;color:#cbd5e1;border-radius:6px;padding:6px 8px;cursor:pointer}
-.submit{margin-top:16px;width:100%;padding:10px 12px;background:#2563eb;color:#fff;border:none;border-radius:8px;cursor:pointer}
-.submit:disabled{opacity:.7;cursor:not-allowed}
-.error{background:#7f1d1d;color:#fecaca;padding:8px;border-radius:6px;margin-bottom:8px;border:1px solid #ef4444}
-.hint{margin-top:10px;color:#94a3b8;font-size:12px}
+.admin-login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 50%, #f0fdf4 100%);
+}
+
+.admin-login-card {
+  width: 360px;
+  background: #ffffff;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 4px 24px rgba(37, 99, 235, 0.12);
+}
+
+.admin-login-logo {
+  width: 100%;
+  max-width: 160px;
+  height: auto;
+  object-fit: contain;
+  margin: 0 auto 20px;
+  display: block;
+}
+
+.admin-login-card h2 {
+  margin: 0 0 12px 0;
+  color: #1e293b;
+}
+
+.admin-login-card label {
+  display: block;
+  font-size: 14px;
+  margin: 12px 0 6px;
+  color: #334155;
+  font-weight: 500;
+}
+
+.admin-login-card input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 14px;
+}
+
+.admin-login-card input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.password-field {
+  position: relative;
+}
+
+.password-field .toggle {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  color: #64748b;
+  border-radius: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.submit {
+  margin-top: 16px;
+  width: 100%;
+  padding: 12px 16px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.submit:hover:not(:disabled) {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.error {
+  background: #fef2f2;
+  color: #991b1b;
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #fecaca;
+  font-size: 14px;
+}
+
+.hint {
+  margin-top: 10px;
+  color: #64748b;
+  font-size: 12px;
+}
 
 

@@ -79,6 +79,7 @@ const AdminLogin: React.FC = () => {
     <div className="admin-login">
       {!awaitingOtp ? (
         <form className="admin-login-card" onSubmit={handleSubmit}>
+          <img src="/LOGO.png" alt="Logo" className="admin-login-logo" />
           <h2>Admin Login</h2>
           {error && <div className="error">{error}</div>}
           <label>Email</label>
@@ -93,6 +94,7 @@ const AdminLogin: React.FC = () => {
         </form>
       ) : (
         <form className="admin-login-card" onSubmit={handleVerifyOtp}>
+          <img src="/LOGO.png" alt="Logo" className="admin-login-logo" />
           <h2>Enter Verification Code</h2>
           {error && <div className="error">{error}</div>}
           <p>We sent a 6-digit code to <strong>{awaitingOtp.email}</strong>. Enter it below.</p>

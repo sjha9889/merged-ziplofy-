@@ -8,8 +8,9 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const database_config_1 = require("../config/database.config");
 const user_model_1 = require("../models/user.model");
 const role_model_1 = require("../models/role.model");
-// Load environment variables
+// Load environment variables (.env.development overrides .env for local runs)
 dotenv_1.default.config();
+dotenv_1.default.config({ path: ".env.development" });
 async function createSupportAdmin() {
     try {
         await (0, database_config_1.connectDB)();
@@ -34,7 +35,7 @@ async function createSupportAdmin() {
             user = new user_model_1.User({
                 name: derivedName || "Support Admin",
                 email,
-                password: "zebronics",
+                password: "123456",
                 role: role._id,
                 status: "active",
             });
@@ -46,7 +47,7 @@ async function createSupportAdmin() {
             user.name = derivedName || "Support Admin";
             user.role = role._id;
             user.status = "active";
-            user.password = "zebronics"; // Will be hashed by pre-save hook
+            user.password = "123456"; // Will be hashed by pre-save hook
             await user.save();
             console.log(`🔄 Updated support-admin user: ${email}`);
         }

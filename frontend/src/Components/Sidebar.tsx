@@ -8,17 +8,19 @@ import {
   FaCode,
   FaChevronDown,
   FaUserShield,
+  FaBars,
 } from "react-icons/fa";
 import { usePermissions } from "../hooks/usePermissions";
 import "./Sidebar.css";
 
 interface SidebarProps {
   isOpen: boolean;
+  onToggle?: () => void;
   activeItem?: string;
   onSelect?: (item: string) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeItem, onSelect }) => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, activeItem, onSelect }) => {
   const [openSection, setOpenSection] = useState<string>("");
   const { hasViewPermission, loading, permissions, user } = usePermissions();
 
@@ -26,14 +28,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeItem, onSelect }) => {
     setOpenSection((prev) => (prev === section ? "" : section));
   };
 
-  // Show loading state while fetching permissions
+  // Show loading state while fetching permissions (include toggle so it's always usable)
   if (loading) {
     return (
-      <aside className={`sidebar ${isOpen ? "open" : ""}`} style={{ width: isOpen ? "250px" : "60px", transition: "width 0.3s ease" }}>
-        <div style={{ padding: "20px", textAlign: "center" }}>
-          <div style={{ fontSize: "14px", color: "#666" }}>Loading permissions...</div>
-        </div>
-      </aside>
+      <>
+        <button
+          className="sidebar-toggle-tab"
+          aria-label="Toggle sidebar"
+          onClick={() => onToggle?.()}
+          title={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+        >
+          <FaBars />
+        </button>
+        <aside className={`sidebar ${isOpen ? "open" : ""}`}>
+          <div style={{ padding: "20px", textAlign: "center" }}>
+            <div style={{ fontSize: "14px", color: "#666" }}>Loading permissions...</div>
+          </div>
+        </aside>
+      </>
     );
   }
 
@@ -96,14 +108,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeItem, onSelect }) => {
   console.log('🔍 Full user object in Sidebar:', user);
   
   return (
-    <aside
-      className={`sidebar ${isOpen ? "open" : ""}`}
-      style={{
-        borderRadius: "14px",
-        backgroundColor: "#f8fafc",
-        marginTop: "10px",
-      }}
-    >
+    <>
+      <button
+        className="sidebar-toggle-tab"
+        aria-label="Toggle sidebar"
+        onClick={() => onToggle?.()}
+        title={isOpen ? "Collapse sidebar" : "Expand sidebar"}
+      >
+        <FaBars />
+      </button>
+      <aside
+        className={`sidebar ${isOpen ? "open" : ""}`}
+      >
       <div className="sidebar-header">
         <FaUserShield className="sidebar-icon" />
         <span style={{ 
@@ -197,7 +213,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeItem, onSelect }) => {
               <div className="menu-row">
                 <FaIdBadge className="menu-icon" />
                 <span>Membership</span>
-                <FaChevronDown className="chev" />
+                <FaChevronDown className={`chev ${openSection === "Membership" ? "rotated" : ""}`} />
               </div>
             </li>
             {openSection === "Membership" && (
@@ -226,7 +242,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeItem, onSelect }) => {
               <div className="menu-row">
                 <FaCode className="menu-icon" />
                 <span>Developer</span>
-                <FaChevronDown className="chev" />
+                <FaChevronDown className={`chev ${openSection === "Developer" ? "rotated" : ""}`} />
               </div>
             </li>
             {openSection === "Developer" && (
@@ -282,7 +298,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeItem, onSelect }) => {
               <div className="menu-row">
                 <FaLifeRing className="menu-icon" />
                 <span>Support</span>
-                <FaChevronDown className="chev" />
+                <FaChevronDown className={`chev ${openSection === "Support" ? "rotated" : ""}`} />
               </div>
             </li>
             {openSection === "Support" && (
@@ -329,6 +345,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeItem, onSelect }) => {
         )}
       </ul>
     </aside>
+    </>
   );
 };
 

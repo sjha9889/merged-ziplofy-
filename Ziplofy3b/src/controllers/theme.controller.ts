@@ -10,6 +10,9 @@ import { InstalledThemes } from "../models/installed-themes.model";
 import { Theme } from "../models/theme.model";
 import { CustomTheme } from "../models/custom-theme.model";
 import { RecentInstallations } from "../models/recent-installations.model";
+import { EditVerificationOtp } from "../models/edit-verification-otp.model";
+import { Role } from "../models/role.model";
+import { User } from "../models/user.model";
 import { asyncErrorHandler, CustomError } from "../utils/error.utils";
 
 // Helper function to create organized theme directory structure per requirements
@@ -464,7 +467,34 @@ export const updateTheme = asyncErrorHandler(async (req: Request, res: Response)
 
 export const deleteTheme = asyncErrorHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  
+  const { editOtp } = (req.body as { editOtp?: string }) || {};
+
+  // OTP required for all users (including super-admin) - sent to super-admin email
+  const otp = editOtp || req.headers["x-edit-otp"];
+  if (!otp || typeof otp !== "string") {
+    throw new CustomError("Edit verification OTP is required. Request OTP to be sent to super-admin email.", 403);
+  }
+
+  const superAdminRole = await Role.findOne({ name: "super-admin" });
+  if (!superAdminRole) throw new CustomError("Super-admin role not found", 500);
+  const superAdminUser = await User.findOne({ role: superAdminRole._id });
+  if (!superAdminUser) throw new CustomError("No super-admin found", 500);
+  const superAdminEmail = superAdminUser.email;
+
+  const otpRecord = await EditVerificationOtp.findOne({ email: superAdminEmail });
+  if (!otpRecord) throw new CustomError("OTP expired or not found. Please request a new code.", 400);
+  if (otpRecord.expiresAt < new Date()) {
+    await EditVerificationOtp.deleteMany({ email: superAdminEmail });
+    throw new CustomError("OTP expired. Please request a new code.", 400);
+  }
+  if (otpRecord.code !== otp.trim()) {
+    otpRecord.attempts += 1;
+    await otpRecord.save();
+    throw new CustomError("Invalid verification code", 401);
+  }
+
+  await EditVerificationOtp.deleteMany({ email: superAdminEmail });
+
   console.log('🗑️ Delete theme request received:', { 
     themeId: id, 
     user: req.user?.name, 

@@ -1,20 +1,41 @@
 import { Request, Response } from "express";
 import { IUser, User } from "../models/user.model";
+import { Role } from "../models/role.model";
+import { EditVerificationOtp } from "../models/edit-verification-otp.model";
 import { asyncErrorHandler, CustomError } from "../utils/error.utils";
 
-
 export const createUser = asyncErrorHandler(async (req: Request, res: Response) => {
-  const { name, email, password, role, status } = req.body as Pick<IUser, "name" | "email" | "password" | "role" | "status">;
+  // Only super-admin can add users
+  if (!(req.user as any)?.superAdmin) {
+    throw new CustomError("Only super-admin can add new users", 403);
+  }
+
+  const { name, email, password, role } = req.body as Pick<IUser, "name" | "email" | "password" | "role"> & { role?: string };
+
+  // Only allow assigning support-admin, developer-admin, or client-admin
+  const allowedRoles = ["support-admin", "developer-admin", "client-admin"];
+  if (!role || !allowedRoles.includes(role)) {
+    throw new CustomError("Role must be one of: support-admin, developer-admin, client-admin", 400);
+  }
+
+  const roleDoc = await Role.findOne({ name: role });
+  if (!roleDoc) {
+    throw new CustomError(`Role '${role}' not found`, 400);
+  }
+
+  const existingUser = await User.findOne({ email: email.toLowerCase() });
+  if (existingUser) {
+    throw new CustomError("A user with this email already exists", 400);
+  }
 
   const user = await User.create({
     name,
-    email,
+    email: email.toLowerCase(),
     password,
-    role,
-    status: "active"
+    role: roleDoc._id,
+    status: "active",
   });
 
-  // Remove password from response
   const userResponse = await User.findById(user._id).select("-password");
 
   res.status(201).json({
@@ -53,7 +74,16 @@ export const getUsers = asyncErrorHandler(async (req: Request, res: Response) =>
   }
 
   if (role && role !== "all") {
-    filter.role = role;
+    // Support both role ID (ObjectId) and role name (e.g. "super-admin")
+    const isObjectId = /^[a-fA-F0-9]{24}$/.test(role);
+    if (isObjectId) {
+      filter.role = role;
+    } else {
+      const roleDoc = await Role.findOne({ name: role });
+      if (roleDoc) {
+        filter.role = roleDoc._id;
+      }
+    }
   }
 
   if (status && status !== "all") {
@@ -63,6 +93,7 @@ export const getUsers = asyncErrorHandler(async (req: Request, res: Response) =>
   // Execute query with pagination
   const users = await User.find(filter)
     .select("-password")
+    .populate("role", "name")
     .limit(parseInt(limit))
     .skip((parseInt(page) - 1) * parseInt(limit))
     .sort(sort === "newest" ? { createdAt: -1 } : { createdAt: 1 });
@@ -105,16 +136,64 @@ interface UpdateUserParams {
 
 export const updateUser = asyncErrorHandler(async (req: Request, res: Response) => {
   const { id } = req.params as unknown as UpdateUserParams;
-  const { name, email, role, status } = req.body as Pick<IUser, "name" | "email" | "role" | "status">;
+  const { name, email, role, status, editOtp } = req.body as {
+    name?: string;
+    email?: string;
+    role?: string;
+    status?: string;
+    editOtp?: string;
+  };
 
-  const user = await User.findByIdAndUpdate(
-    id,
-    { name, email, role, status, updatedAt: new Date() },
-    {
-      new: true,
-      runValidators: true,
+  // OTP required for all users (including super-admin) - sent to super-admin email
+  const otp = editOtp || req.headers["x-edit-otp"];
+  if (!otp || typeof otp !== "string") {
+    throw new CustomError("Edit verification OTP is required. Request OTP to be sent to super-admin email.", 403);
+  }
+
+  const superAdminRole = await Role.findOne({ name: "super-admin" });
+  if (!superAdminRole) throw new CustomError("Super-admin role not found", 500);
+  const superAdminUser = await User.findOne({ role: superAdminRole._id });
+  if (!superAdminUser) throw new CustomError("No super-admin found", 500);
+  const superAdminEmail = superAdminUser.email;
+
+  const otpRecord = await EditVerificationOtp.findOne({ email: superAdminEmail });
+  if (!otpRecord) throw new CustomError("OTP expired or not found. Please request a new code.", 400);
+  if (otpRecord.expiresAt < new Date()) {
+    await EditVerificationOtp.deleteMany({ email: superAdminEmail });
+    throw new CustomError("OTP expired. Please request a new code.", 400);
+  }
+  if (otpRecord.code !== otp.trim()) {
+    otpRecord.attempts += 1;
+    await otpRecord.save();
+    throw new CustomError("Invalid verification code", 401);
+  }
+
+  await EditVerificationOtp.deleteMany({ email: superAdminEmail });
+
+  const updateData: any = { updatedAt: new Date() };
+  if (name !== undefined) updateData.name = name;
+  if (email !== undefined) updateData.email = email;
+  if (status !== undefined) updateData.status = status;
+
+  // Resolve role: accept role ID (ObjectId) or role name
+  if (role !== undefined) {
+    const isObjectId = /^[a-fA-F0-9]{24}$/.test(role);
+    if (isObjectId) {
+      updateData.role = role;
+    } else {
+      const roleDoc = await Role.findOne({ name: role });
+      if (roleDoc) {
+        updateData.role = roleDoc._id;
+      }
     }
-  ).select("-password");
+  }
+
+  const user = await User.findByIdAndUpdate(id, updateData, {
+    new: true,
+    runValidators: true,
+  })
+    .select("-password")
+    .populate("role", "name");
 
   if (!user) {
     throw new CustomError("User not found", 404);
@@ -132,11 +211,38 @@ interface DeleteUserParams {
 
 export const deleteUser = asyncErrorHandler(async (req: Request, res: Response) => {
   const { id } = req.params as unknown as DeleteUserParams;
+  const { editOtp } = req.body as { editOtp?: string } || {};
 
   // Prevent super-admin from deleting themselves
   if (id === req.user?.id) {
     throw new CustomError("You cannot delete your own account", 400);
   }
+
+  // OTP required for all users (including super-admin) - sent to super-admin email
+  const otp = editOtp || req.headers["x-edit-otp"];
+  if (!otp || typeof otp !== "string") {
+    throw new CustomError("Edit verification OTP is required. Request OTP to be sent to super-admin email.", 403);
+  }
+
+  const superAdminRole = await Role.findOne({ name: "super-admin" });
+  if (!superAdminRole) throw new CustomError("Super-admin role not found", 500);
+  const superAdminUser = await User.findOne({ role: superAdminRole._id });
+  if (!superAdminUser) throw new CustomError("No super-admin found", 500);
+  const superAdminEmail = superAdminUser.email;
+
+  const otpRecord = await EditVerificationOtp.findOne({ email: superAdminEmail });
+  if (!otpRecord) throw new CustomError("OTP expired or not found. Please request a new code.", 400);
+  if (otpRecord.expiresAt < new Date()) {
+    await EditVerificationOtp.deleteMany({ email: superAdminEmail });
+    throw new CustomError("OTP expired. Please request a new code.", 400);
+  }
+  if (otpRecord.code !== otp.trim()) {
+    otpRecord.attempts += 1;
+    await otpRecord.save();
+    throw new CustomError("Invalid verification code", 401);
+  }
+
+  await EditVerificationOtp.deleteMany({ email: superAdminEmail });
 
   const user = await User.findByIdAndDelete(id);
 

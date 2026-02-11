@@ -293,7 +293,7 @@ const ThemeEditPage: React.FC = () => {
         <div className="theme-edit-loading">
           <div className="loading-spinner"></div>
           <p>Loading theme data...</p>
-          <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>Theme ID: {themeId || 'Not found'}</p>
+          <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '8px' }}>Theme ID: {themeId || 'Not found'}</p>
         </div>
       </div>
     );
@@ -304,7 +304,7 @@ const ThemeEditPage: React.FC = () => {
       <div className="theme-edit-page">
         <div className="theme-edit-error">
           <p>{error}</p>
-          <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>Theme ID: {themeId || 'Not found'}</p>
+          <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '8px' }}>Theme ID: {themeId || 'Not found'}</p>
           <button onClick={() => navigate(-1)} className="btn-secondary">
             <ArrowLeft size={16} /> Go Back
           </button>
