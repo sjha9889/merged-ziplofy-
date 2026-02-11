@@ -1,9 +1,10 @@
 import React from 'react';
 import NotificationCard from './NotificationCard';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBell } from '@fortawesome/free-solid-svg-icons';
+import { faBell, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import './NotificationList.css';
-import { Notification } from './NotificationCard'; // import the interface from NotificationCard.tsx
+import { Notification } from './NotificationCard';
+import { useNotifications } from '../contexts/notification.context';
 
 interface NotificationListProps {
   notifications: Notification[];
@@ -14,7 +15,12 @@ const NotificationList: React.FC<NotificationListProps> = ({
   notifications,
   onNotificationClick,
 }) => {
+  const { setNotifications } = useNotifications();
   const unreadCount = notifications.filter((n) => !(n as any).isRead).length;
+
+  const handleClearAll = () => {
+    setNotifications([]);
+  };
 
   return (
     <div className="notification-list-container">
@@ -25,6 +31,19 @@ const NotificationList: React.FC<NotificationListProps> = ({
           <span>Notifications</span>
           {unreadCount > 0 && <span className="unread-badge">{unreadCount}</span>}
         </div>
+        {notifications.length > 0 && (
+          <div className="header-actions">
+            <button
+              className="action-btn clear-btn"
+              onClick={handleClearAll}
+              aria-label="Clear all notifications"
+              title="Clear all"
+            >
+              <FontAwesomeIcon icon={faTrashAlt} />
+              Clear
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Notifications */}

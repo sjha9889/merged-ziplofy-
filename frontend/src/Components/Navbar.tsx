@@ -1,21 +1,26 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
+import toast from "react-hot-toast";
 import {
+  FaBars,
   FaBell,
-  FaChartPie,
+  FaClock,
+  FaCompress,
   FaEnvelope,
   FaExpand,
   FaMoon,
   FaQuestionCircle,
   FaSearch,
+  FaSignOutAlt,
   FaSun,
   FaThLarge,
 } from "react-icons/fa";
 import { useNotifications } from "../contexts/notification.context";
 import { useAddEventListener } from "../hooks/useAddEventListener";
 import "./Navbar.css";
+import MessagesPopup from "./MessagesPopup";
 import NotificationPopup from "./NotificationPopup";
-import Sidebar from "./Sidebar"; // Import Sidebar
+import Sidebar from "./Sidebar";
 import { useAdminAuth } from "../contexts/admin-auth.context";
 import ClientList from "./pages/ClientList";
 import DevAdmin from "./pages/DevAdmin";
@@ -51,6 +56,23 @@ type MenuItem =
   | "Hire Developer Requests"
   | "Dashboard";
 
+const MENU_ITEMS: MenuItem[] = [
+  "Client List",
+  "Payment",
+  "Invoice",
+  "Manage User",
+  "Roles & Permission",
+  "Domain",
+  "Ticket",
+  "Raise Task",
+  "Live Support",
+  "Membership Plan",
+  "Dev Admin",
+  "Theme Developer",
+  "Support Developer",
+  "Hire Developer Requests",
+];
+
 const Navbar = () => {
   const location = useLocation();
 
@@ -68,6 +90,11 @@ const Navbar = () => {
     return savedMenu || "Dashboard";
   });
   const [notificationPopupOpen, setNotificationPopupOpen] = useState<boolean>(false);
+  const [messagesPopupOpen, setMessagesPopupOpen] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [timerSeconds, setTimerSeconds] = useState<number>(30 * 60 + 55); // 30:55
+  const messagesButtonRef = useRef<HTMLButtonElement>(null);
 
   // Notifications context
   const { notifications, setNotifications, fetchNotifications } = useNotifications();
@@ -92,43 +119,106 @@ const Navbar = () => {
 
   const { user, logout } = useAdminAuth();
 
+  // Fullscreen toggle
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen?.();
+      setIsFullscreen(true);
+    } else {
+      document.exitFullscreen?.();
+      setIsFullscreen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  // Timer countdown
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimerSeconds((prev) => (prev > 0 ? prev - 1 : 30 * 60 + 55));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const formatTimer = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  };
+
+  // Search: navigate to matching menu item on Enter
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && searchQuery.trim()) {
+      const query = searchQuery.trim().toLowerCase();
+      const match = MENU_ITEMS.find(
+        (item) => item.toLowerCase().includes(query) || query.split(" ").every((w) => item.toLowerCase().includes(w))
+      );
+      if (match) {
+        setActiveMenu(match);
+        sessionStorage.setItem("activeMenu", match);
+        setSidebarOpen(true);
+        toast.success(`Navigated to ${match}`);
+      } else {
+        toast.error("No matching menu item found");
+      }
+    }
+  };
+
+  // Navigate to overview (Client List as default)
+  const handleGridClick = () => {
+    setActiveMenu("Client List");
+    sessionStorage.setItem("activeMenu", "Client List");
+    setSidebarOpen(true);
+    toast.success("Viewing overview");
+  };
+
+  // Help
+  const handleHelpClick = () => {
+    toast.success("Help: Contact support or visit documentation for assistance.");
+  };
+
   return (
     <>
       <header className={`navbar${theme === "dark" ? " dark" : ""}`}>
         {/* Left: Logo + Sidebar Toggle */}
         <div className="navbar-left">
-          <img src="./LOGO.png" alt="Logo" className="navbar-logo" />
+          <img src="/LOGO.png" alt="Ziplofy Logo" className="navbar-logo" />
           <button
-            className="icon-tile active plan-tile"
-            aria-label="Plan"
+            className={`icon-tile plan-tile${sidebarOpen ? " active" : ""}`}
+            aria-label="Toggle menu"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
-            <svg
-              className="plan-icon"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect x="4" y="4" width="7" height="7" rx="2" fill="#34d399" />
-              <rect x="13" y="4" width="7" height="7" rx="2" fill="#60a5fa" />
-              <rect x="4" y="13" width="7" height="7" rx="2" fill="#fbbf24" />
-              <rect x="13" y="13" width="7" height="7" rx="2" fill="#a78bfa" />
-            </svg>
+            <FaBars />
           </button>
         </div>
 
         {/* Middle: Search */}
         <div className="navbar-search">
           <FaSearch className="search-icon" />
-          <input type="text" placeholder="Search" className="search-input" />
+          <input
+            type="text"
+            placeholder="Search menu..."
+            className="search-input"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+          />
         </div>
 
         {/* Right: Actions + User */}
         <div className="navbar-actions">
-          <button className="icon-tile tile-slate" aria-label="Fullscreen">
-            <FaExpand />
+          <button
+            className="icon-tile tile-slate"
+            aria-label="Fullscreen"
+            onClick={toggleFullscreen}
+          >
+            {isFullscreen ? <FaCompress /> : <FaExpand />}
           </button>
           <div className="theme-toggle" role="group" aria-label="Theme toggle">
             <button
@@ -146,18 +236,24 @@ const Navbar = () => {
               <FaMoon />
             </button>
           </div>
-          <button className="icon-tile tile-indigo" aria-label="Grid">
+          <button
+            className="icon-tile tile-indigo"
+            aria-label="Grid"
+            onClick={handleGridClick}
+          >
             <FaThLarge />
           </button>
-          <button className="icon-tile tile-purple" aria-label="Help">
+          <button
+            className="icon-tile tile-purple"
+            aria-label="Help"
+            onClick={handleHelpClick}
+          >
             <FaQuestionCircle />
-          </button>
-          <button className="icon-tile tile-yellow" aria-label="Analytics">
-            <FaChartPie />
           </button>
           {user && (
             <div className="user-info">
               <button className="logout-button" aria-label="Logout" onClick={logout}>
+                <FaSignOutAlt />
                 Logout
               </button>
             </div>
@@ -173,12 +269,18 @@ const Navbar = () => {
               <span className="badge-count">{notifications.length}</span>
             )}
           </button>
-          <button className="icon-tile has-badge" aria-label="Messages">
+          <button
+            ref={messagesButtonRef}
+            className="icon-tile tile-messages has-badge"
+            aria-label="Messages"
+            onClick={() => setMessagesPopupOpen(!messagesPopupOpen)}
+          >
             <FaEnvelope />
             <span className="badge-count">13</span>
           </button>
-          <div className="pill" aria-label="Timer">
-            30:55
+          <div className="pill" aria-label="Session timer">
+            <FaClock />
+            {formatTimer(timerSeconds)}
           </div>
           <span className="status-dot" aria-hidden="true"></span>
         </div>
@@ -200,7 +302,7 @@ const Navbar = () => {
       <div
         className="main-content"
         style={{
-          marginLeft: sidebarOpen ? 240 : 0,
+          marginLeft: sidebarOpen ? 280 : 0,
           padding: 16,
           transition: "margin-left 0.3s ease",
         }}
@@ -240,6 +342,13 @@ const Navbar = () => {
         isOpen={notificationPopupOpen}
         onClose={() => setNotificationPopupOpen(false)}
         buttonRef={notificationButtonRef}
+      />
+
+      {/* Messages Popup */}
+      <MessagesPopup
+        isOpen={messagesPopupOpen}
+        onClose={() => setMessagesPopupOpen(false)}
+        buttonRef={messagesButtonRef}
       />
     </>
   );

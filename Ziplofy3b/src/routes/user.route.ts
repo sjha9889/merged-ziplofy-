@@ -1,19 +1,41 @@
 import { Router } from "express";
 import { createUser, deleteUser, getUser, getUsers, updateUser } from "../controllers/user.controller";
-import { authorize, protect } from "../middlewares/auth.middleware";
+import { authorize, authorizePermission, protect } from "../middlewares/auth.middleware";
 import { RoleType } from "../types";
-
-
 
 export const userRouter = Router();
 
-userRouter.use(protect,authorize(RoleType.SUPER_ADMIN))
+userRouter.use(protect);
 
-userRouter.get("/",getUsers)
-userRouter.get("/:id",getUser)
+// List users: super-admin OR users with view permission in User Management > Manage User
+userRouter.get(
+  "/",
+  authorizePermission("User Management", "view", "Manage User"),
+  getUsers
+);
+userRouter.get(
+  "/:id",
+  authorizePermission("User Management", "view", "Manage User"),
+  getUser
+);
 
-userRouter.post("/",createUser)
+// Create: super-admin OR users with upload permission
+userRouter.post(
+  "/",
+  authorizePermission("User Management", "upload", "Manage User"),
+  createUser
+);
 
-userRouter.put("/:id",updateUser)
+// Update: super-admin OR users with edit permission in User Management > Manage User
+userRouter.put(
+  "/:id",
+  authorizePermission("User Management", "edit", "Manage User"),
+  updateUser
+);
 
-userRouter.delete("/:id",deleteUser)
+// Delete: super-admin OR users with edit permission
+userRouter.delete(
+  "/:id",
+  authorizePermission("User Management", "edit", "Manage User"),
+  deleteUser
+);

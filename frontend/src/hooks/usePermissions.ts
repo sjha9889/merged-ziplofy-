@@ -30,117 +30,100 @@ export const usePermissions = () => {
       console.log('🔍 Fetching permissions for user:', user);
 
       try {
-        // Fetch user's role with permissions
+        // Fetch user's role with permissions - backend now includes roleWithPermissions for uniform resolution
         const response = await axios.get('/auth/me');
         const userData = response.data.data || response.data;
         
         console.log('🔍 User data from /auth/me:', userData);
         console.log('🔍 User role:', userData.role);
-        console.log('🔍 User role type:', typeof userData.role);
+        console.log('🔍 Role with permissions:', userData.roleWithPermissions ? 'present' : 'absent');
         
-        // Check if role is a string (role name) or object (role with permissions)
-        if (typeof userData.role === 'string') {
-          console.log('🔍 Role is a string (role name):', userData.role);
-          // If role is just a string, we need to fetch the full role data
-          // For now, let's assume super-admin has all permissions
-          if (userData.role === 'super-admin' || userData.superAdmin) {
-            console.log('🔍 Super admin detected, granting all permissions');
-            const allPermissions: UserPermissions = {
-              "Client List": { permissions: ["view", "edit", "upload"] },
-              "Payment": { permissions: ["view", "edit", "upload"] },
-              "Invoice": { permissions: ["view", "edit", "upload"] },
-              "User Management": { 
-                permissions: ["view", "edit", "upload"],
-                subsections: {
-                  "Manage User": ["view", "edit", "upload"],
-                  "Roles and Permission": ["view", "edit", "upload"]
-                }
-              },
-              "Membership": { 
-                permissions: ["view", "edit", "upload"],
-                subsections: {
-                  "Membership Plan": ["view", "edit", "upload"]
-                }
-              },
-              "Developer": { 
-                permissions: ["view", "edit", "upload"],
-                subsections: {
-                  "Dev Admin": ["view", "edit", "upload"],
-                  "Theme Developer": ["view", "edit", "upload"],
-                  "Support Developer": ["view", "edit", "upload"],
-                  "Hire Developer Requests": ["view", "edit", "upload"]
-                }
-              },
-              "Support": { 
-                permissions: ["view", "edit", "upload"],
-                subsections: {
-                  "Domain": ["view", "edit", "upload"],
-                  "Ticket": ["view", "edit", "upload"],
-                  "Raise Task": ["view", "edit", "upload"],
-                  "Live Support": ["view", "edit", "upload"]
-                }
+        // Helper to convert role permissions to UserPermissions format
+        const buildPermissionsFromRole = (rolePermissions: any[]): UserPermissions => {
+          const userPermissions: UserPermissions = {};
+          if (!Array.isArray(rolePermissions)) return userPermissions;
+          rolePermissions.forEach((permission: any) => {
+            if (permission?.section) {
+              userPermissions[permission.section] = {
+                permissions: permission.permissions || [],
+                subsections: permission.subsections?.reduce((acc: any, sub: any) => {
+                  if (sub?.subsection) acc[sub.subsection] = sub.permissions || [];
+                  return acc;
+                }, {} as Record<string, string[]>)
+              };
+            }
+          });
+          return userPermissions;
+        };
+        
+        // Priority 1: Super-admin has all permissions (check before roleWithPermissions since super-admin role may have empty permissions)
+        if (userData.role === 'super-admin' || userData.superAdmin || userData.roleWithPermissions?.isSuperAdmin) {
+          console.log('🔍 Super admin detected, granting all permissions');
+          const allPermissions: UserPermissions = {
+            "Client List": { permissions: ["view", "edit", "upload"] },
+            "Payment": { permissions: ["view", "edit", "upload"] },
+            "Invoice": { permissions: ["view", "edit", "upload"] },
+            "User Management": { 
+              permissions: ["view", "edit", "upload"],
+              subsections: {
+                "Manage User": ["view", "edit", "upload"],
+                "Roles and Permission": ["view", "edit", "upload"]
               }
-            };
-            setPermissions(allPermissions);
-          } else {
-            console.log('🔍 Non-super-admin user, need to fetch role permissions from backend');
-            // For non-super-admin users, we need to fetch the role permissions
-            try {
-              const roleResponse = await axios.get('/roles');
-              console.log('🔍 Fetched roles:', roleResponse.data);
-              
-              if (roleResponse.data.success && roleResponse.data.data) {
-                const userRole = roleResponse.data.data.find((role: any) => role.name === userData.role);
-                console.log('🔍 Found user role:', userRole);
-                
-                if (userRole && userRole.permissions) {
-                  const userPermissions: UserPermissions = {};
-                  
-                  userRole.permissions.forEach((permission: any) => {
-                    console.log('🔍 Processing role permission:', permission);
-                    userPermissions[permission.section] = {
-                      permissions: permission.permissions || [],
-                      subsections: permission.subsections?.reduce((acc: any, sub: any) => {
-                        acc[sub.subsection] = sub.permissions || [];
-                        return acc;
-                      }, {})
-                    };
-                  });
-                  
-                  console.log('🔍 Processed role permissions:', userPermissions);
-                  setPermissions(userPermissions);
-                } else {
-                  console.log('🔍 No permissions found for role');
-                  setPermissions({});
-                }
-              } else {
-                console.log('🔍 Failed to fetch roles');
-                setPermissions({});
+            },
+            "Membership": { 
+              permissions: ["view", "edit", "upload"],
+              subsections: {
+                "Membership Plan": ["view", "edit", "upload"]
               }
-            } catch (roleError) {
-              console.error('Error fetching role permissions:', roleError);
+            },
+            "Developer": { 
+              permissions: ["view", "edit", "upload"],
+              subsections: {
+                "Dev Admin": ["view", "edit", "upload"],
+                "Theme Developer": ["view", "edit", "upload"],
+                "Support Developer": ["view", "edit", "upload"],
+                "Hire Developer Requests": ["view", "edit", "upload"]
+              }
+            },
+            "Support": { 
+              permissions: ["view", "edit", "upload"],
+              subsections: {
+                "Domain": ["view", "edit", "upload"],
+                "Ticket": ["view", "edit", "upload"],
+                "Raise Task": ["view", "edit", "upload"],
+                "Live Support": ["view", "edit", "upload"]
+              }
+            }
+          };
+          setPermissions(allPermissions);
+          return;
+        }
+        
+        // Priority 2: Use roleWithPermissions from /auth/me (single source of truth for non-super-admin)
+        if (userData.roleWithPermissions?.permissions && Array.isArray(userData.roleWithPermissions.permissions)) {
+          console.log('🔍 Using roleWithPermissions from /auth/me');
+          const perms = buildPermissionsFromRole(userData.roleWithPermissions.permissions);
+          console.log('🔍 Processed permissions:', perms);
+          setPermissions(perms);
+          return;
+        }
+        
+        // Priority 3: Fallback - fetch /roles and find user's role by name (legacy)
+        console.log('🔍 Fallback: fetching role permissions from /roles');
+        try {
+          const roleResponse = await axios.get('/roles', { params: { limit: 100 } });
+          if (roleResponse.data.success && roleResponse.data.data) {
+            const userRole = roleResponse.data.data.find((r: any) => r.name === userData.role);
+            if (userRole?.permissions) {
+              setPermissions(buildPermissionsFromRole(userRole.permissions));
+            } else {
               setPermissions({});
             }
+          } else {
+            setPermissions({});
           }
-        } else if (userData.role && userData.role.permissions) {
-          console.log('🔍 Role is an object with permissions:', userData.role.permissions);
-          const userPermissions: UserPermissions = {};
-          
-          userData.role.permissions.forEach((permission: any) => {
-            console.log('🔍 Processing permission:', permission);
-            userPermissions[permission.section] = {
-              permissions: permission.permissions || [],
-              subsections: permission.subsections?.reduce((acc: any, sub: any) => {
-                acc[sub.subsection] = sub.permissions || [];
-                return acc;
-              }, {})
-            };
-          });
-          
-          console.log('🔍 Processed user permissions:', userPermissions);
-          setPermissions(userPermissions);
-        } else {
-          console.log('🔍 No role permissions found, userData.role:', userData.role);
+        } catch (roleError) {
+          console.error('Error fetching role permissions:', roleError);
           setPermissions({});
         }
       } catch (error) {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { Search, Plus, ChevronLeft, ChevronRight, Edit, Trash2, Eye, X } from "lucide-react";
 import "./ClientList.css";
 
 // ---------------------- Types ----------------------
@@ -160,7 +161,7 @@ const ClientModal: React.FC<ClientModalProps> = ({
         <div className="modal-header">
           <h3>{mode === "add" ? "Add New Client" : "Edit Client"}</h3>
           <button className="close-btn" onClick={onClose}>
-            ×
+            <X size={20} />
           </button>
         </div>
 
@@ -323,18 +324,20 @@ const ClientList: React.FC = () => {
   };
 
   return (
-    <div className="main-content">
+    <div className="client-list-page main-content">
       <div className="page">
         <div className="page-header">
           <h2>Client List</h2>
           <div className="header-actions">
-            <input
-              type="search"
-              placeholder="Search clients..."
-              className="search-input"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <div className="search-box">
+              <Search size={18} className="search-icon" />
+              <input
+                type="search"
+                placeholder="Search clients..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -346,6 +349,7 @@ const ClientList: React.FC = () => {
               <option value="Pending">Pending</option>
             </select>
             <button className="btn primary" onClick={() => setShowModal(true)}>
+              <Plus size={18} />
               Add New Client
             </button>
           </div>
@@ -395,26 +399,26 @@ const ClientList: React.FC = () => {
                         </span>
                       </td>
                       <td style={{ textAlign: "left" }}>
-                        <button
-                          className="btn view"
-                          style={{ marginRight: "6px" }}
-                          onClick={() => openEditModal(client)}
-                        >
-                          View
-                        </button>
-                        <button
-                          className="btn edit"
-                          onClick={() => openEditModal(client)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          className="btn delete"
-                          onClick={() => handleDeleteClient(client._id)}
-                          style={{ marginLeft: "6px" }}
-                        >
-                          Delete
-                        </button>
+                        <div className="action-buttons">
+                          <button
+                            className="btn view"
+                            onClick={() => openEditModal(client)}
+                          >
+                            <Eye size={14} /> View
+                          </button>
+                          <button
+                            className="btn edit"
+                            onClick={() => openEditModal(client)}
+                          >
+                            <Edit size={14} /> Edit
+                          </button>
+                          <button
+                            className="btn delete"
+                            onClick={() => handleDeleteClient(client._id)}
+                          >
+                            <Trash2 size={14} /> Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -427,7 +431,7 @@ const ClientList: React.FC = () => {
                     onClick={() => handlePageChange(pagination.page - 1)}
                     disabled={pagination.page === 1}
                   >
-                    Previous
+                    <ChevronLeft size={16} /> Previous
                   </button>
 
                   <span>
@@ -438,7 +442,7 @@ const ClientList: React.FC = () => {
                     onClick={() => handlePageChange(pagination.page + 1)}
                     disabled={pagination.page === pagination.totalPages}
                   >
-                    Next
+                    Next <ChevronRight size={16} />
                   </button>
                 </div>
               )}

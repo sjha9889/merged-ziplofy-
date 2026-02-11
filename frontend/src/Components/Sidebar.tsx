@@ -98,11 +98,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeItem, onSelect }) => {
   return (
     <aside
       className={`sidebar ${isOpen ? "open" : ""}`}
-      style={{
-        borderRadius: "14px",
-        backgroundColor: "#f8fafc",
-        marginTop: "10px",
-      }}
     >
       <div className="sidebar-header">
         <FaUserShield className="sidebar-icon" />
@@ -197,7 +192,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeItem, onSelect }) => {
               <div className="menu-row">
                 <FaIdBadge className="menu-icon" />
                 <span>Membership</span>
-                <FaChevronDown className="chev" />
+                <FaChevronDown className={`chev ${openSection === "Membership" ? "rotated" : ""}`} />
               </div>
             </li>
             {openSection === "Membership" && (
@@ -226,7 +221,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeItem, onSelect }) => {
               <div className="menu-row">
                 <FaCode className="menu-icon" />
                 <span>Developer</span>
-                <FaChevronDown className="chev" />
+                <FaChevronDown className={`chev ${openSection === "Developer" ? "rotated" : ""}`} />
               </div>
             </li>
             {openSection === "Developer" && (
@@ -282,7 +277,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, activeItem, onSelect }) => {
               <div className="menu-row">
                 <FaLifeRing className="menu-icon" />
                 <span>Support</span>
-                <FaChevronDown className="chev" />
+                <FaChevronDown className={`chev ${openSection === "Support" ? "rotated" : ""}`} />
               </div>
             </li>
             {openSection === "Support" && (

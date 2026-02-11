@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 .navbar {
   width: 100%;
   height: 60px;
@@ -10,6 +12,9 @@
   position: sticky;
   top: 0;
   z-index: 50;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Left Section */
@@ -20,8 +25,9 @@
 }
 
 .navbar-logo {
-  width: 130px;
-  height: 71px;
+  height: 52px;
+  width: auto;
+  object-fit: contain;
 }
 
 .navbar-title {
@@ -38,9 +44,15 @@
   display: flex;
   align-items: center;
   background-color: #f9fafb;
-  border: 1px solid #d1d5db;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 4px 8px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.navbar-search:focus-within {
+  border-color: #9ca3af;
+  box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.2);
 }
 
 .search-icon {
@@ -54,6 +66,11 @@
   flex: 1;
   background: transparent;
   font-size: 14px;
+  font-family: inherit;
+}
+
+.search-input::placeholder {
+  color: #94a3b8;
 }
 
 /* Right Section */
@@ -82,105 +99,105 @@
 }
 
 .icon-tile:hover {
-  background-color: #eef2ff;
-  color: #2563eb;
-  border-color: #c7d2fe;
+  background-color: #e5e7eb;
+  color: #1f2937;
+  border-color: #d1d5db;
 }
 
 .icon-tile.active {
-  background-color: #e8f5e9;
-  border-color: #a7f3d0;
-  color: #16a34a;
+  background-color: #e5e7eb;
+  border-color: #d1d5db;
+  color: #374151;
 }
 
-/* More colorful plan tile to match screenshot */
+.theme-toggle .icon-tile:first-child.active {
+  background-color: #fef9c3;
+  border-color: #fde68a;
+  color: #a16207;
+}
+.theme-toggle .icon-tile:last-child.active {
+  background-color: #e0e7ff;
+  border-color: #a5b4fc;
+  color: #4338ca;
+}
+
+/* Plan/menu toggle tile */
 .plan-tile {
-  background: linear-gradient(180deg, #d1fae5 0%, #bbf7d0 100%);
-  border-color: #34d399;
-  color: #047857;
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+.plan-tile:hover, .plan-tile.active {
+  background-color: #e2e8f0;
+  border-color: #94a3b8;
+  color: #334155;
 }
 
-.plan-tile:hover {
-  background: linear-gradient(180deg, #a7f3d0 0%, #86efac 100%);
-  color: #065f46;
-  border-color: #10b981;
+/* Icon tile variants - distinct colors per action */
+.tile-slate {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+.tile-slate:hover {
+  background-color: #e2e8f0;
+  border-color: #94a3b8;
+  color: #334155;
 }
 
-.plan-icon {
-  display: block;
-}
-
-/* Colorful variants for right-side tiles */
 .tile-blue {
-  background: linear-gradient(180deg, #e0f2fe 0%, #bfdbfe 100%);
+  background-color: #dbeafe;
   border-color: #93c5fd;
   color: #1d4ed8;
 }
 .tile-blue:hover {
-  background: linear-gradient(180deg, #bae6fd 0%, #93c5fd 100%);
-  color: #1e40af;
+  background-color: #bfdbfe;
   border-color: #60a5fa;
-}
-
-.tile-purple {
-  background: linear-gradient(180deg, #ede9fe 0%, #ddd6fe 100%);
-  border-color: #c4b5fd;
-  color: #6d28d9;
-}
-.tile-purple:hover {
-  background: linear-gradient(180deg, #ddd6fe 0%, #c4b5fd 100%);
-  color: #5b21b6;
-  border-color: #a78bfa;
-}
-
-.tile-yellow {
-  background: linear-gradient(180deg, #fef9c3 0%, #fde68a 100%);
-  border-color: #fcd34d;
-  color: #a16207;
-}
-.tile-yellow:hover {
-  background: linear-gradient(180deg, #fde68a 0%, #fcd34d 100%);
-  color: #854d0e;
-  border-color: #fbbf24;
+  color: #1e40af;
 }
 
 .tile-indigo {
-  background: linear-gradient(180deg, #e0e7ff 0%, #c7d2fe 100%);
+  background-color: #e0e7ff;
   border-color: #a5b4fc;
   color: #4338ca;
 }
 .tile-indigo:hover {
-  background: linear-gradient(180deg, #c7d2fe 0%, #a5b4fc 100%);
-  color: #3730a3;
+  background-color: #c7d2fe;
   border-color: #818cf8;
+  color: #3730a3;
 }
 
-.tile-slate {
-  background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
-  border-color: #cbd5e1;
-  color: #334155;
+.tile-purple {
+  background-color: #ede9fe;
+  border-color: #c4b5fd;
+  color: #6d28d9;
 }
-.tile-slate:hover {
-  background: linear-gradient(180deg, #e2e8f0 0%, #cbd5e1 100%);
-  color: #1f2937;
-  border-color: #94a3b8;
+.tile-purple:hover {
+  background-color: #ddd6fe;
+  border-color: #a78bfa;
+  color: #5b21b6;
 }
 
-/* Dark theme tweaks for colorful tiles */
-.navbar.dark .tile-blue {
-  color: #93c5fd;
+.tile-yellow {
+  background-color: #fef9c3;
+  border-color: #fde68a;
+  color: #a16207;
 }
-.navbar.dark .tile-purple {
-  color: #c4b5fd;
+.tile-yellow:hover {
+  background-color: #fde68a;
+  border-color: #fcd34d;
+  color: #854d0e;
 }
-.navbar.dark .tile-yellow {
-  color: #facc15;
+
+.tile-messages {
+  background-color: #e0f2fe;
+  border-color: #7dd3fc;
+  color: #0369a1;
 }
-.navbar.dark .tile-indigo {
-  color: #a5b4fc;
-}
-.navbar.dark .tile-slate {
-  color: #e2e8f0;
+.tile-messages:hover {
+  background-color: #bae6fd;
+  border-color: #38bdf8;
+  color: #0284c7;
 }
 
 .theme-toggle {
@@ -200,9 +217,10 @@
   height: 18px;
   padding: 0 4px;
   border-radius: 9999px;
-  background: #ef4444;
+  background: #dc2626;
   color: #ffffff;
   font-size: 11px;
+  font-weight: 600;
   line-height: 18px;
   text-align: center;
   border: 2px solid #ffffff;
@@ -215,11 +233,18 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background-color: #e5e7eb;
+  gap: 6px;
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
   border-radius: 10px;
   color: #374151;
   font-weight: 600;
   font-size: 12px;
+}
+
+.pill svg {
+  font-size: 14px;
+  opacity: 0.8;
 }
 
 .status-dot {
@@ -228,7 +253,7 @@
   background: #22c55e;
   border-radius: 9999px;
   margin-left: 4px;
-  border: 3px solid #e5e7eb;
+  border: 2px solid #ffffff;
 }
 
 /* Dark theme */
@@ -260,132 +285,168 @@
 }
 
 .navbar.dark .icon-tile:hover {
-  background-color: #1f2937;
-  color: #60a5fa;
-  border-color: #334155;
+  background-color: #374151;
+  color: #f3f4f6;
+  border-color: #4b5563;
 }
 
 .navbar.dark .icon-tile.active {
-  background-color: #172554;
-  border-color: #1d4ed8;
-  color: #93c5fd;
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #f3f4f6;
 }
 
 .navbar.dark .pill {
   background-color: #1f2937;
   color: #e5e7eb;
+  border-color: #374151;
+}
+
+.navbar.dark .pill svg {
+  opacity: 0.9;
 }
 
 .navbar.dark .status-dot {
-  border-color: #1f2937;
+  border-color: #0f172a;
 }
 .navbar.dark .badge-count {
   border-color: #0f172a;
 }
 
-/* Dark theme colorful tile overrides for better contrast */
+/* Dark theme - colored tiles */
+.navbar.dark .tile-slate {
+  background-color: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}
+.navbar.dark .tile-slate:hover {
+  background-color: #334155;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
 .navbar.dark .tile-blue {
-  background: linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
-  border-color: #1e3a8a;
+  background-color: #1e3a5f;
+  border-color: #1e40af;
   color: #93c5fd;
 }
 .navbar.dark .tile-blue:hover {
-  background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
-  color: #60a5fa;
-  border-color: #1d4ed8;
-}
-
-.navbar.dark .tile-purple {
-  background: linear-gradient(180deg, #171129 0%, #1e1636 100%);
-  border-color: #5b21b6;
-  color: #c4b5fd;
-}
-.navbar.dark .tile-purple:hover {
-  background: linear-gradient(180deg, #1e1636 0%, #24194a 100%);
-  color: #a78bfa;
-  border-color: #6d28d9;
-}
-
-.navbar.dark .tile-yellow {
-  background: linear-gradient(180deg, #1a1507 0%, #211a09 100%);
-  border-color: #a16207;
-  color: #fde68a;
-}
-.navbar.dark .tile-yellow:hover {
-  background: linear-gradient(180deg, #211a09 0%, #2a2210 100%);
-  color: #facc15;
-  border-color: #b45309;
+  background-color: #1e40af;
+  border-color: #2563eb;
+  color: #bfdbfe;
 }
 
 .navbar.dark .tile-indigo {
-  background: linear-gradient(180deg, #121433 0%, #161942 100%);
+  background-color: #312e81;
   border-color: #3730a3;
   color: #a5b4fc;
 }
 .navbar.dark .tile-indigo:hover {
-  background: linear-gradient(180deg, #161942 0%, #1a1e54 100%);
-  color: #93c5fd;
-  border-color: #4338ca;
+  background-color: #3730a3;
+  border-color: #4f46e5;
+  color: #c7d2fe;
 }
 
-.navbar.dark .tile-slate {
-  background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
-  border-color: #374151;
+.navbar.dark .tile-purple {
+  background-color: #3b2764;
+  border-color: #5b21b6;
+  color: #c4b5fd;
+}
+.navbar.dark .tile-purple:hover {
+  background-color: #5b21b6;
+  border-color: #6d28d9;
+  color: #ddd6fe;
+}
+
+.navbar.dark .tile-yellow {
+  background-color: #422006;
+  border-color: #a16207;
+  color: #fde68a;
+}
+.navbar.dark .tile-yellow:hover {
+  background-color: #a16207;
+  border-color: #b45309;
+  color: #fef3c7;
+}
+
+.navbar.dark .tile-messages {
+  background-color: #0c4a6e;
+  border-color: #0369a1;
+  color: #7dd3fc;
+}
+.navbar.dark .tile-messages:hover {
+  background-color: #0369a1;
+  border-color: #0284c7;
+  color: #bae6fd;
+}
+
+.navbar.dark .plan-tile {
+  background-color: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}
+.navbar.dark .plan-tile:hover,
+.navbar.dark .plan-tile.active {
+  background-color: #334155;
+  border-color: #475569;
   color: #e2e8f0;
 }
-.navbar.dark .tile-slate:hover {
-  background: linear-gradient(180deg, #111827 0%, #1f2937 100%);
-  color: #f1f5f9;
-  border-color: #475569;
+
+/* Theme toggle - sun (light) and moon (dark) */
+.navbar.dark .theme-toggle .icon-tile:first-child {
+  color: #94a3b8;
+}
+.navbar.dark .theme-toggle .icon-tile:last-child.active {
+  background-color: #312e81;
+  border-color: #4f46e5;
+  color: #a5b4fc;
 }
 
 /* Logout Button Styling */
 .logout-button {
-  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-  border: 1px solid #dc2626;
-  color: #ffffff;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
   font-weight: 600;
   font-size: 14px;
   padding: 8px 16px;
   border-radius: 8px;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
-  min-width: 80px;
+  transition: all 0.2s ease;
+  min-width: 90px;
   height: 36px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
+  font-family: inherit;
+}
+
+.logout-button svg {
+  font-size: 14px;
 }
 
 .logout-button:hover {
-  background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
-  border-color: #b91c1c;
-  color: #ffffff;
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
 }
 
 .logout-button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
-}
-
-.logout-button::before {
-  content: "🚪";
-  font-size: 12px;
 }
 
 /* Dark theme logout button */
 .navbar.dark .logout-button {
-  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-  border-color: #dc2626;
-  color: #ffffff;
+  background: #450a0a;
+  border-color: #7f1d1d;
+  color: #fca5a5;
 }
 
 .navbar.dark .logout-button:hover {
-  background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
-  border-color: #b91c1c;
+  background: #7f1d1d;
+  border-color: #991b1b;
+  color: #ffffff;
 }
 
 /* User info container styling */
@@ -394,15 +455,15 @@
   align-items: center;
   gap: 12px;
   padding: 4px 8px;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  border: 1px solid #cbd5e1;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   transition: all 0.2s ease;
 }
 
 .user-info:hover {
-  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
-  border-color: #94a3b8;
+  background: #f3f4f6;
+  border-color: #d1d5db;
 }
 
 .navbar.dark .user-info {

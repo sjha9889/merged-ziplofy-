@@ -4,8 +4,9 @@ import { connectDB } from "../config/database.config";
 import { User } from "../models/user.model";
 import { Role } from "../models/role.model";
 
-// Load environment variables
+// Load environment variables (.env.development overrides .env for local runs)
 dotenv.config();
+dotenv.config({ path: ".env.development" });
 
 async function createSupportAdmin() {
   try {
@@ -35,7 +36,7 @@ async function createSupportAdmin() {
       user = new User({
         name: derivedName || "Support Admin",
         email,
-        password: "zebronics",
+        password: "123456",
         role: role._id,
         status: "active",
       } as any);
@@ -46,7 +47,7 @@ async function createSupportAdmin() {
       (user as any).name = derivedName || "Support Admin";
       (user as any).role = role._id as any;
       (user as any).status = "active";
-      (user as any).password = "zebronics"; // Will be hashed by pre-save hook
+      (user as any).password = "123456"; // Will be hashed by pre-save hook
       await user.save();
       console.log(`🔄 Updated support-admin user: ${email}`);
     }

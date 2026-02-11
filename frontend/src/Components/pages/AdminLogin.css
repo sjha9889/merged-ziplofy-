@@ -1,5 +1,6 @@
 .admin-login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:#0f172a}
 .admin-login-card{width:360px;background:#111827;color:#e5e7eb;border:1px solid #1f2937;border-radius:12px;padding:24px;box-shadow:0 10px 25px rgba(0,0,0,.35)}
+.admin-login-logo{width:100%;max-width:160px;height:auto;object-fit:contain;margin:0 auto 20px;display:block}
 .admin-login-card h2{margin:0 0 12px 0}
 .admin-login-card label{display:block;font-size:14px;margin:12px 0 6px;color:#cbd5e1}
 .admin-login-card input{width:100%;padding:10px 12px;border-radius:8px;border:1px solid #374151;background:#0b1220;color:#e5e7eb}

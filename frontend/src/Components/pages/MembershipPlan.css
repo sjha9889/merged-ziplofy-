@@ -1,21 +1,27 @@
-/* MembershipPlans.css */
-
-* {
-  box-sizing: border-box;
-}
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 
 .membership-container {
+  --mp-primary: #0ea5e9;
+  --mp-primary-hover: #0284c7;
+  --mp-bg: #f0f9ff;
+  --mp-surface: #e0f2fe;
+  --mp-radius: 12px;
+  --mp-radius-sm: 8px;
+
   min-height: 100vh;
-  background-color: #f9fafb;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
-    sans-serif;
+  background: var(--mp-bg);
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  padding: 28px 32px;
 }
 
-/* Header Styles */
+/* Header */
 .header {
-  background-color: white;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 16px 24px;
+  padding: 24px 28px;
+  margin-bottom: 24px;
+  background: linear-gradient(135deg, #bae6fd 0%, #e0f2fe 100%);
+  border: 1px solid #7dd3fc;
+  border-radius: var(--mp-radius);
+  box-shadow: 0 1px 2px rgba(14, 165, 233, 0.1);
 }
 
 .header-content {
@@ -26,38 +32,15 @@
 
 .title {
   font-size: 24px;
-  font-weight: 500;
-  color: #111827;
+  font-weight: 600;
+  color: #0c4a6e;
   margin: 0;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.icon-btn {
-  padding: 8px;
-  color: #6b7280;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: color 0.2s;
-}
-
-.icon-btn:hover {
-  color: #374151;
-}
-
-.icon {
-  font-size: 16px;
+  letter-spacing: -0.02em;
 }
 
 /* Main Content */
 .main-content {
-  padding: 24px;
+  padding: 0;
 }
 
 /* Top Controls */
@@ -65,8 +48,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 28px;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
 .search-container {
@@ -77,57 +61,55 @@
 
 .search-icon {
   position: absolute;
-  left: 12px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #9ca3af;
-  font-size: 16px;
+  color: #94a3b8;
 }
 
 .search-input {
   width: 100%;
-  padding: 8px 16px 8px 40px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  padding: 12px 16px 12px 44px;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--mp-radius-sm);
   font-size: 14px;
-  outline: none;
+  font-family: inherit;
+  background: #fff;
+  color: #1f2937;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .search-input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  outline: none;
+  border-color: var(--mp-primary);
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.25);
 }
 
 .add-btn {
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: #fb923c;
+  background: var(--mp-primary);
   color: white;
-  padding: 8px 16px;
-  border-radius: 8px;
+  padding: 12px 20px;
+  border-radius: var(--mp-radius-sm);
   border: none;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   font-size: 14px;
-  transition: background-color 0.2s;
-  white-space: nowrap;
+  transition: all 0.2s;
 }
 
 .add-btn:hover {
-  background-color: #f97316;
-}
-
-.btn-icon {
-  font-size: 16px;
+  background: var(--mp-primary-hover);
+  transform: translateY(-1px);
 }
 
 /* Billing Toggle */
 .billing-toggle-container {
   display: flex;
   justify-content: center;
-  margin-bottom: 25px;
+  margin-bottom: 32px;
 }
 
 .billing-toggle {
@@ -137,46 +119,46 @@
 }
 
 .billing-label {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 500;
-  color: #6b7280;
+  color: #94a3b8;
   transition: color 0.2s;
 }
 
 .billing-label.active {
-  color: #111827;
+  color: #0c4a6e;
 }
 
 .toggle-switch {
   position: relative;
-  width: 44px;
-  height: 24px;
-  background-color: #d1d5db;
-  border-radius: 12px;
+  width: 48px;
+  height: 26px;
+  background: #cbd5e1;
+  border-radius: 13px;
   border: none;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: background 0.3s;
   outline: none;
 }
 
 .toggle-switch.switched {
-  background-color: #fb923c;
+  background: var(--mp-primary);
 }
 
 .toggle-thumb {
   position: absolute;
-  top: 2px;
-  left: 2px;
+  top: 3px;
+  left: 3px;
   width: 20px;
   height: 20px;
-  background-color: white;
+  background: white;
   border-radius: 50%;
-  transition: transform 0.3s;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .toggle-switch.switched .toggle-thumb {
-  transform: translateX(20px);
+  transform: translateX(22px);
 }
 
 /* Plans Grid */
@@ -187,138 +169,136 @@
 }
 
 .plan-card {
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: #fff;
+  border-radius: var(--mp-radius);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   border: 1px solid #e5e7eb;
-  padding: 24px;
-  transition: box-shadow 0.2s;
+  padding: 28px;
+  transition: all 0.2s ease;
 }
 
 .plan-card:hover {
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 8px 24px rgba(14, 165, 233, 0.12);
+  border-color: #7dd3fc;
 }
 
 /* Plan Header */
 .plan-header {
   text-align: center;
   margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .plan-name {
-  font-size: 18px;
-  font-weight: 500;
-  margin: 0 0 16px 0;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
 }
 
 .plan-name.basic {
-  color: #111827;
+  color: #0c4a6e;
 }
 
 .plan-name.business {
-  color: #ea580c;
+  color: #0369a1;
 }
 
 .plan-name.enterprise {
-  color: #374151;
+  color: #0284c7;
 }
 
 .plan-price {
-  margin-bottom: 16px;
+  margin-bottom: 0;
 }
 
 .price {
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 700;
-  color: #111827;
+  color: #0f172a;
 }
 
 .period {
-  color: #6b7280;
-  font-size: 16px;
+  color: #64748b;
+  font-size: 14px;
   margin-left: 4px;
 }
 
 /* Features List */
 .features-list {
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 
 .feature-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .feature-icon {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   flex-shrink: 0;
-}
-
-.feature-icon svg {
-  width: 12px;
-  height: 12px;
-  stroke-width: 2.5px;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .feature-icon.included {
-  background-color: #10b981;
+  background: #14b8a6;
 }
 
 .feature-icon.excluded {
-  background-color: #ef4444;
+  background: #f87171;
 }
 
 .feature-name {
-  color: #374151;
+  color: #334155;
   font-size: 14px;
 }
 
 /* Choose Button */
 .choose-btn {
   width: 100%;
-  background-color: #fb923c;
+  background: var(--mp-primary);
   color: white;
-  padding: 12px 16px;
-  border-radius: 8px;
+  padding: 14px 16px;
+  border-radius: var(--mp-radius-sm);
   border: none;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 13px;
-  transition: background-color 0.2s;
+  font-size: 14px;
+  font-family: inherit;
+  transition: all 0.2s;
 }
 
 .choose-btn:hover {
-  background-color: #f97316;
+  background: var(--mp-primary-hover);
+  transform: translateY(-1px);
 }
 
-/* Responsive Design */
-
-/* Mobile Styles */
+/* Responsive */
 @media (max-width: 767px) {
+  .membership-container {
+    padding: 16px 20px;
+  }
+
   .header {
-    padding: 16px;
+    padding: 20px;
   }
 
   .title {
     font-size: 20px;
   }
 
-  .main-content {
-    padding: 16px;
-  }
-
   .top-controls {
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
   }
 
   .search-container {
@@ -329,20 +309,15 @@
     justify-content: center;
   }
 
-  .billing-toggle-container {
-    margin-bottom: 32px;
-  }
-
   .plans-grid {
-    gap: 16px;
+    gap: 20px;
   }
 
   .plan-card {
-    padding: 20px;
+    padding: 24px;
   }
 }
 
-/* Tablet Styles */
 @media (min-width: 768px) and (max-width: 1023px) {
   .plans-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -350,18 +325,9 @@
   }
 }
 
-/* Desktop Styles */
 @media (min-width: 1024px) {
   .plans-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 32px;
   }
-
-  /* .top-controls {
-    margin-bottom: 64px;
-  }
-
-  .billing-toggle-container {
-    margin-bottom: 64px;
-  } */
 }

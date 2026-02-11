@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Search, Plus } from "lucide-react";
 import "./MembershipPlan.css";
 import { PermissionGate } from "../PermissionGate";
 
@@ -69,14 +70,6 @@ const MembershipPlan: React.FC = () => {
       <div className="header">
         <div className="header-content">
           <h1 className="title">Membership Plans</h1>
-          <div className="header-actions">
-            <button className="icon-btn">
-              <span className="icon">⚙️</span>
-            </button>
-            <button className="icon-btn">
-              <span className="icon">↗️</span>
-            </button>
-          </div>
         </div>
       </div>
 
@@ -85,37 +78,18 @@ const MembershipPlan: React.FC = () => {
         {/* Search and Add Button */}
         <div className="top-controls">
           <div className="search-container">
-            <svg
-              className="search-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.35-4.35" />
-            </svg>
+            <Search size={18} className="search-icon" />
             <input
               type="text"
               placeholder="Search Plan"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                paddingLeft: "40px",
-                paddingRight: "16px",
-                paddingTop: "8px",
-                paddingBottom: "8px",
-                width: "320px",
-                border: "1px solid #d1d5db",
-                borderRadius: "8px",
-                fontSize: "14px",
-                outline: "none",
-              }}
+              className="search-input"
             />
           </div>
           <PermissionGate action="upload" section="Membership" subsection="Membership Plan">
             <button className="add-btn">
-              <span className="btn-icon">{/* Add SVG from public folder here */}</span>
+              <Plus size={18} />
               Add Membership
             </button>
           </PermissionGate>
