@@ -76,6 +76,7 @@ import { freeShippingDiscountRouter } from './routes/free-shipping-discount.rout
 import generalSettingsRouter from './routes/general-settings.route';
 import { installedThemesRouter } from './routes/installed-themes.route';
 import { loginLogRouter } from './routes/login-log.route';
+import { exportLogRouter } from './routes/export-log.route';
 import marketIncludesRouter from './routes/market-includes.route';
 import marketRouter from './routes/market.route';
 import notificationCategoryRouter from './routes/notification-category.route';
@@ -265,6 +266,7 @@ app.use("/api/triggers", triggerRouter);
 app.use("/api/actions", actionRouter);
 app.use("/api/automation-flows", automationFlowRouter);
 app.use("/api/login-logs", loginLogRouter);
+app.use("/api/export-logs", exportLogRouter);
 app.use("/api/client", clientThemeRouter);
 app.use("/api/client/theme-files", clientThemeFilesRouter);
 // app.use("/api/theme-install", themeInstallRouter);

@@ -10,6 +10,7 @@ import {
   faSpinner, 
   faExclamationTriangle 
 } from '@fortawesome/free-solid-svg-icons';
+import { Users, Calendar, Mail } from 'lucide-react';
 import AssignDeveloperModal from '../AssignDeveloperModal';
 import './SupportDeveloper.css';
 
@@ -89,24 +90,24 @@ const SupportDeveloper: React.FC = () => {
 
   return (
     <div className="support-developer-container">
-      {/* Header */}
-      <div className="support-developer-header">
-        <div className="header-content">
-          <FontAwesomeIcon icon={faUsers} className="header-icon" />
-          <div className="header-text">
-            <h1>Support Developers</h1>
-            <p>Manage and view support developer team members</p>
+      <div className="support-developer-card">
+        <div className="support-developer-card-header">
+          <div className="support-developer-title-block">
+            <div className="support-developer-title-accent" />
+            <div>
+              <h1 className="support-developer-title">Support Developers</h1>
+              <p className="support-developer-subtitle">Manage and view support developer team members</p>
+            </div>
+          </div>
+          <div className="header-stats">
+            <div className="header-stat-kpi">
+              <span className="header-stat-value">{supportDevelopers.length}</span>
+              <span className="header-stat-label">Total Developers</span>
+            </div>
           </div>
         </div>
-        <div className="header-stats">
-          <div className="stat-item">
-            <FontAwesomeIcon icon={faUsers} />
-            <span>{supportDevelopers.length} Total Developers</span>
-          </div>
-        </div>
-      </div>
 
-      {/* Content */}
+        {/* Content */}
       <div className="support-developer-content">
         {supportDevelopers.length === 0 ? (
           <div className="empty-state">
@@ -166,46 +167,59 @@ const SupportDeveloper: React.FC = () => {
         )}
       </div>
 
-      {/* Summary Stats */}
+      {/* Summary Stats - Analytics style */}
       {supportDevelopers.length > 0 && (
-        <div className="summary-stats">
-          <div className="stat-card">
-            <FontAwesomeIcon icon={faUsers} />
-            <div className="stat-info">
-              <span className="stat-number">{supportDevelopers.length}</span>
-              <span className="stat-label">Total Developers</span>
+        <div className="summary-stats kpi-grid">
+          <div className="kpi-card">
+            <div className="kpi-card-header">
+              <div className="kpi-content">
+                <div className="kpi-label">Total Developers</div>
+                <div className="kpi-value">{supportDevelopers.length}</div>
+              </div>
+              <div className="kpi-icon-wrap primary">
+                <Users size={24} strokeWidth={2} />
+              </div>
             </div>
           </div>
-          <div className="stat-card">
-            <FontAwesomeIcon icon={faCalendar} />
-            <div className="stat-info">
-              <span className="stat-number">
-                {supportDevelopers.filter(dev => {
-                  const createdAt = new Date(dev.createdAt);
-                  const now = new Date();
-                  const diffInDays = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
-                  return diffInDays < 7;
-                }).length}
-              </span>
-              <span className="stat-label">Added This Week</span>
+          <div className="kpi-card">
+            <div className="kpi-card-header">
+              <div className="kpi-content">
+                <div className="kpi-label">Added This Week</div>
+                <div className="kpi-value">
+                  {supportDevelopers.filter(dev => {
+                    const createdAt = new Date(dev.createdAt);
+                    const now = new Date();
+                    const diffInDays = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+                    return diffInDays < 7;
+                  }).length}
+                </div>
+              </div>
+              <div className="kpi-icon-wrap success">
+                <Calendar size={24} strokeWidth={2} />
+              </div>
             </div>
           </div>
-          <div className="stat-card">
-            <FontAwesomeIcon icon={faEnvelope} />
-            <div className="stat-info">
-              <span className="stat-number">
-                {new Set(supportDevelopers
-                  .filter(dev => dev.email && typeof dev.email === 'string')
-                  .map(dev => dev.email.split('@')[1])
-                ).size}
-              </span>
-              <span className="stat-label">Unique Domains</span>
+          <div className="kpi-card">
+            <div className="kpi-card-header">
+              <div className="kpi-content">
+                <div className="kpi-label">Unique Domains</div>
+                <div className="kpi-value">
+                  {new Set(supportDevelopers
+                    .filter(dev => dev.email && typeof dev.email === 'string')
+                    .map(dev => dev.email.split('@')[1])
+                  ).size}
+                </div>
+              </div>
+              <div className="kpi-icon-wrap accent">
+                <Mail size={24} strokeWidth={2} />
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Assign Developer Modal */}
+        {/* Assign Developer Modal */}
+      </div>
       <AssignDeveloperModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}

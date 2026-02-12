@@ -1,41 +1,56 @@
-/* Domain Requests Page - Matches screenshot layout */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 .domain-container {
-  background-color: #ffffff;
+  background-color: var(--z-surface);
   padding: 24px 28px;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--z-font);
   font-size: 14px;
-  color: #111827;
+  font-weight: 400;
+  color: var(--z-text);
   border-radius: 12px;
   max-width: 100%;
   min-height: calc(100vh - 80px);
   text-align: left;
 }
 
-/* Header */
-.domain-header {
-  margin-bottom: 24px;
+/* Main card - Discounts style */
+.domain-card {
+  background: var(--z-bg);
+  border: 1px solid var(--z-border);
+  border-radius: var(--z-radius);
+  box-shadow: var(--z-shadow-card);
+  overflow: hidden;
 }
 
-.domain-header .header-left {
+.domain-card-header {
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--z-border);
+}
+
+.domain-title-block {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
   align-items: flex-start;
+  gap: 16px;
 }
 
-.domain-header h1 {
+.domain-title-accent {
+  width: 4px;
+  min-height: 36px;
+  background: var(--z-primary);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.domain-title {
   font-size: 24px;
-  font-weight: 600;
-  margin: 0;
-  color: #111827;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: var(--z-text);
 }
 
-.domain-header .breadcrumbs {
-  font-size: 13px;
-  color: #6b7280;
+.domain-subtitle {
+  font-size: 14px;
+  color: var(--z-text-muted);
   margin: 0;
+  font-weight: 400;
 }
 
 /* Controls */
@@ -43,7 +58,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  padding: 20px 28px;
   flex-wrap: wrap;
   gap: 16px;
 }
@@ -76,7 +91,7 @@
   right: 10px;
   top: 50%;
   transform: translateY(-50%);
-  color: #6b7280;
+  color: var(--z-text-muted);
   pointer-events: none;
 }
 
@@ -198,6 +213,7 @@
 
 /* Table */
 .domain-table-container {
+  border-top: 1px solid var(--z-border);
   overflow-x: auto;
   border-radius: 10px;
   border: 1px solid #e5e7eb;
@@ -334,7 +350,7 @@
 
 .pagination-info {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--z-text-muted);
 }
 
 .pagination-controls {

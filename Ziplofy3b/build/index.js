@@ -82,6 +82,7 @@ const free_shipping_discount_route_1 = require("./routes/free-shipping-discount.
 const general_settings_route_1 = __importDefault(require("./routes/general-settings.route"));
 const installed_themes_route_1 = require("./routes/installed-themes.route");
 const login_log_route_1 = require("./routes/login-log.route");
+const export_log_route_1 = require("./routes/export-log.route");
 const market_includes_route_1 = __importDefault(require("./routes/market-includes.route"));
 const market_route_1 = __importDefault(require("./routes/market.route"));
 const notification_category_route_1 = __importDefault(require("./routes/notification-category.route"));
@@ -252,6 +253,7 @@ app.use("/api/triggers", trigger_route_1.default);
 app.use("/api/actions", action_route_1.default);
 app.use("/api/automation-flows", automation_flow_route_1.default);
 app.use("/api/login-logs", login_log_route_1.loginLogRouter);
+app.use("/api/export-logs", export_log_route_1.exportLogRouter);
 app.use("/api/client", client_theme_route_1.clientThemeRouter);
 app.use("/api/client/theme-files", client_theme_files_route_1.clientThemeFilesRouter);
 // app.use("/api/theme-install", themeInstallRouter);

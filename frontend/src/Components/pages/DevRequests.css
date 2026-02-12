@@ -1,62 +1,89 @@
 .dev-requests-container {
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
+  padding: 24px 28px;
+  max-width: 100%;
+  background: var(--z-surface);
+  min-height: calc(100vh - 80px);
 }
 
-.dev-requests-header {
+.dev-requests-card {
+  background: var(--z-bg);
+  border: 1px solid var(--z-border);
+  border-radius: var(--z-radius);
+  box-shadow: var(--z-shadow-card);
+  overflow: hidden;
+}
+
+.dev-requests-card-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 32px;
-  padding: 24px;
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  border-radius: 12px;
-  color: white;
-  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--z-border);
 }
 
-.header-left {
+.dev-requests-title-block {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
 }
 
-.header-icon {
-  font-size: 32px;
-  opacity: 0.9;
+.dev-requests-title-accent {
+  width: 4px;
+  min-height: 36px;
+  background: var(--z-primary);
+  border-radius: 2px;
+  flex-shrink: 0;
 }
 
-.header-text h1 {
+.dev-requests-title {
   margin: 0 0 4px 0;
-  font-size: 28px;
+  font-size: 24px;
   font-weight: 700;
+  color: var(--z-text);
 }
 
-.header-text p {
+.dev-requests-subtitle {
   margin: 0;
-  font-size: 16px;
-  opacity: 0.9;
+  font-size: 14px;
+  color: var(--z-text-muted);
+  font-weight: 400;
 }
 
-.header-stats {
+.dev-requests-card .header-stats {
   display: flex;
   gap: 16px;
 }
 
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 14px;
+.dev-requests-card .header-stat-kpi {
+  background: var(--z-bg);
+  border: 1px solid var(--z-border);
+  border-radius: var(--z-radius-sm);
+  padding: 12px 20px;
+  min-width: 120px;
+  text-align: center;
+  box-shadow: var(--z-shadow-card);
+}
+
+.dev-requests-card .header-stat-value {
+  display: block;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--z-text);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.dev-requests-card .header-stat-label {
+  font-size: 12px;
+  color: var(--z-text-muted);
   font-weight: 500;
+  margin-top: 4px;
 }
 
 .dev-requests-content {
-  margin-bottom: 32px;
+  margin: 24px 28px 32px;
 }
 
 .empty-state {
@@ -130,7 +157,7 @@
 
 .stat-card svg {
   font-size: 24px;
-  color: #2563eb;
+  color: var(--z-primary);
   background: #dbeafe;
   padding: 12px;
   border-radius: 8px;

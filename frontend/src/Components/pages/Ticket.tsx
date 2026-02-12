@@ -15,6 +15,7 @@ import { DateRange, Range } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { format } from "date-fns";
+import { useExportLog } from "../../hooks/useExportLog";
 
 interface TicketData {
   id: number;
@@ -27,6 +28,7 @@ interface TicketData {
 }
 
 const Ticket: React.FC = () => {
+  const { exportAndLog } = useExportLog();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [dateRange, setDateRange] = useState<Range[]>([
     { startDate: new Date(2025, 9, 15), endDate: new Date(2025, 10, 30), key: "selection" },
@@ -207,14 +209,9 @@ const Ticket: React.FC = () => {
       t.status,
       t.created,
     ]);
-    const csv = [headers.join(","), ...rows.map((r) => r.map((c) => `"${c}"`).join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `support-tickets-${format(new Date(), "yyyy-MM-dd")}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const csvContent = [headers.join(","), ...rows.map((r) => r.map((c) => `"${c}"`).join(","))].join("\n");
+    const fileName = `support-tickets-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    exportAndLog({ page: "Support Tickets", csvContent, fileName });
   };
 
   const handleReset = () => {
@@ -248,14 +245,18 @@ const Ticket: React.FC = () => {
 
   return (
     <div className="tickets-container">
-      <div className="tickets-header">
-        <div className="header-left">
-          <h1 className="tickets-title">Support Tickets</h1>
-          <nav className="breadcrumbs">Dashboard &gt; Support Tickets</nav>
+      <div className="tickets-card">
+        <div className="tickets-card-header">
+          <div className="tickets-title-block">
+            <div className="tickets-title-accent" />
+            <div>
+              <h1 className="tickets-title">Support Tickets</h1>
+              <p className="tickets-subtitle">View and manage support tickets for your store</p>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div className="tickets-controls">
+        <div className="tickets-controls">
         <div className="controls-left">
           <div className="sort-dropdown">
             <select
@@ -429,6 +430,7 @@ const Ticket: React.FC = () => {
             <ChevronRight size={16} />
           </button>
         </div>
+      </div>
       </div>
     </div>
   );
