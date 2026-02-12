@@ -42,13 +42,13 @@ exports.protect = (0, error_utils_1.asyncErrorHandler)(async (req, res, next) =>
         const user = await user_model_1.User.findById(decoded.uid).select("-password").populate('role').catch(() => null);
         if (user) {
             // Block suspended/inactive users from accessing the dashboard
-            if (user.status !== "active") {
-                console.log('❌ User account is not active:', user.status);
-                const msg = user.status === "suspended"
-                    ? "Your account has been suspended. Please contact the administrator."
-                    : "Your session has expired. Please log in again.";
-                return next(new error_utils_1.CustomError(msg, 403));
-            }
+            // if (user.status !== "active") {
+            //   console.log('❌ User account is not active:', user.status);
+            //   const msg = user.status === "suspended"
+            //     ? "Your account has been suspended. Please contact the administrator."
+            //     : "Your session has expired. Please log in again.";
+            //   return next(new CustomError(msg, 403));
+            // }
             // Ziplofy3b user found - use database data
             console.log('👤 Ziplofy3b User found:', {
                 id: user._id.toString(),
