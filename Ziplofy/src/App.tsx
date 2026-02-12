@@ -255,7 +255,7 @@ const AdminApp: React.FC = () => {
             marginLeft: hideSidebar ? 0 : `${SIDEBAR_WIDTH}px`,
             width: hideSidebar ? '100%' : `calc(100% - ${SIDEBAR_WIDTH}px)`,
             height: hideSidebar ? `100vh` : `calc(100vh - ${NAVBAR_HEIGHT}px)`,
-            backgroundColor: hideSidebar ? 'transparent' : '#fff',
+            backgroundColor: hideSidebar ? 'transparent' : '#fdfdfd',
             color: '#000',
             transition: 'margin-left 0.3s ease',
           }}
@@ -495,11 +495,22 @@ const App: React.FC = () => {
           <Router>
           <Toaster
             position="top-center"
+            gutter={12}
             toastOptions={{
               duration: 4000,
               style: {
-                background: "#363636",
-                color: "#fff",
+                background: "#fff",
+                color: "#374151",
+                padding: "12px 16px",
+                borderRadius: "8px",
+                border: "1px solid #e5e7eb",
+                boxShadow: "0 1px 3px rgba(0, 0, 0, 0.08)",
+              },
+              success: {
+                iconTheme: {
+                  primary: "#191919",
+                  secondary: "#fff",
+                },
               },
             }}
           />

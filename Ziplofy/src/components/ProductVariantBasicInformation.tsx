@@ -26,9 +26,9 @@ const ProductVariantBasicInformation: React.FC<ProductVariantBasicInformationPro
   onInputChange,
 }) => {
   return (
-    <div className="bg-white border border-gray-200 p-6 rounded-lg">
+    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-base font-medium text-gray-900">
+        <h2 className="text-base font-semibold text-gray-900">
           Basic Information
         </h2>
         {!isEditing ? (
@@ -63,7 +63,7 @@ const ProductVariantBasicInformation: React.FC<ProductVariantBasicInformationPro
           {isEditing ? (
             <input
               type="text"
-              className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+              className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors"
               value={formData.sku}
               onChange={(e) => onInputChange('sku', e.target.value)}
             />
@@ -80,7 +80,7 @@ const ProductVariantBasicInformation: React.FC<ProductVariantBasicInformationPro
           {isEditing ? (
             <input
               type="text"
-              className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+              className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors"
               value={formData.barcode}
               onChange={(e) => onInputChange('barcode', e.target.value)}
             />

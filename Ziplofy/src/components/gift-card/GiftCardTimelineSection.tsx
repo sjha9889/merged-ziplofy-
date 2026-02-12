@@ -46,13 +46,13 @@ const GiftCardTimelineSection: React.FC<GiftCardTimelineSectionProps> = ({
     <>
       {/* Timeline Segment */}
       <div className="mt-6">
-        <div className="bg-white rounded border border-gray-200 p-4">
+        <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
           <div className="flex items-center mb-4">
-            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-2">
-              <EllipsisVerticalIcon className="w-4 h-4 text-gray-600" />
+            <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center mr-2">
+              <EllipsisVerticalIcon className="w-4 h-4 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-base font-medium text-gray-900">Timeline</h2>
+              <h2 className="text-base font-semibold text-gray-900">Timeline</h2>
               <p className="text-xs text-gray-600 mt-0.5">Track gift card activities and comments</p>
             </div>
           </div>

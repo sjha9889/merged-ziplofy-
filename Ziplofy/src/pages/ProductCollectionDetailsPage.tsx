@@ -5,7 +5,6 @@ import AddProductsToCollectionSection from '../components/collections/AddProduct
 import CollectionOverviewSection from '../components/collections/CollectionOverviewSection';
 import DeleteCollectionModal from '../components/collections/DeleteCollectionModal';
 import EditCollectionModal from '../components/collections/EditCollectionModal';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 import ProductsInCollectionSection from '../components/collections/ProductsInCollectionSection';
 import SelectedProductsToAddSection from '../components/collections/SelectedProductsToAddSection';
 import { useCollectionEntries } from '../contexts/collection-entries.context';
@@ -241,25 +240,23 @@ const ProductCollectionDetailsPage: React.FC = () => {
   const showSearchDropdown = searchQuery.trim() && filteredProducts.length > 0;
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
         {/* Header */}
-        <div className="border-b border-gray-200 px-4 py-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleBack}
-                className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                aria-label="Back"
-              >
-                <ArrowLeftIcon className="w-4 h-4" />
-              </button>
-              <h1 className="text-xl font-medium text-gray-900">{collection?.title || 'Collection'}</h1>
-            </div>
-          </div>
+        <div className="mb-6">
+          <button
+            onClick={handleBack}
+            className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 mb-2 transition-colors"
+            aria-label="Back"
+          >
+            <ArrowLeftIcon className="w-4 h-4" />
+            Back to collections
+          </button>
+          <h1 className="text-2xl font-semibold text-gray-900">{collection?.title || 'Collection'}</h1>
+          {collection?.description && (
+            <p className="text-sm text-gray-600 mt-1">{collection.description}</p>
+          )}
         </div>
-
-      <div className="max-w-7xl mx-auto py-6 px-4">
         {!collection ? (
           <div className="text-sm text-gray-600">Collection not found in state.</div>
         ) : (
@@ -316,8 +313,7 @@ const ProductCollectionDetailsPage: React.FC = () => {
         onClose={handleCloseDeleteModal}
         onConfirm={handleDeleteCollection}
       />
-      </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

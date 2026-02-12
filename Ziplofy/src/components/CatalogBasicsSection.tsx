@@ -13,7 +13,7 @@ export default function CatalogBasicsSection({
   onStatusChange,
 }: CatalogBasicsSectionProps) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4">
+    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="md:col-span-3">
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Title</label>
@@ -21,7 +21,7 @@ export default function CatalogBasicsSection({
             type="text"
             value={title}
             onChange={(e) => onTitleChange(e.target.value)}
-            className="w-full rounded border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-300 transition-colors"
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors"
             placeholder="Enter catalog title"
           />
         </div>
@@ -30,7 +30,7 @@ export default function CatalogBasicsSection({
           <select
             value={status}
             onChange={(e) => onStatusChange(e.target.value as 'active' | 'draft')}
-            className="w-full rounded border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-300 bg-white transition-colors"
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 bg-white transition-colors"
           >
             <option value="active">Active</option>
             <option value="draft">Draft</option>

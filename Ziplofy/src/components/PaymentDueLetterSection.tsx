@@ -61,23 +61,25 @@ const PaymentDueLetterSection: React.FC<PaymentDueLetterSectionProps> = ({
   }, [onSetupReminders]);
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100">
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="px-6 pt-6 pb-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Payment due letter</h3>
-        <p className="text-xs text-gray-500">
-          Your Ziplofy Payment is Due - Ensure Uninterrupted Service Today!
-        </p>
+      <div className="px-5 pt-5 pb-4 border-b border-gray-200/80">
+        <div className="pl-3 border-l-4 border-blue-600">
+          <h3 className="text-base font-semibold text-gray-900">Payment due letter</h3>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Your Ziplofy Payment is Due - Ensure Uninterrupted Service Today!
+          </p>
+        </div>
       </div>
 
       {/* Payment Terms Section */}
-      <div className="px-6 py-4">
+      <div className="px-5 py-4">
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-900 mb-2">Payment terms</label>
           <select
             value={selectedTerms}
             onChange={handleTermsChange}
-            className="w-full px-3 py-2 text-sm text-gray-700 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+            className="w-full px-3 py-2 text-sm text-gray-700 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
           >
             {paymentTermsOptions.map((option) => (
               <option key={option} value={option}>
@@ -99,7 +101,7 @@ const PaymentDueLetterSection: React.FC<PaymentDueLetterSectionProps> = ({
             you can also{' '}
             <button
               onClick={handleSetupReminders}
-              className="text-purple-600 hover:text-purple-700 font-medium underline"
+              className="text-blue-600 hover:text-blue-700 font-medium underline"
             >
               set up automatic payment reminders
             </button>{' '}
@@ -109,15 +111,15 @@ const PaymentDueLetterSection: React.FC<PaymentDueLetterSectionProps> = ({
       </div>
 
       {/* Footer */}
-      <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b-lg">
-        <div className="flex items-center justify-between">
+      <div className="px-5 py-4 bg-page-background-color border-t border-gray-200/80">
+        <div className="flex items-center justify-between gap-4">
           <p className="text-sm text-gray-500">
             Review your order at a glance on the Order Summary page.
           </p>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={handleCancel}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Cancel
             </button>

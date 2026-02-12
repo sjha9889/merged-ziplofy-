@@ -1,11 +1,12 @@
 import {
+  ArrowLeftIcon,
+  CubeIcon,
   PlusIcon,
-  TrashIcon
-} from "@heroicons/react/24/outline";
-import React, { useCallback, useEffect, useState } from "react";
+  TrashIcon,
+} from '@heroicons/react/24/outline';
+import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { useNavigate } from "react-router-dom";
-import GridBackgroundWrapper from "../components/GridBackgroundWrapper";
+import { useNavigate } from 'react-router-dom';
 import ProductBasicInformationSection from "../components/products/ProductBasicInformationSection";
 import ProductImagesSection from "../components/products/ProductImagesSection";
 import ProductInventorySection from "../components/products/ProductInventorySection";
@@ -253,10 +254,32 @@ const NewProductPage: React.FC = () => {
   }, []);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
-        <div className="max-w-7xl mx-auto pt-6 px-4 pb-6">
-          
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
+        {/* Page Header */}
+        <div className="mb-6">
+          <button
+            type="button"
+            onClick={() => navigate('/products')}
+            className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-900 mb-4 transition-colors"
+          >
+            <ArrowLeftIcon className="w-4 h-4" />
+            Back to Products
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
+              <CubeIcon className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Add product</h1>
+              <p className="text-sm text-gray-500 mt-0.5">
+                Create a new product with details, pricing, and inventory
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-6">
           {/* Basic Information Section */}
           <ProductBasicInformationSection
             title={formData.title}
@@ -276,15 +299,11 @@ const NewProductPage: React.FC = () => {
             onRemoveImage={removeImage}
           />
 
-          <div className="border-t border-gray-200 my-6"></div>
-
           {/* Status Section */}
           <ProductStatusSection
             status={formData.status}
             onChange={(status) => handleInputChange('status', status)}
           />
-
-          <div className="border-t border-gray-200 my-6"></div>
 
           {/* Product Organization Section */}
           <ProductOrganizationSection
@@ -296,8 +315,6 @@ const NewProductPage: React.FC = () => {
             onTagsChange={(tags) => handleInputChange('tags', tags)}
             activeStoreId={activeStoreId}
           />
-
-          <div className="border-t border-gray-200 my-6"></div>
 
           {/* Price Section */}
           <ProductPriceSection
@@ -319,8 +336,6 @@ const NewProductPage: React.FC = () => {
             onCostChange={(value) => handleInputChange('cost', value)}
           />
 
-          <div className="border-t border-gray-200 my-6"></div>
-
           {/* Inventory Section */}
           <ProductInventorySection
             inventoryTrackingEnabled={formData.inventoryTrackingEnabled}
@@ -332,8 +347,6 @@ const NewProductPage: React.FC = () => {
             onBarcodeChange={(value) => handleInputChange('barcode', value)}
             onContinueSellingWhenOutOfStockChange={(checked) => handleInputChange('continueSellingWhenOutOfStock', checked)}
           />
-
-          <div className="border-t border-gray-200 my-6"></div>
 
           {/* Shipping Section */}
           <ProductShippingSection
@@ -352,18 +365,16 @@ const NewProductPage: React.FC = () => {
             activeStoreId={activeStoreId}
           />
 
-          <div className="border-t border-gray-200 my-6"></div>
-
           {/* Variants Section */}
-          <div className="mb-6 border border-gray-200 p-3 bg-white/95">
-            <h2 className="text-base font-medium text-gray-900 mb-4">
-              Variants
-            </h2>
-            
+          <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+            <h2 className="text-base font-semibold text-gray-900 mb-4">Variants</h2>
+            <p className="text-sm text-gray-500 mb-4">
+              Add options like size or color so customers can choose from different variants
+            </p>
             <button
               type="button"
               onClick={addVariant}
-              className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50 transition-colors mb-4"
+              className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors mb-4"
             >
               <PlusIcon className="w-4 h-4" />
               Add options like size or color
@@ -371,39 +382,30 @@ const NewProductPage: React.FC = () => {
 
             {/* Variants List */}
             {formData.variants.map((variant, variantIndex) => (
-              <div key={variantIndex} className="mb-3 p-4 border border-gray-200 rounded bg-gray-50">
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="text-sm font-medium text-gray-900">
-                    Option {variantIndex + 1}
-                  </h4>
-                  <button 
+              <div key={variantIndex} className="mb-4 p-4 rounded-lg border border-gray-200 bg-gray-50/50">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-sm font-medium text-gray-900">Option {variantIndex + 1}</h4>
+                  <button
                     type="button"
                     onClick={() => removeVariant(variantIndex)}
-                    className="p-1 text-gray-600 hover:bg-gray-100 rounded transition-colors"
+                    className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
                   >
                     <TrashIcon className="w-4 h-4" />
                   </button>
                 </div>
-
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                      Option Name
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Option name</label>
                     <input
                       type="text"
                       value={variant.optionName}
                       onChange={(e) => updateVariantOptionName(variantIndex, e.target.value)}
                       placeholder="e.g., Size, Color, Material"
-                      className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                      className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 outline-none transition-all"
                     />
                   </div>
-
                   <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1.5">
-                      Option Values
-                    </label>
-                    
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Option values</label>
                     {variant.values.map((value, valueIndex) => (
                       <div key={valueIndex} className="flex gap-2 mb-2">
                         <input
@@ -411,25 +413,24 @@ const NewProductPage: React.FC = () => {
                           value={value}
                           onChange={(e) => updateVariantValue(variantIndex, valueIndex, e.target.value)}
                           placeholder="Enter value"
-                          className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                          className="flex-1 px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 outline-none transition-all"
                         />
-                        <button 
+                        <button
                           type="button"
                           onClick={() => removeVariantValue(variantIndex, valueIndex)}
                           disabled={variant.values.length === 1}
-                          className="p-1.5 text-gray-600 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <TrashIcon className="w-3.5 h-3.5" />
+                          <TrashIcon className="w-4 h-4" />
                         </button>
                       </div>
                     ))}
-
                     <button
                       type="button"
                       onClick={() => addVariantValue(variantIndex)}
-                      className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-900 mt-2"
+                      className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 mt-2"
                     >
-                      <PlusIcon className="w-3.5 h-3.5" />
+                      <PlusIcon className="w-4 h-4" />
                       Add another value
                     </button>
                   </div>
@@ -437,8 +438,6 @@ const NewProductPage: React.FC = () => {
               </div>
             ))}
           </div>
-
-          <div className="border-t border-gray-200 my-6"></div>
 
           {/* Search Engine Listing Section */}
           <ProductSearchEngineListingSection
@@ -452,18 +451,18 @@ const NewProductPage: React.FC = () => {
         </div>
 
         {/* Add Product Button */}
-        <div className="mt-6 flex justify-center">
+        <div className="flex justify-end pt-4 pb-2">
           <button
             type="button"
             onClick={handleSubmit}
             disabled={productLoading || !activeStoreId}
-            className="px-6 py-2.5 bg-gray-900 text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {productLoading ? 'Creating Product...' : 'Add Product'}
+            {productLoading ? 'Creating product...' : 'Add product'}
           </button>
         </div>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

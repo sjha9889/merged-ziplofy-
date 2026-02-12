@@ -13,18 +13,18 @@ const ProductTableRow: React.FC<ProductTableRowProps> = ({ product, onRowClick }
 
   return (
     <tr 
-      className="hover:bg-gray-50 cursor-pointer transition-colors"
+      className="hover:bg-blue-50/40 cursor-pointer transition-colors"
       onClick={handleClick}
     >
-      <td className="px-3 py-2 whitespace-nowrap text-sm font-medium text-gray-900">{product.title}</td>
-      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600">
-        {product.category && typeof product.category === 'object' ? product.category.name : product.category}
+      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{product.title}</td>
+      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
+        {product.category && typeof product.category === 'object' ? product.category.name : product.category || '—'}
       </td>
-      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600">{product.price}</td>
-      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600">{product.sku}</td>
-      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600 capitalize">{product.status}</td>
-      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600">{typeof product.quantity === 'number' ? product.quantity : 0}</td>
-      <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-600">{new Date(product.updatedAt).toLocaleString()}</td>
+      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">₹{Number(product.price).toFixed(2)}</td>
+      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{product.sku || '—'}</td>
+      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 capitalize">{product.status}</td>
+      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{typeof product.quantity === 'number' ? product.quantity : 0}</td>
+      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{new Date(product.updatedAt).toLocaleString()}</td>
     </tr>
   );
 };

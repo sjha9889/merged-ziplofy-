@@ -16,8 +16,8 @@ const ProductImagesSection: React.FC<ProductImagesSectionProps> = ({
   onRemoveImage,
 }) => {
   return (
-    <div className="mt-6 border border-gray-200 p-3 bg-white/95">
-      <h3 className="text-base font-medium text-gray-900 mb-4">
+    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+      <h3 className="text-base font-semibold text-gray-900 mb-4">
         Product Images
       </h3>
       
@@ -25,7 +25,7 @@ const ProductImagesSection: React.FC<ProductImagesSectionProps> = ({
       <button
         type="button"
         onClick={onAddImage}
-        className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50 transition-colors mb-4"
+        className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors mb-4"
       >
         <PlusIcon className="w-4 h-4" />
         Add Image

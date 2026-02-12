@@ -23,19 +23,18 @@ const ProductVariantDetailsHeader: React.FC<ProductVariantDetailsHeaderProps> = 
 
   return (
     <div className="mb-6">
-      <div className="flex items-center mb-2">
-        <button
-          onClick={handleBack}
-          className="p-1.5 hover:bg-gray-50 rounded transition-colors mr-2"
-        >
-          <ArrowLeftIcon className="w-4 h-4 text-gray-700" />
-        </button>
-        <h1 className="text-xl font-medium text-gray-900">
-          {product.title} - {variant.sku}
-        </h1>
-      </div>
-      <p className="text-sm text-gray-600">
-        Variant Details
+      <button
+        onClick={handleBack}
+        className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 mb-2 transition-colors"
+      >
+        <ArrowLeftIcon className="w-4 h-4" />
+        Back to product
+      </button>
+      <h1 className="text-2xl font-semibold text-gray-900">
+        {product.title}
+      </h1>
+      <p className="text-sm text-gray-600 mt-1">
+        Variant: {variant.sku}
       </p>
     </div>
   );

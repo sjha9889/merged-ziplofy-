@@ -55,26 +55,26 @@ const TransferTagsSection: React.FC = () => {
   }, [activeStoreId]);
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-4">
-      <h2 className="text-base font-medium text-gray-900 mb-3">Product transfer tags</h2>
-      <div className="flex gap-2 mb-4">
+    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+      <h2 className="text-base font-semibold text-gray-900 mb-4">Product transfer tags</h2>
+      <div className="flex gap-3 mb-4">
         <input
           type="text"
           placeholder="Add new transfer tag"
           value={newTagName}
           onChange={handleNewTagNameChange}
-          className="flex-1 px-3 py-2 border border-gray-200 rounded focus:ring-1 focus:ring-gray-400 focus:border-gray-300 outline-none transition-colors text-sm"
+          className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors text-sm"
         />
         <button
           disabled={!canCreate || loading}
           onClick={handleAddTag}
-          className="cursor-pointer flex items-center gap-1 px-3 py-2 bg-gray-900 text-white text-sm font-medium rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <PlusIcon className="w-4 h-4" />
           Add
         </button>
       </div>
-      {error && <p className="text-sm text-red-600 mb-2">{error}</p>}
+      {error && <p className="text-sm text-red-600 mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">{error}</p>}
       <TransferTagsList
         tags={tags}
         loading={loading}

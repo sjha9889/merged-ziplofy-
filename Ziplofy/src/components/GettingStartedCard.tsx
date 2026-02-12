@@ -33,7 +33,7 @@ const GettingStartedCard: React.FC<GettingStartedCardProps> = ({
     {
       id: 'items',
       title: "Add all the items that you'll be selling on your store",
-      buttonText: 'Add Itmes',
+      buttonText: 'Add Items',
       buttonVariant: 'primary',
     },
     {
@@ -72,33 +72,33 @@ const GettingStartedCard: React.FC<GettingStartedCardProps> = ({
   }, [onTestOrderClick]);
 
   return (
-    <div className='bg-white rounded-lg p-4 border border-gray-200'>
+    <div className="bg-white rounded-xl p-5 border border-gray-200/80 shadow-sm">
       {/* Main Title */}
-      <div className="text-center mb-3">
-        <h2 className="text-base font-medium text-gray-900">
+      <div className="mb-4 pl-3 border-l-4 border-blue-600">
+        <h2 className="text-base font-semibold text-gray-900">
           Complete these few steps to launch your store
         </h2>
       </div>
 
       {/* Setup Steps */}
-      <div className="space-y-2 mb-3">
+      <div className="space-y-3 mb-4">
         {steps.map((step) => (
           <div
             key={step.id}
-            className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200"
+            className="flex items-center justify-between gap-4 p-4 bg-page-background-color rounded-lg border border-gray-200/80"
           >
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 mb-0.5">{step.title}</p>
               {step.description && (
-                <p className="text-xs text-gray-500 truncate">{step.description}</p>
+                <p className="text-xs text-gray-500 truncate mt-0.5">{step.description}</p>
               )}
             </div>
             <button
               onClick={() => handleStepClick(step.id)}
-              className={`ml-3 px-3 py-1.5 text-sm font-medium rounded border transition-colors whitespace-nowrap flex-shrink-0 ${
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap flex-shrink-0 ${
                 step.buttonVariant === 'added'
-                  ? 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                  : 'bg-white text-gray-900 border-gray-200 hover:bg-gray-50'
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                  : 'bg-blue-600 text-white border border-blue-600 hover:bg-blue-700'
               }`}
             >
               {step.buttonText}
@@ -108,19 +108,19 @@ const GettingStartedCard: React.FC<GettingStartedCardProps> = ({
       </div>
 
       {/* Test Order Section */}
-      <div className="bg-gray-50 rounded p-3 border border-gray-200">
-        <div className="flex items-center justify-between gap-3">
+      <div className="bg-blue-600 rounded-lg p-4">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium text-gray-900 mb-0.5">
+            <h3 className="text-sm font-semibold text-white mb-0.5">
               Try placing a test order yourself
             </h3>
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-blue-100">
               Experience how the process works from start to finish
             </p>
           </div>
           <button
             onClick={handleTestOrderClick}
-            className="px-3 py-1.5 text-sm font-medium text-white bg-gray-600 rounded hover:bg-gray-500 transition-colors whitespace-nowrap flex-shrink-0"
+            className="px-4 py-2 text-sm font-medium text-blue-600 bg-white rounded-lg hover:bg-blue-50 transition-colors whitespace-nowrap flex-shrink-0"
           >
             See How It Works
           </button>

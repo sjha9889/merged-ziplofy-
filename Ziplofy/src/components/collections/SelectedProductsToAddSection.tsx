@@ -23,11 +23,10 @@ const SelectedProductsToAddSection: React.FC<SelectedProductsToAddSectionProps> 
   onClearAll,
 }) => {
   return (
-    <div className="bg-white rounded border border-gray-200 p-4 mb-6">
-      <h2 className="text-base font-medium text-gray-900 mb-3">
-        Products to add to collection ({selectedProducts.length})
+    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm mb-6">
+      <h2 className="text-base font-semibold text-gray-900 mb-4">
+        Products to add ({selectedProducts.length})
       </h2>
-      <div className="border-t border-gray-200 mb-3"></div>
 
       {selectedProducts.length > 0 ? (
         <div className="space-y-2">
@@ -65,7 +64,7 @@ const SelectedProductsToAddSection: React.FC<SelectedProductsToAddSectionProps> 
             <button
               onClick={onAddProducts}
               disabled={selectedProducts.length === 0 || loading}
-              className="px-3 py-1.5 text-sm font-medium text-white bg-gray-900 rounded hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               {loading
                 ? 'Adding products...'
@@ -74,7 +73,7 @@ const SelectedProductsToAddSection: React.FC<SelectedProductsToAddSectionProps> 
             <button
               onClick={onClearAll}
               disabled={selectedProducts.length === 0}
-              className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200 rounded hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Clear all
             </button>

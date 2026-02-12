@@ -16,11 +16,10 @@ const ProductsInCollectionSection: React.FC<ProductsInCollectionSectionProps> = 
   onRemoveProduct,
 }) => {
   return (
-    <div className="bg-white rounded border border-gray-200 p-4">
-      <h2 className="text-base font-medium text-gray-900 mb-3">
-        Products in this collection ({collectionEntries.length})
+    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+      <h2 className="text-base font-semibold text-gray-900 mb-4">
+        Products in collection ({collectionEntries.length})
       </h2>
-      <div className="border-t border-gray-200 mb-3"></div>
 
       {loading ? (
         <p className="text-sm text-gray-600">Loading products...</p>

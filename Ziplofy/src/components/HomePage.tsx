@@ -1,4 +1,5 @@
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { motion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { InlineWidget } from 'react-calendly';
 import toast from 'react-hot-toast';
@@ -8,7 +9,6 @@ import { SocketEventType } from '../types/event.types';
 import CustomizeDomainCard from './CustomizeDomainCard';
 import DashboardContent from './DashboardContent';
 import GettingStartedPage from './GettingStartedPage';
-import GridBackgroundWrapper from './GridBackgroundWrapper';
 
 export default function HomePage() {
   const [showCalendlyModal, setShowCalendlyModal] = useState<boolean>(false);
@@ -145,53 +145,55 @@ export default function HomePage() {
 
   return (
     <>
-      
-      {/* Scrollable Content Layer */}
-      <GridBackgroundWrapper>
-      <div className="relative pt-3 px-4 pb-6" style={{ position: 'relative', zIndex: 1 }}>
-        <div className="max-w-[1400px] mx-auto flex flex-col gap-3">
+      <div className="min-h-screen bg-page-background-color">
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
+          {/* Header */}
+          <div className="mb-4">
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+              Welcome back{userName !== 'User' ? `, ${userName}` : ''}
+            </h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Here's what's happening with your store today
+            </p>
+          </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex items-center gap-4 mb-2">
-          <button
-            onClick={() => setActiveTab('dashboard')}
-            className={`pb-2 text-base px-1 font-medium transition-colors ${
-              activeTab === 'dashboard'
-                ? 'text-gray-900 border-b-2 border-gray-900'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Dashboard
-          </button>
-          <button
-            onClick={() => setActiveTab('getting-started')}
-            className={`pb-2 px-1 text-base font-medium transition-colors ${
-              activeTab === 'getting-started'
-                ? 'text-gray-900 border-b-2 border-gray-900'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            Getting Started - updated
-          </button>
-        </div>
+          {/* Tabs */}
+          <div className="flex items-center gap-1 mb-8 p-1 bg-white rounded-lg border border-gray-200 w-fit">
+            {(['dashboard', 'getting-started'] as const).map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`${
+                  activeTab === tab ? '' : 'hover:text-gray-900 hover:bg-gray-100'
+                } relative rounded-md px-4 py-2 text-sm font-medium text-gray-600 outline-sky-400 transition focus-visible:outline-2`}
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+              >
+                {activeTab === tab && (
+                  <motion.span
+                    layoutId="bubble"
+                    className="absolute inset-0 z-10 bg-blue-600"
+                    style={{ borderRadius: 6 }}
+                    transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+                <span className={`relative z-10 ${activeTab === tab ? 'text-white' : 'text-gray-600'}`}>
+                  {tab === 'dashboard' ? 'Dashboard' : 'Getting Started'}
+                </span>
+              </button>
+            ))}
+          </div>
 
-        {/* Content Container */}
-        <div className="flex flex-col gap-3">
-
-          {/* Main Content */}
+          {/* Content */}
           {activeTab === 'dashboard' ? (
-            <DashboardContent />
-          ) : (
-            <GettingStartedPage />
-          )}
-
-          {/* Legacy Developer Actions - Hidden by default, can be shown conditionally */}
-          {activeTab === 'dashboard' && (
-            <div>
+            <div key="dashboard" className="flex flex-col gap-4 animate-tab-fade">
+              <DashboardContent />
               <CustomizeDomainCard />
             </div>
+          ) : (
+            <div key="getting-started" className="animate-tab-fade">
+              <GettingStartedPage />
+            </div>
           )}
-        </div>
         </div>
       </div>
 
@@ -251,7 +253,6 @@ export default function HomePage() {
           </div>
         </>
       )}
-      </GridBackgroundWrapper>
     </>
   );
 }

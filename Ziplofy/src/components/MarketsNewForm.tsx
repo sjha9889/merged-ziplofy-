@@ -19,15 +19,15 @@ export default function MarketsNewForm({ onCreated }: MarketsNewFormProps) {
   }, [activeStoreId, name, status, createMarket, onCreated]);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 w-full flex flex-col">
-      <div className="flex flex-col md:flex-row gap-4 mb-4">
+    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm w-full flex flex-col">
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="flex-1">
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Name</label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full rounded border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-300 transition-colors"
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors"
             placeholder="Enter market name"
           />
         </div>
@@ -37,7 +37,7 @@ export default function MarketsNewForm({ onCreated }: MarketsNewFormProps) {
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as 'active' | 'draft')}
-            className="w-full rounded border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-300 bg-white transition-colors"
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 bg-white transition-colors"
           >
             <option value="active">Active</option>
             <option value="draft">Draft</option>
@@ -45,12 +45,12 @@ export default function MarketsNewForm({ onCreated }: MarketsNewFormProps) {
         </div>
       </div>
 
-      <div className="flex justify-end gap-2">
+      <div className="flex justify-end gap-3 pt-6 border-t border-gray-200">
         <button
           type="button"
           onClick={onCreate}
           disabled={!name.trim() || !activeStoreId || loading}
-          className="cursor-pointer px-3 py-1.5 rounded bg-gray-900 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           Create
         </button>

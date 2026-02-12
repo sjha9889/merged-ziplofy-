@@ -1,8 +1,7 @@
-import { PlusIcon } from '@heroicons/react/24/outline';
+import { CreditCardIcon, PlusIcon } from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GiftCardTable from '../components/gift-card/GiftCardTable';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 import { useGiftCards } from '../contexts/gift-cards.context';
 import { useStore } from '../contexts/store.context';
 
@@ -25,14 +24,12 @@ const GiftCardsPage: React.FC = () => {
     [navigate]
   );
 
-  // Fetch gift cards when component mounts or activeStoreId changes
   useEffect(() => {
     if (activeStoreId) {
       fetchGiftCardsByStoreId(activeStoreId);
     }
   }, [activeStoreId, fetchGiftCardsByStoreId]);
 
-  // Sort gift cards by createdAt
   const sortedGiftCards = useMemo(() => {
     const sorted = [...giftCards].sort((a, b) => {
       const dateA = new Date(a.createdAt).getTime();
@@ -47,88 +44,73 @@ const GiftCardsPage: React.FC = () => {
   }, []);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
         {/* Page Header */}
-        <div className="border-b border-gray-200 px-4 py-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-xl font-medium text-gray-900">Gift Cards</h1>
-                <p className="text-sm text-gray-600 mt-0.5">Manage your gift cards and create new ones</p>
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+          <div className="pl-3 border-l-4 border-blue-500/60">
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Gift Cards</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Manage your gift cards and create new ones</p>
+          </div>
+          <button
+            onClick={handleCreateGiftCard}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold transition-colors shadow-sm"
+          >
+            <PlusIcon className="w-4 h-4" />
+            Create Gift Card
+          </button>
+        </div>
+
+        {error && (
+          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
+            <p className="text-sm text-red-600">{error}</p>
+          </div>
+        )}
+
+        {loading && (
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm flex justify-center items-center py-16">
+            <div className="animate-spin rounded-full h-10 w-10 border-2 border-gray-200 border-t-blue-600"></div>
+          </div>
+        )}
+
+        {!loading && !error && giftCards.length === 0 && (
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm min-h-[320px] flex justify-center items-center p-12">
+            <div className="flex flex-col justify-center items-center text-center gap-4 max-w-md">
+              <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center">
+                <CreditCardIcon className="w-7 h-7 text-blue-600" />
               </div>
-              {giftCards.length > 0 && (
-                <button
-                  onClick={handleCreateGiftCard}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors"
-                >
-                  <PlusIcon className="w-4 h-4" />
-                  Create Gift Card
-                </button>
-              )}
+              <div className="flex flex-col gap-1.5">
+                <h2 className="text-lg font-semibold text-gray-900">No gift cards yet</h2>
+                <p className="text-sm text-gray-500">Create your first gift card to get started</p>
+              </div>
+              <button
+                onClick={handleCreateGiftCard}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold transition-colors shadow-sm"
+              >
+                <PlusIcon className="w-4 h-4" />
+                Create Gift Card
+              </button>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto py-6 px-4">
-        {/* Loading State */}
-        {loading && (
-          <div className="flex justify-center items-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        {!loading && !error && giftCards.length > 0 && (
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+            <div className="px-5 py-3 border-b border-gray-100 bg-gray-50/80">
+              <h2 className="text-base font-semibold text-gray-900">
+                {giftCards.length} Gift Card{giftCards.length !== 1 ? 's' : ''}
+              </h2>
+            </div>
+            <GiftCardTable
+              giftCards={sortedGiftCards}
+              onGiftCardClick={handleGiftCardClick}
+              sortOrder={sortOrder}
+              onSortToggle={handleSortToggle}
+            />
           </div>
         )}
-
-        {/* Error State */}
-        {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm">
-            {error}
-          </div>
-        )}
-
-        {/* Gift Cards List or Empty State */}
-        {!loading && !error && (
-          <>
-            {giftCards.length === 0 ? (
-              <div className="bg-white rounded border border-gray-200 p-6 text-center">
-                <h2 className="text-base font-medium text-gray-900 mb-2">
-                  No gift cards yet
-                </h2>
-                <p className="text-sm text-gray-600 mb-4">
-                  Create your first gift card to get started
-                </p>
-                
-                <button
-                  onClick={handleCreateGiftCard}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors"
-                >
-                  <PlusIcon className="w-4 h-4" />
-                  Create Gift Card
-                </button>
-              </div>
-            ) : (
-              <div className="bg-white rounded border border-gray-200">
-                {/* Header with Count */}
-                <div className="p-3 border-b border-gray-200 bg-gray-50">
-                  <h2 className="text-base font-medium text-gray-900">
-                    {giftCards.length} Gift Card{giftCards.length !== 1 ? 's' : ''}
-                  </h2>
-                </div>
-
-                {/* Gift Cards Table */}
-                <GiftCardTable
-                  giftCards={sortedGiftCards}
-                  onGiftCardClick={handleGiftCardClick}
-                  sortOrder={sortOrder}
-                  onSortToggle={handleSortToggle}
-                />
-              </div>
-            )}
-          </>
-        )}
-        </div>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

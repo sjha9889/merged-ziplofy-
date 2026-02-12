@@ -10,9 +10,9 @@ const HelpfulResourcesCard: React.FC<HelpfulResourcesCardProps> = ({
   resources = [
     {
       id: 'help-center',
-      title: 'Visit our Help Cneter',
+      title: 'Visit our Help Center',
       icon: (
-        <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -26,7 +26,7 @@ const HelpfulResourcesCard: React.FC<HelpfulResourcesCardProps> = ({
       id: 'academy',
       title: 'Try our Academy Page',
       icon: (
-        <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -40,7 +40,7 @@ const HelpfulResourcesCard: React.FC<HelpfulResourcesCardProps> = ({
       id: 'forum',
       title: 'Try our Forum Area',
       icon: (
-        <svg className="w-6 h-6 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -65,16 +65,16 @@ const HelpfulResourcesCard: React.FC<HelpfulResourcesCardProps> = ({
   );
 
   return (
-    <div className="bg-white rounded-lg p-4 border border-gray-200 flex-1">
+    <div className="bg-white rounded-xl p-5 border border-gray-200/80 shadow-sm flex-1">
       {/* Header */}
-      <div className="mb-3">
-        <h3 className="text-base font-medium text-gray-900">
-          Other Helpful <span className="font-medium">Resources</span>
+      <div className="mb-4 pl-3 border-l-4 border-blue-600">
+        <h3 className="text-base font-semibold text-gray-900">
+          Other Helpful Resources
         </h3>
       </div>
 
       {/* Resources List */}
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         {resources.map((resource) => (
           <HelpfulResourceItem
             key={resource.id}

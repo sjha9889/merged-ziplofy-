@@ -3,7 +3,6 @@ import ProductsPageEmptyState from "../components/products/ProductsPageEmptyStat
 import ProductsPageFilters from "../components/products/ProductsPageFilters";
 import ProductsPageHeader from "../components/products/ProductsPageHeader";
 import ProductsTable from "../components/products/ProductsTable";
-import GridBackgroundWrapper from "../components/GridBackgroundWrapper";
 import { useProducts } from "../contexts/product.context";
 import { useStore } from "../contexts/store.context";
 
@@ -18,20 +17,22 @@ const ProductsPage: React.FC = () => {
   }, [activeStoreId, fetchProductsByStoreId]);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
         <ProductsPageHeader />
         <ProductsPageFilters />
 
-        <div className="max-w-7xl mx-auto py-6 px-4">
+        <div>
           {(!products || products.length === 0) ? (
-            <ProductsPageEmptyState />
+            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+              <ProductsPageEmptyState />
+            </div>
           ) : (
             <ProductsTable products={products} />
           )}
         </div>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

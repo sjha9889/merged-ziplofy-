@@ -58,14 +58,17 @@ const RevenueAnalyticsCard: React.FC<RevenueAnalyticsCardProps> = ({
   }, [isDropdownOpen]);
 
   return (
-    <div className="bg-white rounded-lg p-4 min-h-80 border border-gray-200">
+    <div className="bg-white rounded-xl p-5 min-h-80 border border-gray-200/80 shadow-sm">
       {/* Header */}
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-base font-medium text-gray-900">Revenue analytics</h3>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="text-base font-semibold text-gray-900">Revenue analytics</h3>
+          <p className="text-sm text-gray-500 mt-0.5">Revenue over time</p>
+        </div>
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
           >
             {selectedTimeframe}
             <ChevronDownIcon className="w-4 h-4" />
@@ -79,7 +82,7 @@ const RevenueAnalyticsCard: React.FC<RevenueAnalyticsCardProps> = ({
                     setSelectedTimeframe(tf);
                     setIsDropdownOpen(false);
                   }}
-                  className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 transition-colors"
                 >
                   {tf}
                 </button>
@@ -132,8 +135,8 @@ const RevenueAnalyticsCard: React.FC<RevenueAnalyticsCardProps> = ({
                   y={y}
                   width={barWidth}
                   height={barHeight}
-                  fill="#6366f1"
-                  rx="4"
+                  fill="#2563eb"
+                  rx="6"
                   className="hover:opacity-80 transition-opacity"
                 />
                 {/* Day Label */}

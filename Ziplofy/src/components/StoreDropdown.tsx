@@ -199,7 +199,7 @@ const StoreDropdown: React.FC<StoreDropdownProps> = ({ onStoreChange }) => {
             {activeStore && (
               <div className="px-3 py-2 bg-gray-50 border-b border-gray-100">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-gray-600 flex items-center justify-center text-white text-xs font-medium shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-medium shrink-0">
                     {getStoreInitials(activeStore.storeName)}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -223,12 +223,12 @@ const StoreDropdown: React.FC<StoreDropdownProps> = ({ onStoreChange }) => {
                   key={store._id}
                   onClick={() => handleStoreSelect(store._id)}
                   className={`w-full flex items-center gap-2 px-3 py-2 hover:bg-gray-50 transition-colors text-left ${
-                    store._id === activeStoreId ? 'bg-gray-50' : ''
+                    store._id === activeStoreId ? 'bg-blue-50/50' : ''
                   }`}
                 >
                   <div
                     className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-medium shrink-0 ${
-                      store._id === activeStoreId ? 'bg-gray-600' : 'bg-gray-400'
+                      store._id === activeStoreId ? 'bg-blue-600' : 'bg-gray-400'
                     }`}
                   >
                     {getStoreInitials(store.storeName)}
@@ -250,7 +250,7 @@ const StoreDropdown: React.FC<StoreDropdownProps> = ({ onStoreChange }) => {
                     )}
                   </div>
                   {store._id === activeStoreId && (
-                    <div className="w-1.5 h-1.5 rounded-full bg-gray-600 shrink-0" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0" />
                   )}
                 </button>
               ))}

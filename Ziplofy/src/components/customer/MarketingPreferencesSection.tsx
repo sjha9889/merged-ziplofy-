@@ -22,8 +22,8 @@ const MarketingPreferencesSection: React.FC<MarketingPreferencesSectionProps> = 
   );
 
   return (
-    <div className="bg-white p-4 rounded border border-gray-200">
-      <h2 className="text-base font-medium text-gray-900 mb-4">Marketing Preferences</h2>
+    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+      <h2 className="text-base font-semibold text-gray-900 mb-4">Marketing Preferences</h2>
       
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <label className="flex items-center gap-2 cursor-pointer">

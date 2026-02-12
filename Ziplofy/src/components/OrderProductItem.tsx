@@ -45,7 +45,7 @@ const OrderProductItem: React.FC<OrderProductItemProps> = ({
   }, [product.id, onRemove]);
 
   return (
-    <div className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0">
+    <div className="flex items-center justify-between py-4 border-b border-gray-100 last:border-b-0 hover:bg-page-background-color/50 transition-colors -mx-5 px-5">
       {/* Left Side: Product Info */}
       <div className="flex-1">
         {product.collectionName && (
@@ -81,7 +81,7 @@ const OrderProductItem: React.FC<OrderProductItemProps> = ({
             input.value = product.quantity.toString();
             // TODO: Implement quantity selector modal or inline edit
           }}
-          className="px-3 py-1.5 text-sm text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          className="px-3 py-1.5 text-sm text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-colors"
         >
           {product.quantity} × {formatCurrency(product.unitPrice)}
         </button>
@@ -94,7 +94,7 @@ const OrderProductItem: React.FC<OrderProductItemProps> = ({
         {/* Delete Button */}
         <button
           onClick={handleRemove}
-          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
           aria-label="Remove product"
         >
           <TrashIcon className="w-5 h-5" />

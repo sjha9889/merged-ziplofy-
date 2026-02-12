@@ -28,7 +28,7 @@ const ProductsInCollectionItem: React.FC<ProductsInCollectionItemProps> = ({
 
   return (
     <div
-      className="flex items-center justify-between p-3 border border-gray-200 rounded bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors"
+      className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 cursor-pointer transition-colors shadow-sm"
       onClick={handleClick}
     >
       <div className="flex items-center gap-2 flex-1 min-w-0">

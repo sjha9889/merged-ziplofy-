@@ -6,6 +6,12 @@ interface SlantedImageCarouselWrapperProps {
   animationDuration?: number;
 }
 
+// Seeded random for stable values across renders
+const seededRandom = (seed: number) => {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+};
+
 const DEFAULT_IMAGES = [
   'https://images.unsplash.com/photo-1556740758-90de374c12ad?w=500&h=500&fit=crop',
   'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&h=500&fit=crop',
@@ -30,17 +36,48 @@ const DEFAULT_IMAGES = [
 const SlantedImageCarouselWrapper: React.FC<SlantedImageCarouselWrapperProps> = ({
   children,
   images = DEFAULT_IMAGES,
-  animationDuration = 100,
+  animationDuration = 20,
 }) => {
-  const boxWidth = 300;
-  const boxHeight = 400;
+  const boxWidth = 250;
+  const boxHeight = 300;
   const imageGap = 30; // Positive gap for spacing between columns
   const rowGap = 620; // Spacing between rows
-  const rowRotation = 3; // Rotation angle for rows in degrees
-  const boxesPerView = 6;
+  const boxesPerView = 4;
   const singleSetWidth = boxesPerView * (boxWidth + imageGap);
   const boxesForRow = boxesPerView * 2; // Each row needs 12 boxes
   const totalWidth = boxesForRow * 2 * (boxWidth + imageGap); // Width for duplicated boxes
+  
+  // Randomized row configs: varied speeds and directions for "boxes flying here and there" effect
+  const rowConfigs = useMemo(() => {
+    const baseSeed = 12345;
+    const baseSpeed = animationDuration;
+    return [
+      {
+        speed: baseSpeed * (0.4 + seededRandom(baseSeed) * 0.8),
+        direction: 'left' as const,
+        rotation: 2 + (seededRandom(baseSeed + 1) - 0.5) * 3,
+        delay: seededRandom(baseSeed + 2) * 3,
+      },
+      {
+        speed: baseSpeed * (0.5 + seededRandom(baseSeed + 3) * 0.7),
+        direction: 'right' as const,
+        rotation: -2.5 + (seededRandom(baseSeed + 4) - 0.5) * 2.5,
+        delay: seededRandom(baseSeed + 5) * 3,
+      },
+      {
+        speed: baseSpeed * (0.35 + seededRandom(baseSeed + 6) * 0.9),
+        direction: 'left' as const,
+        rotation: 3 + (seededRandom(baseSeed + 7) - 0.5) * 2,
+        delay: seededRandom(baseSeed + 8) * 3,
+      },
+      {
+        speed: baseSpeed * (0.6 + seededRandom(baseSeed + 9) * 0.6),
+        direction: 'right' as const,
+        rotation: -1.5 + (seededRandom(baseSeed + 10) - 0.5) * 2,
+        delay: seededRandom(baseSeed + 11) * 3,
+      },
+    ];
+  }, [animationDuration]);
   
   // Generate separate box arrays for each row, duplicated for seamless loop
   const topRowBoxes = useMemo(() => {
@@ -57,43 +94,71 @@ const SlantedImageCarouselWrapper: React.FC<SlantedImageCarouselWrapperProps> = 
     const base = Array.from({ length: boxesForRow }, (_, i) => i + boxesForRow * 2);
     return [...base, ...base]; // Duplicate for seamless loop
   }, [boxesForRow]);
+  
+  const fourthRowBoxes = useMemo(() => {
+    const base = Array.from({ length: boxesForRow }, (_, i) => i + boxesForRow * 3);
+    return [...base, ...base]; // Duplicate for seamless loop
+  }, [boxesForRow]);
 
-  // Generate unique animation name based on width to avoid conflicts
-  const animationId = `carousel-${singleSetWidth}`;
+  // Generate unique animation names and keyframes per row
+  const animationStyles = useMemo(() => {
+    return rowConfigs
+      .map((config, i) => {
+        const id = `carousel-${singleSetWidth}-row-${i}`;
+        const translateEnd = config.direction === 'left' ? -singleSetWidth : singleSetWidth;
+        return `@keyframes ${id}{0%{transform:rotate(${config.rotation}deg) translateX(0)}100%{transform:rotate(${config.rotation}deg) translateX(${translateEnd}px)}}`;
+      })
+      .join('');
+  }, [rowConfigs, singleSetWidth]);
 
   return (
     <>
-      {/* CSS Animation */}
-      <style>{`
-        @keyframes ${animationId} {
-          0% {
-            transform: rotate(${rowRotation}deg) translateX(0);
-          }
-          100% {
-            transform: rotate(${rowRotation}deg) translateX(-${singleSetWidth}px);
-          }
-        }
-        @keyframes ${animationId}-reverse {
-          0% {
-            transform: rotate(${rowRotation}deg) translateX(-${singleSetWidth}px);
-          }
-          100% {
-            transform: rotate(${rowRotation}deg) translateX(0);
-          }
-        }
-        @keyframes ${animationId}-fast {
-          0% {
-            transform: rotate(${rowRotation}deg) translateX(0);
-          }
-          100% {
-            transform: rotate(${rowRotation}deg) translateX(-${singleSetWidth}px);
-          }
-        }
-      `}</style>
+      {/* CSS Animation - each row has unique speed, direction, and rotation */}
+      <style dangerouslySetInnerHTML={{ __html: animationStyles }} />
       
       <div className="relative min-h-screen w-screen bg-[#191919] overflow-hidden">
         {/* Background Carousel - Multiple layers for depth */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Row 1 - above top */}
+          <div
+            className="absolute left-0 flex items-start z-0"
+            style={{
+              top: '40px',
+              width: `${totalWidth}px`,
+              height: 'auto',
+              willChange: 'transform',
+              animation: `carousel-${singleSetWidth}-row-3 ${rowConfigs[3].speed}s linear infinite`,
+              animationDelay: `${rowConfigs[3].delay}s`,
+              transformOrigin: 'center center',
+            } as React.CSSProperties}
+          >
+            {fourthRowBoxes.map((boxIndex) => {
+              const imageIndex = boxIndex % images.length;
+              const imageUrl = images[imageIndex];
+              return (
+                <div
+                  key={`fourth-${boxIndex}`}
+                  className="shrink-0 relative rounded-lg overflow-hidden"
+                  style={{
+                    width: `${boxWidth}px`,
+                    height: `${boxHeight}px`,
+                    marginRight: `${imageGap}px`,
+                  }}
+                >
+                  <img
+                    src={imageUrl}
+                    alt={`Carousel image ${imageIndex + 1}`}
+                    className="w-full h-full object-cover rounded-lg"
+                    loading="lazy"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = `https://via.placeholder.com/${boxWidth}x${boxHeight}?text=Image+${imageIndex + 1}`;
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+
           {/* Top Row */}
           <div
             className="absolute left-0 flex items-start z-0"
@@ -102,7 +167,8 @@ const SlantedImageCarouselWrapper: React.FC<SlantedImageCarouselWrapperProps> = 
               width: `${totalWidth}px`,
               height: 'auto',
               willChange: 'transform',
-              animation: `${animationId} ${animationDuration}s linear infinite`,
+              animation: `carousel-${singleSetWidth}-row-0 ${rowConfigs[0].speed}s linear infinite`,
+              animationDelay: `${rowConfigs[0].delay}s`,
               transformOrigin: 'center center',
             } as React.CSSProperties}
           >
@@ -141,9 +207,9 @@ const SlantedImageCarouselWrapper: React.FC<SlantedImageCarouselWrapperProps> = 
               width: `${totalWidth}px`,
               height: 'auto',
               willChange: 'transform',
-              animation: `${animationId}-reverse ${animationDuration * 1.2}s linear infinite`,
+              animation: `carousel-${singleSetWidth}-row-1 ${rowConfigs[1].speed}s linear infinite`,
+              animationDelay: `${rowConfigs[1].delay}s`,
               transformOrigin: 'center center',
-              transform: `rotate(${rowRotation}deg) translateX(-${singleSetWidth}px)`, // Initial position for reverse animation
             } as React.CSSProperties}
           >
             {middleRowBoxes.map((boxIndex) => {
@@ -181,7 +247,8 @@ const SlantedImageCarouselWrapper: React.FC<SlantedImageCarouselWrapperProps> = 
               width: `${totalWidth}px`,
               height: 'auto',
               willChange: 'transform',
-              animation: `${animationId}-fast ${animationDuration * 0.9}s linear infinite`,
+              animation: `carousel-${singleSetWidth}-row-2 ${rowConfigs[2].speed}s linear infinite`,
+              animationDelay: `${rowConfigs[2].delay}s`,
               transformOrigin: 'center center',
             } as React.CSSProperties}
           >

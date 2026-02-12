@@ -29,31 +29,31 @@ const CustomerSegmentsTable: React.FC<CustomerSegmentsTableProps> = ({
 
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full">
-        <thead className="bg-gray-50">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50/80">
           <tr>
-            <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">
-              Segment Name
+            <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+              Segment name
             </th>
             <th
-              className="px-3 py-2 text-left text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors"
+              className="px-5 py-3.5 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider cursor-pointer hover:bg-gray-100/80 transition-colors"
               onClick={handleSortClick}
             >
               <div className="flex items-center gap-1.5">
                 <span>Created</span>
                 {sortOrder === 'asc' ? (
-                  <ArrowUpIcon className="w-3.5 h-3.5 text-gray-600" />
+                  <ArrowUpIcon className="w-4 h-4 text-gray-500" />
                 ) : (
-                  <ArrowDownIcon className="w-3.5 h-3.5 text-gray-600" />
+                  <ArrowDownIcon className="w-4 h-4 text-gray-500" />
                 )}
               </div>
             </th>
-            <th className="px-3 py-2 text-right text-sm font-medium text-gray-700">
+            <th className="px-5 py-3.5 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
               Actions
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-white divide-y divide-gray-100">
           {segments.map((s) => (
             <CustomerSegmentItem
               key={s._id}
@@ -69,4 +69,3 @@ const CustomerSegmentsTable: React.FC<CustomerSegmentsTableProps> = ({
 };
 
 export default CustomerSegmentsTable;
-

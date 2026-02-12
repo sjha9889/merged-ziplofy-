@@ -19,9 +19,9 @@ const CustomizeDomainCard: React.FC = () => {
   }, []);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between">
+    <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-sm flex items-center justify-between">
       <div>
-        <h6 className="text-base font-medium text-gray-900 mb-1.5">Customize your domain</h6>
+        <h3 className="text-base font-semibold text-gray-900">Customize your domain</h3>
         {subError ? (
           <p className="text-sm text-red-600">{subError}</p>
         ) : (
@@ -46,7 +46,7 @@ const CustomizeDomainCard: React.FC = () => {
       </div>
       <button
         onClick={handleManageClick}
-        className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200 rounded hover:bg-gray-50 transition-colors"
+        className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
       >
         Manage
       </button>

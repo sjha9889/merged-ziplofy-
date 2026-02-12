@@ -2,7 +2,6 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import React, { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AddCustomItemModal, { CustomItem } from '../components/AddCustomItemModal';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 import OrderCustomerSection, { CustomerInfo } from '../components/OrderCustomerSection';
 import OrderNotesSection from '../components/OrderNotesSection';
 import OrderPaymentSection, { PaymentSummary } from '../components/OrderPaymentSection';
@@ -127,22 +126,24 @@ const CreateOrderPage: React.FC = () => {
   }, [products]);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen p-6">
-        <div className="max-w-[1600px] mx-auto">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
         {/* Header */}
         <div className="mb-6">
           <button
             onClick={handleBack}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+            className="flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-4 transition-colors"
           >
             <ArrowLeftIcon className="w-5 h-5" />
             <span className="text-sm font-medium">Back to Orders</span>
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">Create Order</h1>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Create Order</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Add products, set payment terms, and create a new order for your customer
+          </p>
         </div>
 
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
           {/* Product Search Section */}
           <OrderProductSearchSection
             products={products}
@@ -183,8 +184,7 @@ const CreateOrderPage: React.FC = () => {
         onClose={handleCloseCustomItemModal}
         onAdd={handleAddCustomItemSubmit}
       />
-      </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

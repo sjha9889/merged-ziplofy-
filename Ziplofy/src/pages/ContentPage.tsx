@@ -3,7 +3,6 @@ import { useState } from 'react';
 import ContentPageHeader from '../components/ContentPageHeader';
 import ContentTabPanels from '../components/ContentTabPanels';
 import ContentTabs from '../components/ContentTabs';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 
 const tabs = [
   {
@@ -30,16 +29,14 @@ export default function MetaobjectsPage(): JSX.Element {
   const [tab, setTab] = useState<number>(0);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
-        <ContentPageHeader/>
-        <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
+        <ContentPageHeader />
+        <div className="mb-6">
           <ContentTabs tabs={tabs} activeIndex={tab} onChange={setTab} />
         </div>
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <ContentTabPanels tabs={tabs} activeIndex={tab} />
-        </div>
+        <ContentTabPanels tabs={tabs} activeIndex={tab} />
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 }

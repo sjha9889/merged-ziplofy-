@@ -1,3 +1,4 @@
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AbandonedCartsEmptyState from '../../components/orders/AbandonedCartsEmptyState';
@@ -6,7 +7,6 @@ import AbandonedCartsList from '../../components/orders/AbandonedCartsList';
 import SendRecoveryEmailModal from '../../components/orders/SendRecoveryEmailModal';
 import { useAbandonedCarts } from '../../contexts/abandoned-cart.context';
 import { useStore } from '../../contexts/store.context';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 
 const AbandonedCartsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -107,55 +107,67 @@ const AbandonedCartsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <GridBackgroundWrapper>
-        <div className="flex justify-center items-center min-h-[50vh]">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-gray-900"></div>
+      <div className="min-h-screen bg-page-background-color">
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4 flex justify-center items-center min-h-[50vh]">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-gray-600"></div>
         </div>
-      </GridBackgroundWrapper>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <GridBackgroundWrapper>
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="bg-white border border-red-200 rounded-lg p-4 flex items-center justify-between">
+      <div className="min-h-screen bg-page-background-color">
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
+          <div className="bg-white border border-red-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
             <p className="text-sm text-red-700">{error}</p>
             <button
               onClick={handleRefresh}
-              className="px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 rounded transition-colors"
+              className="px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 rounded-lg transition-colors"
             >
               Retry
             </button>
           </div>
         </div>
-      </GridBackgroundWrapper>
+      </div>
     );
   }
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
-        <div className="max-w-7xl mx-auto px-6 py-8">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
+        {/* Header */}
+        <div className="mb-6">
+          <button
+            onClick={() => navigate('/orders')}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
+          >
+            <ArrowLeftIcon className="w-5 h-5" />
+            <span className="text-sm font-medium">Back to Orders</span>
+          </button>
           <AbandonedCartsHeader
             cartCount={abandonedCarts.length}
             loading={loading}
             onRefresh={handleRefresh}
           />
-          {abandonedCarts.length === 0 ? (
-            <AbandonedCartsEmptyState />
-          ) : (
-            <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-              <AbandonedCartsList
-                carts={abandonedCarts}
-                getInitials={getInitials}
-                formatDate={formatDate}
-                onSendEmail={handleSendEmail}
-                onViewDetails={handleViewDetails}
-              />
-            </div>
-          )}
         </div>
+
+        {abandonedCarts.length === 0 ? (
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+            <AbandonedCartsEmptyState />
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+            <AbandonedCartsList
+              carts={abandonedCarts}
+              getInitials={getInitials}
+              formatDate={formatDate}
+              onSendEmail={handleSendEmail}
+              onViewDetails={handleViewDetails}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Email Modal */}
       <SendRecoveryEmailModal
@@ -171,7 +183,6 @@ const AbandonedCartsPage: React.FC = () => {
         onSubmit={handleSendEmailSubmit}
       />
     </div>
-    </GridBackgroundWrapper>
   );
 };
 

@@ -21,8 +21,8 @@ const TaxSettingsSection: React.FC<TaxSettingsSectionProps> = ({
   );
 
   return (
-    <div className="bg-white p-4 rounded border border-gray-200">
-      <h2 className="text-base font-medium text-gray-900 mb-4">Tax Settings</h2>
+    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+      <h2 className="text-base font-semibold text-gray-900 mb-4">Tax Settings</h2>
       
       <fieldset>
         <legend className="block text-sm font-medium text-gray-700 mb-2">Tax Collection</legend>

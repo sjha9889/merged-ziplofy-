@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { DiscountChooseCardList } from "../components/DiscountChooseCardList";
-import GridBackgroundWrapper from "../components/GridBackgroundWrapper";
 
 export interface DiscountCardData {
     title: string;
@@ -24,15 +23,16 @@ export default function SelectDiscountToCreatePage() {
     }, [navigate]);
 
     return (
-        <GridBackgroundWrapper>
-            <div className="min-h-screen">
-                <div className="max-w-7xl mx-auto py-6 px-4">
-                    <div className="flex flex-col gap-4">
-                        <h2 className="text-base font-medium text-gray-900">Please choose the type of discount you want to create</h2>
-                        <DiscountChooseCardList discountCardsData={discountCardsData} onCardClick={handleCardClick} />
+        <div className="min-h-screen bg-page-background-color">
+            <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
+                <div className="flex flex-col gap-6">
+                    <div>
+                        <h1 className="text-2xl font-semibold text-gray-900">Create Discount</h1>
+                        <p className="text-sm text-gray-600 mt-1">Please choose the type of discount you want to create</p>
                     </div>
+                    <DiscountChooseCardList discountCardsData={discountCardsData} onCardClick={handleCardClick} />
                 </div>
             </div>
-        </GridBackgroundWrapper>
+        </div>
     );
 }

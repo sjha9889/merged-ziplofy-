@@ -4,7 +4,6 @@ import AddOptionValuesModal from '../components/AddOptionValuesModal';
 import AddProductVariantsModal from '../components/AddProductVariantsModal';
 import ConfirmDeleteVariantModal from '../components/ConfirmDeleteVariantModal';
 import DeleteVariantDimensionModal from '../components/DeleteVariantDimensionModal';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 import ProductBasicInformation from '../components/ProductBasicInformation';
 import ProductDetailsHeader from '../components/ProductDetailsHeader';
 import ProductImagesGallery from '../components/ProductImagesGallery';
@@ -17,14 +16,23 @@ import ProductStatusDetails from '../components/ProductStatusDetails';
 import ProductVariantsList from '../components/ProductVariantsList';
 import { useProductVariants } from '../contexts/product-variant.context';
 import { useProducts } from '../contexts/product.context';
+import { useStore } from '../contexts/store.context';
 
 const ProductDetailsPage: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { products, addVariantsToProduct, deleteVariantFromProduct, addOptionToProduct } = useProducts();
+  const { products, addVariantsToProduct, deleteVariantFromProduct, addOptionToProduct, fetchProductsByStoreId } = useProducts();
+  const { activeStoreId } = useStore();
   const { fetchVariantsByProductId, variants, loading } = useProductVariants();
 
   const product = useMemo(() => products.find(p => p._id === id), [products, id]);
+
+  // Fetch products when navigating directly to product URL (products may not be loaded yet)
+  useEffect(() => {
+    if (activeStoreId && id && products.length === 0) {
+      fetchProductsByStoreId(activeStoreId);
+    }
+  }, [activeStoreId, id, products.length, fetchProductsByStoreId]);
 
   // UI-only: Add Variants dialog state and handlers (replicated from NewProductPage)
   const [addVariantsOpen, setAddVariantsOpen] = useState(false);
@@ -213,9 +221,8 @@ const ProductDetailsPage: React.FC = () => {
   }
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
-        <div className="max-w-7xl mx-auto pt-6 px-4 pb-6">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
           {/* Simple Header */}
           <ProductDetailsHeader
             product={product}
@@ -308,8 +315,7 @@ const ProductDetailsPage: React.FC = () => {
         onAddNewOptionValue={addNewOptionValue}
         onRemoveNewOptionValue={removeNewOptionValue}
       />
-      </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

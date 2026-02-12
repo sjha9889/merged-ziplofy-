@@ -21,19 +21,19 @@ const AbandonedCartDetailsBreadcrumbs: React.FC<AbandonedCartDetailsBreadcrumbsP
   );
 
   return (
-    <nav className="mb-4" aria-label="Breadcrumb">
-      <ol className="flex items-center gap-1.5 text-xs text-gray-500">
+    <nav className="mb-2" aria-label="Breadcrumb">
+      <ol className="flex items-center gap-1.5 text-sm text-gray-500">
         <li>
           <a
             href="/orders/abandoned-carts"
             onClick={handleBreadcrumbClick}
-            className="hover:text-gray-700 cursor-pointer"
+            className="hover:text-blue-600 cursor-pointer transition-colors"
           >
             Abandoned Carts
           </a>
         </li>
-        <li>/</li>
-        <li className="text-gray-700">
+        <li className="text-gray-300">/</li>
+        <li className="text-gray-700 font-medium">
           {customerFirstName} {customerLastName}
         </li>
       </ol>

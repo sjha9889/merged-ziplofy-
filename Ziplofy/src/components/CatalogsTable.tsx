@@ -18,20 +18,20 @@ interface CatalogsTableProps {
 
 export default function CatalogsTable({ catalogs, onSelect }: CatalogsTableProps) {
   return (
-    <div className="bg-white border border-gray-200 rounded overflow-hidden">
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200 text-sm">
-          <thead className="bg-gray-50 text-xs font-medium text-gray-600">
+        <table className="min-w-full divide-y divide-gray-200/80 text-sm">
+          <thead className="bg-gray-50/80 text-xs font-semibold text-gray-600">
             <tr>
-              <th className="px-3 py-2 text-left">Title</th>
-              <th className="px-3 py-2 text-left">Status</th>
-              <th className="px-3 py-2 text-left">Assigned to</th>
-              <th className="px-3 py-2 text-left">Price overrides</th>
-              <th className="px-3 py-2 text-left">Overall adjustment</th>
-              <th className="px-3 py-2 text-left">Products</th>
+              <th className="px-4 py-3 text-left">Title</th>
+              <th className="px-4 py-3 text-left">Status</th>
+              <th className="px-4 py-3 text-left">Assigned to</th>
+              <th className="px-4 py-3 text-left">Price overrides</th>
+              <th className="px-4 py-3 text-left">Overall adjustment</th>
+              <th className="px-4 py-3 text-left">Products</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-gray-100">
             {catalogs.map((c) => (
               <CatalogsTableRow
                 key={c._id}

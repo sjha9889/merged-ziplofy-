@@ -20,22 +20,22 @@ const AmountOffOrderTable: React.FC<AmountOffOrderTableProps> = ({
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4">
-      <div className="bg-white border border-gray-200 overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-100">
+          <thead className="bg-gray-50/80">
             <tr>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Code / Title</th>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Method</th>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Value</th>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Eligibility</th>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Min Requirement</th>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Combinations</th>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Status</th>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Created</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Code / Title</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Method</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Value</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Eligibility</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Min Requirement</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Combinations</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Status</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Created</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white divide-y divide-gray-100">
             {discounts.map((d) => {
               const codeOrTitle = d.method === 'discount-code' ? d.discountCode : d.title;
               const value = d.valueType === 'percentage' ? `${d.percentage ?? 0}%` : `₹${d.fixedAmount ?? 0}`;
@@ -48,17 +48,17 @@ const AmountOffOrderTable: React.FC<AmountOffOrderTableProps> = ({
               return (
                 <tr
                   key={d._id}
-                  className="hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="hover:bg-blue-50/50 cursor-pointer transition-colors"
                   onClick={() => handleRowClick(d._id)}
                 >
-                  <td className="px-3 py-2 text-sm text-gray-900">{codeOrTitle || '-'}</td>
-                  <td className="px-3 py-2 text-sm text-gray-900">{d.method}</td>
-                  <td className="px-3 py-2 text-sm text-gray-900">{value}</td>
-                  <td className="px-3 py-2 text-sm text-gray-900">{d.eligibility}</td>
-                  <td className="px-3 py-2 text-sm text-gray-900">{minReq}</td>
-                  <td className="px-3 py-2 text-sm text-gray-900">{combos}</td>
-                  <td className="px-3 py-2 text-sm text-gray-900">{d.status || 'active'}</td>
-                  <td className="px-3 py-2 text-sm text-gray-900">{d.createdAt ? new Date(d.createdAt).toLocaleDateString() : '-'}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{codeOrTitle || '-'}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{d.method}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{value}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{d.eligibility}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{minReq}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{combos}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{d.status || 'active'}</td>
+                  <td className="px-4 py-3 text-sm text-gray-900">{d.createdAt ? new Date(d.createdAt).toLocaleDateString() : '-'}</td>
                 </tr>
               );
             })}

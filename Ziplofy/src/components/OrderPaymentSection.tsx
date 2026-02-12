@@ -52,17 +52,17 @@ const OrderPaymentSection: React.FC<OrderPaymentSectionProps> = ({
   }, [onEditPaymentDue]);
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100">
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="px-6 pt-6 pb-4 border-b border-gray-200">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">Payment</h3>
-        <p className="text-xs text-gray-500">
-          Use this personalized guide to get your store up and running.
-        </p>
+      <div className="px-5 pt-5 pb-4 border-b border-gray-200/80">
+        <div className="pl-3 border-l-4 border-blue-600">
+          <h3 className="text-base font-semibold text-gray-900">Payment</h3>
+          <p className="text-xs text-gray-500 mt-0.5">Review the order summary and payment details</p>
+        </div>
       </div>
 
       {/* Payment Summary */}
-      <div className="px-6 py-4">
+      <div className="px-5 py-4">
         <div className="space-y-4">
           {/* Subtotal */}
           <div className="flex items-center justify-between">

@@ -18,8 +18,8 @@ const ProductNotFound: React.FC<ProductNotFoundProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto py-8">
-      <div className="bg-white p-12 text-center rounded-lg border border-gray-200">
+    <div className="min-h-screen bg-page-background-color flex items-center justify-center p-4">
+      <div className="bg-white p-12 text-center rounded-xl border border-gray-200/80 shadow-sm max-w-lg w-full">
         <div className="bg-red-100 w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center">
           <XMarkIcon className="w-8 h-8 text-red-600" />
         </div>

@@ -18,11 +18,13 @@ const GettingStartedPage: React.FC<GettingStartedPageProps> = ({
   onResourceClick,
 }) => {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       {/* Welcome Header */}
-      <div className="text-center mb-2">
-        <h1 className="text-xl font-semibold text-gray-900 mb-1.5">Welcome to Ziplofy</h1>
-        <p className="text-sm text-gray-600">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+          Welcome to <span className="text-blue-600">Ziplofy</span>
+        </h1>
+        <p className="mt-1 text-sm text-gray-500">
           Let's set up your e-commerce store and manage your business effectively
         </p>
       </div>
@@ -34,7 +36,7 @@ const GettingStartedPage: React.FC<GettingStartedPageProps> = ({
       <ImproveYourStoreCard onItemClick={onImprovementClick} />
 
       {/* Video and Resources Section */}
-      <div className="flex gap-3 bg-white border border-gray-200 rounded-lg p-4">
+      <div className="flex gap-4">
         <OverviewVideoCard />
         <HelpfulResourcesCard onResourceClick={onResourceClick} />
       </div>

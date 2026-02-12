@@ -7,7 +7,6 @@ import {
 } from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 import ProductNotFound from '../components/ProductNotFound';
 import ProductVariantBasicInformation from '../components/ProductVariantBasicInformation';
 import ProductVariantDetailsHeader from '../components/ProductVariantDetailsHeader';
@@ -270,25 +269,16 @@ const ProductVariantDetailsPage: React.FC = () => {
   }, [activeStoreId, fetchPackagingsByStoreId]);
 
   if (!product) {
-    return (
-      <GridBackgroundWrapper>
-        <ProductNotFound />
-      </GridBackgroundWrapper>
-    );
+    return <ProductNotFound />;
   }
 
   if (!variant) {
-    return (
-      <GridBackgroundWrapper>
-        <VariantNotFound productId={id} />
-      </GridBackgroundWrapper>
-    );
+    return <VariantNotFound productId={id} />;
   }
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
-        <div className="max-w-7xl mx-auto pt-6 px-4 pb-6">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
         {/* Header */}
         <ProductVariantDetailsHeader
           product={product}
@@ -323,9 +313,9 @@ const ProductVariantDetailsPage: React.FC = () => {
             />
 
             {/* Pricing Information */}
-            <div className="bg-white border border-gray-200 p-6 rounded-lg">
+            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-base font-medium text-gray-900">
+                <h2 className="text-base font-semibold text-gray-900">
                   Pricing Information
                 </h2>
                 {!editingSegments.pricing ? (
@@ -340,82 +330,6 @@ const ProductVariantDetailsPage: React.FC = () => {
                     <button
                       onClick={() => handleSaveSegment('pricing')}
                       className="p-1 text-gray-700 hover:bg-gray-50 rounded transition-colors"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                      
                     >
                       <CheckIcon className="w-4 h-4" />
                     </button>
@@ -604,8 +518,8 @@ const ProductVariantDetailsPage: React.FC = () => {
             </div>
 
             {/* Inventory & Status */}
-            <div className="bg-white border border-gray-200 p-6 rounded-lg">
-              <h2 className="text-base font-medium text-gray-900 mb-4">
+            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+              <h2 className="text-base font-semibold text-gray-900 mb-4">
                 Inventory & Status
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -629,8 +543,8 @@ const ProductVariantDetailsPage: React.FC = () => {
             </div>
 
             {/* Option Values */}
-            <div className="bg-white border border-gray-200 p-6 rounded-lg">
-              <h2 className="text-base font-medium text-gray-900 mb-4">
+            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+              <h2 className="text-base font-semibold text-gray-900 mb-4">
                 Option Values
               </h2>
               <div className="flex gap-2 flex-wrap">
@@ -646,9 +560,9 @@ const ProductVariantDetailsPage: React.FC = () => {
             </div>
 
             {/* Images */}
-            <div className="bg-white border border-gray-200 p-6 rounded-lg">
+            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-base font-medium text-gray-900">
+                <h2 className="text-base font-semibold text-gray-900">
                   Images
                 </h2>
                 {!editingSegments.images ? (
@@ -770,9 +684,9 @@ const ProductVariantDetailsPage: React.FC = () => {
 
             {/* Shipping Information (shown only for physical products) */}
             {formData.isPhysicalProduct && (
-            <div className="bg-white border border-gray-200 p-6 rounded-lg">
+            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-base font-medium text-gray-900">
+                <h2 className="text-base font-semibold text-gray-900">
                   Shipping Information
                 </h2>
                 {!editingSegments.package ? (
@@ -893,8 +807,8 @@ const ProductVariantDetailsPage: React.FC = () => {
 
           {/* Right Sidebar */}
           <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white border border-gray-200 p-6 rounded-lg">
-              <h2 className="text-base font-medium text-gray-900 mb-4">
+            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+              <h2 className="text-base font-semibold text-gray-900 mb-4">
                 Variant ID & References
               </h2>
               
@@ -919,8 +833,8 @@ const ProductVariantDetailsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 p-6 rounded-lg">
-              <h2 className="text-base font-medium text-gray-900 mb-4">
+            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+              <h2 className="text-base font-semibold text-gray-900 mb-4">
                 Status & Flags
               </h2>
               
@@ -963,8 +877,8 @@ const ProductVariantDetailsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 p-6 rounded-lg">
-              <h2 className="text-base font-medium text-gray-900 mb-4">
+            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+              <h2 className="text-base font-semibold text-gray-900 mb-4">
                 Financial Summary
               </h2>
               
@@ -1024,8 +938,8 @@ const ProductVariantDetailsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 p-6 rounded-lg">
-              <h2 className="text-base font-medium text-gray-900 mb-4">
+            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+              <h2 className="text-base font-semibold text-gray-900 mb-4">
                 Timeline
               </h2>
               
@@ -1058,8 +972,7 @@ const ProductVariantDetailsPage: React.FC = () => {
           </div>
         </div>
       </div>
-      </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

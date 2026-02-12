@@ -15,13 +15,13 @@ const GiftCardInformationPanel: React.FC<GiftCardInformationPanelProps> = ({
 }) => {
   return (
     <div className="md:col-span-4">
-      <div className="bg-white rounded border border-gray-200 p-4 h-full">
+      <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm h-full">
         <div className="flex items-center mb-4">
-          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-2">
-            <GiftIcon className="w-4 h-4 text-gray-600" />
+          <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center mr-2">
+            <GiftIcon className="w-4 h-4 text-blue-600" />
           </div>
           <div>
-            <h2 className="text-base font-medium text-gray-900">Gift Card Information</h2>
+            <h2 className="text-base font-semibold text-gray-900">Gift Card Information</h2>
             <p className="text-xs text-gray-600 mt-0.5">Detailed information about this gift card</p>
           </div>
         </div>
@@ -37,7 +37,7 @@ const GiftCardInformationPanel: React.FC<GiftCardInformationPanelProps> = ({
           <div className="pb-3 border-b border-gray-200">
             <p className="text-xs text-gray-600 mb-1">Initial Value</p>
             <div className="flex items-center">
-              <CurrencyDollarIcon className="w-4 h-4 text-gray-600 mr-1.5" />
+              <CurrencyDollarIcon className="w-4 h-4 text-blue-600 mr-1.5" />
               <span className="text-sm font-medium text-gray-900">₹{giftCard.initialValue}</span>
             </div>
           </div>
@@ -47,7 +47,7 @@ const GiftCardInformationPanel: React.FC<GiftCardInformationPanelProps> = ({
             <span
               className={`px-2 py-0.5 rounded text-xs font-medium ${
                 giftCard.isActive
-                  ? 'bg-green-100 text-green-800'
+                  ? 'bg-blue-100 text-blue-800'
                   : 'bg-red-100 text-red-800'
               }`}
             >

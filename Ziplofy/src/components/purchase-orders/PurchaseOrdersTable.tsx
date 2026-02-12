@@ -20,25 +20,25 @@ const PurchaseOrdersTable: React.FC<PurchaseOrdersTableProps> = ({
   onRowClick,
 }) => {
   return (
-    <table className="min-w-full divide-y divide-gray-200">
-      <thead className="bg-white">
+    <table className="min-w-full divide-y divide-gray-100">
+      <thead className="bg-gray-50/80">
         <tr>
-          <th className="px-4 py-2 text-left text-sm font-medium text-gray-900">
+          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
             PO ID
           </th>
-          <th className="px-4 py-2 text-left text-sm font-medium text-gray-900">
+          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
             Supplier
           </th>
-          <th className="px-4 py-2 text-left text-sm font-medium text-gray-900">
+          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
             Destination
           </th>
-          <th className="px-4 py-2 text-left text-sm font-medium text-gray-900">
+          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
             Status
           </th>
-          <th className="px-4 py-2 text-right text-sm font-medium text-gray-900">
+          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">
             Total
           </th>
-          <th className="px-4 py-2 text-left text-sm font-medium text-gray-900">
+          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
             Expected Arrival
           </th>
         </tr>
