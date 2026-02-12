@@ -22,6 +22,7 @@ import ThemeDeveloper from "./pages/ThemeDeveloper";
 import ThemeEditPage from "./pages/ThemeEditPage";
 import Ticket from "./pages/Ticket";
 import Profile from "./pages/Profile";
+import ExportLogs from "./pages/ExportLogs";
 
 type MenuItem =
   | "Client List"
@@ -38,6 +39,7 @@ type MenuItem =
   | "Theme Developer"
   | "Support Developer"
   | "Hire Developer Requests"
+  | "Export Logs"
   | "Dashboard";
 
 const Navbar = () => {
@@ -160,8 +162,8 @@ const Navbar = () => {
       <div
         className="main-content"
         style={{
-          marginLeft: sidebarOpen ? 280 : 60,
-          padding: 16,
+          marginLeft: sidebarOpen ? 272 : 60,
+          padding: 12,
           transition: "margin-left 0.3s ease",
         }}
       >
@@ -185,6 +187,7 @@ const Navbar = () => {
             {activeMenu === "Theme Developer" && <ThemeDeveloper />}
             {activeMenu === "Support Developer" && <SupportDeveloper />}
             {activeMenu === "Hire Developer Requests" && <DevRequests />}
+            {activeMenu === "Export Logs" && <ExportLogs />}
           </>
         )}
       </div>

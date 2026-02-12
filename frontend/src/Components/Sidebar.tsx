@@ -9,6 +9,7 @@ import {
   FaChevronDown,
   FaUserShield,
   FaBars,
+  FaFileExport,
 } from "react-icons/fa";
 import { usePermissions } from "../hooks/usePermissions";
 import "./Sidebar.css";
@@ -41,8 +42,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, activeItem, onSelec
           <FaBars />
         </button>
         <aside className={`sidebar ${isOpen ? "open" : ""}`}>
-          <div style={{ padding: "20px", textAlign: "center" }}>
-            <div style={{ fontSize: "14px", color: "#666" }}>Loading permissions...</div>
+          <div className="sidebar-loading">
+            <span>Loading permissions...</span>
           </div>
         </aside>
       </>
@@ -97,11 +98,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, activeItem, onSelec
       >
       <div className="sidebar-header">
         <FaUserShield className="sidebar-icon" />
-        <span style={{ 
-          textTransform: 'capitalize',
-          fontWeight: '600',
-          color: '#374151'
-        }}>
+        <span className="sidebar-role-label">
           {user?.roleName || user?.role || localStorage.getItem('userRole') || (loading ? 'Loading...' : 'User')}
         </span>
         {isOpen && (
@@ -326,6 +323,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, activeItem, onSelec
                 )}
               </ul>
             )}
+          </>
+        )}
+
+        {isSuperAdmin && (
+          <>
+            <p className="sidebar-section-title">Audit</p>
+            <li
+              className={activeItem === "Export Logs" ? "active" : ""}
+              onClick={() => onSelect && onSelect("Export Logs")}
+            >
+              <FaFileExport className="menu-icon" />
+              <span>Export Logs</span>
+            </li>
           </>
         )}
       </ul>

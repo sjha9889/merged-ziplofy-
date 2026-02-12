@@ -1,9 +1,10 @@
 .admin-dashboard {
   padding: 24px 28px;
-  color: #1e293b;
-  background: #ffffff;
-  min-height: 100vh;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--z-text);
+  background: var(--z-surface);
+  min-height: calc(100vh - 56px);
+  font-family: var(--z-font);
+  font-weight: 400;
 }
 
 .admin-dashboard header {
@@ -12,10 +13,10 @@
   justify-content: space-between;
   margin-bottom: 24px;
   padding: 24px 28px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.08);
+  background: var(--z-bg);
+  border: 1px solid var(--z-border);
+  border-radius: var(--z-radius);
+  box-shadow: var(--z-shadow-card);
 }
 
 .admin-dashboard .meta {
@@ -29,25 +30,24 @@
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--z-primary-light);
+  color: var(--z-primary);
   border: 1px solid #93c5fd;
 }
 
 .admin-dashboard button {
-  background: #2563eb;
+  background: var(--z-primary);
   border: none;
   color: #fff;
-  border-radius: 8px;
+  border-radius: var(--z-radius-sm);
   padding: 10px 16px;
   cursor: pointer;
   font-weight: 500;
+  font-family: var(--z-font);
   transition: all 0.2s;
 }
 
 .admin-dashboard button:hover {
-  background: #1d4ed8;
+  background: var(--z-primary-hover);
   transform: translateY(-1px);
 }
-
-

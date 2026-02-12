@@ -7,8 +7,13 @@ import {
   MessageCircle,
   ChevronLeft,
   ChevronRight,
+  MessageSquare,
+  CheckCircle2,
+  Clock,
 } from "lucide-react";
 import "./LiveSupport.css";
+import "./KpiCard.css";
+import { useExportLog } from "../../hooks/useExportLog";
 
 interface Chat {
   id: number;
@@ -90,14 +95,9 @@ const LiveSupport: React.FC = () => {
   const handleExport = () => {
     const headers = ["#", "Name", "Email", "Category", "Status", "Created"];
     const rows = filteredChats.map((c) => [c.id, c.name, c.email, c.category, c.status, c.created]);
-    const csv = [headers.join(","), ...rows.map((r) => r.map((v) => `"${v}"`).join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `live-support-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const csvContent = [headers.join(","), ...rows.map((r) => r.map((v) => `"${v}"`).join(","))].join("\n");
+    const fileName = `live-support-${new Date().toISOString().slice(0, 10)}.csv`;
+    exportAndLog({ page: "Live Support", csvContent, fileName });
   };
 
   const handleReset = () => {
@@ -121,31 +121,62 @@ const LiveSupport: React.FC = () => {
 
   return (
     <div className="live-support-container">
-      {/* Header */}
-      <div className="ls-header">
-        <div className="header-left">
-          <h1>Live Support</h1>
-          <nav className="breadcrumbs">Dashboard &gt; Live Support</nav>
+      <div className="ls-card">
+        <div className="ls-card-header">
+          <div className="ls-title-block">
+            <div className="ls-title-accent" />
+            <div>
+              <h1 className="ls-title">Live Support</h1>
+              <p className="ls-subtitle">Manage and respond to live support chats</p>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="ls-stats">
-        <div className="ls-stat-card total">
-          <div className="ls-stat-label">Total Chats</div>
-          <div className="ls-stat-value">{stats.total}</div>
+        {/* Stats Cards - Analytics style */}
+      <div className="ls-stats kpi-grid">
+        <div className="kpi-card">
+          <div className="kpi-card-header">
+            <div className="kpi-content">
+              <div className="kpi-label">Total Chats</div>
+              <div className="kpi-value">{stats.total}</div>
+            </div>
+            <div className="kpi-icon-wrap primary">
+              <MessageSquare size={24} strokeWidth={2} />
+            </div>
+          </div>
         </div>
-        <div className="ls-stat-card active">
-          <div className="ls-stat-label">Active</div>
-          <div className="ls-stat-value">{stats.active}</div>
+        <div className="kpi-card">
+          <div className="kpi-card-header">
+            <div className="kpi-content">
+              <div className="kpi-label">Active</div>
+              <div className="kpi-value">{stats.active}</div>
+            </div>
+            <div className="kpi-icon-wrap success">
+              <MessageCircle size={24} strokeWidth={2} />
+            </div>
+          </div>
         </div>
-        <div className="ls-stat-card resolved">
-          <div className="ls-stat-label">Resolved</div>
-          <div className="ls-stat-value">{stats.resolved}</div>
+        <div className="kpi-card">
+          <div className="kpi-card-header">
+            <div className="kpi-content">
+              <div className="kpi-label">Resolved</div>
+              <div className="kpi-value">{stats.resolved}</div>
+            </div>
+            <div className="kpi-icon-wrap accent">
+              <CheckCircle2 size={24} strokeWidth={2} />
+            </div>
+          </div>
         </div>
-        <div className="ls-stat-card pending">
-          <div className="ls-stat-label">Pending</div>
-          <div className="ls-stat-value">{stats.pending}</div>
+        <div className="kpi-card">
+          <div className="kpi-card-header">
+            <div className="kpi-content">
+              <div className="kpi-label">Pending</div>
+              <div className="kpi-value">{stats.pending}</div>
+            </div>
+            <div className="kpi-icon-wrap warning">
+              <Clock size={24} strokeWidth={2} />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -287,6 +318,7 @@ const LiveSupport: React.FC = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

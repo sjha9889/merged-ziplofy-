@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import axios from "../../config/axios";
-import { Search, Plus, X } from "lucide-react";
+import { Search, Plus, X, Shield } from "lucide-react";
 import "./RolesPermission.css";
 import { useAdminAuth } from "../../contexts/admin-auth.context";
 
@@ -610,11 +610,18 @@ const RolesPermission: React.FC = () => {
   };
 
   return (
-    <div className="roles-permission-page" style={{ padding: "28px 32px" }}>
-      {/* Header */}
-      <div className="roles-header">
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
-          <h1 className="roles-title">Roles</h1>
+    <div className="roles-permission-page">
+      <div className="roles-permission-card">
+        <div className="roles-permission-card-header">
+          <div className="roles-permission-title-block">
+            <div className="roles-permission-title-accent" />
+            <div>
+              <h1 className="roles-permission-title">Roles and Permissions</h1>
+              <p className="roles-permission-subtitle">
+                View and manage role permissions for your store
+              </p>
+            </div>
+          </div>
           {canModifyPermissions && (
             <div className="header-actions">
               <button className="btn-icon add">
@@ -624,51 +631,36 @@ const RolesPermission: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
 
-      {/* Authorization Warning */}
-      {!canModifyPermissions && (
-        <div style={{
-          backgroundColor: "#e0f2fe",
-          border: "1px solid #7dd3fc",
-          borderRadius: "12px",
-          padding: "20px 28px",
-          marginBottom: "24px",
-          display: "flex",
-          alignItems: "center",
-          gap: "16px"
-        }}>
-          <span style={{ fontSize: "20px" }}>⚠️</span>
-          <div>
-            <h3 style={{ margin: "0 0 4px 0", color: "#0c4a6e", fontSize: "16px" }}>
-              Read-Only Access
-            </h3>
-            <p style={{ margin: 0, color: "#0369a1", fontSize: "14px" }}>
-              Only Super Admin can modify role permissions. You can view the current permissions but cannot make changes.
-            </p>
+        {/* Authorization Warning */}
+        {!canModifyPermissions && (
+          <div className="roles-permission-warning">
+            <span className="roles-permission-warning-icon">⚠️</span>
+            <div>
+              <h3>Read-Only Access</h3>
+              <p>Only Super Admin can modify role permissions. You can view the current permissions but cannot make changes.</p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Main Content */}
-      <div className="roles-card">
-          {/* Top Controls */}
-          <div style={{ padding: "20px 28px", borderBottom: "1px solid #e5e7eb" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
-              <div className="search-box">
+        {/* Main Content */}
+        {/* Top Controls */}
+        <div className="roles-permission-toolbar">
+          <div className="roles-permission-toolbar-inner">
+            <div className="search-box">
                 <Search size={18} className="search-icon" />
                 <input
                   type="text"
                   placeholder="Search Roles"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 />
-              </div>
             </div>
           </div>
+        </div>
 
-          {/* Table */}
-          <div style={{ overflowX: "auto" }}>
+        {/* Table */}
+        <div className="roles-permission-table-wrap">
             <table className="roles-table">
               <thead>
                 <tr style={{ borderBottom: "1px solid #e5e7eb" }}>
@@ -726,8 +718,11 @@ const RolesPermission: React.FC = () => {
                   </tr>
                 ) : filteredRoles.length === 0 ? (
                   <tr>
-                    <td colSpan={3} style={{ textAlign: "center", padding: "40px" }}>
-                      No roles found
+                    <td colSpan={3} style={{ textAlign: "center", padding: "0" }}>
+                      <div className="roles-permission-empty">
+                        <Shield className="roles-permission-empty-icon" size={64} strokeWidth={1.5} />
+                        <p className="roles-permission-empty-message">No roles found</p>
+                      </div>
                     </td>
                   </tr>
                 ) : (
@@ -799,10 +794,10 @@ const RolesPermission: React.FC = () => {
                 )}
               </tbody>
             </table>
-          </div>
+        </div>
 
-          {/* Bottom Controls */}
-          <div style={{ padding: "20px 28px", borderTop: "1px solid #e5e7eb", background: "#f0f9ff" }}>
+        {/* Bottom Controls */}
+        <div className="roles-permission-footer">
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <span style={{ fontSize: "14px", color: "#64748b" }}>Show</span>
@@ -832,8 +827,8 @@ const RolesPermission: React.FC = () => {
                 <button className="pagination-btn">Next ▶</button>
               </div>
             </div>
-          </div>
         </div>
+      </div>
 
       {/* Permission Dialog */}
       {openDialog && (
