@@ -14,9 +14,13 @@ export const axiosi: AxiosInstance = axios.create({
 
 axiosi.interceptors.request.use(
   (config) => {
+    // Always read fresh from localStorage at request time to avoid stale tokens
     const token = safeLocalStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      // Remove Authorization header if no token exists
+      delete config.headers.Authorization;
     }
     return config;
   },
@@ -26,23 +30,30 @@ axiosi.interceptors.request.use(
 );
 
 // Response interceptor to handle 401 globally
-// axiosi.interceptors.response.use(
-//   (response) => {
-//     return response;
-//   },
-//   (error) => {
-//     // Handle 401 Unauthorized responses globally
-//     if (error.response?.status === 401) {
-//       console.log('401 Unauthorized - clearing auth data and redirecting to auth service');
+axiosi.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    // Handle 401 Unauthorized responses globally
+    if (error.response?.status === 401) {
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Unauthorized';
+      console.log('401 Unauthorized:', errorMessage);
       
-//       // Clear localStorage
-//       localStorage.removeItem('accessToken');
-//       localStorage.removeItem('token');
+      // Clear localStorage tokens
+      safeLocalStorage.removeItem('accessToken');
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('token');
+      }
       
-//       // Redirect to auth service
-//       window.location.href = 'http://localhost:3000/login';
-//     }
+      // Only redirect if we're not already on a login/auth page
+      const currentPath = window.location.pathname;
+      if (!currentPath.includes('/login') && !currentPath.includes('/auth')) {
+        // Optionally redirect to auth service or login page
+        // window.location.href = 'http://localhost:3000/login';
+      }
+    }
     
-//     return Promise.reject(error);
-//   }
-// );
+    return Promise.reject(error);
+  }
+);

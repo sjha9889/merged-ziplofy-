@@ -3,6 +3,9 @@ import React, { lazy, Suspense } from "react";
 import { Toaster } from "react-hot-toast";
 import { Route, BrowserRouter as Router, Routes, useLocation } from "react-router-dom";
 
+// Import axios config early to ensure interceptors are set up before any requests
+import "./config/axios.config";
+
 import Sidebar from "./components/Sidebar";
 import { AmountOffProductsDiscountProvider } from "./contexts/amount-off-products-discount.context";
 import { CustomerTagsProvider } from "./contexts/customer-tags.context";
