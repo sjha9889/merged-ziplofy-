@@ -48,6 +48,7 @@ const App = () => {
                   </AdminProtectedRoute>
                 }
               />
+              <Route path="/admin/profile" element={<></>} />
               <Route
                 path="/admin/themes/edit/:themeId"
                 element={

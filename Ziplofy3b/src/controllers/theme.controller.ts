@@ -490,7 +490,7 @@ export const deleteTheme = asyncErrorHandler(async (req: Request, res: Response)
   if (otpRecord.code !== otp.trim()) {
     otpRecord.attempts += 1;
     await otpRecord.save();
-    throw new CustomError("Invalid verification code", 401);
+    throw new CustomError("Invalid verification code", 400);
   }
 
   await EditVerificationOtp.deleteMany({ email: superAdminEmail });

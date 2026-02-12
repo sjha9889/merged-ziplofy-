@@ -116,9 +116,25 @@ exports.updateUser = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     if (otpRecord.code !== otp.trim()) {
         otpRecord.attempts += 1;
         await otpRecord.save();
-        throw new error_utils_1.CustomError("Invalid verification code", 401);
+        throw new error_utils_1.CustomError("Invalid verification code", 400);
     }
     await edit_verification_otp_model_1.EditVerificationOtp.deleteMany({ email: superAdminEmail });
+    // Status rules: super-admin = login-based only; other admins = super-admin can set suspended/inactive only
+    const targetUser = await user_model_1.User.findById(id).populate("role");
+    if (targetUser && status !== undefined) {
+        const targetRole = targetUser.role;
+        const isSuperAdmin = targetRole?.name === "super-admin" || targetRole?.isSuperAdmin;
+        if (isSuperAdmin) {
+            throw new error_utils_1.CustomError("Super-admin status cannot be changed manually. It is determined by login state.", 400);
+        }
+        // For other admins: only "suspended" or "inactive" allowed. "active" is login-based only.
+        if (status === "active") {
+            throw new error_utils_1.CustomError("Status 'active' is set automatically when the user logs in. You can set 'inactive' or 'suspended' only.", 400);
+        }
+        if (status !== "inactive" && status !== "suspended") {
+            throw new error_utils_1.CustomError("Only 'inactive' or 'suspended' can be set manually.", 400);
+        }
+    }
     const updateData = { updatedAt: new Date() };
     if (name !== undefined)
         updateData.name = name;
@@ -182,7 +198,7 @@ exports.deleteUser = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     if (otpRecord.code !== otp.trim()) {
         otpRecord.attempts += 1;
         await otpRecord.save();
-        throw new error_utils_1.CustomError("Invalid verification code", 401);
+        throw new error_utils_1.CustomError("Invalid verification code", 400);
     }
     await edit_verification_otp_model_1.EditVerificationOtp.deleteMany({ email: superAdminEmail });
     const user = await user_model_1.User.findByIdAndDelete(id);

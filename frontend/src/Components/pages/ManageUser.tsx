@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Search, Download, Plus, Edit, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "../../config/axios";
@@ -6,6 +6,7 @@ import "./ManageUser.css";
 import { PermissionGate } from "../PermissionGate";
 import { EditVerificationModal } from "../EditVerificationModal";
 import { usePermissions } from "../../hooks/usePermissions";
+import { useDebounce } from "../../hooks/useDebounce";
 
 // Define a User type
 interface User {
@@ -41,6 +42,7 @@ const ManageUser: React.FC = () => {
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const debouncedSearch = useDebounce(searchTerm, 300);
   const [filters, setFilters] = useState<Filters>({
     role: "all",
     status: "all",
@@ -58,11 +60,7 @@ const ManageUser: React.FC = () => {
   const [addUserSubmitting, setAddUserSubmitting] = useState(false);
   const [addUserError, setAddUserError] = useState("");
 
-  useEffect(() => {
-    fetchRoles();
-  }, []);
-
-  const fetchRoles = async () => {
+  const fetchRoles = useCallback(async () => {
     try {
       const response = await axios.get("/roles");
       const rolesData = response.data?.data || response.data || [];
@@ -70,17 +68,13 @@ const ManageUser: React.FC = () => {
     } catch (error) {
       console.error("Error fetching roles:", error);
     }
-  };
+  }, []);
 
-  useEffect(() => {
-    fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, filters]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
+      setLoading(true);
       const params: Record<string, string> = {
-        search: searchTerm,
+        search: debouncedSearch,
         role: filters.role,
         status: filters.status,
         limit: "500",
@@ -108,7 +102,15 @@ const ManageUser: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [debouncedSearch, filters.role, filters.status]);
+
+  useEffect(() => {
+    fetchRoles();
+  }, [fetchRoles]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const executeStatusChangeWithOtp = async (userId: string, newStatus: string, otp: string) => {
     try {
@@ -126,12 +128,20 @@ const ManageUser: React.FC = () => {
 
   const executeDeleteWithOtp = async (userId: string, otp: string) => {
     try {
+      const token = localStorage.getItem("admin_token");
       await axios.delete(`/user/${userId}`, {
         data: { editOtp: otp },
+        headers: {
+          "X-Edit-Otp": otp,
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
       });
       fetchUsers();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting user:", error);
+      const msg = error.response?.data?.error || error.response?.data?.message;
+      toast.error(msg || "Failed to delete user");
     }
   };
 
@@ -170,7 +180,7 @@ const ManageUser: React.FC = () => {
       closeEditModal();
       fetchUsers();
     } catch (err: any) {
-      setEditError(err.response?.data?.message || "Failed to update user");
+      setEditError(err.response?.data?.error || err.response?.data?.message || "Failed to update user");
     } finally {
       setEditSubmitting(false);
     }
@@ -179,12 +189,13 @@ const ManageUser: React.FC = () => {
   const handleEditUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
-    const payload = {
+    const isSuperAdmin = editingUser.role?.toLowerCase().replace(/\s/g, "-") === "super-admin";
+    const payload: Record<string, unknown> = {
       name: editForm.name,
       email: editForm.email,
       role: editForm.role,
-      status: editForm.status,
     };
+    if (!isSuperAdmin) payload.status = editForm.status;
     setPendingEditData({ userId: editingUser._id, data: payload });
     setShowOtpModal(true);
   };
@@ -205,7 +216,7 @@ const ManageUser: React.FC = () => {
       fetchUsers();
       toast.success("User added successfully");
     } catch (err: any) {
-      setAddUserError(err.response?.data?.message || "Failed to add user");
+      setAddUserError(err.response?.data?.error || err.response?.data?.message || "Failed to add user");
     } finally {
       setAddUserSubmitting(false);
     }
@@ -367,7 +378,11 @@ const ManageUser: React.FC = () => {
                     </span>
                   </td>
                   <td>
-                    {canEditManageUser ? (
+                    {user.role?.toLowerCase().replace(/\s/g, "-") === "super-admin" ? (
+                      <span className={`status-badge status-${user.status}`}>
+                        {user.status}
+                      </span>
+                    ) : canEditManageUser ? (
                       <select
                         className={`status-select status-${user.status}`}
                         value={user.status}
@@ -375,7 +390,7 @@ const ManageUser: React.FC = () => {
                           handleStatusChange(user._id, e.target.value)
                         }
                       >
-                        <option value="active">Active</option>
+                        <option value="active" disabled>Active (set on login)</option>
                         <option value="inactive">Inactive</option>
                         <option value="suspended">Suspended</option>
                       </select>
@@ -397,15 +412,17 @@ const ManageUser: React.FC = () => {
                           Edit
                         </button>
                       </PermissionGate>
-                      <PermissionGate action="edit" section="User Management" subsection="Manage User">
-                        <button
-                          className="btn delete"
-                          onClick={() => handleDeleteUser(user._id)}
-                        >
-                          <Trash2 size={14} />
-                          Delete
-                        </button>
-                      </PermissionGate>
+                      {user.role?.toLowerCase().replace(/\s/g, "-") !== "super-admin" && (
+                        <PermissionGate action="edit" section="User Management" subsection="Manage User">
+                          <button
+                            className="btn delete"
+                            onClick={() => handleDeleteUser(user._id)}
+                          >
+                            <Trash2 size={14} />
+                            Delete
+                          </button>
+                        </PermissionGate>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -463,19 +480,21 @@ const ManageUser: React.FC = () => {
                     ))}
                 </select>
               </div>
-              <div className="form-group">
-                <label>Status</label>
-                <select
-                  value={editForm.status}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, status: e.target.value as "active" | "inactive" | "suspended" })
-                  }
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="suspended">Suspended</option>
-                </select>
-              </div>
+              {editingUser.role?.toLowerCase().replace(/\s/g, "-") !== "super-admin" && (
+                <div className="form-group">
+                  <label>Status</label>
+                  <select
+                    value={editForm.status}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, status: e.target.value as "active" | "inactive" | "suspended" })
+                    }
+                  >
+                    <option value="active" disabled>Active (set on login)</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="suspended">Suspended</option>
+                  </select>
+                </div>
+              )}
               <div className="modal-actions">
                 <button type="button" className="btn cancel" onClick={closeEditModal}>
                   Cancel

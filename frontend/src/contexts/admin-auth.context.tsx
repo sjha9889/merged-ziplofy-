@@ -16,7 +16,7 @@ type AdminAuthContextValue = {
   loading: boolean;
   login: (email: string, password: string) => Promise<{ twoFactorRequired?: boolean; email?: string } | void>;
   verifyOtp: (email: string, code: string) => Promise<void>;
-  logout: () => void;
+  logout: () => void | Promise<void>;
 };
 
 const AdminAuthContext = createContext<AdminAuthContextValue | undefined>(undefined);
@@ -76,7 +76,12 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         });
       } catch {
         setToken(null);
+        setUser(null);
         localStorage.removeItem("admin_token");
+        localStorage.removeItem("userData");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("isSuperAdmin");
+        localStorage.removeItem("userEmail");
       }
     })();
   }, [token]);
@@ -142,7 +147,12 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await axios.post("/auth/logout");
+    } catch {
+      // Ignore - still clear local state
+    }
     localStorage.removeItem("admin_token");
     localStorage.removeItem("userRole");
     localStorage.removeItem("isSuperAdmin");

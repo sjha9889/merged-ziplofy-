@@ -288,6 +288,12 @@
   color: #6d28d9;
 }
 
+.manage-user-page .role-client-admin,
+.manage-user-page .role-clientadmin {
+  background: #d1fae5;
+  color: #047857;
+}
+
 .manage-user-page .role-default {
   background: #f3f4f6;
   color: #374151;

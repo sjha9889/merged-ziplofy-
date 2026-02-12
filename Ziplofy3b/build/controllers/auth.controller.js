@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.changePassword = exports.verifyAdminInvite = exports.requestEditVerificationOtp = exports.resendAdminLoginOtp = exports.verifyAdminLoginOtp = exports.adminLoginStep1 = exports.adminLogin = exports.getMe = void 0;
+exports.adminLogout = exports.changePassword = exports.verifyAdminInvite = exports.requestEditVerificationOtp = exports.resendAdminLoginOtp = exports.verifyAdminLoginOtp = exports.adminLoginStep1 = exports.adminLogin = exports.getMe = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -51,12 +51,12 @@ exports.adminLogin = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const user = await user_model_1.User.findOne({ email }).select("+password role status name email lastLogin");
     if (!user)
         throw new error_utils_1.CustomError("Invalid credentials", 401);
-    if (user.status !== "active")
-        throw new error_utils_1.CustomError("Account is not active", 403);
+    if (user.status === "suspended")
+        throw new error_utils_1.CustomError("Your account has been suspended. Please contact the administrator.", 403);
     const role = await role_model_1.Role.findById(user.role);
     if (!role)
         throw new error_utils_1.CustomError("Role not found", 401);
-    const adminRoleNames = ["super-admin", "support-admin", "developer-admin", "admin"];
+    const adminRoleNames = ["super-admin", "support-admin", "developer-admin", "client-admin", "admin"];
     if (!adminRoleNames.includes(role.name))
         throw new error_utils_1.CustomError("Not authorized as admin", 403);
     const isMatch = await bcryptjs_1.default.compare(password, user.password);
@@ -64,6 +64,7 @@ exports.adminLogin = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
         throw new error_utils_1.CustomError("Invalid credentials", 401);
     const token = jsonwebtoken_1.default.sign({ uid: user._id.toString(), email: user.email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "30d" });
     user.lastLogin = new Date();
+    user.status = "active"; // All admins: active when logged in
     await user.save();
     res.status(200).json({
         accessToken: token,
@@ -88,12 +89,12 @@ exports.adminLoginStep1 = (0, error_utils_1.asyncErrorHandler)(async (req, res) 
     const user = await user_model_1.User.findOne({ email }).select("+password role status name email lastLogin");
     if (!user)
         throw new error_utils_1.CustomError("Invalid credentials", 401);
-    if (user.status !== "active")
-        throw new error_utils_1.CustomError("Account is not active", 403);
+    if (user.status === "suspended")
+        throw new error_utils_1.CustomError("Your account has been suspended. Please contact the administrator.", 403);
     const role = await role_model_1.Role.findById(user.role);
     if (!role)
         throw new error_utils_1.CustomError("Role not found", 401);
-    const adminRoleNames = ["super-admin", "support-admin", "developer-admin", "admin"];
+    const adminRoleNames = ["super-admin", "support-admin", "developer-admin", "client-admin", "admin"];
     if (!adminRoleNames.includes(role.name))
         throw new error_utils_1.CustomError("Not authorized as admin", 403);
     const isMatch = await bcryptjs_1.default.compare(password, user.password);
@@ -138,11 +139,14 @@ exports.verifyAdminLoginOtp = (0, error_utils_1.asyncErrorHandler)(async (req, r
     const user = await user_model_1.User.findOne({ email }).select("role status name email lastLogin");
     if (!user)
         throw new error_utils_1.CustomError("User not found", 404);
+    if (user.status === "suspended")
+        throw new error_utils_1.CustomError("Your account has been suspended. Please contact the administrator.", 403);
     const role = await role_model_1.Role.findById(user.role);
     if (!role)
         throw new error_utils_1.CustomError("Role not found", 404);
     const token = jsonwebtoken_1.default.sign({ uid: user._id.toString(), email: user.email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "30d" });
     user.lastLogin = new Date();
+    user.status = "active"; // All admins: active when logged in
     await user.save();
     await login_otp_model_1.LoginOtp.deleteMany({ email });
     res.status(200).json({
@@ -171,12 +175,12 @@ exports.resendAdminLoginOtp = (0, error_utils_1.asyncErrorHandler)(async (req, r
         const remaining = 60 - Math.floor((now.getTime() - existing.createdAt.getTime()) / 1000);
         throw new error_utils_1.CustomError(`Please wait ${remaining}s before resending code`, 429);
     }
-    // Ensure user exists and active
+    // Ensure user exists and not suspended
     const user = await user_model_1.User.findOne({ email }).select("role status name email");
     if (!user)
         throw new error_utils_1.CustomError("User not found", 404);
-    if (user.status !== "active")
-        throw new error_utils_1.CustomError("Account is not active", 403);
+    if (user.status === "suspended")
+        throw new error_utils_1.CustomError("Your account has been suspended. Please contact the administrator.", 403);
     // generate new code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
@@ -275,4 +279,11 @@ exports.changePassword = (0, error_utils_1.asyncErrorHandler)(async (req, res) =
     user.password = newPassword;
     await user.save();
     res.status(200).json({ message: "Password changed successfully" });
+});
+// Logout: set admin status to inactive (status is login-based for all admins)
+exports.adminLogout = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
+    if (!req.user)
+        return res.status(200).json({ success: true });
+    await user_model_1.User.findByIdAndUpdate(req.user.id, { status: "inactive" });
+    res.status(200).json({ success: true });
 });
