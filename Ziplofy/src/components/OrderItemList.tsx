@@ -31,7 +31,7 @@ const OrderItemList: React.FC<OrderItemListProps> = ({
         ))
       ) : (
         <tr>
-          <td colSpan={10} className="px-4 py-8 text-center text-sm text-gray-500">
+          <td colSpan={7} className="px-5 py-12 text-center text-sm text-gray-500">
             No orders found
           </td>
         </tr>

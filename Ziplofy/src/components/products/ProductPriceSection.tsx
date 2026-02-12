@@ -58,8 +58,8 @@ const ProductPriceSection: React.FC<ProductPriceSectionProps> = ({
   }, [onPriceChange]);
 
   return (
-    <div className="mb-6 border border-gray-200 p-3 bg-white/95">
-      <h2 className="text-base font-medium text-gray-900 mb-4">
+    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+      <h2 className="text-base font-semibold text-gray-900 mb-4">
         Price
       </h2>
       

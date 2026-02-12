@@ -1,3 +1,4 @@
+import { CubeIcon } from '@heroicons/react/24/outline';
 import React from 'react';
 
 export interface CartItem {
@@ -16,26 +17,31 @@ export interface CartItem {
 
 interface AbandonedCartItemRowProps {
   item: CartItem;
-  formatDate: (dateString: string) => string;
 }
 
-const AbandonedCartItemRow: React.FC<AbandonedCartItemRowProps> = ({ item, formatDate }) => {
+const AbandonedCartItemRow: React.FC<AbandonedCartItemRowProps> = ({ item }) => {
+  const productLabel = Object.entries(item.productVariant.optionValues || {})
+    .map(([key, value]) => `${key}: ${value}`)
+    .join(', ') || item.productVariant.sku;
+
   return (
-    <tr className="hover:bg-gray-50 border-b border-gray-200">
+    <tr className="hover:bg-blue-50/40 transition-colors">
       <td className="px-4 py-3 whitespace-nowrap">
         <div className="flex items-center gap-3">
-          {item.productVariant.images && item.productVariant.images.length > 0 && (
+          {item.productVariant.images && item.productVariant.images.length > 0 ? (
             <img
               src={item.productVariant.images[0]}
               alt={item.productVariant.sku}
-              className="w-10 h-10 object-cover border border-gray-200"
+              className="w-10 h-10 object-cover rounded-lg border border-gray-200 shrink-0"
             />
+          ) : (
+            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+              <CubeIcon className="w-5 h-5 text-blue-400" />
+            </div>
           )}
           <div className="min-w-0">
             <p className="text-sm text-gray-900 truncate">
-              {Object.entries(item.productVariant.optionValues)
-                .map(([key, value]) => `${key}: ${value}`)
-                .join(', ')}
+              {productLabel}
             </p>
           </div>
         </div>
@@ -44,14 +50,14 @@ const AbandonedCartItemRow: React.FC<AbandonedCartItemRowProps> = ({ item, forma
         <p className="text-sm text-gray-600">{item.productVariant.sku}</p>
       </td>
       <td className="px-4 py-3 whitespace-nowrap text-right">
-        <p className="text-sm text-gray-900">${item.productVariant.price.toFixed(2)}</p>
+        <p className="text-sm text-gray-900">₹{item.productVariant.price.toFixed(2)}</p>
       </td>
       <td className="px-4 py-3 whitespace-nowrap text-center">
         <span className="text-sm text-gray-900">{item.quantity}</span>
       </td>
       <td className="px-4 py-3 whitespace-nowrap text-right">
-        <p className="text-sm text-gray-900 font-medium">
-          ${(item.productVariant.price * item.quantity).toFixed(2)}
+        <p className="text-sm text-blue-600 font-medium">
+          ₹{(item.productVariant.price * item.quantity).toFixed(2)}
         </p>
       </td>
     </tr>

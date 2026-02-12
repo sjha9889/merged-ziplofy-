@@ -35,16 +35,16 @@ const CreateSegmentModal: React.FC<CreateSegmentModalProps> = ({
         <>
           <button
             onClick={onClose}
-            className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={onCreate}
             disabled={!name.trim() || !storeId}
-            className="px-3 py-1.5 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
           >
-            Create customer segment
+            Create segment
           </button>
         </>
       }
@@ -58,7 +58,7 @@ const CreateSegmentModal: React.FC<CreateSegmentModalProps> = ({
           type="text"
           value={name}
           onChange={handleNameChange}
-          className="w-full px-3 py-1.5 text-base border border-gray-200 focus:ring-1 focus:ring-gray-400 focus:border-gray-400 outline-none transition-colors"
+          className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 outline-none transition-all"
           placeholder="Enter segment name"
           autoFocus
         />

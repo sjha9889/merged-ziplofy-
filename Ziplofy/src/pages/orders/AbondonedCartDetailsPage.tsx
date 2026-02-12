@@ -6,7 +6,6 @@ import AbandonedCartDetailsBreadcrumbs from '../../components/orders/AbandonedCa
 import AbandonedCartItemsTable from '../../components/orders/AbandonedCartItemsTable';
 import AbandonedCartSummary from '../../components/orders/AbandonedCartSummary';
 import SendRecoveryEmailModal from '../../components/orders/SendRecoveryEmailModal';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import { useAbandonedCarts } from '../../contexts/abandoned-cart.context';
 import { useStore } from '../../contexts/store.context';
 
@@ -121,69 +120,88 @@ const AbandonedCartDetailsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <GridBackgroundWrapper>
-        <div className="flex justify-center items-center min-h-[50vh]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-800"></div>
+      <div className="min-h-screen bg-page-background-color">
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4 flex justify-center items-center min-h-[50vh]">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-blue-600"></div>
         </div>
-      </GridBackgroundWrapper>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <GridBackgroundWrapper>
-        <div className="max-w-7xl mx-auto pt-3 px-4">
-          <div className="bg-white border border-red-200 rounded-lg p-4">
-            <p className="text-sm text-red-800">{error}</p>
+      <div className="min-h-screen bg-page-background-color">
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
+          <div className="bg-white border border-red-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
+            <p className="text-sm text-red-700">{error}</p>
+            <button
+              onClick={handleBack}
+              className="text-sm font-medium text-blue-600 hover:text-blue-700"
+            >
+              Back to Abandoned Carts
+            </button>
           </div>
         </div>
-      </GridBackgroundWrapper>
+      </div>
     );
   }
 
   if (!selectedCart) {
     return (
-      <GridBackgroundWrapper>
-        <div className="max-w-7xl mx-auto pt-3 px-4">
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="min-h-screen bg-page-background-color">
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-4 flex items-center justify-between">
             <p className="text-sm text-gray-900">Abandoned cart not found</p>
+            <button
+              onClick={handleBack}
+              className="text-sm font-medium text-blue-600 hover:text-blue-700"
+            >
+              Back to Abandoned Carts
+            </button>
           </div>
         </div>
-      </GridBackgroundWrapper>
+      </div>
     );
   }
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        {/* Breadcrumbs */}
-        <AbandonedCartDetailsBreadcrumbs
-          customerFirstName={selectedCart.customer.firstName}
-          customerLastName={selectedCart.customer.lastName}
-        />
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
+        {/* Back button & Breadcrumbs */}
+        <div className="mb-6">
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-4 transition-colors"
+          >
+            <ArrowLeftIcon className="w-5 h-5" />
+            <span className="text-sm font-medium">Back to Abandoned Carts</span>
+          </button>
+          <AbandonedCartDetailsBreadcrumbs
+            customerFirstName={selectedCart.customer.firstName}
+            customerLastName={selectedCart.customer.lastName}
+          />
+        </div>
 
         {/* Header */}
-        <div className="mb-8 pb-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleBack}
-                className="p-1 text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <ArrowLeftIcon className="w-5 h-5" />
-              </button>
-              <h1 className="text-xl font-medium text-gray-900">
+        <div className="mb-6 flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-3 pl-3 border-l-4 border-blue-500/60">
+            <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 text-base font-semibold shrink-0">
+              {getInitials(selectedCart.customer.firstName, selectedCart.customer.lastName)}
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
                 {selectedCart.customer.firstName} {selectedCart.customer.lastName}
               </h1>
+              <p className="text-sm text-gray-500 mt-0.5">{selectedCart.customer.email}</p>
             </div>
-            <button
-              onClick={handleSendEmail}
-              className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors flex items-center gap-2"
-            >
-              <PaperAirplaneIcon className="w-4 h-4" />
-              Send Email
-            </button>
           </div>
+          <button
+            onClick={handleSendEmail}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:border-blue-600 hover:text-blue-600 hover:bg-blue-50/50 transition-colors flex items-center gap-2"
+          >
+            <PaperAirplaneIcon className="w-4 h-4" />
+            Send Email
+          </button>
         </div>
 
         {/* Main Content */}
@@ -208,26 +226,25 @@ const AbandonedCartDetailsPage: React.FC = () => {
             <AbandonedCartItemsTable
               cartItems={selectedCart.cartItems}
               cartTotal={calculateCartTotal()}
-              formatDate={formatDate}
             />
           </div>
         </div>
       </div>
 
-        {/* Email Modal */}
-        <SendRecoveryEmailModal
-          isOpen={isEmailModalOpen}
-          customer={selectedCart?.customer || null}
-          emailSubject={emailSubject}
-          emailBody={emailBody}
-          emailTemplate={emailTemplate}
-          onClose={handleCloseEmailModal}
-          onTemplateChange={handleTemplateChange}
-          onSubjectChange={setEmailSubject}
-          onBodyChange={setEmailBody}
-          onSubmit={handleSendEmailSubmit}
-        />
-    </GridBackgroundWrapper>
+      {/* Email Modal */}
+      <SendRecoveryEmailModal
+        isOpen={isEmailModalOpen}
+        customer={selectedCart?.customer || null}
+        emailSubject={emailSubject}
+        emailBody={emailBody}
+        emailTemplate={emailTemplate}
+        onClose={handleCloseEmailModal}
+        onTemplateChange={handleTemplateChange}
+        onSubjectChange={setEmailSubject}
+        onBodyChange={setEmailBody}
+        onSubmit={handleSendEmailSubmit}
+      />
+    </div>
   );
 };
 

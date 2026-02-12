@@ -5,7 +5,6 @@ import {
   MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline';
 import React, { MouseEvent, useCallback, useEffect, useMemo, useState } from 'react';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 import { useInventoryLevels } from '../contexts/inventory-level.contexts';
 import { useLocations } from '../contexts/location.context';
 import { useStore } from '../contexts/store.context';
@@ -165,36 +164,31 @@ const ProductsInventoryPage: React.FC = () => {
   }, [editingOnHandId, editOnHandValue, inventoryLevels, updateById]);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
-
-        <div className="border-b border-gray-200 px-4 py-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CubeIcon className="w-5 h-5 text-gray-600" />
-                <h1 className="text-xl font-medium text-gray-900">Inventory</h1>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  className="px-3 py-1.5 border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 text-sm font-medium text-gray-700 transition-colors"
-                  onClick={handleRefresh}
-                  disabled={!selectedLocationId || invLoading}
-                >
-                  <ArrowPathIcon className="w-4 h-4" />
-                  Refresh
-                </button>
-              </div>
-            </div>
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+          <div className="pl-3 border-l-4 border-blue-500/60">
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Inventory</h1>
+            <p className="text-sm text-gray-500 mt-0.5">Manage inventory levels by location</p>
           </div>
+          <button
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200/80 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium text-gray-700 transition-colors"
+            onClick={handleRefresh}
+            disabled={!selectedLocationId || invLoading}
+          >
+            <ArrowPathIcon className="w-4 h-4" />
+            Refresh
+          </button>
         </div>
 
-      <div className="max-w-7xl mx-auto py-6 px-4">
-        <div className="bg-white border border-gray-200 rounded p-4">
-          <h2 className="text-base font-medium text-gray-900 mb-4">
-            Inventory by Location
-          </h2>
-
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Inventory by Location
+            </h2>
+          </div>
+          <div className="p-5">
           {/* Location Selection */}
           <div className="flex gap-4 mb-4 items-center">
             <div className="min-w-[200px]">
@@ -204,7 +198,7 @@ const ProductsInventoryPage: React.FC = () => {
               <select
                 value={selectedLocationId}
                 onChange={(e) => handleLocationChange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded text-base focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-colors"
               >
                 <option value="">Select a location</option>
                 {locations.map((location) => (
@@ -219,7 +213,7 @@ const ProductsInventoryPage: React.FC = () => {
           {/* Search and Filters */}
           {selectedLocationId && (
             <div className="flex gap-2 mb-4">
-              <div className="relative flex-1">
+              <div className="relative flex-1 min-w-0">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <MagnifyingGlassIcon className="h-4 w-4 text-gray-400" />
                 </div>
@@ -228,10 +222,10 @@ const ProductsInventoryPage: React.FC = () => {
                   placeholder="Search by SKU or product title..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded text-base focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                  className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-colors"
                 />
               </div>
-              <button className="p-2 border border-gray-200 rounded hover:bg-gray-50 transition-colors">
+              <button className="p-2 border border-gray-200 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-colors">
                 <FunnelIcon className="w-4 h-4 text-gray-600" />
               </button>
             </div>
@@ -240,38 +234,36 @@ const ProductsInventoryPage: React.FC = () => {
           {/* Inventory Table */}
           {selectedLocationId ? (
             invLoading ? (
-              <div className="text-center py-6">
-                <p className="text-sm text-gray-600">
-                  Loading inventory...
-                </p>
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 border-t-blue-600"></div>
               </div>
             ) : filteredLevels.length > 0 ? (
               <>
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                <table className="min-w-full divide-y divide-gray-100">
+                  <thead className="bg-gray-50/80">
                     <tr>
-                      <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Product</th>
-                      <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">SKU</th>
-                      <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Unavailable</th>
-                      <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Committed</th>
-                      <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Incoming</th>
-                      <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">Available</th>
-                      <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">On Hand</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Product</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">SKU</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Unavailable</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Committed</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Incoming</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Available</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">On Hand</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-gray-100">
                     {filteredLevels.map((lvl) => {
                       const unavailableTotal = lvl.unavailable.damaged + lvl.unavailable.qualityControl + lvl.unavailable.safetyStock + lvl.unavailable.other;
                       const optionSummary = Object.values(lvl.variantId.optionValues || {}).join(' / ');
                       return (
-                        <tr key={lvl._id} className="hover:bg-gray-50 group">
-                          <td className="px-3 py-2 whitespace-nowrap">
+                        <tr key={lvl._id} className="hover:bg-blue-50/50 group">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <div className="flex items-center gap-3">
                               <img
                                 src={lvl.variantId.images?.[0] || lvl.variantId.productId.imageUrls?.[0] || undefined}
                                 alt={lvl.variantId.productId.title}
-                                className="w-12 h-12 rounded-lg object-cover bg-gray-200 flex-shrink-0"
+                                className="w-12 h-12 rounded-lg object-cover bg-gray-200 shrink-0"
                                 onError={(e) => {
                                   (e.target as HTMLImageElement).style.display = 'none';
                                 }}
@@ -285,25 +277,25 @@ const ProductsInventoryPage: React.FC = () => {
                           <td className="px-3 py-2 whitespace-nowrap">
                             <span className="text-sm font-medium text-gray-700">{lvl.variantId.sku}</span>
                           </td>
-                          <td className="px-3 py-2 whitespace-nowrap">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <div className="inline-flex items-center gap-1 relative">
                               <span className="text-sm font-medium text-gray-700">{unavailableTotal}</span>
                               <button
                                 aria-label="unavailable details"
                                 onClick={(e) => openUnavailableMenu(e, lvl._id)}
-                                className="ml-1 opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 rounded transition-colors"
+                                className="ml-1 opacity-0 group-hover:opacity-100 p-1 hover:bg-blue-100 rounded-lg transition-colors"
                               >
                                 <FunnelIcon className="w-3.5 h-3.5 text-gray-600" />
                               </button>
                             </div>
                           </td>
-                          <td className="px-3 py-2 whitespace-nowrap">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <span className="text-sm font-medium text-gray-700">{lvl.committed}</span>
                           </td>
-                          <td className="px-3 py-2 whitespace-nowrap">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             <span className="text-sm font-medium text-gray-700">{lvl.incoming ?? 0}</span>
                           </td>
-                          <td className="px-3 py-2 whitespace-nowrap">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             {editingAvailableId === lvl._id ? (
                               <div className="flex items-center gap-2">
                                 <input
@@ -311,17 +303,17 @@ const ProductsInventoryPage: React.FC = () => {
                                   min="0"
                                   value={editAvailableValue}
                                   onChange={(e) => setEditAvailableValue(Number(e.target.value) || 0)}
-                                  className="w-20 px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                                  className="w-20 px-2 py-1 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-colors"
                                 />
                                 <button
-                                  className="px-2 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                                  className="px-2 py-1 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
                                   onClick={cancelEditAvailable}
                                   disabled={savingAvailable}
                                 >
                                   Cancel
                                 </button>
                                 <button
-                                  className="px-2 py-1 text-xs bg-gray-900 text-white rounded hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                                  className="px-2 py-1 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
                                   onClick={saveAvailable}
                                   disabled={savingAvailable}
                                 >
@@ -331,16 +323,16 @@ const ProductsInventoryPage: React.FC = () => {
                             ) : (
                               <div className="inline-flex items-center gap-2">
                                 <span
-                                  className={`px-1.5 py-0.5 text-xs font-medium rounded ${
+                                  className={`px-2.5 py-1 text-xs font-medium rounded-lg ${
                                     lvl.available > 0
-                                      ? 'bg-green-100 text-green-800'
-                                      : 'bg-red-100 text-red-800'
+                                      ? 'bg-green-50 text-green-700 border border-green-200/80'
+                                      : 'bg-red-50 text-red-700 border border-red-200/80'
                                   }`}
                                 >
                                   {lvl.available}
                                 </span>
                                 <button
-                                  className="text-xs text-gray-600 hover:text-gray-900 transition-colors"
+                                  className="text-xs text-blue-600 hover:text-blue-700 transition-colors"
                                   onClick={() => startEditAvailable(lvl._id, lvl.available)}
                                 >
                                   Edit
@@ -348,7 +340,7 @@ const ProductsInventoryPage: React.FC = () => {
                               </div>
                             )}
                           </td>
-                          <td className="px-3 py-2 whitespace-nowrap">
+                          <td className="px-4 py-3 whitespace-nowrap">
                             {editingOnHandId === lvl._id ? (
                               <div className="flex items-center gap-2">
                                 <input
@@ -356,17 +348,17 @@ const ProductsInventoryPage: React.FC = () => {
                                   min="0"
                                   value={editOnHandValue}
                                   onChange={(e) => setEditOnHandValue(Number(e.target.value) || 0)}
-                                  className="w-20 px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                                  className="w-20 px-2 py-1 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-colors"
                                 />
                                 <button
-                                  className="px-2 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                                  className="px-2 py-1 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
                                   onClick={cancelEditOnHand}
                                   disabled={savingOnHand}
                                 >
                                   Cancel
                                 </button>
                                 <button
-                                  className="px-2 py-1 text-xs bg-gray-900 text-white rounded hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                                  className="px-2 py-1 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
                                   onClick={saveOnHand}
                                   disabled={savingOnHand}
                                 >
@@ -377,7 +369,7 @@ const ProductsInventoryPage: React.FC = () => {
                               <div className="inline-flex items-center gap-2">
                                 <span className="text-sm font-medium text-gray-700">{lvl.onHand}</span>
                                 <button
-                                  className="text-xs text-gray-600 hover:text-gray-900 transition-colors"
+                                  className="text-xs text-blue-600 hover:text-blue-700 transition-colors"
                                   onClick={() => startEditOnHand(lvl._id, lvl.onHand)}
                                 >
                                   Edit
@@ -399,7 +391,7 @@ const ProductsInventoryPage: React.FC = () => {
                     onClick={closeUnavailableMenu}
                   ></div>
                   <div
-                    className="fixed z-50 mt-2 bg-white border border-gray-200 rounded shadow-lg"
+                    className="fixed z-50 mt-2 bg-white border border-gray-200/80 rounded-xl shadow-lg"
                     style={{
                       top: unavailAnchorEl.getBoundingClientRect().bottom + window.scrollY + 4,
                       left: unavailAnchorEl.getBoundingClientRect().left + window.scrollX,
@@ -414,56 +406,56 @@ const ProductsInventoryPage: React.FC = () => {
                   <div className="border-t border-gray-200"></div>
                   {editUnavailable && (
                     <div className="min-w-[240px] py-2">
-                      <div className="px-3 py-2 flex items-center justify-between gap-4 hover:bg-gray-50 transition-colors">
+                      <div className="px-3 py-2 flex items-center justify-between gap-4 hover:bg-blue-50/50 transition-colors">
                         <span className="text-sm text-gray-700">Damaged</span>
                         <input
                           type="number"
                           min="0"
                           value={editUnavailable.damaged}
                           onChange={(e) => handleUnavailableChange('damaged', e.target.value)}
-                          className="w-20 px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                          className="w-20 px-2 py-1 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-colors"
                         />
                       </div>
-                      <div className="px-3 py-2 flex items-center justify-between gap-4 hover:bg-gray-50 transition-colors">
+                      <div className="px-3 py-2 flex items-center justify-between gap-4 hover:bg-blue-50/50 transition-colors">
                         <span className="text-sm text-gray-700">Quality Control</span>
                         <input
                           type="number"
                           min="0"
                           value={editUnavailable.qualityControl}
                           onChange={(e) => handleUnavailableChange('qualityControl', e.target.value)}
-                          className="w-20 px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                          className="w-20 px-2 py-1 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-colors"
                         />
                       </div>
-                      <div className="px-3 py-2 flex items-center justify-between gap-4 hover:bg-gray-50 transition-colors">
+                      <div className="px-3 py-2 flex items-center justify-between gap-4 hover:bg-blue-50/50 transition-colors">
                         <span className="text-sm text-gray-700">Safety Stock</span>
                         <input
                           type="number"
                           min="0"
                           value={editUnavailable.safetyStock}
                           onChange={(e) => handleUnavailableChange('safetyStock', e.target.value)}
-                          className="w-20 px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                          className="w-20 px-2 py-1 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-colors"
                         />
                       </div>
-                      <div className="px-3 py-2 flex items-center justify-between gap-4 hover:bg-gray-50 transition-colors">
+                      <div className="px-3 py-2 flex items-center justify-between gap-4 hover:bg-blue-50/50 transition-colors">
                         <span className="text-sm text-gray-700">Other</span>
                         <input
                           type="number"
                           min="0"
                           value={editUnavailable.other}
                           onChange={(e) => handleUnavailableChange('other', e.target.value)}
-                          className="w-20 px-2 py-1 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                          className="w-20 px-2 py-1 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-colors"
                         />
                       </div>
                       <div className="flex justify-end gap-2 px-3 pb-2 pt-2">
                         <button
-                          className="px-2 py-1 text-xs border border-gray-200 rounded hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                          className="px-2 py-1 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
                           onClick={closeUnavailableMenu}
                           disabled={savingUnavailable}
                         >
                           Cancel
                         </button>
                         <button
-                          className="px-2 py-1 text-xs bg-gray-900 text-white rounded hover:bg-gray-800 disabled:opacity-50 transition-colors"
+                          className="px-2 py-1 text-xs bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
                           onClick={saveUnavailable}
                           disabled={savingUnavailable}
                         >
@@ -477,27 +469,29 @@ const ProductsInventoryPage: React.FC = () => {
               )}
               </>
             ) : (
-              <div className="text-center py-6">
-                <p className="text-sm text-gray-600">
+              <div className="text-center py-12">
+                <p className="text-sm text-gray-500">
                   {searchQuery ? 'No items match your search.' : 'No inventory found for this location.'}
                 </p>
               </div>
             )
           ) : (
-            <div className="text-center py-6">
-              <CubeIcon className="w-10 h-10 text-gray-400 mx-auto mb-3" />
-              <h3 className="text-base font-medium text-gray-700 mb-1">
+            <div className="text-center py-12">
+              <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center mx-auto mb-4">
+                <CubeIcon className="w-7 h-7 text-blue-600" />
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 mb-1">
                 Select a location to view inventory
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-500">
                 Choose a location from the dropdown above to see inventory levels.
               </p>
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>
-    </GridBackgroundWrapper>
   );
 };
 

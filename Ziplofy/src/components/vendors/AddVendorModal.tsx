@@ -26,13 +26,13 @@ const AddVendorModal: React.FC<AddVendorModalProps> = ({
         <>
           <button
             onClick={onClose}
-            className="px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={onSubmit}
-            className="px-3 py-1.5 bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
           >
             Submit
           </button>
@@ -49,7 +49,7 @@ const AddVendorModal: React.FC<AddVendorModalProps> = ({
           autoFocus
           value={vendorName}
           onChange={onVendorNameChange}
-          className="w-full px-3 py-2 border border-gray-200 focus:ring-1 focus:ring-gray-400 focus:border-gray-300 outline-none transition-colors bg-white text-sm"
+          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none transition-colors bg-white text-sm"
           placeholder="Enter vendor name"
         />
       </div>

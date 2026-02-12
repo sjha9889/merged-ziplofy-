@@ -10,19 +10,19 @@ interface GiftCardDisplayProps {
 const GiftCardDisplay: React.FC<GiftCardDisplayProps> = ({ giftCard, onEdit }) => {
   return (
     <div className="md:col-span-4">
-      <div className="bg-white rounded border border-gray-200 p-4 flex flex-col">
+      <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm flex flex-col">
         {/* Header with Gift Icon and Edit Button */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
-            <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-2">
-              <GiftIcon className="w-4 h-4 text-gray-600" />
+            <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center mr-2">
+              <GiftIcon className="w-4 h-4 text-blue-600" />
             </div>
-            <h3 className="text-base font-medium text-gray-900">Gift Card</h3>
+            <h3 className="text-base font-semibold text-gray-900">Gift Card</h3>
           </div>
           {giftCard.isActive && (
             <button
               onClick={onEdit}
-              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+              className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
             >
               <PencilIcon className="w-4 h-4" />
             </button>
@@ -39,7 +39,7 @@ const GiftCardDisplay: React.FC<GiftCardDisplayProps> = ({ giftCard, onEdit }) =
 
         {/* Value */}
         <div className="mb-4 flex items-center">
-          <CurrencyDollarIcon className="w-5 h-5 mr-2 text-gray-600" />
+          <CurrencyDollarIcon className="w-5 h-5 mr-2 text-blue-600" />
           <span className="text-xl font-medium text-gray-900">₹{giftCard.initialValue}</span>
         </div>
 
@@ -48,7 +48,7 @@ const GiftCardDisplay: React.FC<GiftCardDisplayProps> = ({ giftCard, onEdit }) =
           <span
             className={`px-2 py-0.5 rounded text-xs font-medium ${
               giftCard.isActive
-                ? 'bg-green-100 text-green-800'
+                ? 'bg-blue-100 text-blue-800'
                 : 'bg-red-100 text-red-800'
             }`}
           >

@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from "react";
 import { ChevronDownIcon, FunnelIcon, Squares2X2Icon } from "@heroicons/react/24/outline";
-import GridBackgroundWrapper from "../components/GridBackgroundWrapper";
 
 const MarketingAttributionPage: React.FC = () => {
   const [isChannelsMenuOpen, setIsChannelsMenuOpen] = useState(false);
@@ -78,24 +77,24 @@ const MarketingAttributionPage: React.FC = () => {
   ];
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
         {/* Header */}
-        <div className="border-b border-gray-200 px-4 py-3">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between mb-3">
-              <h1 className="text-xl font-medium text-gray-900">Attribution</h1>
-            </div>
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold text-gray-900">Attribution</h1>
+          <p className="text-sm text-gray-600 mt-1">Analyze marketing performance and attribution models</p>
+        </div>
 
-            {/* Controls */}
-            <div className="flex gap-2 items-center flex-wrap">
+        {/* Controls */}
+        <div className="bg-white rounded-xl border border-gray-200/80 p-4 shadow-sm mb-6">
+          <div className="flex gap-2 items-center flex-wrap">
               <div className="relative">
                 <button
-                  className="flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
                   onClick={handleChannelsClick}
                 >
                   {selectedChannels}
-                  <ChevronDownIcon className="w-3.5 h-3.5" />
+                  <ChevronDownIcon className="w-4 h-4" />
                 </button>
 
                 {/* Channels menu */}
@@ -105,7 +104,7 @@ const MarketingAttributionPage: React.FC = () => {
                       className="fixed inset-0 z-10"
                       onClick={handleChannelsClose}
                     />
-                    <div className="absolute top-full left-0 mt-1 w-[220px] bg-white border border-gray-200 shadow-lg z-20">
+                    <div className="absolute top-full left-0 mt-1 w-[220px] bg-white border border-gray-200 rounded-lg shadow-lg z-20 overflow-hidden">
                       <div className="px-3 py-2 border-b border-gray-200">
                         <p className="text-sm font-medium text-gray-900">Channels</p>
                       </div>
@@ -127,17 +126,17 @@ const MarketingAttributionPage: React.FC = () => {
                 )}
               </div>
 
-              <button className="px-3 py-1.5 bg-gray-900 text-white rounded hover:bg-gray-800 transition-colors text-sm font-medium">
+              <button className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
                 Last 30 days
               </button>
 
               <div className="relative">
                 <button
-                  className="flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
                   onClick={handleGranularityClick}
                 >
                   {selectedGranularity}
-                  <ChevronDownIcon className="w-3.5 h-3.5" />
+                  <ChevronDownIcon className="w-4 h-4" />
                 </button>
 
                 {/* Granularity menu */}
@@ -147,7 +146,7 @@ const MarketingAttributionPage: React.FC = () => {
                       className="fixed inset-0 z-10"
                       onClick={handleGranularityClose}
                     />
-                    <div className="absolute top-full left-0 mt-1 w-[220px] bg-white border border-gray-200 shadow-lg z-20">
+                    <div className="absolute top-full left-0 mt-1 w-[220px] bg-white border border-gray-200 rounded-lg shadow-lg z-20 overflow-hidden">
                       {granularityOptions.map((opt) => (
                         <button
                           key={opt}
@@ -166,20 +165,20 @@ const MarketingAttributionPage: React.FC = () => {
                 )}
               </div>
 
-              <button className="px-3 py-1.5 bg-white text-gray-700 border border-gray-200 rounded hover:bg-gray-50 transition-colors text-sm font-medium">
+              <button className="px-3 py-2 bg-white text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
                 Print
               </button>
-              <button className="px-3 py-1.5 bg-white text-gray-700 border border-gray-200 rounded hover:bg-gray-50 transition-colors text-sm font-medium">
+              <button className="px-3 py-2 bg-white text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">
                 Export
               </button>
 
               <div className="relative">
                 <button
-                  className="flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
                   onClick={handleAttributionClick}
                 >
                   {selectedAttribution}
-                  <ChevronDownIcon className="w-3.5 h-3.5" />
+                  <ChevronDownIcon className="w-4 h-4" />
                 </button>
 
                 {/* Attribution model menu */}
@@ -189,7 +188,7 @@ const MarketingAttributionPage: React.FC = () => {
                       className="fixed inset-0 z-10"
                       onClick={handleAttributionClose}
                     />
-                    <div className="absolute top-full left-0 mt-1 w-[260px] bg-white border border-gray-200 shadow-lg z-20">
+                    <div className="absolute top-full left-0 mt-1 w-[260px] bg-white border border-gray-200 rounded-lg shadow-lg z-20 overflow-hidden">
                       <div className="px-3 py-2 border-b border-gray-200">
                         <p className="text-sm font-medium text-gray-900">Attribution model</p>
                       </div>
@@ -218,25 +217,22 @@ const MarketingAttributionPage: React.FC = () => {
                   </>
                 )}
               </div>
-            </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto py-6 px-4">
-          <div className="flex flex-col gap-4">
-
-            {/* Metrics segment */}
-            <div className="p-4 border border-gray-200 bg-white">
+        <div className="flex flex-col gap-6">
+          {/* Metrics segment */}
+          <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
               <div className="flex flex-col gap-3">
                 <div className="flex items-center">
                   <div className="relative">
                     <button
-                      className="flex items-center gap-1 px-3 py-1.5 rounded text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium bg-white text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
                       onClick={handleMetricsClick}
                     >
                       {selectedMetric}
-                      <ChevronDownIcon className="w-3.5 h-3.5" />
+                      <ChevronDownIcon className="w-4 h-4" />
                     </button>
 
                     {/* Metrics menu */}
@@ -246,7 +242,7 @@ const MarketingAttributionPage: React.FC = () => {
                           className="fixed inset-0 z-10"
                           onClick={handleMetricsClose}
                         />
-                        <div className="absolute top-full left-0 mt-1 w-[400px] bg-white border border-gray-200 shadow-lg z-20">
+                        <div className="absolute top-full left-0 mt-1 w-[400px] bg-white border border-gray-200 rounded-lg shadow-lg z-20 overflow-hidden">
                           {metricOptions.map((opt) => (
                             <button
                               key={opt}
@@ -272,48 +268,47 @@ const MarketingAttributionPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Additional empty cards to mirror UI structure */}
-            <div className="border border-gray-200 bg-white">
-              <div className="flex items-center justify-between px-2 py-2">
-                <button className="p-1 text-gray-600 hover:bg-gray-100 rounded transition-colors">
-                  <FunnelIcon className="w-4 h-4" />
-                </button>
-                <button className="p-1 text-gray-600 hover:bg-gray-100 rounded transition-colors">
-                  <Squares2X2Icon className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="px-4 pb-4">
-                <p className="text-center mt-8 mb-1.5 text-sm font-medium text-gray-900">
-                  No data found for the date range selected
-                </p>
-                <p className="text-center text-sm text-gray-600">
-                  Please select a different period
-                </p>
-              </div>
+          {/* Additional empty cards to mirror UI structure */}
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+              <button className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                <FunnelIcon className="w-4 h-4" />
+              </button>
+              <button className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                <Squares2X2Icon className="w-4 h-4" />
+              </button>
             </div>
+            <div className="px-6 pb-6 pt-8">
+              <p className="text-center mb-1.5 text-sm font-medium text-gray-900">
+                No data found for the date range selected
+              </p>
+              <p className="text-center text-sm text-gray-600">
+                Please select a different period
+              </p>
+            </div>
+          </div>
 
-            <div className="border border-gray-200 bg-white">
-              <div className="flex items-center justify-between px-2 py-2">
-                <button className="p-1 text-gray-600 hover:bg-gray-100 rounded transition-colors">
-                  <FunnelIcon className="w-4 h-4" />
-                </button>
-                <button className="p-1 text-gray-600 hover:bg-gray-100 rounded transition-colors">
-                  <Squares2X2Icon className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="px-4 pb-4">
-                <p className="text-center mt-8 mb-1.5 text-sm font-medium text-gray-900">
-                  No data found for the date range selected
-                </p>
-                <p className="text-center text-sm text-gray-600">
-                  Please select a different period
-                </p>
-              </div>
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+              <button className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                <FunnelIcon className="w-4 h-4" />
+              </button>
+              <button className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                <Squares2X2Icon className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="px-6 pb-6 pt-8">
+              <p className="text-center mb-1.5 text-sm font-medium text-gray-900">
+                No data found for the date range selected
+              </p>
+              <p className="text-center text-sm text-gray-600">
+                Please select a different period
+              </p>
             </div>
           </div>
         </div>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

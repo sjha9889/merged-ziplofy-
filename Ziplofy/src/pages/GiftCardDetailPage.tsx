@@ -7,7 +7,6 @@ import GiftCardDisplay from '../components/gift-card/GiftCardDisplay';
 import GiftCardInformationPanel from '../components/gift-card/GiftCardInformationPanel';
 import GiftCardNotesSection from '../components/gift-card/GiftCardNotesSection';
 import GiftCardTimelineSection from '../components/gift-card/GiftCardTimelineSection';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 import { useGiftCardTimeline } from '../contexts/gift-card-timeline.context';
 import { useGiftCards } from '../contexts/gift-cards.context';
 import { useStore } from '../contexts/store.context';
@@ -253,62 +252,51 @@ const GiftCardDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <GridBackgroundWrapper>
-        <div className="min-h-screen p-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex justify-center items-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-            </div>
-          </div>
-        </div>
-      </GridBackgroundWrapper>
+      <div className="min-h-screen bg-page-background-color flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <GridBackgroundWrapper>
-        <div className="min-h-screen p-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm">
-              {error}
-            </div>
-            <button
-              onClick={handleBack}
-              className="mt-3 px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-            >
-              Back to Gift Cards
-            </button>
+      <div className="min-h-screen bg-page-background-color">
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-4">
+            {error}
           </div>
+          <button
+            onClick={handleBack}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Back to Gift Cards
+          </button>
         </div>
-      </GridBackgroundWrapper>
+      </div>
     );
   }
 
   if (!giftCard) {
     return (
-      <GridBackgroundWrapper>
-        <div className="min-h-screen p-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="mt-4 bg-yellow-50 border border-yellow-200 text-yellow-700 px-3 py-2 rounded text-sm">
-              Gift card not found
-            </div>
-            <button
-              onClick={handleBack}
-              className="mt-3 px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-            >
-              Back to Gift Cards
-            </button>
+      <div className="min-h-screen bg-page-background-color">
+        <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 px-4 py-3 rounded-lg text-sm mb-4">
+            Gift card not found
           </div>
+          <button
+            onClick={handleBack}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Back to Gift Cards
+          </button>
         </div>
-      </GridBackgroundWrapper>
+      </div>
     );
   }
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
-        <div className="max-w-7xl mx-auto py-6 px-4">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
         <GiftCardDetailHeader
           onBack={handleBack}
           onDeactivate={handleDeactivate}
@@ -377,8 +365,7 @@ const GiftCardDetailPage: React.FC = () => {
         onCancel={handleCancelDeactivate}
         onConfirm={handleConfirmDeactivate}
       />
-      </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

@@ -89,8 +89,8 @@ const CustomerTagsSection: React.FC<CustomerTagsSectionProps> = ({
   }, [debouncedTagsQuery, customerTags]);
 
   return (
-    <div className="bg-white p-4 rounded border border-gray-200">
-      <h2 className="text-base font-medium text-gray-900 mb-4">Customer Tags</h2>
+    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+      <h2 className="text-base font-semibold text-gray-900 mb-4">Customer Tags</h2>
       <div className="relative">
         <input
           ref={tagsInputRef}
@@ -99,7 +99,7 @@ const CustomerTagsSection: React.FC<CustomerTagsSectionProps> = ({
           placeholder="Search or create customer tags"
           onChange={handleTagsQueryChange}
           onFocus={() => setTagsMenuOpen(true)}
-          className="w-full px-3 py-1.5 text-base text-gray-900 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+          className="w-full px-3 py-2 text-sm text-gray-900 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors"
         />
         {selectedTagIds.length > 0 && (
           <p className="text-xs text-gray-600 mt-1">{selectedTagIds.length} selected</p>
@@ -107,7 +107,7 @@ const CustomerTagsSection: React.FC<CustomerTagsSectionProps> = ({
         {tagsMenuOpen && (filteredTags.length > 0 || canCreateTag) && (
           <div
             ref={tagsMenuRef}
-            className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded shadow-lg max-h-[300px] overflow-y-auto"
+            className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-[300px] overflow-y-auto"
             onMouseDown={(e) => e.preventDefault()}
           >
             {filteredTags.map((tag) => {

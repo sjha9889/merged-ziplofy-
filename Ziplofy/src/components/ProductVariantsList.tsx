@@ -8,16 +8,17 @@ interface ProductVariantsListProps {
   loading: boolean;
 }
 
-const ProductVariantsList: React.FC<ProductVariantsListProps> = ({
+function ProductVariantsList({
   variants,
   productId,
   loading,
-}) => {
+}: ProductVariantsListProps) {
   return (
-    <div className="bg-white border border-gray-200 p-6 rounded-lg">
-      <h2 className="text-base font-medium text-gray-900 mb-4">
-        Product Variants ({variants.length})
-      </h2>
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+      <div className="px-4 py-3 border-b border-gray-100 pl-4 border-l-4 border-l-blue-500/60">
+        <h2 className="text-sm font-semibold text-gray-900">Product Variants ({variants.length})</h2>
+      </div>
+      <div className="p-4">
       
       {loading && (
         <p className="text-sm text-gray-600">Loading variants...</p>
@@ -38,9 +39,10 @@ const ProductVariantsList: React.FC<ProductVariantsListProps> = ({
           ))}
         </div>
       )}
+      </div>
     </div>
   );
-};
+}
 
 export default ProductVariantsList;
 

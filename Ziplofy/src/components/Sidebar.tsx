@@ -153,13 +153,13 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="fixed bg-white border-r border-gray-200 left-0 top-[60px] h-[calc(100vh-60px)] w-[240px] flex flex-col shrink-0 z-50"
+      className="fixed bg-white border-r border-gray-200 left-0 top-12 h-[calc(100vh-48px)] w-[240px] flex flex-col shrink-0 z-50"
       style={{ 
         width: `${drawerWidth}px`
       }}
     > 
       {/* navbar  */}
-      <nav className="flex-1 overflow-y-auto">
+      <nav className="flex-1 overflow-y-auto py-2">
         <ul className="p-0 m-0 list-none">
           {/* nav list */}
           {NAV.map((item) => {
@@ -168,8 +168,34 @@ export default function Sidebar() {
             const Icon = item.icon;
             const active = isActive(item.path);
 
+            const activeChildIndex =
+              item.children
+                ? (() => {
+                    const matches = item.children
+                      .map((c, i) => ({ path: c.path, i }))
+                      .filter(
+                        ({ path }) =>
+                          location.pathname === path || location.pathname.startsWith(path + '/')
+                      )
+                      .sort((a, b) => b.path.length - a.path.length);
+                    return matches[0]?.i ?? -1;
+                  })()
+                : -1;
+
+            const lineHeight =
+              hasKids && openSection && activeChildIndex >= 0
+                ? 40 + 28 * (activeChildIndex + 1) // parent ~40px + each child ~28px
+                : 0;
+
             return (
-              <li key={item.text}>
+              <li key={item.text} className="relative">
+                {hasKids && openSection && lineHeight > 0 && (
+                  <div
+                    className="absolute left-[10px] top-0 w-0.5 bg-blue-200 z-0"
+                    style={{ height: `${lineHeight}px` }}
+                    aria-hidden
+                  />
+                )}
                 <Link
                   to={item.path}
                   onClick={() => {
@@ -177,18 +203,18 @@ export default function Sidebar() {
                       toggle(item.text);
                     }
                   }}
-                  className={`flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors ${
-                    active ? 'bg-gray-50' : ''
+                  className={`relative z-10 flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors ${
+                    active ? 'text-blue-700' : ''
                   }`}
                 >
-                  <Icon className="w-4 h-4 shrink-0" />
+                  <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-blue-600' : ''}`} />
                   <span className="flex-1 text-sm font-medium">{item.text}</span>
                   {hasKids && (
-                    <span className="shrink-0">
+                    <span className={`shrink-0 ${active ? 'text-blue-600' : 'text-gray-500'}`}>
                       {openSection ? (
-                        <ChevronUpIcon className="w-4 h-4 text-gray-500" />
+                        <ChevronUpIcon className="w-4 h-4" />
                       ) : (
-                        <ChevronDownIcon className="w-4 h-4 text-gray-500" />
+                        <ChevronDownIcon className="w-4 h-4" />
                       )}
                     </span>
                   )}
@@ -196,19 +222,19 @@ export default function Sidebar() {
 
                 {hasKids && (
                   <div
-                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                    className={`relative overflow-hidden transition-all duration-300 ease-in-out ${
                       openSection ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
                     }`}
                   >
-                    <ul className="p-0 m-0 list-none">
+                    <ul className="p-0 m-0 list-none relative z-10">
                       {item.children!.map((sub) => {
                         const subActive = location.pathname === sub.path;
                         return (
                           <li key={sub.text}>
                             <Link
                               to={sub.path}
-                              className={`flex items-center gap-2 px-3 py-1.5 pl-10 text-gray-600 hover:bg-gray-50 transition-colors ${
-                                subActive ? 'bg-gray-50 text-gray-900' : ''
+                              className={`flex items-center gap-2 px-3 py-1.5 pl-10 mx-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors ${
+                                subActive ? 'text-blue-700 font-medium' : ''
                               }`}
                             >
                               <span className="text-xs">{sub.text}</span>
@@ -225,18 +251,18 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      <div className='border-t border-gray-200 w-full mt-2'></div>
+      <div className="border-t border-gray-200 w-full mt-2" />
       {/* settings option */}
-      <nav>
+      <nav className="pb-3">
         <ul className="p-0 m-0 list-none">
           <li>
             <Link
               to="/settings/general"
-              className={`flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors ${
-                location.pathname.startsWith('/settings') ? 'bg-gray-50' : ''
+              className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors ${
+                location.pathname.startsWith('/settings') ? 'text-blue-700' : ''
               }`}
             >
-              <Cog6ToothIcon className="w-4 h-4 shrink-0" />
+              <Cog6ToothIcon className={`w-4 h-4 shrink-0 ${location.pathname.startsWith('/settings') ? 'text-blue-600' : ''}`} />
               <span className="flex-1 text-sm font-medium">Settings</span>
             </Link>
           </li>

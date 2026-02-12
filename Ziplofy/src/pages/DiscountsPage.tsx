@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { TagIcon } from "@heroicons/react/24/outline";
 import AmountOffOrderTable from "../components/AmountOffOrderTable";
 import AmountOffProductsTable from "../components/AmountOffProductsTable";
 import BuyXGetYTable from "../components/BuyXGetYTable";
 import DiscountsPageHeader from "../components/DiscountsPageHeader";
 import FreeShippingTable from "../components/FreeShippingTable";
-import GridBackgroundWrapper from "../components/GridBackgroundWrapper";
 import Tabs from "../components/Tabs";
 import { useAmountOffOrderDiscount } from "../contexts/amount-off-order-discount.context";
 import { useAmountOffProductsDiscount } from "../contexts/amount-off-products-discount.context";
@@ -13,18 +13,33 @@ import { useBuyXGetYDiscount } from "../contexts/buy-x-get-y-discount.context";
 import { useFreeShippingDiscount } from "../contexts/free-shipping-discount.context";
 import { useStore } from "../contexts/store.context";
 
+const EmptyState = ({ message, onCreate }: { message: string; onCreate: () => void }) => (
+  <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm min-h-[320px] flex justify-center items-center p-12">
+    <div className="flex flex-col justify-center items-center text-center gap-4 max-w-md">
+      <div className="w-14 h-14 rounded-xl bg-blue-50 flex items-center justify-center">
+        <TagIcon className="w-7 h-7 text-blue-600" />
+      </div>
+      <p className="text-sm text-gray-500">{message}</p>
+      <button
+        onClick={onCreate}
+        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold transition-colors shadow-sm"
+      >
+        Create discount
+      </button>
+    </div>
+  </div>
+);
+
 const DiscountsPage: React.FC = () => {
   const navigate = useNavigate();
   const { discounts, error, fetchDiscountsByStoreId } = useAmountOffProductsDiscount();
-  const { discounts: bxgyDiscounts, loading: bxgyLoading, error: bxgyError, fetchDiscountsByStoreId: fetchBxgyByStoreId } = useBuyXGetYDiscount();
-  const { discounts: aooDiscounts, loading: aooLoading, error: aooError, fetchDiscountsByStoreId: fetchAooByStoreId } = useAmountOffOrderDiscount();
-  const { discounts: fsDiscounts, loading: fsLoading, error: fsError, fetchDiscountsByStoreId: fetchFsByStoreId } = useFreeShippingDiscount();
+  const { discounts: bxgyDiscounts, error: bxgyError, fetchDiscountsByStoreId: fetchBxgyByStoreId } = useBuyXGetYDiscount();
+  const { discounts: aooDiscounts, error: aooError, fetchDiscountsByStoreId: fetchAooByStoreId } = useAmountOffOrderDiscount();
+  const { discounts: fsDiscounts, error: fsError, fetchDiscountsByStoreId: fetchFsByStoreId } = useFreeShippingDiscount();
   const { activeStoreId } = useStore();
   
-  // Tab state: amount-off-products | buy-x-get-y | amount-off-order | free-shipping
   const [tab, setTab] = useState<string>('amount-off-products');
  
-  // Initial load based on default tab
   useEffect(() => {
     const load = async () => {
       if (!activeStoreId) return;
@@ -47,7 +62,6 @@ const DiscountsPage: React.FC = () => {
     navigate("/discounts/select-discount-to-create");
   }, [navigate]);
 
-
   const handleTabChange = useCallback((newTab: string) => {
     setTab(newTab);
   }, []);
@@ -60,98 +74,63 @@ const DiscountsPage: React.FC = () => {
   ];
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
-        {/* Page Header */}
-        <div className="border-b border-gray-200 px-4 py-3">
-          <div className="max-w-7xl mx-auto">
-            <DiscountsPageHeader onCreateDiscount={handleCreateDiscount} />
-            <div className="mt-3">
-              <Tabs
-                tabs={tabs}
-                activeTab={tab}
-                onTabChange={handleTabChange}
-              />
-            </div>
-          </div>
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
+        <DiscountsPageHeader onCreateDiscount={handleCreateDiscount} />
+        
+        <div className="mb-6">
+          <Tabs tabs={tabs} activeTab={tab} onTabChange={handleTabChange} />
         </div>
 
         {/* Error banner */}
         {(tab === 'amount-off-products' && error) && (
-          <div className="max-w-7xl mx-auto mt-3 px-4">
-            <div className="bg-red-50 border border-red-200 text-red-800 px-3 py-2 text-sm">
-              {error}
-            </div>
+          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+            {error}
           </div>
         )}
         {(tab === 'buy-x-get-y' && bxgyError) && (
-          <div className="max-w-7xl mx-auto mt-3 px-4">
-            <div className="bg-red-50 border border-red-200 text-red-800 px-3 py-2 text-sm">
-              {bxgyError}
-            </div>
+          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+            {bxgyError}
           </div>
         )}
         {(tab === 'amount-off-order' && aooError) && (
-          <div className="max-w-7xl mx-auto mt-3 px-4">
-            <div className="bg-red-50 border border-red-200 text-red-800 px-3 py-2 text-sm">
-              {aooError}
-            </div>
+          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+            {aooError}
           </div>
         )}
         {(tab === 'free-shipping' && fsError) && (
-          <div className="max-w-7xl mx-auto mt-3 px-4">
-            <div className="bg-red-50 border border-red-200 text-red-800 px-3 py-2 text-sm">
-              {fsError}
-            </div>
+          <div className="mb-4 rounded-lg bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+            {fsError}
           </div>
         )}
 
-      {/* Amount Off Products Table */}
-      {tab === 'amount-off-products' && discounts.length > 0 && (
-        <AmountOffProductsTable discounts={discounts} />
-      )}
+        {tab === 'amount-off-products' && discounts.length > 0 && (
+          <AmountOffProductsTable discounts={discounts} />
+        )}
+        {tab === 'buy-x-get-y' && bxgyDiscounts.length > 0 && (
+          <BuyXGetYTable discounts={bxgyDiscounts} />
+        )}
+        {tab === 'amount-off-order' && aooDiscounts.length > 0 && (
+          <AmountOffOrderTable discounts={aooDiscounts} />
+        )}
+        {tab === 'free-shipping' && fsDiscounts.length > 0 && (
+          <FreeShippingTable discounts={fsDiscounts} />
+        )}
 
-      {/* Buy X Get Y Table */}
-      {tab === 'buy-x-get-y' && bxgyDiscounts.length > 0 && (
-        <BuyXGetYTable discounts={bxgyDiscounts} />
-      )}
-
-      {/* Amount Off Order Table */}
-      {tab === 'amount-off-order' && aooDiscounts.length > 0 && (
-        <AmountOffOrderTable discounts={aooDiscounts} />
-      )}
-
-      {/* Free Shipping Table */}
-      {tab === 'free-shipping' && fsDiscounts.length > 0 && (
-        <FreeShippingTable discounts={fsDiscounts} />
-      )}
-
-        {/* Empty State Content */}
         {tab === 'amount-off-products' && discounts.length === 0 && (
-          <div className="max-w-7xl mx-auto py-6 px-4">
-            <p className="text-sm text-gray-600">No amount off products discount yet</p>
-          </div>
+          <EmptyState message="No amount off products discount yet" onCreate={handleCreateDiscount} />
         )}
-
         {tab === 'buy-x-get-y' && bxgyDiscounts.length === 0 && (
-          <div className="max-w-7xl mx-auto py-6 px-4">
-            <p className="text-sm text-gray-600">No buy x get y discounts yet</p>
-          </div>
+          <EmptyState message="No buy x get y discounts yet" onCreate={handleCreateDiscount} />
         )}
-
         {tab === 'amount-off-order' && aooDiscounts.length === 0 && (
-          <div className="max-w-7xl mx-auto py-6 px-4">
-            <p className="text-sm text-gray-600">No amount off order discounts yet</p>
-          </div>
+          <EmptyState message="No amount off order discounts yet" onCreate={handleCreateDiscount} />
         )}
-
         {tab === 'free-shipping' && fsDiscounts.length === 0 && (
-          <div className="max-w-7xl mx-auto py-6 px-4">
-            <p className="text-sm text-gray-600">No free shipping discounts yet</p>
-          </div>
+          <EmptyState message="No free shipping discounts yet" onCreate={handleCreateDiscount} />
         )}
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

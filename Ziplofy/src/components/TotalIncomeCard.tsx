@@ -36,16 +36,11 @@ const TotalIncomeCard: React.FC<TotalIncomeCardProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg p-4 min-h-80 border border-gray-200">
+    <div className="bg-white rounded-xl p-5 min-h-80 border border-gray-200/80 shadow-sm">
       {/* Header */}
-      <div className="mb-3">
-        <h3 className="text-base font-medium text-gray-900 mb-1.5">Total Income</h3>
-        <p className="text-sm text-gray-500">View your income on a certain period of time</p>
-      </div>
-
-      {/* Profit and Loss Section */}
-      <div className="mb-3">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">Profit and Loss</h4>
+      <div className="mb-4">
+        <h3 className="text-base font-semibold text-gray-900">Total Income</h3>
+        <p className="text-sm text-gray-500 mt-0.5">Profit and loss over time</p>
       </div>
 
       {/* Chart */}
@@ -95,8 +90,8 @@ const TotalIncomeCard: React.FC<TotalIncomeCardProps> = ({
                   y={profitY}
                   width={barWidth}
                   height={profitHeight}
-                  fill="#6366f1"
-                  rx="4"
+                  fill="#2563eb"
+                  rx="6"
                   className="hover:opacity-80 transition-opacity"
                 />
                 {/* Loss Bar (Light Gray - Top) */}
@@ -105,8 +100,8 @@ const TotalIncomeCard: React.FC<TotalIncomeCardProps> = ({
                   y={lossY}
                   width={barWidth}
                   height={lossHeight}
-                  fill="#e5e7eb"
-                  rx="4"
+                  fill="#f3f4f6"
+                  rx="6"
                   className="hover:opacity-80 transition-opacity"
                 />
                 {/* Month Label */}

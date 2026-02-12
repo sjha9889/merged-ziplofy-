@@ -9,7 +9,6 @@ import CustomerSettingsInfoFields from '../components/customer/CustomerSettingsI
 import CustomerTagsDisplay from '../components/customer/CustomerTagsDisplay';
 import CustomerTimelineSection from '../components/customer/CustomerTimelineSection';
 import CustomerTimestampFields from '../components/customer/CustomerTimestampFields';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 import type { CreateCustomerAddressRequest } from '../contexts/customer-address.context';
 import { useCustomerAddresses } from '../contexts/customer-address.context';
 import { useCustomers } from '../contexts/customer.context';
@@ -39,72 +38,67 @@ const CustomerDetailsPage: React.FC = () => {
   }, []);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
         {/* Page Header */}
-        <div className="border-b border-gray-200 px-4 py-4">
-          <div className="max-w-6xl mx-auto">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => navigate('/customers')}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-gray-700 border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-                >
-                  <ArrowLeftIcon className="w-4 h-4" />
-                </button>
-                <div>
-                  <h1 className="text-xl font-medium text-gray-900">
-                    {customer ? `${customer.firstName} ${customer.lastName}` : 'Customer'}
-                  </h1>
-                  <p className="text-sm text-gray-600 mt-0.5">Customer details and information</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsAddressModalOpen(true)}
-                className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-              >
-                Add Customer Address
-              </button>
+        <div className="mb-6">
+          <button
+            onClick={() => navigate('/customers')}
+            className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 mb-2 transition-colors"
+          >
+            <ArrowLeftIcon className="w-4 h-4" />
+            Back to customers
+          </button>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                {customer ? `${customer.firstName} ${customer.lastName}` : 'Customer'}
+              </h1>
+              <p className="text-sm text-gray-600 mt-1">Customer details and information</p>
             </div>
+            <button
+              onClick={() => setIsAddressModalOpen(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Add Address
+            </button>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="max-w-6xl mx-auto py-6 px-4">
-          <div>
-            {customer ? (
-              <div className="flex flex-col gap-4">
-                {/* Customer Information */}
-                <div className="bg-white rounded border border-gray-200 p-4">
-                  <h2 className="text-base font-medium text-gray-900 mb-4">Customer Information</h2>
-                  
-                  <div className="flex flex-col gap-4">
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <CustomerPersonalInfoFields
-                        firstName={customer.firstName}
-                        lastName={customer.lastName}
-                        email={customer.email}
-                        phoneNumber={customer.phoneNumber}
-                      />
-                      <CustomerSettingsInfoFields
-                        language={customer.language}
-                        collectTax={customer.collectTax}
-                        storeId={customer.storeId}
-                      />
-                    </div>
-                    <CustomerTimestampFields
-                      createdAt={customer.createdAt}
-                      updatedAt={customer.updatedAt}
+        <div className="max-w-6xl">
+          {customer ? (
+            <div className="flex flex-col gap-6">
+              {/* Customer Information */}
+              <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+                <h2 className="text-base font-semibold text-gray-900 mb-4">Customer Information</h2>
+                
+                <div className="flex flex-col gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <CustomerPersonalInfoFields
+                      firstName={customer.firstName}
+                      lastName={customer.lastName}
+                      email={customer.email}
+                      phoneNumber={customer.phoneNumber}
                     />
-                    <CustomerMarketingAndNotesFields
-                      agreedToMarketingEmails={customer.agreedToMarketingEmails}
-                      agreedToSmsMarketing={customer.agreedToSmsMarketing}
-                      notes={customer.notes}
+                    <CustomerSettingsInfoFields
+                      language={customer.language}
+                      collectTax={customer.collectTax}
+                      storeId={customer.storeId}
                     />
-                    <CustomerTagsDisplay tags={customer.tagIds} />
                   </div>
+                  <CustomerTimestampFields
+                    createdAt={customer.createdAt}
+                    updatedAt={customer.updatedAt}
+                  />
+                  <CustomerMarketingAndNotesFields
+                    agreedToMarketingEmails={customer.agreedToMarketingEmails}
+                    agreedToSmsMarketing={customer.agreedToSmsMarketing}
+                    notes={customer.notes}
+                  />
+                  <CustomerTagsDisplay tags={customer.tagIds} />
                 </div>
+              </div>
 
               {id && <CustomerAddressesSection customerId={id} />}
               {id && <CustomerTimelineSection customerId={id} />}
@@ -113,19 +107,18 @@ const CustomerDetailsPage: React.FC = () => {
             <p className="text-sm text-gray-600">Customer not found in state.</p>
           )}
         </div>
-      </div>
 
-      {/* Add Customer Address Modal */}
-      {id && (
-        <AddCustomerAddressModal
-          isOpen={isAddressModalOpen}
-          onClose={handleCloseAddressModal}
-          onSubmit={handleSaveAddress}
-          customerId={id}
-        />
-      )}
+        {/* Add Customer Address Modal */}
+        {id && (
+          <AddCustomerAddressModal
+            isOpen={isAddressModalOpen}
+            onClose={handleCloseAddressModal}
+            onSubmit={handleSaveAddress}
+            customerId={id}
+          />
+        )}
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

@@ -4,7 +4,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import AddCustomerToSegmentModal from '../components/segments/AddCustomerToSegmentModal';
 import CustomerSegmentEntryList from '../components/segments/CustomerSegmentEntryList';
 import DeleteCustomerFromSegmentModal from '../components/segments/DeleteCustomerFromSegmentModal';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 import { useCustomerSegmentEntries } from '../contexts/CustomerSegmentsEntry.context';
 import { useCustomers } from '../contexts/customer.context';
 import { useCustomerSegments } from '../contexts/customer-segment.context';
@@ -104,45 +103,47 @@ const CustomerSegmentDetailsPage: React.FC = () => {
   );
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
         {/* Header */}
-        <div className="border-b border-gray-200 px-4 py-3">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => navigate('/customers/segments')}
-                  className="p-1 text-gray-600 hover:text-gray-900 transition-colors"
-                >
-                  <ArrowLeftIcon className="w-4 h-4" />
-                </button>
-                <h1 className="text-xl font-medium text-gray-900">
-                  {segment?.name || 'Segment details'}
-                </h1>
-              </div>
-              <button
-                onClick={handleOpenAddModal}
-                className="px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors"
-              >
-                Add Customer
-              </button>
+        <div className="mb-6">
+          <button
+            onClick={() => navigate('/customers/segments')}
+            className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 mb-2 transition-colors"
+          >
+            <ArrowLeftIcon className="w-4 h-4" />
+            Back to segments
+          </button>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                {segment?.name || 'Segment details'}
+              </h1>
+              {segment?.description && (
+                <p className="text-sm text-gray-600 mt-1">{segment.description}</p>
+              )}
             </div>
+            <button
+              onClick={handleOpenAddModal}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Add Customer
+            </button>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto py-4 px-4">
+        <div className="max-w-6xl">
           {loading ? (
-            <div className="py-6 text-center">
+            <div className="bg-white rounded-xl border border-gray-200/80 p-8 shadow-sm text-center">
               <p className="text-sm text-gray-600">Loading customers...</p>
             </div>
           ) : entries.length === 0 ? (
-            <div className="py-6 text-center">
+            <div className="bg-white rounded-xl border border-gray-200/80 p-8 shadow-sm text-center">
               <p className="text-sm text-gray-600">No customers in this segment yet</p>
             </div>
           ) : (
-            <div className="bg-white border border-gray-200">
+            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
               <CustomerSegmentEntryList
                 entries={entries}
                 onDelete={handleDeleteClick}
@@ -150,25 +151,25 @@ const CustomerSegmentDetailsPage: React.FC = () => {
             </div>
           )}
         </div>
+
+        <AddCustomerToSegmentModal
+          isOpen={addOpen}
+          onClose={handleCloseAddModal}
+          selectedCustomerId={selectedCustomerId}
+          onCustomerChange={handleCustomerChange}
+          customers={customers}
+          canSave={canSave}
+          onSave={handleAddCustomer}
+        />
+
+        <DeleteCustomerFromSegmentModal
+          isOpen={deleteModalOpen}
+          onClose={handleCloseDeleteModal}
+          entry={entryToDelete}
+          onConfirm={handleConfirmDelete}
+        />
       </div>
-
-      <AddCustomerToSegmentModal
-        isOpen={addOpen}
-        onClose={handleCloseAddModal}
-        selectedCustomerId={selectedCustomerId}
-        onCustomerChange={handleCustomerChange}
-        customers={customers}
-        canSave={canSave}
-        onSave={handleAddCustomer}
-      />
-
-      <DeleteCustomerFromSegmentModal
-        isOpen={deleteModalOpen}
-        onClose={handleCloseDeleteModal}
-        entry={entryToDelete}
-        onConfirm={handleConfirmDelete}
-      />
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

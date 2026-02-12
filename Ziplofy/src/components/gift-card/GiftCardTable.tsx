@@ -22,26 +22,26 @@ const GiftCardTable: React.FC<GiftCardTableProps> = ({
 }) => {
   return (
     <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
+      <table className="min-w-full divide-y divide-gray-100">
+        <thead className="bg-gray-50/80">
           <tr>
-            <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
               Gift Card Code
             </th>
-            <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
               Initial Value
             </th>
-            <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
               Status
             </th>
-            <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
               Expiration Date
             </th>
-            <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">
+            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
               {onSortToggle ? (
                 <button
                   onClick={onSortToggle}
-                  className="flex items-center gap-1 hover:text-gray-900 transition-colors cursor-pointer"
+                  className="flex items-center gap-1 hover:text-blue-600 transition-colors cursor-pointer"
                 >
                   Created Date
                   {sortOrder && (
@@ -60,16 +60,16 @@ const GiftCardTable: React.FC<GiftCardTableProps> = ({
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-white divide-y divide-gray-100">
           {loading ? (
             <tr>
-              <td colSpan={5} className="px-3 py-6 text-center text-sm text-gray-600">
+              <td colSpan={5} className="px-4 py-12 text-center text-sm text-gray-500">
                 Loading gift cards...
               </td>
             </tr>
           ) : giftCards.length === 0 ? (
             <tr>
-              <td colSpan={5} className="px-3 py-6 text-center text-sm text-gray-600">
+              <td colSpan={5} className="px-4 py-12 text-center text-sm text-gray-500">
                 No gift cards found
               </td>
             </tr>

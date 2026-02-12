@@ -25,9 +25,8 @@ const AddProductsToCollectionSection: React.FC<AddProductsToCollectionSectionPro
   const showSearchDropdown = searchQuery.trim() && filteredProducts.length > 0;
 
   return (
-    <div className="bg-white rounded border border-gray-200 p-4 mb-6">
-      <h2 className="text-base font-medium text-gray-900 mb-3">Add products into the collection</h2>
-      <div className="border-t border-gray-200 mb-3"></div>
+    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm mb-6">
+      <h2 className="text-base font-semibold text-gray-900 mb-4">Add products to collection</h2>
       <div className="relative">
         <div className="relative">
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -36,13 +35,13 @@ const AddProductsToCollectionSection: React.FC<AddProductsToCollectionSectionPro
             placeholder="Search products by title, description, or SKU"
             value={searchQuery}
             onChange={onSearchChange}
-            className="w-full pl-9 pr-3 py-2 text-base border border-gray-200 rounded focus:ring-1 focus:ring-gray-400 focus:border-gray-400 outline-none transition-colors"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors"
           />
         </div>
 
         {/* Search Results Dropdown */}
         {showSearchDropdown && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded shadow-lg max-h-[300px] overflow-y-auto">
+          <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-[300px] overflow-y-auto">
             {filteredProducts.slice(0, 10).map((product) => {
               const isSelected = selectedProducts.some((p) => p?._id === product?._id);
               return (

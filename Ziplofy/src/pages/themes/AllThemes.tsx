@@ -454,60 +454,67 @@ const AllThemes: React.FC = () => {
   );
 
   return (
-    <div className="themes-container">
-      {/* Header Section */}
-      <div className="themes-header">
-        <div className="header-content">
-          <h1 className="themes-title">Themes</h1>
-          <p className="themes-subtitle">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
+        {/* Header Section */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold text-gray-900">Themes</h1>
+          <p className="text-sm text-gray-600 mt-1">
             Discover professionally designed themes to make your store stand out
           </p>
         </div>
-      </div>
 
-      {/* Controls Section */}
-      <div className="themes-controls">
-        <div className="search-section">
-          <div className="search-input-wrapper">
-            <SearchIcon className="search-icon" fontSize="small" />
-            <input
-              type="text"
-              placeholder="Search themes..."
-              className="search-input"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        {/* Controls Section */}
+        <div className="bg-white rounded-xl border border-gray-200/80 p-4 shadow-sm mb-6">
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+            <div className="relative flex-1 w-full sm:w-auto">
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search themes..."
+                className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                <FilterIcon fontSize="small" />
+                <span>Filter</span>
+              </button>
+
+              <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                <button
+                  className={`p-2 transition-colors ${
+                    viewMode === "grid"
+                      ? "bg-blue-600 text-white"
+                      : "bg-white text-gray-600 hover:bg-gray-50"
+                  }`}
+                  onClick={() => setViewMode("grid")}
+                >
+                  <GridIcon fontSize="small" />
+                </button>
+                <button
+                  className={`p-2 transition-colors ${
+                    viewMode === "list"
+                      ? "bg-blue-600 text-white"
+                      : "bg-white text-gray-600 hover:bg-gray-50"
+                  }`}
+                  onClick={() => setViewMode("list")}
+                >
+                  <ListIcon fontSize="small" />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="filter-view-controls">
-          <button className="filter-btn">
-            <FilterIcon fontSize="small" />
-            <span>Filter</span>
-          </button>
-
-          <div className="view-toggle">
-            <button
-              className={`view-btn ${viewMode === "grid" ? "active" : ""}`}
-              onClick={() => setViewMode("grid")}
-            >
-              <GridIcon fontSize="small" />
-            </button>
-            <button
-              className={`view-btn ${viewMode === "list" ? "active" : ""}`}
-              onClick={() => setViewMode("list")}
-            >
-              <ListIcon fontSize="small" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Installed Themes - Section 1 */}
-      {Array.isArray(installedThemes) && installedThemes.length > 0 && (
-        <>
-          <h2 style={{ margin: "24px 0 16px 0", color: "black", fontSize: "28px", fontWeight: "700" }}>Installed themes</h2>
-          <div style={{ marginBottom: "2rem" }} className={`themes-layout ${viewMode}`}>
+        {/* Installed Themes - Section 1 */}
+        {Array.isArray(installedThemes) && installedThemes.length > 0 && (
+          <React.Fragment>
+            <h2 className="text-base font-semibold text-gray-900 mb-4">Installed themes</h2>
+          <div className={`themes-layout ${viewMode} themes-section-body`}>
             {installedThemes.map((it: any) => {
               const t = it; // The theme data is directly in it, not nested under themeId
               const isCustomTheme = t.isCustomTheme || t._id?.startsWith('custom-');
@@ -611,80 +618,50 @@ const AllThemes: React.FC = () => {
               </div>
             );})}
           </div>
-        </>
-      )}
+          </React.Fragment>
+        )}
 
-      {/* Recent Installations - Section 2 */}
-      {recentInstallations.length > 0 && (
-        <>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '24px', marginBottom: '16px' }}>
-            <h2 style={{ margin: 0, color: "black", fontSize: "28px", fontWeight: "700" }}>Recently Installed</h2>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              {selectionMode && (
+        {/* Recent Installations - Section 2 */}
+        {recentInstallations.length > 0 && (
+          <React.Fragment>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-base font-semibold text-gray-900">Recently Installed</h2>
+              <div className="flex items-center gap-3">
+                {selectionMode && (
+                  <button
+                    onClick={() => {
+                      setSelectionMode(false);
+                      setSelectedRecentIds(new Set());
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                )}
                 <button
                   onClick={() => {
-                    setSelectionMode(false);
-                    setSelectedRecentIds(new Set());
+                    if (selectionMode) {
+                      handleDeleteSelectedRecent();
+                    } else {
+                      setSelectionMode(true);
+                    }
                   }}
-                  style={{
-                    backgroundColor: '#6b7280',
-                    color: '#ffffff',
-                    border: 'none',
-                    padding: '10px 20px',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = '#4b5563';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = '#6b7280';
-                  }}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    selectionMode
+                      ? 'bg-red-600 text-white hover:bg-red-700'
+                      : 'text-gray-700 border border-gray-200 hover:bg-gray-50'
+                  }`}
                 >
-                  Cancel
+                  {selectionMode ? 'Delete Selected' : 'Delete Selected'}
                 </button>
-              )}
-              <button
-                onClick={() => {
-                  if (selectionMode) {
-                    // Delete selected items
-                    handleDeleteSelectedRecent();
-                  } else {
-                    // Enter selection mode
-                    setSelectionMode(true);
-                  }
-                }}
-                style={{
-                  backgroundColor: selectionMode ? '#dc2626' : '#6b7280',
-                  color: '#ffffff',
-                  border: 'none',
-                  padding: '10px 20px',
-                  borderRadius: '6px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = selectionMode ? '#b91c1c' : '#4b5563';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = selectionMode ? '#dc2626' : '#6b7280';
-                }}
-              >
-                {selectionMode ? 'Delete Selected' : 'Delete Selected'}
-              </button>
+              </div>
             </div>
-          </div>
           {selectionMode && (
-            <div style={{ marginBottom: '12px', color: '#6b7280', fontSize: '14px' }}>
+            <div className="themes-selection-hint">
               Select themes to delete from history
             </div>
           )}
-          <div style={{ marginBottom: "2rem" }} className={`themes-layout ${viewMode}`}>
+          <div className={`themes-layout ${viewMode} themes-section-body`}>
             {recentInstallations.map((rt: any) => {
               const isCustomTheme = rt.isCustomTheme || rt._id?.startsWith('custom-');
               const actualThemeId = isCustomTheme && rt.customThemeId ? rt.customThemeId : rt._id;
@@ -767,51 +744,23 @@ const AllThemes: React.FC = () => {
       )}
 
       {/* Your Creations (Custom Themes) - Section 3 */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginTop: '24px',
-        marginBottom: '16px'
-      }}>
-        <h2 style={{ margin: 0, color: "black", fontSize: "28px", fontWeight: "700" }}>Your creations</h2>
+      <div className="themes-section-actions">
+        <h2 className="themes-section-title themes-section-title--inline">Your creations</h2>
         <button
           onClick={() => window.open('/themes/builder', '_blank', 'noopener,noreferrer')}
-          style={{
-            backgroundColor: '#16a34a',
-            border: 'none',
-            color: '#ffffff',
-            padding: '10px 20px',
-            fontSize: '14px',
-            fontWeight: '600',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = '#15803d';
-            e.currentTarget.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.15)';
-            e.currentTarget.style.transform = 'translateY(-1px)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = '#16a34a';
-            e.currentTarget.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.1)';
-            e.currentTarget.style.transform = 'translateY(0)';
-          }}
-            >
-              <span>✨</span>
-              <span>Create your Own</span>
-            </button>
+          className="themes-btn-primary"
+        >
+          <span>✨</span>
+          <span>Create your Own</span>
+        </button>
       </div>
 
-      {/* Custom Themes (saved locally) */}
-      {customThemes.length > 0 && (
+        {/* Custom Themes (saved locally) */}
+        {customThemes.length > 0 && (
+          <React.Fragment>
+            <h2 className="text-base font-semibold text-gray-900 mb-4 mt-6">Custom Themes</h2>
         <>
-          <div style={{ marginBottom: "2rem" }} className={`themes-layout ${viewMode}`}>
+          <div className={`themes-layout ${viewMode} themes-section-body`}>
             {customThemes.map((ct) => {
               // Validate that the theme ID is a valid MongoDB ObjectId
               const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(ct._id);
@@ -990,10 +939,11 @@ const AllThemes: React.FC = () => {
             })}
           </div>
         </>
-      )}
+          </React.Fragment>
+        )}
 
-      {/* All Themes - Section 3 */}
-      <h2 style={{ margin: "24px 0 16px 0", color: "black", fontSize: "28px", fontWeight: "700" }}>All themes</h2>
+        {/* All Themes - Section 4 */}
+        <h2 className="text-base font-semibold text-gray-900 mb-4 mt-6">All themes</h2>
       <div className={`themes-layout ${viewMode}`}>
         {themesLoading && (
           <div className="no-results"><div className="no-results-content"><h3>Loading themes...</h3></div></div>
@@ -1144,6 +1094,7 @@ const AllThemes: React.FC = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

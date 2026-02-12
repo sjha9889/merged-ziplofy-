@@ -22,29 +22,29 @@ export default function CatalogsTableRow({
   const isActive = status === 'active';
   return (
     <tr
-      className="hover:bg-gray-50 cursor-pointer transition-colors"
+      className="hover:bg-blue-50/50 cursor-pointer transition-colors"
       onClick={() => onSelect(id)}
     >
-      <td className="px-3 py-2 text-sm font-medium text-gray-900">{title}</td>
-      <td className="px-3 py-2">
+      <td className="px-4 py-3 text-sm font-medium text-gray-900">{title}</td>
+      <td className="px-4 py-3">
         <span
-          className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded border ${
+          className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-lg border ${
             isActive
-              ? 'bg-green-50 text-green-700 border-green-200'
-              : 'bg-gray-50 text-gray-700 border-gray-200'
+              ? 'bg-green-50 text-green-700 border-green-200/80'
+              : 'bg-gray-100 text-gray-600 border-gray-200/80'
           }`}
         >
           {isActive ? 'Active' : 'Draft'}
         </span>
       </td>
-      <td className="px-3 py-2 text-sm text-gray-700">—</td>
-      <td className="px-3 py-2 text-sm text-gray-700">
+      <td className="px-4 py-3 text-sm text-gray-600">—</td>
+      <td className="px-4 py-3 text-sm text-gray-600">
         {includeCompareAtPrice ? 'Compare-at included' : '—'}
       </td>
-      <td className="px-3 py-2 text-sm text-gray-700">
+      <td className="px-4 py-3 text-sm text-gray-600">
         {`${priceAdjustment || 0}% ${priceAdjustmentSide === 'increase' ? '↑' : '↓'}`}
       </td>
-      <td className="px-3 py-2 text-sm text-gray-700">
+      <td className="px-4 py-3 text-sm text-gray-600">
         {autoIncludeNewProducts ? 'Auto include new' : 'Manual'}
       </td>
     </tr>

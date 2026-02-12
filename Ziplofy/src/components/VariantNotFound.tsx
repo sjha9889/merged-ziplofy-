@@ -21,9 +21,8 @@ const VariantNotFound: React.FC<VariantNotFoundProps> = ({ productId, onBack }) 
   }, [navigate, onBack, productId]);
 
   return (
-    <div className="bg-white min-h-screen">
-      <div className="max-w-5xl mx-auto py-8">
-        <div className="bg-white p-12 text-center rounded-lg border border-gray-200">
+    <div className="min-h-screen bg-page-background-color flex items-center justify-center p-4">
+      <div className="bg-white p-12 text-center rounded-xl border border-gray-200/80 shadow-sm max-w-lg w-full">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Variant Not Found
           </h1>
@@ -37,7 +36,6 @@ const VariantNotFound: React.FC<VariantNotFoundProps> = ({ productId, onBack }) 
             <ArrowLeftIcon className="w-5 h-5" />
             Back to Product
           </button>
-        </div>
       </div>
     </div>
   );

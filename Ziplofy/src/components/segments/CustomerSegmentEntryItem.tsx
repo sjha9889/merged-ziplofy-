@@ -30,16 +30,16 @@ const CustomerSegmentEntryItem: React.FC<CustomerSegmentEntryItemProps> = ({
   }, [entry, onDelete]);
 
   return (
-    <div className="flex justify-between items-center py-2.5 px-3 hover:bg-gray-50 transition-colors group">
-      <span className="text-sm text-gray-900">{getCustomerName(entry.customerId)}</span>
-      <div className="flex items-center gap-3">
-        <span className="text-xs text-gray-600">{new Date(entry.createdAt).toLocaleDateString()}</span>
+    <div className="flex justify-between items-center py-3 px-4 hover:bg-gray-50 transition-colors group border-b border-gray-100 last:border-b-0">
+      <span className="text-sm font-medium text-gray-900">{getCustomerName(entry.customerId)}</span>
+      <div className="flex items-center gap-4">
+        <span className="text-xs text-gray-500">{new Date(entry.createdAt).toLocaleDateString()}</span>
         <button
           onClick={handleDelete}
-          className="p-1 hover:bg-gray-100 rounded transition-colors opacity-0 group-hover:opacity-100"
+          className="p-1.5 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
           aria-label="delete"
         >
-          <TrashIcon className="w-3.5 h-3.5 text-gray-500 hover:text-gray-700 transition-colors" />
+          <TrashIcon className="w-4 h-4 text-gray-500 hover:text-red-600 transition-colors" />
         </button>
       </div>
     </div>

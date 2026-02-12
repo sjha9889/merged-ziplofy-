@@ -30,18 +30,19 @@ const OrderCustomerSection: React.FC<OrderCustomerSectionProps> = ({
   }, [onCreateNewCustomer]);
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-100">
-      <div className="px-6 py-4">
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+      <div className="px-5 py-4">
         {/* Header with Title and Create Button */}
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Customer</h3>
+          <div className="pl-3 border-l-4 border-blue-600">
+            <h3 className="text-base font-semibold text-gray-900">Customer</h3>
+            <p className="text-xs text-gray-500 mt-0.5">Customer information for this order</p>
+          </div>
           <button
             onClick={handleCreateNewCustomer}
-            className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+            className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
           >
-            <div className="w-6 h-6 rounded-full border-2 border-gray-400 flex items-center justify-center">
-              <PlusIcon className="w-4 h-4 text-gray-400" />
-            </div>
+            <PlusIcon className="w-4 h-4" />
             <span>Create a new customer</span>
           </button>
         </div>
@@ -50,13 +51,13 @@ const OrderCustomerSection: React.FC<OrderCustomerSectionProps> = ({
         <div className="space-y-2">
           {/* Customer Name */}
           <div className="flex items-center gap-2">
-            <UserIcon className="w-5 h-5 text-gray-500" />
+            <UserIcon className="w-5 h-5 text-gray-400" />
             <span className="text-sm text-gray-900">{customer.name}</span>
           </div>
           
           {/* Order Count */}
           <div className="flex items-center gap-2">
-            <ShoppingBagIcon className="w-5 h-5 text-gray-500" />
+            <ShoppingBagIcon className="w-5 h-5 text-gray-400" />
             <span className="text-sm text-gray-900">
               {customer.orderCount === 0 || customer.orderCount === undefined
                 ? 'No orders'

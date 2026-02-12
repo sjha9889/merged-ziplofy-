@@ -19,34 +19,34 @@ const CollectionsTable: React.FC<CollectionsTableProps> = ({
   onSortToggle
 }) => {
   return (
-    <div className="bg-white rounded border border-gray-200">
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-gray-100">
+          <thead className="bg-gray-50/80">
             <tr>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
                 Title
               </th>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
                 Page Title
               </th>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
                 URL Handle
               </th>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
                 Status
               </th>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
                 Online Store
               </th>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
                 POS
               </th>
-              <th className="px-3 py-2 text-left text-sm font-medium text-gray-700">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
                 {onSortToggle ? (
                   <button
                     onClick={onSortToggle}
-                    className="flex items-center gap-1 hover:text-gray-900 transition-colors cursor-pointer"
+                    className="flex items-center gap-1 hover:text-blue-600 transition-colors cursor-pointer"
                   >
                     Updated
                     {sortOrder && (
@@ -65,7 +65,7 @@ const CollectionsTable: React.FC<CollectionsTableProps> = ({
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white divide-y divide-gray-100">
             {collections.map((collection) => (
               <CollectionsTableItem
                 key={collection._id}

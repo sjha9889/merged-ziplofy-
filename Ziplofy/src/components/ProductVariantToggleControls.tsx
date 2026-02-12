@@ -16,7 +16,7 @@ const ProductVariantToggleControls: React.FC<ProductVariantToggleControlsProps> 
   onSaveChanges,
 }) => {
   return (
-    <div className="bg-white border border-gray-200 p-4 mb-6 rounded-lg">
+    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm mb-6">
       <div className="flex justify-between items-center flex-wrap gap-4">
         <div className="flex gap-6 flex-wrap items-center">
           <label className="flex items-center gap-2.5 cursor-pointer">
@@ -60,7 +60,7 @@ const ProductVariantToggleControls: React.FC<ProductVariantToggleControlsProps> 
         </div>
         <button
           onClick={onSaveChanges}
-          className="bg-gray-900 text-white px-3 py-1.5 rounded text-sm font-medium hover:bg-gray-800 transition-colors"
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
         >
           Save Changes
         </button>

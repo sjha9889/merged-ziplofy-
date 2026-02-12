@@ -14,7 +14,7 @@ interface VendorListItemProps {
 
 const VendorListItem: React.FC<VendorListItemProps> = ({ vendor }) => {
   return (
-    <div className="py-3 hover:bg-gray-50 transition-colors">
+    <div className="px-4 py-3 hover:bg-blue-50/40 transition-colors">
       <div className="flex items-center justify-between">
         <span className="font-medium text-gray-900 text-sm">{vendor.name}</span>
         <span className="text-xs text-gray-500">{new Date(vendor.updatedAt).toLocaleDateString()}</span>

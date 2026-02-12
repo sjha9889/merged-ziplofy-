@@ -20,7 +20,7 @@ const ImprovementItemComponent: React.FC<ImprovementItemProps> = ({
   return (
     <button
       onClick={() => onClick?.(item.id)}
-      className="w-full flex items-start gap-3 p-3 bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors text-left"
+      className="w-full flex items-start gap-3 p-3 bg-page-background-color border border-gray-200/80 rounded-lg hover:bg-blue-50 hover:border-blue-200/80 transition-colors text-left"
     >
       {/* Icon */}
       <div className="flex-shrink-0 w-8 h-8 flex items-center justify-center">
@@ -35,7 +35,7 @@ const ImprovementItemComponent: React.FC<ImprovementItemProps> = ({
 
       {/* Chevron */}
       <div className="flex-shrink-0">
-        <ChevronRightIcon className="w-4 h-4 text-gray-400" />
+        <ChevronRightIcon className="w-4 h-4 text-blue-500" />
       </div>
     </button>
   );

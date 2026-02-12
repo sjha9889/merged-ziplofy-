@@ -125,8 +125,8 @@ const CustomerAddressesSection: React.FC<CustomerAddressesSectionProps> = ({ cus
 
   return (
     <>
-      <div className="bg-white rounded border border-gray-200 p-4">
-        <h2 className="text-base font-medium text-gray-900 mb-4">Addresses</h2>
+      <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+        <h2 className="text-base font-semibold text-gray-900 mb-4">Addresses</h2>
         {addrLoading ? (
           <p className="text-sm text-gray-600">Loading addresses...</p>
         ) : addrError ? (

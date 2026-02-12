@@ -14,7 +14,7 @@ interface RegisterForm {
   confirmPassword: string;
 }
 
-export default function Register() {
+function Register() {
   const { register, googleLogin } = useAuth();
   const [form, setForm] = useState<RegisterForm>({ 
     name: '',
@@ -206,3 +206,5 @@ export default function Register() {
     </SlantedImageCarouselWrapper>
   );
 }
+
+export default Register;

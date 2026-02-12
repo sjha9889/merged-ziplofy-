@@ -26,15 +26,15 @@ export default function CatalogPricingSection({
   onIncludeCompareAtChange,
 }: CatalogPricingSectionProps) {
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
-      <h2 className="text-base font-medium text-gray-900">Pricing</h2>
+    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm space-y-4">
+      <h2 className="text-base font-semibold text-gray-900">Pricing</h2>
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
         <span className="text-sm text-gray-600">Set prices in</span>
         <select
           value={currencyId}
           onChange={(e) => onCurrencyChange(e.target.value)}
           disabled={loading}
-          className="w-full sm:w-64 rounded border border-gray-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-300 transition-colors"
+          className="w-full sm:w-64 rounded-lg border border-gray-200 px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors"
         >
           {currencies.map((c) => (
             <option key={c._id} value={c._id}>
@@ -51,7 +51,7 @@ export default function CatalogPricingSection({
             type="number"
             value={priceAdjustment}
             onChange={(e) => onPriceAdjustmentChange(Number(e.target.value))}
-            className="w-28 rounded border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-300 transition-colors"
+            className="w-28 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors"
           />
           <span className="text-sm text-gray-700">%</span>
         </div>
@@ -59,9 +59,9 @@ export default function CatalogPricingSection({
           <button
             type="button"
             onClick={() => onAdjustDirectionChange('decrease')}
-            className={`cursor-pointer px-3 py-1.5 rounded text-sm font-medium border transition-colors ${
+            className={`cursor-pointer px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
               adjustDirection === 'decrease'
-                ? 'bg-gray-900 text-white border-gray-900'
+                ? 'bg-blue-600 text-white border-blue-600'
                 : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
             }`}
           >
@@ -70,9 +70,9 @@ export default function CatalogPricingSection({
           <button
             type="button"
             onClick={() => onAdjustDirectionChange('increase')}
-            className={`cursor-pointer px-3 py-1.5 rounded text-sm font-medium border transition-colors ${
+            className={`cursor-pointer px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
               adjustDirection === 'increase'
-                ? 'bg-gray-900 text-white border-gray-900'
+                ? 'bg-blue-600 text-white border-blue-600'
                 : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'
             }`}
           >
@@ -84,7 +84,7 @@ export default function CatalogPricingSection({
             type="checkbox"
             checked={includeCompareAt}
             onChange={(e) => onIncludeCompareAtChange(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-gray-900 focus:ring-gray-400"
+            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/30"
           />
           Include compare-at price
         </label>

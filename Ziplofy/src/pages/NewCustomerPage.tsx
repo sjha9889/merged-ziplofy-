@@ -6,7 +6,6 @@ import CustomerNotesSection from '../components/customer/CustomerNotesSection';
 import CustomerTagsSection from '../components/customer/CustomerTagsSection';
 import MarketingPreferencesSection from '../components/customer/MarketingPreferencesSection';
 import TaxSettingsSection from '../components/customer/TaxSettingsSection';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 import { useCustomerTags } from '../contexts/customer-tags.context';
 import type { CreateCustomerRequest } from '../contexts/customer.context';
 import { useCustomers } from '../contexts/customer.context';
@@ -126,29 +125,24 @@ const NewCustomerPage: React.FC = () => {
   }, [activeStoreId, fetchCustomerTags]);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
         {/* Page Header */}
-        <div className="border-b border-gray-200 px-4 py-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleCancel}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-gray-700 border border-gray-200 rounded hover:bg-gray-50 transition-colors"
-                aria-label="Go back"
-              >
-                <ArrowLeftIcon className="w-4 h-4" />
-              </button>
-              <div>
-                <h1 className="text-xl font-medium text-gray-900">Add New Customer</h1>
-                <p className="text-sm text-gray-600 mt-0.5">Create a new customer for your store</p>
-              </div>
-            </div>
-          </div>
+        <div className="mb-6">
+          <button
+            onClick={handleCancel}
+            className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700 mb-2 transition-colors"
+            aria-label="Go back"
+          >
+            <ArrowLeftIcon className="w-4 h-4" />
+            Back to customers
+          </button>
+          <h1 className="text-2xl font-semibold text-gray-900">Add New Customer</h1>
+          <p className="text-sm text-gray-600 mt-1">Create a new customer for your store</p>
         </div>
 
         {/* Main Content */}
-        <div className="max-w-4xl mx-auto py-6 px-4">
+        <div className="max-w-4xl">
           <form className='flex flex-col gap-4' onSubmit={handleSubmit}>
             <BasicInformationSection
               data={{
@@ -192,18 +186,18 @@ const NewCustomerPage: React.FC = () => {
             )}
 
             {/* Action Buttons */}
-            <div className="flex items-center justify-end gap-2 mt-4 pt-4 border-t border-gray-200">
+            <div className="flex items-center justify-end gap-3 mt-6 pt-6 border-t border-gray-200">
               <button
                 type="button"
                 onClick={handleCancel}
-                className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200 rounded hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-3 py-1.5 text-sm font-medium text-white bg-gray-900 rounded hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? (
                   <>
@@ -237,7 +231,7 @@ const NewCustomerPage: React.FC = () => {
           </form>
         </div>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

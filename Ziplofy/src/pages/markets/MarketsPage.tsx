@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import MarketsHeader from '../../components/MarketsHeader';
 import MarketsList from '../../components/MarketsList';
 import MarketsToolbar from '../../components/MarketsToolbar';
@@ -29,22 +28,20 @@ const MarketsPage: React.FC = () => {
   }, []);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
-        <div className="max-w-[1400px] mx-auto px-4 py-6">
-          <MarketsHeader onCreateMarket={onCreateMarket} />
-          <MarketsToolbar
-            searchValue={search}
-            onSearchChange={handleSearchChange}
-          />
-          <MarketsList
-            markets={markets}
-            loading={loading}
-            onSelect={(id) => navigate(`/markets/${id}`)}
-          />
-        </div>
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
+        <MarketsHeader onCreateMarket={onCreateMarket} />
+        <MarketsToolbar
+          searchValue={search}
+          onSearchChange={handleSearchChange}
+        />
+        <MarketsList
+          markets={markets}
+          loading={loading}
+          onSelect={(id) => navigate(`/markets/${id}`)}
+        />
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

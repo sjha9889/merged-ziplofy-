@@ -20,7 +20,7 @@ const PurchaseOrdersTableBody: React.FC<PurchaseOrdersTableBodyProps> = ({
   onRowClick,
 }) => {
   return (
-    <tbody className="bg-white divide-y divide-gray-200">
+    <tbody className="bg-white divide-y divide-gray-100">
       {purchaseOrders.map((po) => (
         <PurchaseOrderTableRow
           key={po._id}
@@ -30,7 +30,7 @@ const PurchaseOrdersTableBody: React.FC<PurchaseOrdersTableBodyProps> = ({
       ))}
       {purchaseOrders.length === 0 && (
         <tr>
-          <td colSpan={6} className="px-4 py-8 text-center text-sm text-gray-600">
+          <td colSpan={6} className="px-4 py-12 text-center text-sm text-gray-500">
             No purchase orders
           </td>
         </tr>

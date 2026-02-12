@@ -14,9 +14,9 @@ const CollectionOverviewSection: React.FC<CollectionOverviewSectionProps> = ({
   onDelete,
 }) => {
   return (
-    <div className="bg-white rounded border border-gray-200 p-4 mb-6">
+    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-medium text-gray-900">Overview</h2>
+        <h2 className="text-base font-semibold text-gray-900">Overview</h2>
         <div className="flex items-center gap-1.5">
           <button
             onClick={onEdit}
@@ -34,8 +34,10 @@ const CollectionOverviewSection: React.FC<CollectionOverviewSectionProps> = ({
           </button>
         </div>
       </div>
-      <div className="border-t border-gray-200 mb-3"></div>
-      <p className="text-sm text-gray-600 mb-4">{collection.description || 'No description'}</p>
+      <div className="border-t border-gray-200 mb-4"></div>
+      {collection.description && (
+        <p className="text-sm text-gray-600 mb-4">{collection.description}</p>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
