@@ -1,0 +1,1 @@
+import{j as t}from"./index-C7S6h9OR.js";import{G as e}from"./GridBackgroundWrapper-Du1VLjut.js";const o=()=>t.jsx(e,{children:t.jsx("div",{children:"ContentMetaObjectsPage"})});export{o as ContentMetaObjectsPage};

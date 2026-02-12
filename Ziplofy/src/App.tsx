@@ -1,9 +1,8 @@
 // src/App.tsx
-import React from "react";
+import React, { lazy, Suspense } from "react";
 import { Toaster } from "react-hot-toast";
 import { Route, BrowserRouter as Router, Routes, useLocation } from "react-router-dom";
 
-import HomePage from "./components/HomePage";
 import Sidebar from "./components/Sidebar";
 import { AmountOffProductsDiscountProvider } from "./contexts/amount-off-products-discount.context";
 import { CustomerTagsProvider } from "./contexts/customer-tags.context";
@@ -14,117 +13,145 @@ import { SocketProvider } from "./contexts/socket.context";
 import { StoreProvider } from "./contexts/store.context";
 import { UserProvider } from "./contexts/user.context";
 import Navbar from "./pages/Navbar";
-import BasicElementor from "./pages/themes/BasicElementor";
-import CustomThemeBuilder from "./pages/themes/CustomThemeBuilder";
-import ThemeCodeEditor from "./pages/themes/ThemeCodeEditor";
-import ThemeCodeEditorFullScreen from "./pages/themes/ThemeCodeEditorFullScreen";
-import ThemeEditor from "./pages/themes/ThemeEditor";
-import ThemeLayoutEditor from "./pages/themes/ThemeLayoutEditor";
-/** Parent pages (top-level in /pages) */
 import { CategoryProvider } from "./contexts/category.context";
 import { NotificationOverridesProvider } from "./contexts/notification-overrides.context";
 import { PermissionsProvider } from "./contexts/permissions.context";
 import { PurchaseOrderProvider } from "./contexts/purchase-order.context";
 import { StoreRolesProvider } from "./contexts/store-roles.context";
 import { StoreSecuritySettingsProvider } from "./contexts/store-security-settings.context";
-import AnalyticsPage from "./pages/AnalyticsPage";
-import ContentPage from "./pages/ContentPage";
-import CreateOrderPage from "./pages/CreateOrderPage";
-import CustomerDetailsPage from "./pages/CustomerDetailsPage";
-import CustomerSegmentDetailsPage from "./pages/CustomerSegmentDetailsPage";
-import CustomersPage from "./pages/CustomersPage";
-import CustomersSegmentsPage from "./pages/CustomersSegmentsPage";
-import DiscountsPage from "./pages/DiscountsPage";
-import GiftCardDetailPage from "./pages/GiftCardDetailPage";
-import GiftCardsPage from "./pages/GiftCardsPage";
-import MarketingAttributionPage from "./pages/MarketingAttributionPage";
-import MarketingAutomationsPage from "./pages/MarketingAutomationsPage";
-import MarketingCampaignsPage from "./pages/MarketingCampaignsPage";
-import MarketingPage from "./pages/MarketingPage";
-import NewCustomerPage from "./pages/NewCustomerPage";
-import NewGiftCardPage from "./pages/NewGiftCardPage";
-import NewProductPage from "./pages/NewProductPage";
-import NewTransferPage from "./pages/NewTransferPage";
-import OrderDetailsPage from "./pages/OrderDetailsPage";
-import OrdersPage from "./pages/OrdersPage";
-import ProductCollectionCreatePage from "./pages/ProductCollectionCreatePage";
-import ProductCollectionDetailsPage from "./pages/ProductCollectionDetailsPage";
-import ProductCollectionsPage from "./pages/ProductCollectionsPage";
-import ProductDetailsPage from "./pages/ProductDetailsPage";
-import ProductVariantDetailsPage from "./pages/ProductVariantDetailsPage";
-import ProductsInventoryPage from "./pages/ProductsInventoryPage";
-import ProductsPage from "./pages/ProductsPage";
-import PurchaseOrderDetailsPage from "./pages/PurchaseOrderDetailsPage";
-import PurchaseOrderNewPage from "./pages/PurchaseOrderNewPage";
-import PurchaseOrderReceivePage from "./pages/PurchaseOrderReceivePage";
-import PurchaseOrdersListPage from "./pages/PurchaseOrdersListPage";
-import ShipmentNewPage from "./pages/ShipmentNewPage";
-import ShipmentReceivePage from "./pages/ShipmentReceivePage";
-import TagManagement from "./pages/TagManagement";
-import TransferDetailsPage from "./pages/TransferDetailsPage";
-import TransfersPage from "./pages/TransfersPage";
-import VendorsPage from "./pages/VendorsPage";
-import AmountOffOrderDetailsPage from "./pages/discounts/AmountOffOrderDetailsPage";
-import AmountOffOrderPage from "./pages/discounts/AmountOffOrderPage";
-import AmountOffProductsPage from "./pages/discounts/AmountOffProductsPage";
-import BuyXGetYDetailsPage from "./pages/discounts/BuyXGetYDetailsPage";
-import BuyXGetYPage from "./pages/discounts/BuyXGetYPage";
-import DiscountDetailsPage from "./pages/discounts/DiscountDetailsPage";
-import FreeShippingDetailsPage from "./pages/discounts/FreeShippingDetailsPage";
-import FreeShippingPage from "./pages/discounts/FreeShippingPage";
-import AutomationCreatePage from "./pages/marketing/AutomationCreatePage";
-import AutomationDetailsPage from "./pages/marketing/AutomationDetailsPage";
-import AutomationNewPage from "./pages/marketing/AutomationNewPage";
-import AutomationTemplatesPage from "./pages/marketing/AutomationTemplatesPage";
-import BillingChargesPage from "./pages/settings/BillingChargesPage";
-import BillingProfilePage from "./pages/settings/BillingProfilePage";
-import BillingSettingsPage from "./pages/settings/BillingSettingsPage";
-import BillingUpcomingPage from "./pages/settings/BillingUpcomingPage";
-import BrandSettingsPage from "./pages/settings/BrandSettingsPage";
-import CheckoutSettingsPage from "./pages/settings/CheckoutSettingsPage";
-import CreateReturnRules from "./pages/settings/CreateReturnRules";
-import CustomerAccountsAuthenticationPage from "./pages/settings/CustomerAccountsAuthenticationPage";
-import CustomerAccountsFacebookPage from "./pages/settings/CustomerAccountsFacebookPage";
-import CustomerAccountsGooglePage from "./pages/settings/CustomerAccountsGooglePage";
-import CustomerAccountsPage from "./pages/settings/CustomerAccountsPage";
-import CustomerNotificationsPage from "./pages/settings/CustomerNotificationsPage";
-import CustomerPrivacyPage from "./pages/settings/CustomerPrivacyPage";
-import DataSharingOptOutPage from "./pages/settings/DataSharingOptOutPage";
-import DomainsPage from "./pages/settings/DomainsPage";
-import EditNotificationOptionPage from "./pages/settings/EditNotificationOptionPage";
-import GeneralSettingsPage from "./pages/settings/GeneralSettingsPage";
-import IndiaTaxDetailsPage from "./pages/settings/IndiaTaxDetailsPage";
-import LocalDeliveriesPage from "./pages/settings/LocalDeliveriesPage";
-import LocalDeliveryLocationDetailPage from "./pages/settings/LocalDeliveryLocationDetailPage";
-import LocationDetailsPage from "./pages/settings/LocationDetailsPage";
-import LocationsSettings from "./pages/settings/LocationsSettings";
-import ManageReturnRules from "./pages/settings/ManageReturnRules";
-import NewLocationForm from "./pages/settings/NewLocationForm";
-import NewRolePage from "./pages/settings/NewRolePage";
-import NotificationOptionDetailPage from "./pages/settings/NotificationOptionDetailPage";
-import NotificationsPage from "./pages/settings/NotificationsPage";
-import PaymentsSettingsPage from "./pages/settings/PaymentsSettingsPage";
-import PlanSelectPage from "./pages/settings/PlanSelectPage";
-import PlanSettingsPage from "./pages/settings/PlanSettingsPage";
-import PlanSubscriptionsPage from "./pages/settings/PlanSubscriptionsPage";
-import PoliciesSettings from "./pages/settings/PoliciesSettings";
-import RoleDetailsPage from "./pages/settings/RoleDetailsPage";
-import RolesPage from "./pages/settings/RolesPage";
-import SettingsIndex from "./pages/settings/SettingsIndex";
-import SettingsLayout from "./pages/settings/SettingsLayout";
-import SettingsPlaceholder from "./pages/settings/SettingsPlaceholder";
-import ShippingSettings from "./pages/settings/ShippingSettings";
-import ShopMetafieldsPage from "./pages/settings/ShopMetafieldsPage";
-import StoreActivityLogPage from "./pages/settings/StoreActivityLogPage";
-import TaxesAndDutiesPage from "./pages/settings/TaxesAndDutiesPage";
-import UsersPage from "./pages/settings/UsersPage";
-import UsersSecurityPage from "./pages/settings/UsersSecurityPage";
-import CustomerTagsPage from "./pages/tag-management/CustomerTagsPage";
-import ProductTagsPage from "./pages/tag-management/ProductTagsPage";
-import ProductTypesPage from "./pages/tag-management/ProductTypesPage";
-import PurchaseOrderTagsPage from "./pages/tag-management/PurchaseOrderTagsPage";
-import TransferTagsPage from "./pages/tag-management/TransferTagsPage";
-/** Orders children */
+
+// Lazy-loaded page components (code splitting)
+const BasicElementor = lazy(() => import("./pages/themes/BasicElementor"));
+const CustomThemeBuilder = lazy(() => import("./pages/themes/CustomThemeBuilder"));
+const ThemeCodeEditor = lazy(() => import("./pages/themes/ThemeCodeEditor"));
+const ThemeCodeEditorFullScreen = lazy(() => import("./pages/themes/ThemeCodeEditorFullScreen"));
+const ThemeEditor = lazy(() => import("./pages/themes/ThemeEditor"));
+const ThemeLayoutEditor = lazy(() => import("./pages/themes/ThemeLayoutEditor"));
+const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
+const ContentPage = lazy(() => import("./pages/ContentPage"));
+const CreateOrderPage = lazy(() => import("./pages/CreateOrderPage"));
+const CustomerDetailsPage = lazy(() => import("./pages/CustomerDetailsPage"));
+const CustomerSegmentDetailsPage = lazy(() => import("./pages/CustomerSegmentDetailsPage"));
+const CustomersPage = lazy(() => import("./pages/CustomersPage"));
+const CustomersSegmentsPage = lazy(() => import("./pages/CustomersSegmentsPage"));
+const DiscountsPage = lazy(() => import("./pages/DiscountsPage"));
+const GiftCardDetailPage = lazy(() => import("./pages/GiftCardDetailPage"));
+const GiftCardsPage = lazy(() => import("./pages/GiftCardsPage"));
+const MarketingAttributionPage = lazy(() => import("./pages/MarketingAttributionPage"));
+const MarketingAutomationsPage = lazy(() => import("./pages/MarketingAutomationsPage"));
+const MarketingCampaignsPage = lazy(() => import("./pages/MarketingCampaignsPage"));
+const MarketingPage = lazy(() => import("./pages/MarketingPage"));
+const NewCustomerPage = lazy(() => import("./pages/NewCustomerPage"));
+const NewGiftCardPage = lazy(() => import("./pages/NewGiftCardPage"));
+const NewProductPage = lazy(() => import("./pages/NewProductPage"));
+const NewTransferPage = lazy(() => import("./pages/NewTransferPage"));
+const OrderDetailsPage = lazy(() => import("./pages/OrderDetailsPage"));
+const OrdersPage = lazy(() => import("./pages/OrdersPage"));
+const ProductCollectionCreatePage = lazy(() => import("./pages/ProductCollectionCreatePage"));
+const ProductCollectionDetailsPage = lazy(() => import("./pages/ProductCollectionDetailsPage"));
+const ProductCollectionsPage = lazy(() => import("./pages/ProductCollectionsPage"));
+const ProductDetailsPage = lazy(() => import("./pages/ProductDetailsPage"));
+const ProductVariantDetailsPage = lazy(() => import("./pages/ProductVariantDetailsPage"));
+const ProductsInventoryPage = lazy(() => import("./pages/ProductsInventoryPage"));
+const ProductsPage = lazy(() => import("./pages/ProductsPage"));
+const PurchaseOrderDetailsPage = lazy(() => import("./pages/PurchaseOrderDetailsPage"));
+const PurchaseOrderNewPage = lazy(() => import("./pages/PurchaseOrderNewPage"));
+const PurchaseOrderReceivePage = lazy(() => import("./pages/PurchaseOrderReceivePage"));
+const PurchaseOrdersListPage = lazy(() => import("./pages/PurchaseOrdersListPage"));
+const ShipmentNewPage = lazy(() => import("./pages/ShipmentNewPage"));
+const ShipmentReceivePage = lazy(() => import("./pages/ShipmentReceivePage"));
+const TagManagement = lazy(() => import("./pages/TagManagement"));
+const TransferDetailsPage = lazy(() => import("./pages/TransferDetailsPage"));
+const TransfersPage = lazy(() => import("./pages/TransfersPage"));
+const VendorsPage = lazy(() => import("./pages/VendorsPage"));
+const AmountOffOrderDetailsPage = lazy(() => import("./pages/discounts/AmountOffOrderDetailsPage"));
+const AmountOffOrderPage = lazy(() => import("./pages/discounts/AmountOffOrderPage"));
+const AmountOffProductsPage = lazy(() => import("./pages/discounts/AmountOffProductsPage"));
+const BuyXGetYDetailsPage = lazy(() => import("./pages/discounts/BuyXGetYDetailsPage"));
+const BuyXGetYPage = lazy(() => import("./pages/discounts/BuyXGetYPage"));
+const DiscountDetailsPage = lazy(() => import("./pages/discounts/DiscountDetailsPage"));
+const FreeShippingDetailsPage = lazy(() => import("./pages/discounts/FreeShippingDetailsPage"));
+const FreeShippingPage = lazy(() => import("./pages/discounts/FreeShippingPage"));
+const AutomationCreatePage = lazy(() => import("./pages/marketing/AutomationCreatePage"));
+const AutomationDetailsPage = lazy(() => import("./pages/marketing/AutomationDetailsPage"));
+const AutomationNewPage = lazy(() => import("./pages/marketing/AutomationNewPage"));
+const AutomationTemplatesPage = lazy(() => import("./pages/marketing/AutomationTemplatesPage"));
+const BillingChargesPage = lazy(() => import("./pages/settings/BillingChargesPage"));
+const BillingProfilePage = lazy(() => import("./pages/settings/BillingProfilePage"));
+const BillingSettingsPage = lazy(() => import("./pages/settings/BillingSettingsPage"));
+const BillingUpcomingPage = lazy(() => import("./pages/settings/BillingUpcomingPage"));
+const BrandSettingsPage = lazy(() => import("./pages/settings/BrandSettingsPage"));
+const CheckoutSettingsPage = lazy(() => import("./pages/settings/CheckoutSettingsPage"));
+const CreateReturnRules = lazy(() => import("./pages/settings/CreateReturnRules"));
+const CustomerAccountsAuthenticationPage = lazy(() => import("./pages/settings/CustomerAccountsAuthenticationPage"));
+const CustomerAccountsFacebookPage = lazy(() => import("./pages/settings/CustomerAccountsFacebookPage"));
+const CustomerAccountsGooglePage = lazy(() => import("./pages/settings/CustomerAccountsGooglePage"));
+const CustomerAccountsPage = lazy(() => import("./pages/settings/CustomerAccountsPage"));
+const CustomerNotificationsPage = lazy(() => import("./pages/settings/CustomerNotificationsPage"));
+const CustomerPrivacyPage = lazy(() => import("./pages/settings/CustomerPrivacyPage"));
+const DataSharingOptOutPage = lazy(() => import("./pages/settings/DataSharingOptOutPage"));
+const DomainsPage = lazy(() => import("./pages/settings/DomainsPage"));
+const EditNotificationOptionPage = lazy(() => import("./pages/settings/EditNotificationOptionPage"));
+const GeneralSettingsPage = lazy(() => import("./pages/settings/GeneralSettingsPage"));
+const IndiaTaxDetailsPage = lazy(() => import("./pages/settings/IndiaTaxDetailsPage"));
+const LocalDeliveriesPage = lazy(() => import("./pages/settings/LocalDeliveriesPage"));
+const LocalDeliveryLocationDetailPage = lazy(() => import("./pages/settings/LocalDeliveryLocationDetailPage"));
+const LocationDetailsPage = lazy(() => import("./pages/settings/LocationDetailsPage"));
+const LocationsSettings = lazy(() => import("./pages/settings/LocationsSettings"));
+const ManageReturnRules = lazy(() => import("./pages/settings/ManageReturnRules"));
+const NewLocationForm = lazy(() => import("./pages/settings/NewLocationForm"));
+const NewRolePage = lazy(() => import("./pages/settings/NewRolePage"));
+const NotificationOptionDetailPage = lazy(() => import("./pages/settings/NotificationOptionDetailPage"));
+const NotificationsPage = lazy(() => import("./pages/settings/NotificationsPage"));
+const PaymentsSettingsPage = lazy(() => import("./pages/settings/PaymentsSettingsPage"));
+const PlanSelectPage = lazy(() => import("./pages/settings/PlanSelectPage"));
+const PlanSettingsPage = lazy(() => import("./pages/settings/PlanSettingsPage"));
+const PlanSubscriptionsPage = lazy(() => import("./pages/settings/PlanSubscriptionsPage"));
+const PoliciesSettings = lazy(() => import("./pages/settings/PoliciesSettings"));
+const RoleDetailsPage = lazy(() => import("./pages/settings/RoleDetailsPage"));
+const RolesPage = lazy(() => import("./pages/settings/RolesPage"));
+const SettingsIndex = lazy(() => import("./pages/settings/SettingsIndex"));
+const SettingsLayout = lazy(() => import("./pages/settings/SettingsLayout"));
+const SettingsPlaceholder = lazy(() => import("./pages/settings/SettingsPlaceholder"));
+const ShippingSettings = lazy(() => import("./pages/settings/ShippingSettings"));
+const ShopMetafieldsPage = lazy(() => import("./pages/settings/ShopMetafieldsPage"));
+const StoreActivityLogPage = lazy(() => import("./pages/settings/StoreActivityLogPage"));
+const TaxesAndDutiesPage = lazy(() => import("./pages/settings/TaxesAndDutiesPage"));
+const UsersPage = lazy(() => import("./pages/settings/UsersPage"));
+const UsersSecurityPage = lazy(() => import("./pages/settings/UsersSecurityPage"));
+const CustomerTagsPage = lazy(() => import("./pages/tag-management/CustomerTagsPage"));
+const ProductTagsPage = lazy(() => import("./pages/tag-management/ProductTagsPage"));
+const ProductTypesPage = lazy(() => import("./pages/tag-management/ProductTypesPage"));
+const PurchaseOrderTagsPage = lazy(() => import("./pages/tag-management/PurchaseOrderTagsPage"));
+const TransferTagsPage = lazy(() => import("./pages/tag-management/TransferTagsPage"));
+const BlogPostCreatePage = lazy(() => import("./pages/BlogPostCreatePage").then(m => ({ default: m.BlogPostCreatePage })));
+const ContentBlogPostsPage = lazy(() => import("./pages/ContentBlogPostsPage").then(m => ({ default: m.ContentBlogPostsPage })));
+const ContentFilesPage = lazy(() => import("./pages/ContentFilesPage").then(m => ({ default: m.ContentFilesPage })));
+const ContentMenusPage = lazy(() => import("./pages/ContentMenusPage").then(m => ({ default: m.ContentMenusPage })));
+const ContentMetaObjectsPage = lazy(() => import("./pages/ContentMetaObjectsPage").then(m => ({ default: m.ContentMetaObjectsPage })));
+const LanguageSettingsPage = lazy(() => import("./pages/LanguageSettingsPage").then(m => ({ default: m.LanguageSettingsPage })));
+const MarketSettingsPage = lazy(() => import("./pages/MarketSettingsPage").then(m => ({ default: m.MarketSettingsPage })));
+const MetafeildsAndMetaObjectsSettingsPage = lazy(() => import("./pages/MetafeildsAndMetaObjectsSettingsPage").then(m => ({ default: m.MetafeildsAndMetaObjectsSettingsPage })));
+const OnlineStorePage = lazy(() => import("./pages/OnlineStorePage"));
+const OnlineStorePreferencePage = lazy(() => import("./pages/OnlineStorePreferencePage"));
+const SelectDiscountToCreatePage = lazy(() => import("./pages/SelectDiscountToCreatePage"));
+const MarketDetailsPage = lazy(() => import("./pages/markets/MarketDetailsPage"));
+const MarketsCatalogDetailsPage = lazy(() => import("./pages/markets/MarketsCatalogDetailsPage"));
+const MarketsCatalogsNewPage = lazy(() => import("./pages/markets/MarketsCatalogsNewPage"));
+const MarketsCatalogsPage = lazy(() => import("./pages/markets/MarketsCatalogsPage"));
+const MarketsNewPage = lazy(() => import("./pages/markets/MarketsNewPage"));
+const MarketsPage = lazy(() => import("./pages/markets/MarketsPage"));
+const AbandonedCartsPage = lazy(() => import("./pages/orders/AbandonedCartPage"));
+const AbandonedCartDetailsPage = lazy(() => import("./pages/orders/AbondonedCartDetailsPage"));
+const DraftsPage = lazy(() => import("./pages/orders/DraftsPage"));
+const CustomerEventPixelDetailsPage = lazy(() => import("./pages/settings/CustomerEventPixelDetailsPage"));
+const CustomerEventsPage = lazy(() => import("./pages/settings/CustomerEventsPage"));
+const ShippingProfileCreatePage = lazy(() => import("./pages/settings/ShippingProfileCreatePage"));
+const ShippingProfileDetailsPage = lazy(() => import("./pages/settings/ShippingProfileDetailsPage"));
+const WebhooksNotificationsPage = lazy(() => import("./pages/settings/WebhooksNotificationsPage"));
+const AllThemes = lazy(() => import("./pages/themes/AllThemes"));
+const HomePage = lazy(() => import("./components/HomePage"));
+
 import { CustomerSegmentsEntryProvider } from "./contexts/CustomerSegmentsEntry.context";
 import { AbandonedCartProvider } from "./contexts/abandoned-cart.context";
 import { ActionProvider } from "./contexts/action.context";
@@ -196,32 +223,6 @@ import { TransferTagsProvider } from "./contexts/transfer-tags.context";
 import { TransferProvider } from "./contexts/transfer.context";
 import { TriggerProvider } from "./contexts/trigger.context";
 import { VendorProvider } from "./contexts/vendor.context";
-import { BlogPostCreatePage } from "./pages/BlogPostCreatePage";
-import { ContentBlogPostsPage } from "./pages/ContentBlogPostsPage";
-import { ContentFilesPage } from "./pages/ContentFilesPage";
-import { ContentMenusPage } from "./pages/ContentMenusPage";
-import { ContentMetaObjectsPage } from "./pages/ContentMetaObjectsPage";
-import { LanguageSettingsPage } from "./pages/LanguageSettingsPage";
-import { MarketSettingsPage } from "./pages/MarketSettingsPage";
-import { MetafeildsAndMetaObjectsSettingsPage } from "./pages/MetafeildsAndMetaObjectsSettingsPage";
-import OnlineStorePage from "./pages/OnlineStorePage";
-import OnlineStorePreferencePage from "./pages/OnlineStorePreferencePage";
-import SelectDiscountToCreatePage from "./pages/SelectDiscountToCreatePage";
-import MarketDetailsPage from "./pages/markets/MarketDetailsPage";
-import MarketsCatalogDetailsPage from "./pages/markets/MarketsCatalogDetailsPage";
-import MarketsCatalogsNewPage from "./pages/markets/MarketsCatalogsNewPage";
-import MarketsCatalogsPage from "./pages/markets/MarketsCatalogsPage";
-import MarketsNewPage from "./pages/markets/MarketsNewPage";
-import MarketsPage from "./pages/markets/MarketsPage";
-import AbandonedCartsPage from "./pages/orders/AbandonedCartPage";
-import AbandonedCartDetailsPage from "./pages/orders/AbondonedCartDetailsPage";
-import DraftsPage from "./pages/orders/DraftsPage";
-import CustomerEventPixelDetailsPage from "./pages/settings/CustomerEventPixelDetailsPage";
-import CustomerEventsPage from "./pages/settings/CustomerEventsPage";
-import ShippingProfileCreatePage from "./pages/settings/ShippingProfileCreatePage";
-import ShippingProfileDetailsPage from "./pages/settings/ShippingProfileDetailsPage";
-import WebhooksNotificationsPage from "./pages/settings/WebhooksNotificationsPage";
-import AllThemes from "./pages/themes/AllThemes";
 
 /** Products children */
 
@@ -231,6 +232,13 @@ import AllThemes from "./pages/themes/AllThemes";
 
 const NAVBAR_HEIGHT = 48; // keep consistent with Sidebar offset (h-12 = 48px)
 const SIDEBAR_WIDTH = 240; // keep consistent with Sidebar width
+
+const PageLoader: React.FC = () => (
+  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", color: "#6b7280" }}>
+    <span>Loading...</span>
+  </div>
+);
+
 // This component is rendered INSIDE <Router>, so hooks like useLocation are safe here
 const AdminApp: React.FC = () => {
   const location = useLocation();
@@ -260,6 +268,7 @@ const AdminApp: React.FC = () => {
             transition: 'margin-left 0.3s ease',
           }}
         >
+          <Suspense fallback={<PageLoader />}>
           <Routes>
             {/* Top-level */}
             <Route path="/" element={<HomePage />} />
@@ -399,6 +408,7 @@ const AdminApp: React.FC = () => {
             <Route path="/themes/code/:themeId" element={<ThemeCodeEditor />} />
             <Route path="/themes/code-fullscreen/:themeId" element={<ThemeCodeEditorFullScreen />} />
           </Routes>
+          </Suspense>
         </main>
       </div>
     </div>

@@ -740,7 +740,7 @@ const AllThemes: React.FC = () => {
               );
             })}
           </div>
-        </>
+        </React.Fragment>
       )}
 
       {/* Your Creations (Custom Themes) - Section 3 */}
