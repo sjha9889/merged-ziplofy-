@@ -69,24 +69,8 @@ const RolesPermission: React.FC = () => {
   const fetchRoles = async () => {
     try {
       setLoading(true);
-      
-      // Debug: Get current user info
-      console.log("🔍 Frontend - Fetching user info for roles and permission section:");
-      const userResponse = await axios.get("/auth/me");
-      console.log("User Response:", userResponse.data);
-      console.log("User Data:", userResponse.data.data);
-      console.log("User Role:", userResponse.data.data?.role);
-      console.log("User Name:", userResponse.data.data?.name);
-      console.log("User Email:", userResponse.data.data?.email);
-      console.log("Is Super Admin:", userResponse.data.data?.superAdmin);
-      
-      // Fetch roles
       const response = await axios.get("/roles");
-      
-      console.log(`✅ Loaded ${response.data.data.length} roles successfully`);
-      
-      setRoles(response.data.data);
-      
+      setRoles(response.data?.data || response.data || []);
     } catch (err: any) {
       console.error("Error fetching roles:", err);
       setError(err.response?.data?.message || "Failed to fetch roles");
@@ -111,65 +95,29 @@ const RolesPermission: React.FC = () => {
   const getSectionPermissions = (role: Role, section: string) => {
     // Super admin has all permissions for all sections
     if (role.isSuperAdmin || role.name === 'super-admin' || role.name.toLowerCase().includes('super')) {
-      console.log(`🔍 Super Admin detected for ${section}:`, {
-        roleName: role.name,
-        isSuperAdmin: role.isSuperAdmin,
-        permissions: permissionTypes
-      });
-      return permissionTypes; // Super admin has all permissions
+      return permissionTypes;
     }
     const sectionPermission = role.permissions.find(p => p.section === section);
-    console.log(`🔍 Regular role ${role.name} for ${section}:`, {
-      sectionPermission,
-      permissions: sectionPermission ? sectionPermission.permissions : []
-    });
     return sectionPermission ? sectionPermission.permissions : [];
   };
 
   // Check if current user is super admin
   const isCurrentUserSuperAdmin = () => {
-    console.log("🔍 Checking super admin status:", {
-      user,
-      userRoleName: user?.roleName,
-      userRoleId: user?.roleId,
-      localStorage: {
-        userRole: localStorage.getItem('userRole'),
-        isSuperAdmin: localStorage.getItem('isSuperAdmin'),
-        userData: localStorage.getItem('userData')
-      }
-    });
-    
-    // STRICT CHECK: Only allow super-admin role name
-    if (user?.roleName === 'super-admin') {
-      console.log("✅ User is super admin based on role name from auth context");
-      return true;
-    }
-    
-    // Fallback: Check localStorage for super admin status
+    if (user?.roleName === 'super-admin') return true;
+
     const userRole = localStorage.getItem('userRole');
     const isSuperAdmin = localStorage.getItem('isSuperAdmin');
-    
-    if (userRole === 'super-admin' || isSuperAdmin === 'true') {
-      console.log("✅ User is super admin based on localStorage");
-      return true;
-    }
-    
-    // Check if userData contains super admin info
+    if (userRole === 'super-admin' || isSuperAdmin === 'true') return true;
+
     const userData = localStorage.getItem('userData');
     if (userData) {
       try {
-        const parsedUserData = JSON.parse(userData);
-        console.log("🔍 Parsed userData:", parsedUserData);
-        if (parsedUserData.role === 'super-admin' || parsedUserData.superAdmin === true) {
-          console.log("✅ User is super admin based on userData");
-          return true;
-        }
-      } catch (e) {
-        console.error("Error parsing userData:", e);
+        const parsed = JSON.parse(userData);
+        if (parsed.role === 'super-admin' || parsed.superAdmin === true) return true;
+      } catch {
+        // ignore parse errors
       }
     }
-    
-    console.log("❌ User is not super admin - read-only access");
     return false;
   };
 

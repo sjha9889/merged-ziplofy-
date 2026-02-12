@@ -41,7 +41,18 @@ axiosi.interceptors.response.use(
             localStorage.removeItem('userData');
             localStorage.removeItem('userRole');
             localStorage.removeItem('isSuperAdmin');
-            // Don't auto-redirect, let the component handle it
+            localStorage.removeItem('userEmail');
+        }
+        if (error.response?.status === 403) {
+            const msg = (error.response?.data?.error || error.response?.data?.message || '').toLowerCase();
+            if (msg.includes('suspended') || msg.includes('not active')) {
+                console.log('🔐 Account suspended, clearing token');
+                localStorage.removeItem('admin_token');
+                localStorage.removeItem('userData');
+                localStorage.removeItem('userRole');
+                localStorage.removeItem('isSuperAdmin');
+                localStorage.removeItem('userEmail');
+            }
         }
         return Promise.reject(error);
     }

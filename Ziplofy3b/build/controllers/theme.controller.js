@@ -365,7 +365,7 @@ exports.deleteTheme = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     if (otpRecord.code !== otp.trim()) {
         otpRecord.attempts += 1;
         await otpRecord.save();
-        throw new error_utils_1.CustomError("Invalid verification code", 401);
+        throw new error_utils_1.CustomError("Invalid verification code", 400);
     }
     await edit_verification_otp_model_1.EditVerificationOtp.deleteMany({ email: superAdminEmail });
     console.log('🗑️ Delete theme request received:', {

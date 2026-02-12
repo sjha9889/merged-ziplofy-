@@ -50,12 +50,12 @@ export const adminLogin = asyncErrorHandler(async (req: Request, res: Response) 
 
   const user = await User.findOne({ email }).select("+password role status name email lastLogin");
   if (!user) throw new CustomError("Invalid credentials", 401);
-  if (user.status !== "active") throw new CustomError("Account is not active", 403);
+  if (user.status === "suspended") throw new CustomError("Your account has been suspended. Please contact the administrator.", 403);
 
   const role = await Role.findById(user.role);
   if (!role) throw new CustomError("Role not found", 401);
 
-  const adminRoleNames = ["super-admin","support-admin","developer-admin","admin"];
+  const adminRoleNames = ["super-admin","support-admin","developer-admin","client-admin","admin"];
   if (!adminRoleNames.includes(role.name)) throw new CustomError("Not authorized as admin", 403);
 
   const isMatch = await bcrypt.compare(password, (user as any).password);
@@ -68,6 +68,7 @@ export const adminLogin = asyncErrorHandler(async (req: Request, res: Response) 
   );
 
   user.lastLogin = new Date();
+  (user as any).status = "active"; // All admins: active when logged in
   await user.save();
 
   res.status(200).json({
@@ -93,11 +94,11 @@ export const adminLoginStep1 = asyncErrorHandler(async (req: Request, res: Respo
 
   const user = await User.findOne({ email }).select("+password role status name email lastLogin");
   if (!user) throw new CustomError("Invalid credentials", 401);
-  if (user.status !== "active") throw new CustomError("Account is not active", 403);
+  if (user.status === "suspended") throw new CustomError("Your account has been suspended. Please contact the administrator.", 403);
 
   const role = await Role.findById(user.role);
   if (!role) throw new CustomError("Role not found", 401);
-  const adminRoleNames = ["super-admin","support-admin","developer-admin","admin"];
+  const adminRoleNames = ["super-admin","support-admin","developer-admin","client-admin","admin"];
   if (!adminRoleNames.includes(role.name)) throw new CustomError("Not authorized as admin", 403);
 
   const isMatch = await bcrypt.compare(password, (user as any).password);
@@ -145,6 +146,7 @@ export const verifyAdminLoginOtp = asyncErrorHandler(async (req: Request, res: R
 
   const user = await User.findOne({ email }).select("role status name email lastLogin");
   if (!user) throw new CustomError("User not found", 404);
+  if (user.status === "suspended") throw new CustomError("Your account has been suspended. Please contact the administrator.", 403);
   const role = await Role.findById(user.role);
   if (!role) throw new CustomError("Role not found", 404);
 
@@ -155,6 +157,7 @@ export const verifyAdminLoginOtp = asyncErrorHandler(async (req: Request, res: R
   );
 
   user.lastLogin = new Date();
+  (user as any).status = "active"; // All admins: active when logged in
   await user.save();
   await LoginOtp.deleteMany({ email });
 
@@ -186,10 +189,10 @@ export const resendAdminLoginOtp = asyncErrorHandler(async (req: Request, res: R
     throw new CustomError(`Please wait ${remaining}s before resending code`, 429);
   }
 
-  // Ensure user exists and active
+  // Ensure user exists and not suspended
   const user = await User.findOne({ email }).select("role status name email");
   if (!user) throw new CustomError("User not found", 404);
-  if (user.status !== "active") throw new CustomError("Account is not active", 403);
+  if (user.status === "suspended") throw new CustomError("Your account has been suspended. Please contact the administrator.", 403);
 
   // generate new code
   const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -304,4 +307,11 @@ export const changePassword = asyncErrorHandler(async (req: Request, res: Respon
   (user as any).password = newPassword;
   await user.save();
   res.status(200).json({ message: "Password changed successfully" });
+});
+
+// Logout: set admin status to inactive (status is login-based for all admins)
+export const adminLogout = asyncErrorHandler(async (req: Request, res: Response) => {
+  if (!req.user) return res.status(200).json({ success: true });
+  await User.findByIdAndUpdate(req.user.id, { status: "inactive" });
+  res.status(200).json({ success: true });
 });

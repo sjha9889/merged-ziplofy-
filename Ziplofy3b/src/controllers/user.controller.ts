@@ -165,10 +165,27 @@ export const updateUser = asyncErrorHandler(async (req: Request, res: Response) 
   if (otpRecord.code !== otp.trim()) {
     otpRecord.attempts += 1;
     await otpRecord.save();
-    throw new CustomError("Invalid verification code", 401);
+    throw new CustomError("Invalid verification code", 400);
   }
 
   await EditVerificationOtp.deleteMany({ email: superAdminEmail });
+
+  // Status rules: super-admin = login-based only; other admins = super-admin can set suspended/inactive only
+  const targetUser = await User.findById(id).populate("role");
+  if (targetUser && status !== undefined) {
+    const targetRole = targetUser.role as any;
+    const isSuperAdmin = targetRole?.name === "super-admin" || targetRole?.isSuperAdmin;
+    if (isSuperAdmin) {
+      throw new CustomError("Super-admin status cannot be changed manually. It is determined by login state.", 400);
+    }
+    // For other admins: only "suspended" or "inactive" allowed. "active" is login-based only.
+    if (status === "active") {
+      throw new CustomError("Status 'active' is set automatically when the user logs in. You can set 'inactive' or 'suspended' only.", 400);
+    }
+    if (status !== "inactive" && status !== "suspended") {
+      throw new CustomError("Only 'inactive' or 'suspended' can be set manually.", 400);
+    }
+  }
 
   const updateData: any = { updatedAt: new Date() };
   if (name !== undefined) updateData.name = name;
@@ -239,7 +256,7 @@ export const deleteUser = asyncErrorHandler(async (req: Request, res: Response) 
   if (otpRecord.code !== otp.trim()) {
     otpRecord.attempts += 1;
     await otpRecord.save();
-    throw new CustomError("Invalid verification code", 401);
+    throw new CustomError("Invalid verification code", 400);
   }
 
   await EditVerificationOtp.deleteMany({ email: superAdminEmail });

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { FaCog, FaMoon, FaSun, FaUser, FaSignOutAlt } from "react-icons/fa";
 import { X } from "lucide-react";
 import "./Navbar.css";
@@ -21,6 +21,7 @@ import SupportDeveloper from "./pages/SupportDeveloper";
 import ThemeDeveloper from "./pages/ThemeDeveloper";
 import ThemeEditPage from "./pages/ThemeEditPage";
 import Ticket from "./pages/Ticket";
+import Profile from "./pages/Profile";
 
 type MenuItem =
   | "Client List"
@@ -41,15 +42,15 @@ type MenuItem =
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, logout } = useAdminAuth();
   const { theme, setTheme } = useTheme();
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
   const [activeMenu, setActiveMenu] = useState<MenuItem>(() => {
     const saved = sessionStorage.getItem("activeMenu") as MenuItem;
-    return saved || "Dashboard";
+    return saved || "Client List";
   });
   const [userMenuOpen, setUserMenuOpen] = useState<boolean>(false);
-  const [showProfileModal, setShowProfileModal] = useState<boolean>(false);
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
   const [settings, setSettings] = useState(() => {
     try {
@@ -108,7 +109,7 @@ const Navbar = () => {
                 className="user-dropdown-item"
                 onClick={() => {
                   setUserMenuOpen(false);
-                  setShowProfileModal(true);
+                  navigate("/admin/profile");
                 }}
               >
                 <FaUser size={14} />
@@ -164,7 +165,9 @@ const Navbar = () => {
           transition: "margin-left 0.3s ease",
         }}
       >
-        {location.pathname.startsWith("/admin/themes/edit/") ? (
+        {location.pathname === "/admin/profile" ? (
+          <Profile />
+        ) : location.pathname.startsWith("/admin/themes/edit/") ? (
           <ThemeEditPage />
         ) : (
           <>
@@ -185,37 +188,6 @@ const Navbar = () => {
           </>
         )}
       </div>
-
-      {/* Profile Modal */}
-      {showProfileModal && (
-        <div className="modal-overlay" onClick={() => setShowProfileModal(false)}>
-          <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="profile-modal-header">
-              <h3>Profile</h3>
-              <button className="profile-modal-close" onClick={() => setShowProfileModal(false)} aria-label="Close">
-                <X size={20} />
-              </button>
-            </div>
-            <div className="profile-modal-body">
-              <div className="profile-avatar">
-                {(user?.name || "U").charAt(0).toUpperCase()}
-              </div>
-              <div className="profile-detail">
-                <label>Name</label>
-                <p>{user?.name || "—"}</p>
-              </div>
-              <div className="profile-detail">
-                <label>Email</label>
-                <p>{user?.email || "—"}</p>
-              </div>
-              <div className="profile-detail">
-                <label>Role</label>
-                <p>{user?.roleName || "—"}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Settings Modal */}
       {showSettingsModal && (

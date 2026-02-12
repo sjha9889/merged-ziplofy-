@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Search, ChevronLeft, ChevronRight, Edit, Trash2, Eye, X } from "lucide-react";
 import axios from "../../config/axios";
+import { useDebounce } from "../../hooks/useDebounce";
 import { EditVerificationModal } from "../EditVerificationModal";
 import "./ClientList.css";
 
@@ -143,6 +144,7 @@ const ClientList: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [roles, setRoles] = useState<{ _id: string; name: string }[]>([]);
+  const debouncedSearch = useDebounce(searchTerm, 300);
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [pendingEditData, setPendingEditData] = useState<{ userId: string; data: UserFormData } | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -164,14 +166,14 @@ const ClientList: React.FC = () => {
     }
   };
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
       const params: Record<string, string> = {
         page: "1",
         limit: "500",
-        search: searchTerm,
+        search: debouncedSearch,
         status: statusFilter,
         role: roleFilter,
       };
@@ -200,7 +202,7 @@ const ClientList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [debouncedSearch, statusFilter, roleFilter]);
 
   // Paginate client users for display
   const paginatedUsers = allClientUsers.slice(
@@ -217,8 +219,7 @@ const ClientList: React.FC = () => {
   useEffect(() => {
     setPagination((p) => ({ ...p, page: 1 }));
     fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, statusFilter, roleFilter]);
+  }, [fetchUsers]);
 
   const handleEditUser = async (formData: UserFormData) => {
     if (!editingUser) return;
@@ -261,12 +262,20 @@ const ClientList: React.FC = () => {
   const executeDeleteWithOtp = async (otp: string) => {
     if (!pendingDeleteId) return;
     try {
-      await axios.delete(`/user/${pendingDeleteId}`, { data: { editOtp: otp } });
+      const token = localStorage.getItem("admin_token");
+      await axios.delete(`/user/${pendingDeleteId}`, {
+        data: { editOtp: otp },
+        headers: {
+          "X-Edit-Otp": otp,
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      });
       setPendingDeleteId(null);
       setShowOtpModal(false);
       fetchUsers();
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message);
+      setError(err.response?.data?.error || err.response?.data?.message || err.message);
     }
   };
 
@@ -385,12 +394,14 @@ const ClientList: React.FC = () => {
                           >
                             <Edit size={14} /> Edit
                           </button>
-                          <button
-                            className="btn delete"
-                            onClick={() => handleDeleteUser(user._id)}
-                          >
-                            <Trash2 size={14} /> Delete
-                          </button>
+                          {user.role?.toLowerCase().replace(/\s/g, "-") !== "super-admin" && (
+                            <button
+                              className="btn delete"
+                              onClick={() => handleDeleteUser(user._id)}
+                            >
+                              <Trash2 size={14} /> Delete
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

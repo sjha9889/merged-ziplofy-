@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   adminLogin,
   adminLoginStep1,
+  adminLogout,
   changePassword,
   getMe,
   resendAdminLoginOtp,
@@ -14,6 +15,7 @@ import { protect } from "../middlewares/auth.middleware";
 export const authRouter = Router();
 
 authRouter.get("/me", protect, getMe);
+authRouter.post("/logout", protect, adminLogout);
 authRouter.post("/admin/login", adminLogin);
 authRouter.post("/admin/login-step1", adminLoginStep1);
 authRouter.post("/admin/verify-otp", verifyAdminLoginOtp);

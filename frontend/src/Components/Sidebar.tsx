@@ -53,15 +53,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, activeItem, onSelec
   const isSuperAdmin = user?.roleName === 'super-admin' || localStorage.getItem('isSuperAdmin') === 'true';
   const hasAnyPermissions = Object.keys(permissions).length > 0;
   
-  console.log('🔍 Sidebar render check:', { loading, isSuperAdmin, hasAnyPermissions, permissions });
-  
   // Emergency fallback: if user is super-admin and no permissions loaded, show all sections
   const shouldShowAllSections = isSuperAdmin && !hasAnyPermissions;
-  console.log('🔍 Should show all sections:', shouldShowAllSections);
-  
-  if (shouldShowAllSections) {
-    console.log('🚨 EMERGENCY FALLBACK: Showing all sections for super-admin user');
-  }
 
   // Derived visibility: show parent section if any subsection is viewable
   const canSeeUserManagement = shouldShowAllSections ||
@@ -87,26 +80,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, activeItem, onSelec
     hasViewPermission("Support", "Raise Task") ||
     hasViewPermission("Support", "Live Support");
 
-  // Debug user data for role display
-  console.log('🔍 Sidebar user data:', { 
-    user, 
-    roleName: user?.roleName, 
-    role: user?.role,
-    displayRole: user?.roleName || user?.role || 'Loading...'
-  });
-  
-  // Additional debugging for role display
-  console.log('🔍 Role display logic:', {
-    'user?.roleName': user?.roleName,
-    'user?.role': user?.role,
-    'localStorage.userRole': localStorage.getItem('userRole'),
-    'loading': loading,
-    'final display': user?.roleName || user?.role || localStorage.getItem('userRole') || (loading ? 'Loading...' : 'User')
-  });
-  
-  // Debug the actual user object structure
-  console.log('🔍 Full user object in Sidebar:', user);
-  
   return (
     <>
       {!isOpen && (

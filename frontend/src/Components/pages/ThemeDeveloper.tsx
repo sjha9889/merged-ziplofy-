@@ -259,6 +259,11 @@ const ThemeDeveloper: React.FC = () => {
     try {
       const response = await axiosi.delete(`/themes/${themeId}`, {
         data: { editOtp: otp },
+        headers: {
+          "X-Edit-Otp": otp,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${adminToken}`,
+        },
       });
 
       if (response.data.success) {
@@ -278,12 +283,12 @@ const ThemeDeveloper: React.FC = () => {
         localStorage.removeItem('userRole');
         localStorage.removeItem('isSuperAdmin');
       } else if (error.response?.status === 403) {
-        errorMessage = error.response?.data?.message || 'You do not have permission to delete themes. Contact administrator.';
+        errorMessage = error.response?.data?.error || error.response?.data?.message || 'You do not have permission to delete themes. Contact administrator.';
       } else if (error.response?.status === 404) {
         errorMessage = 'Theme not found. It may have already been deleted.';
         await fetchThemes();
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error || error.response?.data?.message) {
+        errorMessage = error.response.data.error || error.response.data.message;
       } else if (error.message) {
         errorMessage = error.message;
       }
