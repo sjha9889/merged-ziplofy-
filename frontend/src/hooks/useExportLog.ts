@@ -28,7 +28,7 @@ export function useExportLog() {
 
         // 2. Log export (fire-and-forget, don't block user)
         axios
-          .post('/export-logs', {
+          .post('/activity-logs/export', {
             page,
             csvContent,
             fileName,

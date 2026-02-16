@@ -3,6 +3,7 @@ import { IUser, User } from "../models/user.model";
 import { Role } from "../models/role.model";
 import { EditVerificationOtp } from "../models/edit-verification-otp.model";
 import { asyncErrorHandler, CustomError } from "../utils/error.utils";
+import { logActivity } from "../utils/activity-log.utils";
 
 export const createUser = asyncErrorHandler(async (req: Request, res: Response) => {
   // Only super-admin can add users
@@ -37,6 +38,15 @@ export const createUser = asyncErrorHandler(async (req: Request, res: Response) 
   });
 
   const userResponse = await User.findById(user._id).select("-password");
+
+  logActivity(req, {
+    action: "user_create",
+    entityType: "user",
+    entityId: user._id.toString(),
+    entityName: name,
+    summary: `Created user "${name}" (${email}) with role ${role}`,
+    details: { userId: user._id.toString(), name, email, role },
+  }).catch(() => {});
 
   res.status(201).json({
     success: true,
@@ -216,6 +226,21 @@ export const updateUser = asyncErrorHandler(async (req: Request, res: Response) 
     throw new CustomError("User not found", 404);
   }
 
+  const updates: Record<string, unknown> = {};
+  if (name !== undefined) updates.name = name;
+  if (email !== undefined) updates.email = email;
+  if (role !== undefined) updates.role = role;
+  if (status !== undefined) updates.status = status;
+
+  logActivity(req, {
+    action: "user_update",
+    entityType: "user",
+    entityId: id,
+    entityName: user.name,
+    summary: `Updated user "${user.name}" (${Object.keys(updates).join(", ")})`,
+    details: { userId: id, updates },
+  }).catch(() => {});
+
   res.status(200).json({
     success: true,
     data: user,
@@ -261,11 +286,24 @@ export const deleteUser = asyncErrorHandler(async (req: Request, res: Response) 
 
   await EditVerificationOtp.deleteMany({ email: superAdminEmail });
 
-  const user = await User.findByIdAndDelete(id);
-
+  const user = await User.findById(id).select("name email").lean();
   if (!user) {
     throw new CustomError("User not found", 404);
   }
+
+  // Await logActivity so delete is reliably recorded before user is removed
+  await logActivity(req, {
+    action: "user_delete",
+    entityType: "user",
+    entityId: id,
+    entityName: (user as { name?: string }).name,
+    summary: `Deleted user "${(user as { name?: string }).name}" (${(user as { email?: string }).email})`,
+    details: { userId: id, deletedUser: user },
+  }).catch((err) => {
+    console.warn("Activity log (user_delete) failed:", err);
+  });
+
+  await User.findByIdAndDelete(id);
 
   res.status(200).json({
     success: true,

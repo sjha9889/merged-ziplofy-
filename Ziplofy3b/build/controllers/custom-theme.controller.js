@@ -12,6 +12,7 @@ const custom_theme_model_1 = require("../models/custom-theme.model");
 const installed_themes_model_1 = require("../models/installed-themes.model");
 const recent_installations_model_1 = require("../models/recent-installations.model");
 const error_utils_1 = require("../utils/error.utils");
+const activity_log_utils_1 = require("../utils/activity-log.utils");
 // Helper function to create custom theme directory structure
 const createCustomThemeDirectory = (themeName) => {
     const baseDir = path_1.default.join(process.cwd(), "uploads/custom themes/");
@@ -149,6 +150,14 @@ exports.createCustomTheme = (0, error_utils_1.asyncErrorHandler)(async (req, res
     const themeResponse = await custom_theme_model_1.CustomTheme.findById(customTheme._id)
         .populate("createdBy", "name email")
         .select("-directories -html -css");
+    (0, activity_log_utils_1.logActivity)(req, {
+        action: "custom_theme_upload",
+        entityType: "custom_theme",
+        entityId: customTheme._id.toString(),
+        entityName: name,
+        summary: `Uploaded custom theme "${name}"`,
+        details: { themeId: customTheme._id.toString(), name, themePath: themeDirs.themeDirName },
+    }).catch(() => { });
     res.status(201).json({
         success: true,
         data: themeResponse,
