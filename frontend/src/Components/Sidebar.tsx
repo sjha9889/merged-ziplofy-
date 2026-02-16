@@ -9,7 +9,7 @@ import {
   FaChevronDown,
   FaUserShield,
   FaBars,
-  FaFileExport,
+  FaHistory,
 } from "react-icons/fa";
 import { usePermissions } from "../hooks/usePermissions";
 import "./Sidebar.css";
@@ -330,11 +330,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, activeItem, onSelec
           <>
             <p className="sidebar-section-title">Audit</p>
             <li
-              className={activeItem === "Export Logs" ? "active" : ""}
-              onClick={() => onSelect && onSelect("Export Logs")}
+              className={activeItem === "Activity Logs" ? "active" : ""}
+              onClick={() => onSelect && onSelect("Activity Logs")}
             >
-              <FaFileExport className="menu-icon" />
-              <span>Export Logs</span>
+              <FaHistory className="menu-icon" />
+              <span>Activity Logs</span>
             </li>
           </>
         )}

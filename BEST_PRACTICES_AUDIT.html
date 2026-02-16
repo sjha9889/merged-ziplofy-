@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ziplofy - Best Practices Audit & Company References</title>
+  <style>
+    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 13pt; line-height: 1.6; color: #1a1a1a; max-width: 800px; margin: 0 auto; padding: 36px; }
+    h1 { font-size: 20pt; margin-bottom: 6px; color: #1a1a1a; border-bottom: 2px solid #2665F7; padding-bottom: 6px; }
+    .meta { font-size: 11pt; color: #555; margin-bottom: 20px; }
+    h2 { font-size: 15pt; margin: 24px 0 10px; color: #2665F7; }
+    h3 { font-size: 13pt; margin: 16px 0 8px; color: #333; }
+    ul { margin: 8px 0 16px 24px; }
+    li { margin: 6px 0; }
+    .box { background: #f8fafc; padding: 16px 20px; margin: 16px 0; border-radius: 8px; border-left: 4px solid #2665F7; }
+    .gap { background: #fef2f2; border-left-color: #dc2626; }
+    .good { background: #f0fdf4; border-left-color: #22c55e; }
+    .practice { margin: 14px 0; padding: 12px 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; }
+    .practice strong { display: block; margin-bottom: 4px; font-size: 12.5pt; }
+    .companies { color: #059669; font-size: 12pt; margin-top: 6px; }
+    .ref { font-size: 10pt; color: #64748b; margin-top: 6px; }
+    .ref a { color: #2665F7; }
+    .toc { margin: 16px 0; }
+    .toc ol { margin-left: 24px; }
+    .toc li { margin: 4px 0; }
+    footer { margin-top: 32px; padding-top: 16px; font-size: 10pt; color: #666; border-top: 1px solid #e5e7eb; }
+  </style>
+</head>
+<body>
+  <h1>Ziplofy – Best Practices Audit</h1>
+  <p class="meta">Version 1.1 | February 10, 2025 | Admin Frontend + Ziplofy3b Backend</p>
+
+  <div class="box">
+    <strong>What this document is</strong><br/>
+    We list suggested improvements for our codebase, with <strong>real companies that use each practice</strong> and where we can learn more.
+  </div>
+
+  <h2>Contents</h2>
+  <div class="toc">
+    <ol>
+      <li>Quick summary – What we’re missing vs. what’s going well</li>
+      <li>Suggested changes + companies using them</li>
+      <li>What we’re already doing well</li>
+      <li>Reference websites</li>
+    </ol>
+  </div>
+
+  <h2>1. Quick Summary</h2>
+  <div class="box gap">
+    <strong>What we’re missing (priority fixes)</strong>
+    <ul>
+      <li>Rate limiting on login/OTP</li>
+      <li>Security headers (Helmet)</li>
+      <li>Input validation library</li>
+      <li>Skeleton loaders instead of plain “Loading…”</li>
+      <li>Profile self-service (edit name, change password, profile picture)</li>
+      <li>Code splitting (React.lazy) for faster load</li>
+      <li>.env.example and project README</li>
+    </ul>
+  </div>
+  <div class="box good">
+    <strong>What we’re doing well</strong>
+    <ul>
+      <li>CORS, password hashing (bcrypt), error middleware, async error handling</li>
+    </ul>
+  </div>
+
+  <h2>2. Suggested Changes & Companies Using Them</h2>
+
+  <h3>Security</h3>
+  <div class="practice">
+    <strong>Rate limiting on auth endpoints</strong>
+    We would limit login/OTP attempts to prevent brute force.
+    <div class="companies">Used by: Stripe, Cloudflare, GitHub, AWS, Twilio</div>
+    <div class="ref">Reference: OWASP DoS Cheat Sheet, express-rate-limit on npm</div>
+  </div>
+  <div class="practice">
+    <strong>Helmet – HTTP security headers</strong>
+    We would add X-Frame-Options, X-Content-Type-Options, etc.
+    <div class="companies">Standard for Express apps; recommended by Express docs</div>
+    <div class="ref">Reference: expressjs.com/advanced/best-practice-security, helmetjs.github.io</div>
+  </div>
+  <div class="practice">
+    <strong>Input validation library (express-validator, Joi, Zod)</strong>
+    We would validate and sanitize request body, query, params.
+    <div class="companies">express-validator: 1.3M+ weekly npm downloads; used across Node.js ecosystem</div>
+    <div class="ref">Reference: OWASP Input Validation, express-validator.github.io</div>
+  </div>
+
+  <h3>Frontend / UI</h3>
+  <div class="practice">
+    <strong>Skeleton loaders</strong>
+    We would show gray placeholder shapes while content loads, instead of “Loading…”.
+    <div class="companies">LinkedIn, Facebook, YouTube, Slack, Uber, eBay, Headspace</div>
+    <div class="ref">Reference: Nielsen Norman Group – Skeleton Screens</div>
+  </div>
+  <div class="practice">
+    <strong>Profile self-service</strong>
+    We would let our users edit name, change password, upload profile picture.
+    <div class="companies">Google, Microsoft, GitHub, Slack, Notion – standard for any product with accounts</div>
+    <div class="ref">Reference: OWASP Password Storage, common UX patterns</div>
+  </div>
+  <div class="practice">
+    <strong>Consistent error display</strong>
+    We would use one pattern (e.g. toast or inline) instead of our current mix of alert(), toast, inline.
+    <div class="companies">Stripe, Vercel, Linear – consistent toast/inline errors</div>
+    <div class="ref">Reference: Nielsen Norman Group – Error Message Guidelines</div>
+  </div>
+
+  <h3>Accessibility</h3>
+  <div class="practice">
+    <strong>ARIA labels & focus management in modals</strong>
+    We would enable screen readers and keyboard users to use our UI properly.
+    <div class="companies">Microsoft, Google, Apple – publish WCAG conformance reports; required for gov/enterprise</div>
+    <div class="ref">Reference: W3C ARIA Authoring Practices, w3.org/WAI/ARIA/apg</div>
+  </div>
+
+  <h3>Performance</h3>
+  <div class="practice">
+    <strong>Code splitting (React.lazy + Suspense)</strong>
+    We would load only the code needed for the current page.
+    <div class="companies">Facebook (facebook.com redesign), Netflix, Airbnb – documented use of lazy loading</div>
+    <div class="ref">Reference: react.dev/reference/react/lazy, web.dev/code-splitting-suspense</div>
+  </div>
+
+  <h3>Developer Experience</h3>
+  <div class="practice">
+    <strong>.env.example + project README</strong>
+    We would add a template for env vars and setup instructions.
+    <div class="companies">Heroku (12-Factor App creator), Vercel, Docker – standard for deployable apps</div>
+    <div class="ref">Reference: 12factor.net/config</div>
+  </div>
+
+  <h2>3. What We’re Already Doing Well</h2>
+  <ul>
+    <li><strong>CORS</strong> – we have it configured with origin and credentials</li>
+    <li><strong>Password hashing</strong> – we use bcrypt with salt in our User model</li>
+    <li><strong>Centralized error handling</strong> – we use CustomError + error middleware</li>
+    <li><strong>Async error wrapper</strong> – we use asyncErrorHandler</li>
+    <li><strong>Empty states</strong> – e.g. we show them on the ExportLogs page</li>
+  </ul>
+
+  <h2>4. Reference Websites</h2>
+  <ul>
+    <li>OWASP – cheatsheetseries.owasp.org</li>
+    <li>W3C ARIA – w3.org/WAI/ARIA/apg</li>
+    <li>Nielsen Norman Group (UX) – nngroup.com</li>
+    <li>WCAG – w3.org/WAI/WCAG21/quickref</li>
+    <li>web.dev – web.dev</li>
+    <li>React – react.dev</li>
+    <li>Express Security – expressjs.com/en/advanced/best-practice-security</li>
+    <li>12-Factor App – 12factor.net</li>
+    <li>express-validator – express-validator.github.io</li>
+    <li>express-rate-limit – github.com/nfriedly/express-rate-limit</li>
+    <li>Helmet – helmetjs.github.io</li>
+  </ul>
+
+  <footer>
+    We generated this from our Ziplofy codebase evaluation. Open in browser and use File → Print → Save as PDF.
+  </footer>
+</body>
+</html>

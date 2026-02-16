@@ -19,6 +19,7 @@ const edit_verification_otp_model_1 = require("../models/edit-verification-otp.m
 const role_model_1 = require("../models/role.model");
 const user_model_1 = require("../models/user.model");
 const error_utils_1 = require("../utils/error.utils");
+const activity_log_utils_1 = require("../utils/activity-log.utils");
 // Helper function to create organized theme directory structure per requirements
 const createThemeDirectory = (themeName) => {
     // Use exact provided name for folder, avoid collisions by appending short uid if exists
@@ -246,6 +247,14 @@ exports.createTheme = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const themeResponse = await theme_model_1.Theme.findById(theme._id)
         .populate("uploadBy", "name email")
         .select("-directories -zipFile.extractedPath -thumbnail.path");
+    (0, activity_log_utils_1.logActivity)(req, {
+        action: "theme_upload",
+        entityType: "theme",
+        entityId: theme._id.toString(),
+        entityName: name,
+        summary: `Uploaded theme "${name}" (${category}, ${plan})`,
+        details: { themeId: theme._id.toString(), name, category, plan, version: version || "1.0.0" },
+    }).catch(() => { });
     res.status(201).json({
         success: true,
         data: themeResponse,
@@ -335,6 +344,14 @@ exports.updateTheme = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     if (!theme) {
         throw new error_utils_1.CustomError("Theme not found", 404);
     }
+    (0, activity_log_utils_1.logActivity)(req, {
+        action: "theme_update",
+        entityType: "theme",
+        entityId: id,
+        entityName: theme.name,
+        summary: `Updated theme "${theme.name}"`,
+        details: { themeId: id, updates: { name, description, category, plan, price, version, tags, isActive } },
+    }).catch(() => { });
     res.status(200).json({
         success: true,
         data: theme,
@@ -378,6 +395,14 @@ exports.deleteTheme = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
         console.log('❌ Theme not found:', id);
         throw new error_utils_1.CustomError("Theme not found", 404);
     }
+    (0, activity_log_utils_1.logActivity)(req, {
+        action: "theme_delete",
+        entityType: "theme",
+        entityId: id,
+        entityName: theme.name,
+        summary: `Deleted theme "${theme.name}"`,
+        details: { themeId: id, themePath: theme.themePath, category: theme.category },
+    }).catch(() => { });
     console.log('✅ Theme found:', {
         name: theme.name,
         themePath: theme.themePath,
@@ -809,6 +834,14 @@ You can now modify the theme files in this directory to customize your store's a
             console.warn('Failed to record recent installation:', recentError);
             // Don't fail the installation if recent tracking fails
         }
+        (0, activity_log_utils_1.logActivity)(req, {
+            action: "theme_install",
+            entityType: "theme",
+            entityId: themeId,
+            entityName: theme.name,
+            summary: `Installed theme "${theme.name}" for store`,
+            details: { themeId, storeId: storeIdToUse, themeName: theme.name, category: theme.category },
+        }).catch(() => { });
         res.status(200).json({
             success: true,
             message: 'Theme installed successfully',

@@ -22,7 +22,7 @@ import ThemeDeveloper from "./pages/ThemeDeveloper";
 import ThemeEditPage from "./pages/ThemeEditPage";
 import Ticket from "./pages/Ticket";
 import Profile from "./pages/Profile";
-import ExportLogs from "./pages/ExportLogs";
+import ActivityLogs from "./pages/ActivityLogs";
 
 type MenuItem =
   | "Client List"
@@ -39,7 +39,7 @@ type MenuItem =
   | "Theme Developer"
   | "Support Developer"
   | "Hire Developer Requests"
-  | "Export Logs"
+  | "Activity Logs"
   | "Dashboard";
 
 const Navbar = () => {
@@ -187,7 +187,7 @@ const Navbar = () => {
             {activeMenu === "Theme Developer" && <ThemeDeveloper />}
             {activeMenu === "Support Developer" && <SupportDeveloper />}
             {activeMenu === "Hire Developer Requests" && <DevRequests />}
-            {activeMenu === "Export Logs" && <ExportLogs />}
+            {activeMenu === "Activity Logs" && <ActivityLogs />}
           </>
         )}
       </div>
