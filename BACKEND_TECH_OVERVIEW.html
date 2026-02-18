@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ziplofy Backend - Tech Overview</title>
+  <style>
+    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 12pt; line-height: 1.6; color: #1a1a1a; max-width: 800px; margin: 0 auto; padding: 36px; }
+    h1 { font-size: 20pt; margin-bottom: 8px; color: #1a1a1a; border-bottom: 2px solid #2665F7; padding-bottom: 8px; }
+    .meta { font-size: 11pt; color: #555; margin-bottom: 24px; }
+    h2 { font-size: 15pt; margin: 24px 0 12px; color: #2665F7; }
+    h3 { font-size: 13pt; margin: 16px 0 8px; color: #333; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 11pt; }
+    th, td { border: 1px solid #ddd; padding: 10px 12px; text-align: left; }
+    th { background: #f5f5f5; font-weight: 600; }
+    ul { margin: 8px 0 16px 24px; }
+    li { margin: 6px 0; }
+    .box { background: #f8fafc; padding: 16px 20px; margin: 16px 0; border-radius: 8px; border-left: 4px solid #2665F7; }
+    .good { background: #f0fdf4; border-left-color: #22c55e; }
+    .gap { background: #fef2f2; border-left-color: #dc2626; }
+    code { font-family: 'Monaco', 'Consolas', monospace; font-size: 11pt; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
+    footer { margin-top: 32px; padding-top: 16px; font-size: 10pt; color: #666; border-top: 1px solid #e5e7eb; }
+  </style>
+</head>
+<body>
+  <h1>Ziplofy Backend – Tech Overview</h1>
+  <p class="meta">Ziplofy3b | February 10, 2025 | Express + TypeScript + MongoDB</p>
+
+  <h2>1. Tech Stack</h2>
+  <h3>Core</h3>
+  <table>
+    <thead><tr><th>Layer</th><th>Tech</th><th>Version</th></tr></thead>
+    <tbody>
+      <tr><td>Runtime</td><td>Node.js</td><td>—</td></tr>
+      <tr><td>Language</td><td>TypeScript</td><td>5.3</td></tr>
+      <tr><td>Framework</td><td>Express</td><td>4.18</td></tr>
+      <tr><td>Database</td><td>MongoDB</td><td>Mongoose 8.18</td></tr>
+      <tr><td>Auth</td><td>JWT + bcrypt</td><td>jsonwebtoken 9.x</td></tr>
+      <tr><td>File upload</td><td>Multer</td><td>2.x</td></tr>
+      <tr><td>Email</td><td>Nodemailer</td><td>7.x</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Additional Services</h3>
+  <table>
+    <thead><tr><th>Service</th><th>Tech</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>Real-time</td><td>Socket.IO</td><td>4.8 – live updates, notifications</td></tr>
+      <tr><td>Job queue</td><td>BullMQ + Redis (ioredis)</td><td>Async email sending</td></tr>
+      <tr><td>Archiving</td><td>archiver</td><td>ZIP creation</td></tr>
+      <tr><td>Extraction</td><td>extract-zip</td><td>Theme ZIP extraction</td></tr>
+      <tr><td>IDs</td><td>uuid</td><td>Unique identifiers</td></tr>
+    </tbody>
+  </table>
+
+  <h2>2. Architecture</h2>
+  <h3>Structure</h3>
+  <ul>
+    <li><strong>~376 source files</strong> under <code>Ziplofy3b/src/</code></li>
+    <li><strong>~80+ API routes</strong> (stores, auth, themes, products, orders, customers, discounts, etc.)</li>
+    <li><strong>MVC-style:</strong> Controllers, models, routes, middleware</li>
+  </ul>
+
+  <h3>Request Flow</h3>
+  <div class="box">
+    <code>HTTP Request → CORS → express.json() → Route → Auth middleware → Controller → MongoDB / File system → Response</code>
+  </div>
+
+  <h3>Auth</h3>
+  <ul>
+    <li><strong>Admin:</strong> JWT + optional 2FA (OTP via email)</li>
+    <li><strong>Storefront:</strong> Separate storefront auth</li>
+    <li><strong>Middleware:</strong> protect, authorize, permission-based</li>
+  </ul>
+
+  <h3>Database</h3>
+  <ul>
+    <li>MongoDB via Mongoose</li>
+    <li>Retry logic (5 retries, 5s delay)</li>
+    <li>Env validation at startup</li>
+  </ul>
+
+  <h3>Config</h3>
+  <ul>
+    <li><code>.env.development</code> / <code>.env.production</code> via DOTENV_CONFIG_PATH</li>
+    <li>Required: PORT, MONGODB_URI, JWT/ACCESS_TOKEN_SECRET, EMAIL_PASSWORD, EMAIL_ADDRESS</li>
+    <li>CORS: localhost in dev; *.ziplofy.com + admin.ziplofy.com in prod</li>
+  </ul>
+
+  <h2>3. What's Working Well</h2>
+  <div class="box good">
+    <ul>
+      <li><strong>Modular layout</strong> – clear separation of routes, controllers, models</li>
+      <li><strong>Async handling</strong> – asyncErrorHandler wraps async controllers</li>
+      <li><strong>Error middleware</strong> – central handling (CustomError, Mongoose errors)</li>
+      <li><strong>Env validation</strong> – startup fails fast if required vars missing</li>
+      <li><strong>DB resilience</strong> – retry logic for MongoDB connection</li>
+      <li><strong>Graceful shutdown</strong> – SIGTERM/SIGINT closes queue and HTTP server</li>
+      <li><strong>Static files</strong> – /uploads for themes and assets</li>
+      <li><strong>Health endpoint</strong> – / and /api/health for uptime checks</li>
+    </ul>
+  </div>
+
+  <h2>4. Potential Improvements</h2>
+  <div class="box gap">
+    <ul>
+      <li><strong>Debug logs</strong> – console.log in auth and controllers; use structured logging and env-based levels</li>
+      <li><strong>Rate limiting</strong> – none on auth/OTP endpoints</li>
+      <li><strong>Helmet</strong> – HTTP security headers not configured</li>
+      <li><strong>Input validation</strong> – no library (Joi/Zod/express-validator); validation is ad hoc</li>
+      <li><strong>@ts-nocheck</strong> – present in index.ts and some controllers</li>
+      <li><strong>Dual bcrypt</strong> – both bcrypt and bcryptjs in package.json; could standardize</li>
+    </ul>
+  </div>
+
+  <h2>5. Summary</h2>
+  <p>The backend is a feature-rich Express + TypeScript API backed by MongoDB, with Socket.IO for real-time updates and BullMQ for background jobs. Architecture and resilience features (env validation, DB retries, graceful shutdown) are solid. The main gaps are around security hardening (rate limiting, Helmet, input validation) and cleaning up debug logging in production.</p>
+
+  <footer>
+    Generated from Ziplofy3b codebase. Open in browser and use File → Print → Save as PDF.
+  </footer>
+</body>
+</html>

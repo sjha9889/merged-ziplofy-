@@ -1,27 +1,53 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 .membership-plans-page {
   min-height: 100%;
   padding: 24px 32px;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #ffffff;
+  font-family: var(--z-font);
+  font-weight: 400;
+  background: var(--z-surface);
 }
 
-/* Header */
-.mp-header {
+/* Page card - Discounts style */
+.mp-page-card {
+  background: var(--z-bg);
+  border: 1px solid var(--z-border);
+  border-radius: var(--z-radius);
+  box-shadow: var(--z-shadow-card);
+  overflow: hidden;
+  padding: 28px;
+}
+
+.mp-page-header {
+  padding-bottom: 24px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--z-border);
+}
+
+.mp-title-block {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 32px;
-  flex-wrap: wrap;
+  align-items: flex-start;
   gap: 16px;
+}
+
+.mp-title-accent {
+  width: 4px;
+  min-height: 36px;
+  background: var(--z-primary);
+  border-radius: 2px;
+  flex-shrink: 0;
 }
 
 .mp-title {
   font-size: 24px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--z-text);
+  margin: 0 0 4px 0;
+}
+
+.mp-subtitle {
+  font-size: 14px;
+  color: var(--z-text-muted);
   margin: 0;
+  font-weight: 400;
 }
 
 /* Section */
@@ -33,12 +59,12 @@
 .mp-section-title {
   font-size: 20px;
   font-weight: 600;
-  color: #374151;
+  color: var(--z-text);
   margin: 0 0 20px 0;
 }
 
 .mp-highlight {
-  color: #2563eb;
+  color: var(--z-primary);
   font-weight: 700;
 }
 
@@ -57,7 +83,7 @@
 }
 
 .mp-toggle-label.active {
-  color: #1f2937;
+  color: var(--z-text);
 }
 
 .mp-toggle-switch {
@@ -148,7 +174,7 @@
 .mp-card-title {
   font-size: 18px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--z-text);
   margin: 0 0 8px 0;
 }
 
@@ -174,7 +200,7 @@
 .mp-price-amount {
   font-size: 32px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--z-text);
 }
 
 .mp-card-popular .mp-price-amount {
@@ -238,7 +264,7 @@
   gap: 12px;
   margin-bottom: 12px;
   font-size: 14px;
-  color: #374151;
+  color: var(--z-text);
 }
 
 .mp-card-popular .mp-feature {

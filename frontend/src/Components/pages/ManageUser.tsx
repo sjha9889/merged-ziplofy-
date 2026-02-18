@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Search, Download, Plus, Edit, Trash2, X } from "lucide-react";
+import { Search, Download, Plus, Edit, Trash2, X, Users } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "../../config/axios";
 import "./ManageUser.css";
@@ -7,6 +7,7 @@ import { PermissionGate } from "../PermissionGate";
 import { EditVerificationModal } from "../EditVerificationModal";
 import { usePermissions } from "../../hooks/usePermissions";
 import { useDebounce } from "../../hooks/useDebounce";
+import { useExportLog } from "../../hooks/useExportLog";
 
 // Define a User type
 interface User {
@@ -33,6 +34,7 @@ const ADMIN_ROLES = ["super-admin", "support-admin", "client-admin", "developer-
 
 const ManageUser: React.FC = () => {
   const { hasEditPermission } = usePermissions();
+  const { exportAndLog } = useExportLog();
   const canEditManageUser = hasEditPermission("User Management", "Manage User");
   const isSuperAdmin =
     localStorage.getItem("isSuperAdmin") === "true" ||
@@ -255,14 +257,13 @@ const ManageUser: React.FC = () => {
       new Date(u.createdAt).toLocaleDateString(),
     ]);
     const csvContent = [headers.join(","), ...rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))].join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `users-export-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success("Users exported successfully");
+    const fileName = `users-export-${new Date().toISOString().slice(0, 10)}.csv`;
+    exportAndLog({
+      page: "Manage User",
+      csvContent,
+      fileName,
+      onSuccess: () => toast.success("Users exported successfully"),
+    });
   };
 
   if (loading) {
@@ -275,25 +276,34 @@ const ManageUser: React.FC = () => {
 
   return (
     <div className="manage-user-page">
-      <div className="page-header">
-        <h2>
-          Manage Users <span className="count-badge">{users.length}</span>
-        </h2>
-        <div className="header-actions">
-          <button type="button" className="btn ghost" onClick={handleExport}>
-            <Download size={16} />
-            Export
-          </button>
-          {isSuperAdmin && (
-            <button className="btn primary" onClick={() => setShowAddUserModal(true)}>
-              <Plus size={16} />
-              Add User
+      <div className="manage-user-card">
+        <div className="manage-user-card-header">
+          <div className="manage-user-title-block">
+            <div className="manage-user-title-accent" />
+            <div>
+              <h2 className="manage-user-title">
+                Manage Users <span className="count-badge">{users.length}</span>
+              </h2>
+              <p className="manage-user-subtitle">
+                Create and manage admin users for your store
+              </p>
+            </div>
+          </div>
+          <div className="header-actions">
+            <button type="button" className="btn ghost" onClick={handleExport}>
+              <Download size={16} />
+              Export
             </button>
-          )}
+            {isSuperAdmin && (
+              <button className="btn primary" onClick={() => setShowAddUserModal(true)}>
+                <Plus size={16} />
+                Add User
+              </button>
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className="toolbar">
+        <div className="toolbar">
         <div className="search-box">
           <Search className="search-icon" size={18} />
           <input
@@ -334,9 +344,21 @@ const ManageUser: React.FC = () => {
           <option value="inactive">Inactive</option>
           <option value="suspended">Suspended</option>
         </select>
-      </div>
+        </div>
 
-      <div className="table-card">
+        <div className="table-card">
+        {users.length === 0 ? (
+          <div className="manage-user-empty">
+            <Users className="manage-user-empty-icon" size={64} strokeWidth={1.5} />
+            <p className="manage-user-empty-message">No admin users yet</p>
+            {isSuperAdmin && (
+              <button className="btn primary" onClick={() => setShowAddUserModal(true)}>
+                <Plus size={16} />
+                Add User
+              </button>
+            )}
+          </div>
+        ) : (
         <table className="table">
           <thead>
             <tr>
@@ -352,13 +374,7 @@ const ManageUser: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {users.length === 0 ? (
-              <tr className="empty-row">
-                <td colSpan={7}>
-                  <div className="no-data">No users found</div>
-                </td>
-              </tr>
-            ) : (
+            {
               users.map((user) => (
                 <tr key={user._id}>
                   <td>
@@ -390,7 +406,7 @@ const ManageUser: React.FC = () => {
                           handleStatusChange(user._id, e.target.value)
                         }
                       >
-                        <option value="active" disabled>Active (set on login)</option>
+                        <option value="active" disabled>Active</option>
                         <option value="inactive">Inactive</option>
                         <option value="suspended">Suspended</option>
                       </select>
@@ -427,9 +443,11 @@ const ManageUser: React.FC = () => {
                   </td>
                 </tr>
               ))
-            )}
+            }
           </tbody>
         </table>
+        )}
+        </div>
       </div>
 
       {/* Edit User Modal */}
@@ -489,7 +507,7 @@ const ManageUser: React.FC = () => {
                       setEditForm({ ...editForm, status: e.target.value as "active" | "inactive" | "suspended" })
                     }
                   >
-                    <option value="active" disabled>Active (set on login)</option>
+                    <option value="active" disabled>Active</option>
                     <option value="inactive">Inactive</option>
                     <option value="suspended">Suspended</option>
                   </select>

@@ -10,12 +10,13 @@
 }
 
 .edit-verification-modal {
-  background: #fff;
-  border-radius: 12px;
+  background: var(--z-bg);
+  border-radius: var(--z-radius);
   width: 100%;
   max-width: 420px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   overflow: hidden;
+  border: 1px solid var(--z-border);
 }
 
 .edit-verification-header {
@@ -23,15 +24,16 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%);
-  border-bottom: 1px solid #e2e8f0;
+  background: var(--z-surface);
+  border-bottom: 1px solid var(--z-border);
 }
 
 .edit-verification-header h3 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #1e293b;
+  font-family: var(--z-font);
+  color: var(--z-text);
 }
 
 .edit-verification-close {
@@ -40,16 +42,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  color: #475569;
+  background: var(--z-bg);
+  border: 1px solid var(--z-border);
+  border-radius: var(--z-radius-sm);
+  color: var(--z-text-muted);
   cursor: pointer;
   transition: background 0.2s;
 }
 
 .edit-verification-close:hover {
-  background: #f8fafc;
+  background: var(--z-surface);
 }
 
 .edit-verification-body {
@@ -59,14 +61,15 @@
 .edit-verification-desc {
   margin: 0 0 20px;
   font-size: 14px;
-  color: #475569;
+  font-family: var(--z-font);
+  color: var(--z-text-muted);
   line-height: 1.5;
 }
 
 .edit-verification-hint {
   margin: 0 0 12px;
   font-size: 14px;
-  color: #334155;
+  color: var(--z-text);
 }
 
 .edit-verification-input {
@@ -75,22 +78,22 @@
   font-size: 18px;
   letter-spacing: 8px;
   text-align: center;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
+  border: 2px solid var(--z-border);
+  border-radius: var(--z-radius-sm);
   margin-bottom: 12px;
   font-family: monospace;
 }
 
 .edit-verification-input:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+  border-color: var(--z-primary);
+  box-shadow: 0 0 0 2px rgba(38, 101, 247, 0.15);
 }
 
 .edit-verification-error {
   margin: 12px 0 0;
   font-size: 13px;
-  color: #dc2626;
+  color: var(--z-error);
 }
 
 .edit-verification-actions {
@@ -98,37 +101,38 @@
   justify-content: flex-end;
   gap: 12px;
   padding: 16px 24px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--z-border);
 }
 
 .edit-verification-actions .btn {
   padding: 10px 20px;
-  border-radius: 8px;
+  border-radius: var(--z-radius-sm);
   font-size: 14px;
   font-weight: 500;
+  font-family: var(--z-font);
   cursor: pointer;
   border: none;
   transition: all 0.2s;
 }
 
 .btn-cancel {
-  background: #f3f4f6;
-  color: #374151;
+  background: var(--z-surface);
+  color: var(--z-text);
 }
 
 .btn-cancel:hover {
-  background: #e5e7eb;
+  background: var(--z-border);
 }
 
 .btn-request-otp,
 .btn-verify {
-  background: #2563eb;
+  background: var(--z-primary);
   color: #fff;
 }
 
 .btn-request-otp:hover:not(:disabled),
 .btn-verify:hover:not(:disabled) {
-  background: #1d4ed8;
+  background: var(--z-primary-hover);
 }
 
 .btn-request-otp:disabled,
@@ -139,12 +143,12 @@
 
 .btn-resend {
   background: transparent;
-  color: #2563eb;
-  border: 1px solid #2563eb;
+  color: var(--z-primary);
+  border: 1px solid var(--z-primary);
   font-size: 13px;
   padding: 8px 16px;
 }
 
 .btn-resend:hover:not(:disabled) {
-  background: #eff6ff;
+  background: var(--z-primary-surface);
 }

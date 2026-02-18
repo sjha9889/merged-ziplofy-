@@ -16,6 +16,8 @@ import {
   LayoutGrid,
   LayoutList,
   Palette,
+  Layout,
+  BarChart2,
 } from "lucide-react";
 import { DateRange, Range } from "react-date-range";
 import "react-date-range/dist/styles.css";
@@ -439,25 +441,38 @@ const ThemeDeveloper: React.FC = () => {
 
   return (
     <div className="theme-table-container theme-developer-enhanced" style={{ position: 'relative' }}>
-      {/* Hero Header */}
-      <div className="theme-hero">
-        <div className="theme-hero-content">
-          <div className="theme-hero-icon">
-            <Palette size={32} strokeWidth={2} />
+      <div className="theme-card">
+        {/* Card Header - Discounts style */}
+        <div className="theme-card-header">
+          <div className="theme-title-block">
+            <div className="theme-title-accent" />
+            <div>
+              <h1 className="theme-card-title">Theme Library</h1>
+              <p className="theme-card-subtitle">Manage and customize your store themes</p>
+            </div>
           </div>
-          <div>
-            <h1 className="theme-hero-title">Theme Library</h1>
-            <p className="theme-hero-subtitle">Manage and customize your store themes</p>
+        <div className="theme-stats-row kpi-grid">
+          <div className="kpi-card">
+            <div className="kpi-card-header">
+              <div className="kpi-content">
+                <div className="kpi-label">Total Themes</div>
+                <div className="kpi-value">{totalThemes}</div>
+              </div>
+              <div className="kpi-icon-wrap primary">
+                <Layout size={24} strokeWidth={2} />
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="theme-stats-row">
-          <div className="theme-stat-card">
-            <span className="theme-stat-value">{totalThemes}</span>
-            <span className="theme-stat-label">Total Themes</span>
-          </div>
-          <div className="theme-stat-card">
-            <span className="theme-stat-value">{filteredThemes.length}</span>
-            <span className="theme-stat-label">Showing</span>
+          <div className="kpi-card">
+            <div className="kpi-card-header">
+              <div className="kpi-content">
+                <div className="kpi-label">Showing</div>
+                <div className="kpi-value">{filteredThemes.length}</div>
+              </div>
+              <div className="kpi-icon-wrap neutral">
+                <BarChart2 size={24} strokeWidth={2} />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -674,17 +689,6 @@ const ThemeDeveloper: React.FC = () => {
                       (e.target as HTMLImageElement).src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='120' fill='%23e2e8f0'%3E%3Crect width='200' height='120' fill='%23f1f5f9'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='14' fill='%2394a3b8'%3ENo preview%3C/text%3E%3C/svg%3E";
                     }}
                   />
-                  <div className="theme-card-overlay">
-                    <PermissionGate action="edit" section="Developer" subsection="Theme Developer">
-                      <button
-                        className="theme-card-overlay-btn"
-                        onClick={() => navigate(`/admin/themes/edit/${theme._id}`)}
-                      >
-                        <Edit size={16} />
-                        Edit
-                      </button>
-                    </PermissionGate>
-                  </div>
                 </div>
                 <div className="theme-card-body-enhanced">
                   <h3 className="theme-card-name-enhanced">{theme.name}</h3>
@@ -850,6 +854,9 @@ const ThemeDeveloper: React.FC = () => {
         <button className="pagination-btn" disabled>
           <ChevronLeft size={16} /> Prev
         </button>
+        <span className="pagination-info">
+          Page 1 of {Math.max(1, Math.ceil(filteredThemes.length / 12))}
+        </span>
         <button className="pagination-btn active">1</button>
         <button className="pagination-btn">
           Next <ChevronRight size={16} />
@@ -1011,6 +1018,7 @@ const ThemeDeveloper: React.FC = () => {
         onVerified={handleOtpVerified}
         requireVerification={true}
       />
+      </div>
     </div>
   );
 };

@@ -15,6 +15,7 @@ import { DateRange, Range } from "react-date-range";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import { format } from "date-fns";
+import { useExportLog } from "../../hooks/useExportLog";
 
 interface DomainType {
   id: number;
@@ -27,6 +28,7 @@ interface DomainType {
 }
 
 const Domain: React.FC = () => {
+  const { exportAndLog } = useExportLog();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [dateRange, setDateRange] = useState<Range[]>([
     { startDate: new Date(2025, 9, 15), endDate: new Date(2025, 10, 30), key: "selection" },
@@ -187,14 +189,9 @@ const Domain: React.FC = () => {
   const handleExport = () => {
     const headers = ["Lead ID", "Email", "Domain", "Selection", "Status", "Created"];
     const rows = filteredDomains.map((d) => [d.leadId, d.email, d.domain, d.selection, d.status, d.created]);
-    const csv = [headers.join(","), ...rows.map((r) => r.map((c) => `"${c}"`).join(","))].join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `domain-requests-${format(new Date(), "yyyy-MM-dd")}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const csvContent = [headers.join(","), ...rows.map((r) => r.map((c) => `"${c}"`).join(","))].join("\n");
+    const fileName = `domain-requests-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    exportAndLog({ page: "Domain Requests", csvContent, fileName });
   };
 
   const handleReset = () => {
@@ -228,14 +225,18 @@ const Domain: React.FC = () => {
 
   return (
     <div className="domain-container">
-      <div className="domain-header">
-        <div className="header-left">
-          <h1>Domain Requests</h1>
-          <nav className="breadcrumbs">Dashboard &gt; Domain Requests</nav>
+      <div className="domain-card">
+        <div className="domain-card-header">
+          <div className="domain-title-block">
+            <div className="domain-title-accent" />
+            <div>
+              <h1 className="domain-title">Domain Requests</h1>
+              <p className="domain-subtitle">View and manage domain requests for your store</p>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div className="domain-controls">
+        <div className="domain-controls">
         <div className="controls-left">
           <div className="sort-dropdown">
             <select
@@ -399,6 +400,7 @@ const Domain: React.FC = () => {
             <ChevronRight size={16} />
           </button>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { CustomTheme } from "../models/custom-theme.model";
 import { InstalledThemes } from "../models/installed-themes.model";
 import { RecentInstallations } from "../models/recent-installations.model";
 import { asyncErrorHandler, CustomError } from "../utils/error.utils";
+import { logActivity } from "../utils/activity-log.utils";
 
 // Helper function to create custom theme directory structure
 const createCustomThemeDirectory = (themeName: string) => {
@@ -163,6 +164,15 @@ export const createCustomTheme = asyncErrorHandler(
     const themeResponse = await CustomTheme.findById(customTheme._id)
       .populate("createdBy", "name email")
       .select("-directories -html -css");
+
+    logActivity(req, {
+      action: "custom_theme_upload",
+      entityType: "custom_theme",
+      entityId: customTheme._id.toString(),
+      entityName: name,
+      summary: `Uploaded custom theme "${name}"`,
+      details: { themeId: customTheme._id.toString(), name, themePath: themeDirs.themeDirName },
+    }).catch(() => {});
 
     res.status(201).json({
       success: true,

@@ -1,35 +1,142 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
-
 .roles-permission-page {
-  --rp-primary: #2563eb;
-  --rp-primary-hover: #1d4ed8;
-  --rp-surface: #f8fafc;
-  --rp-bg: #ffffff;
-  --rp-radius: 12px;
-  --rp-radius-sm: 8px;
-
-  min-height: 100vh;
-  background: var(--rp-bg);
-  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-/* Header */
-.roles-permission-page .roles-header {
   padding: 24px 28px;
-  margin-bottom: 24px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: var(--rp-radius);
-  color: #1e293b;
-  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.08);
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--z-surface);
+  min-height: calc(100vh - 80px);
+  font-family: var(--z-font);
+  font-weight: 400;
 }
 
-.roles-permission-page .roles-title {
+/* Main card - Discounts style */
+.roles-permission-page .roles-permission-card {
+  background: var(--z-bg);
+  border: 1px solid var(--z-border);
+  border-radius: var(--z-radius);
+  box-shadow: var(--z-shadow-card);
+  overflow: hidden;
+}
+
+.roles-permission-page .roles-permission-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--z-border);
+}
+
+.roles-permission-page .roles-permission-title-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.roles-permission-page .roles-permission-title-accent {
+  width: 4px;
+  min-height: 36px;
+  background: var(--z-primary);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.roles-permission-page .roles-permission-title {
   font-size: 24px;
-  font-weight: 600;
-  color: #1e293b;
-  margin: 0;
+  font-weight: 700;
+  color: var(--z-text);
+  margin: 0 0 4px 0;
   letter-spacing: -0.02em;
+}
+
+.roles-permission-page .roles-permission-subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: var(--z-text-muted);
+  font-weight: 400;
+}
+
+.roles-permission-page .roles-permission-warning {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 28px;
+  margin: 0 28px 20px;
+  background: #e0f2fe;
+  border: 1px solid #7dd3fc;
+  border-radius: var(--z-radius);
+}
+
+.roles-permission-page .roles-permission-warning h3 {
+  margin: 0 0 4px 0;
+  color: #0c4a6e;
+  font-size: 16px;
+}
+
+.roles-permission-page .roles-permission-warning p {
+  margin: 0;
+  color: #0369a1;
+  font-size: 14px;
+}
+
+.roles-permission-page .roles-permission-warning-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.roles-permission-page .roles-permission-toolbar {
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--z-border);
+}
+
+.roles-permission-page .roles-permission-toolbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.roles-permission-page .roles-permission-table-wrap {
+  overflow-x: auto;
+}
+
+.roles-permission-page .roles-permission-footer {
+  padding: 20px 28px;
+  border-top: 1px solid var(--z-border);
+  background: var(--z-surface);
+}
+
+.roles-permission-page .roles-permission-footer > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.roles-permission-page .roles-permission-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+}
+
+.roles-permission-page .roles-permission-empty-icon {
+  width: 64px;
+  height: 64px;
+  color: var(--z-primary);
+  margin-bottom: 20px;
+  opacity: 0.8;
+}
+
+.roles-permission-page .roles-permission-empty-message {
+  font-size: 16px;
+  color: var(--z-text);
+  margin: 0;
+  font-weight: 500;
 }
 
 .roles-permission-page .header-actions {
@@ -45,7 +152,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--rp-radius-sm);
+  border-radius: var(--z-radius-sm);
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -53,7 +160,7 @@
 
 .roles-permission-page .btn-icon.settings {
   background: #f8fafc;
-  color: #2563eb;
+  color: var(--z-primary);
   border: 1px solid #93c5fd;
 }
 
@@ -62,7 +169,7 @@
 }
 
 .roles-permission-page .btn-icon.add {
-  background: #2563eb;
+  background: var(--z-primary);
   color: #fff;
   padding: 10px 20px;
   width: auto;
@@ -70,7 +177,7 @@
 }
 
 .roles-permission-page .btn-icon.add:hover {
-  background: #1d4ed8;
+  background: var(--z-primary-hover);
   transform: translateY(-1px);
 }
 
@@ -82,7 +189,7 @@
 .roles-permission-page .search-box input {
   padding: 12px 16px 12px 44px;
   border: 1px solid #e5e7eb;
-  border-radius: var(--rp-radius-sm);
+  border-radius: var(--z-radius-sm);
   font-size: 14px;
   font-family: inherit;
   min-width: 280px;
@@ -93,7 +200,7 @@
 
 .roles-permission-page .search-box input:focus {
   outline: none;
-  border-color: var(--rp-primary);
+  border-color: var(--z-primary);
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
 
@@ -105,14 +212,6 @@
   color: #94a3b8;
 }
 
-/* Main card */
-.roles-permission-page .roles-card {
-  background: #fff;
-  border-radius: var(--rp-radius);
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
-}
 
 /* Table */
 .roles-permission-page .roles-table {
@@ -140,7 +239,7 @@
 }
 
 .roles-permission-page .roles-table tbody tr:hover {
-  background: var(--rp-surface);
+  background: var(--z-surface);
 }
 
 .roles-permission-page .role-badge {
@@ -158,14 +257,14 @@
 }
 
 .roles-permission-page .role-badge.regular {
-  background: #2563eb;
+  background: var(--z-primary);
   color: white;
 }
 
 /* Permission cards */
 .roles-permission-page .permission-card {
   border: 1px solid #e5e7eb;
-  border-radius: var(--rp-radius-sm);
+  border-radius: var(--z-radius-sm);
   overflow: hidden;
   background: #fff;
   transition: all 0.2s ease;
@@ -191,7 +290,7 @@
   padding: 10px 18px;
   border: 1px solid #e5e7eb;
   background: #fff;
-  border-radius: var(--rp-radius-sm);
+  border-radius: var(--z-radius-sm);
   font-size: 14px;
   color: #475569;
   cursor: pointer;
@@ -199,14 +298,14 @@
 }
 
 .roles-permission-page .pagination-btn:hover:not(:disabled) {
-  border-color: var(--rp-primary);
-  color: var(--rp-primary);
+  border-color: var(--z-primary);
+  color: var(--z-primary);
 }
 
 .roles-permission-page .pagination-btn.active {
-  background: var(--rp-primary);
+  background: var(--z-primary);
   color: white;
-  border-color: var(--rp-primary);
+  border-color: var(--z-primary);
 }
 
 /* Dialog/Modal */
@@ -223,7 +322,7 @@
 
 .roles-permission-page .permission-dialog {
   background: #fff;
-  border-radius: var(--rp-radius);
+  border-radius: var(--z-radius);
   padding: 28px;
   max-width: 500px;
   width: 90%;
@@ -257,7 +356,7 @@
   justify-content: center;
   background: #f1f5f9;
   border: none;
-  border-radius: var(--rp-radius-sm);
+  border-radius: var(--z-radius-sm);
   color: #64748b;
   cursor: pointer;
   transition: all 0.2s;
@@ -271,7 +370,7 @@
 /* Permission toggle buttons in dialog */
 .roles-permission-page .perm-btn {
   padding: 8px 16px;
-  border-radius: var(--rp-radius-sm);
+  border-radius: var(--z-radius-sm);
   font-size: 12px;
   font-weight: 500;
   text-transform: capitalize;
@@ -283,9 +382,9 @@
 }
 
 .roles-permission-page .perm-btn.active {
-  background: var(--rp-primary);
+  background: var(--z-primary);
   color: white;
-  border-color: var(--rp-primary);
+  border-color: var(--z-primary);
 }
 
 .roles-permission-page .perm-btn.edit.active {
@@ -296,9 +395,9 @@
 
 .roles-permission-page .perm-btn.view.active,
 .roles-permission-page .perm-btn.upload.active {
-  background: var(--rp-primary);
+  background: var(--z-primary);
   color: white;
-  border-color: var(--rp-primary);
+  border-color: var(--z-primary);
 }
 
 .roles-permission-page .perm-btn:disabled {
@@ -321,7 +420,7 @@
   color: white;
   border: none;
   padding: 12px 24px;
-  border-radius: var(--rp-radius-sm);
+  border-radius: var(--z-radius-sm);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -333,11 +432,11 @@
 }
 
 .roles-permission-page .btn-save {
-  background: var(--rp-primary);
+  background: var(--z-primary);
   color: white;
   border: none;
   padding: 12px 24px;
-  border-radius: var(--rp-radius-sm);
+  border-radius: var(--z-radius-sm);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -345,7 +444,7 @@
 }
 
 .roles-permission-page .btn-save:hover {
-  background: var(--rp-primary-hover);
+  background: var(--z-primary-hover);
 }
 
 /* Loading */
@@ -361,7 +460,7 @@
   width: 40px;
   height: 40px;
   border: 3px solid rgba(37, 99, 235, 0.2);
-  border-top-color: var(--rp-primary);
+  border-top-color: var(--z-primary);
   border-radius: 50%;
   animation: rp-spin 0.8s linear infinite;
   flex-shrink: 0;

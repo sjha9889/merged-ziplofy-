@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Search, ChevronLeft, ChevronRight, Edit, Trash2, Eye, X } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Edit, Trash2, Eye, X, Users } from "lucide-react";
 import axios from "../../config/axios";
 import { useDebounce } from "../../hooks/useDebounce";
 import { EditVerificationModal } from "../EditVerificationModal";
@@ -297,43 +297,16 @@ const ClientList: React.FC = () => {
 
   return (
     <div className="client-list-page main-content">
-      <div className="page">
-        <div className="page-header">
-          <h2>Client List</h2>
-          <div className="header-actions">
-            <div className="search-box">
-              <Search size={18} className="search-icon" />
-              <input
-                type="search"
-                placeholder="Search by name or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+      <div className="client-list-card">
+        <div className="client-list-card-header">
+          <div className="client-list-title-block">
+            <div className="client-list-title-accent" />
+            <div>
+              <h2 className="client-list-title">Client List</h2>
+              <p className="client-list-subtitle">
+                View and manage your store clients
+              </p>
             </div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="suspended">Suspended</option>
-            </select>
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">All Roles</option>
-              {roles
-                .filter((r) => !ADMIN_ROLES.includes(r.name.toLowerCase()))
-                .map((r) => (
-                  <option key={r._id} value={r.name}>
-                    {r.name.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-                  </option>
-                ))}
-            </select>
           </div>
         </div>
 
@@ -344,14 +317,53 @@ const ClientList: React.FC = () => {
           </div>
         )}
 
-        <div className="table-card">
+        <div className="client-list-toolbar">
+          <div className="search-box">
+            <Search size={18} className="search-icon" />
+            <input
+              type="search"
+              placeholder="Search by name or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+            <option value="suspended">Suspended</option>
+          </select>
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="filter-select"
+          >
+            <option value="all">All Roles</option>
+            {roles
+              .filter((r) => !ADMIN_ROLES.includes(r.name.toLowerCase()))
+              .map((r) => (
+                <option key={r._id} value={r.name}>
+                  {r.name.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                </option>
+              ))}
+          </select>
+        </div>
+
+        <div className="client-list-table-card">
           {loading ? (
             <div className="loading">Loading users...</div>
           ) : paginatedUsers.length === 0 ? (
-            <div className="no-data">
-              {searchTerm || statusFilter !== "all" || roleFilter !== "all"
-                ? "No users match your search criteria"
-                : "No users found."}
+            <div className="client-list-empty">
+              <Users className="client-list-empty-icon" size={64} strokeWidth={1.5} />
+              <p className="client-list-empty-message">
+                {searchTerm || statusFilter !== "all" || roleFilter !== "all"
+                  ? "No users match your search criteria"
+                  : "No clients yet"}
+              </p>
             </div>
           ) : (
             <>
@@ -433,6 +445,7 @@ const ClientList: React.FC = () => {
             </>
           )}
         </div>
+      </div>
 
         {showModal && (
           <UserModal
@@ -453,7 +466,6 @@ const ClientList: React.FC = () => {
           onVerified={handleOtpVerified}
           requireVerification={true}
         />
-      </div>
     </div>
   );
 };

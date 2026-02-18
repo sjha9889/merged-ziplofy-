@@ -78,18 +78,18 @@ const DevAdmin = () => {
 
   return (
     <div className="dev-admin-container">
-      {/* Header */}
-      <div className="dev-admin-header">
-        <div className="header-content">
-          <FontAwesomeIcon icon={faUserPlus} className="header-icon" />
-          <div className="header-text">
-            <h1>Developer Administration</h1>
-            <p>Manage support developers and team members</p>
+      <div className="dev-admin-card">
+        <div className="dev-admin-card-header">
+          <div className="dev-admin-title-block">
+            <div className="dev-admin-title-accent" />
+            <div>
+              <h1 className="dev-admin-title">Developer Administration</h1>
+              <p className="dev-admin-subtitle">Manage support developers and team members</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Add Support Developer Form */}
+        {/* Add Support Developer Form */}
       <div className="form-section">
         <div className="form-header">
           <h2>Add New Support Developer</h2>
@@ -158,19 +158,20 @@ const DevAdmin = () => {
             </button>
           </div>
         </form>
-      </div>
+        </div>
 
-      {/* Additional Info */}
-      <div className="info-section">
-        <div className="info-card">
-          <h3>Support Developer Role</h3>
-          <p>Support developers help clients with technical issues, provide guidance, and assist with development tasks.</p>
-          <ul>
-            <li>Handle client support tickets</li>
-            <li>Provide technical assistance</li>
-            <li>Debug and troubleshoot issues</li>
-            <li>Guide clients through development processes</li>
-          </ul>
+        {/* Additional Info */}
+        <div className="info-section">
+          <div className="info-card">
+            <h3>Support Developer Role</h3>
+            <p>Support developers help clients with technical issues, provide guidance, and assist with development tasks.</p>
+            <ul>
+              <li>Handle client support tickets</li>
+              <li>Provide technical assistance</li>
+              <li>Debug and troubleshoot issues</li>
+              <li>Guide clients through development processes</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+  import dotenv from 'dotenv';
 import { connectDB } from '../config/database.config';
 import { Trigger } from '../models/trigger/trigger.model';
 import { TriggerKey } from '../models/automation/automation-flow.model';

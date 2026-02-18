@@ -1,11 +1,11 @@
 .notification-list-container {
   width: 380px;
   max-height: 500px;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  background: var(--z-bg);
+  border-radius: var(--z-radius);
+  box-shadow: var(--z-shadow-card);
   overflow: hidden;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--z-border);
 }
 
 .notification-list-header {
@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--z-primary) 0%, var(--z-primary-hover) 100%);
   color: white;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }

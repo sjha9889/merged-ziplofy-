@@ -5,6 +5,7 @@ const user_model_1 = require("../models/user.model");
 const role_model_1 = require("../models/role.model");
 const edit_verification_otp_model_1 = require("../models/edit-verification-otp.model");
 const error_utils_1 = require("../utils/error.utils");
+const activity_log_utils_1 = require("../utils/activity-log.utils");
 exports.createUser = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     // Only super-admin can add users
     if (!req.user?.superAdmin) {
@@ -32,6 +33,14 @@ exports.createUser = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
         status: "active",
     });
     const userResponse = await user_model_1.User.findById(user._id).select("-password");
+    (0, activity_log_utils_1.logActivity)(req, {
+        action: "user_create",
+        entityType: "user",
+        entityId: user._id.toString(),
+        entityName: name,
+        summary: `Created user "${name}" (${email}) with role ${role}`,
+        details: { userId: user._id.toString(), name, email, role },
+    }).catch(() => { });
     res.status(201).json({
         success: true,
         data: userResponse,
@@ -164,6 +173,23 @@ exports.updateUser = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     if (!user) {
         throw new error_utils_1.CustomError("User not found", 404);
     }
+    const updates = {};
+    if (name !== undefined)
+        updates.name = name;
+    if (email !== undefined)
+        updates.email = email;
+    if (role !== undefined)
+        updates.role = role;
+    if (status !== undefined)
+        updates.status = status;
+    (0, activity_log_utils_1.logActivity)(req, {
+        action: "user_update",
+        entityType: "user",
+        entityId: id,
+        entityName: user.name,
+        summary: `Updated user "${user.name}" (${Object.keys(updates).join(", ")})`,
+        details: { userId: id, updates },
+    }).catch(() => { });
     res.status(200).json({
         success: true,
         data: user,
@@ -201,10 +227,22 @@ exports.deleteUser = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
         throw new error_utils_1.CustomError("Invalid verification code", 400);
     }
     await edit_verification_otp_model_1.EditVerificationOtp.deleteMany({ email: superAdminEmail });
-    const user = await user_model_1.User.findByIdAndDelete(id);
+    const user = await user_model_1.User.findById(id).select("name email").lean();
     if (!user) {
         throw new error_utils_1.CustomError("User not found", 404);
     }
+    // Await logActivity so delete is reliably recorded before user is removed
+    await (0, activity_log_utils_1.logActivity)(req, {
+        action: "user_delete",
+        entityType: "user",
+        entityId: id,
+        entityName: user.name,
+        summary: `Deleted user "${user.name}" (${user.email})`,
+        details: { userId: id, deletedUser: user },
+    }).catch((err) => {
+        console.warn("Activity log (user_delete) failed:", err);
+    });
+    await user_model_1.User.findByIdAndDelete(id);
     res.status(200).json({
         success: true,
         data: {},

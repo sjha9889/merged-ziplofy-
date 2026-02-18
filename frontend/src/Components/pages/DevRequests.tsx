@@ -3,7 +3,9 @@ import { useNotifications } from '../../contexts/notification.context';
 import NotificationCard from '../NotificationCard';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCode, faBell, faUser, faEnvelope, faClock } from '@fortawesome/free-solid-svg-icons';
+import { Users, Clock, Mail } from 'lucide-react';
 import './DevRequests.css';
+import './KpiCard.css';
 
 // TypeScript interface for Notification
 interface Notification {
@@ -43,24 +45,24 @@ const DevRequests: React.FC = () => {
 
   return (
     <div className="dev-requests-container">
-      {/* Header */}
-      <div className="dev-requests-header">
-        <div className="header-left">
-          <FontAwesomeIcon icon={faCode} className="header-icon" />
-          <div className="header-text">
-            <h1>Hire Developer Requests</h1>
-            <p>Manage and view developer hire requests</p>
+      <div className="dev-requests-card">
+        <div className="dev-requests-card-header">
+          <div className="dev-requests-title-block">
+            <div className="dev-requests-title-accent" />
+            <div>
+              <h1 className="dev-requests-title">Hire Developer Requests</h1>
+              <p className="dev-requests-subtitle">Manage and view developer hire requests</p>
+            </div>
+          </div>
+          <div className="header-stats">
+            <div className="header-stat-kpi">
+              <span className="header-stat-value">{devRequests.length}</span>
+              <span className="header-stat-label">Total Requests</span>
+            </div>
           </div>
         </div>
-        <div className="header-stats">
-          <div className="stat-item">
-            <FontAwesomeIcon icon={faBell} />
-            <span>{devRequests.length} Total Requests</span>
-          </div>
-        </div>
-      </div>
 
-      {/* Content */}
+        {/* Content */}
       <div className="dev-requests-content">
         {devRequests.length === 0 ? (
           <div className="empty-state">
@@ -83,45 +85,58 @@ const DevRequests: React.FC = () => {
         )}
       </div>
 
-      {/* Summary Stats */}
+      {/* Summary Stats - Analytics style */}
       {devRequests.length > 0 && (
-        <div className="summary-stats">
-          <div className="stat-card">
-            <FontAwesomeIcon icon={faUser} />
-            <div className="stat-info">
-              <span className="stat-number">{devRequests.length}</span>
-              <span className="stat-label">Total Requests</span>
+        <div className="summary-stats kpi-grid">
+          <div className="kpi-card">
+            <div className="kpi-card-header">
+              <div className="kpi-content">
+                <div className="kpi-label">Total Requests</div>
+                <div className="kpi-value">{devRequests.length}</div>
+              </div>
+              <div className="kpi-icon-wrap primary">
+                <Users size={24} strokeWidth={2} />
+              </div>
             </div>
           </div>
-          <div className="stat-card">
-            <FontAwesomeIcon icon={faClock} />
-            <div className="stat-info">
-              <span className="stat-number">
-                {devRequests.filter((req: Notification) => {
-                  const createdAt = new Date(req.createdAt || req.timestamp || '');
-                  const now = new Date();
-                  const diffInHours = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
-                  return diffInHours < 24;
-                }).length}
-              </span>
-              <span className="stat-label">Last 24 Hours</span>
+          <div className="kpi-card">
+            <div className="kpi-card-header">
+              <div className="kpi-content">
+                <div className="kpi-label">Last 24 Hours</div>
+                <div className="kpi-value">
+                  {devRequests.filter((req: Notification) => {
+                    const createdAt = new Date(req.createdAt || req.timestamp || '');
+                    const now = new Date();
+                    const diffInHours = (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60);
+                    return diffInHours < 24;
+                  }).length}
+                </div>
+              </div>
+              <div className="kpi-icon-wrap warning">
+                <Clock size={24} strokeWidth={2} />
+              </div>
             </div>
           </div>
-          <div className="stat-card">
-            <FontAwesomeIcon icon={faEnvelope} />
-            <div className="stat-info">
-              <span className="stat-number">
-                {new Set(
-                  devRequests.map((req: Notification) =>
-                    req.userId?.email || req.data?.userId?.email || req.data?.requestedBy?.email
-                  )
-                ).size}
-              </span>
-              <span className="stat-label">Unique Clients</span>
+          <div className="kpi-card">
+            <div className="kpi-card-header">
+              <div className="kpi-content">
+                <div className="kpi-label">Unique Clients</div>
+                <div className="kpi-value">
+                  {new Set(
+                    devRequests.map((req: Notification) =>
+                      req.userId?.email || req.data?.userId?.email || req.data?.requestedBy?.email
+                    )
+                  ).size}
+                </div>
+              </div>
+              <div className="kpi-icon-wrap accent">
+                <Mail size={24} strokeWidth={2} />
+              </div>
             </div>
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

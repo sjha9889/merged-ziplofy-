@@ -70,12 +70,18 @@ const MembershipPlan: React.FC = () => {
 
   return (
     <div className="membership-plans-page">
-      {/* Header */}
-      <div className="mp-header">
-        <h1 className="mp-title">Membership Plans</h1>
-      </div>
+      <div className="mp-page-card">
+        <div className="mp-page-header">
+          <div className="mp-title-block">
+            <div className="mp-title-accent" />
+            <div>
+              <h1 className="mp-title">Membership Plans</h1>
+              <p className="mp-subtitle">Select the best plan for your business needs</p>
+            </div>
+          </div>
+        </div>
 
-      {/* Plan selection section */}
+        {/* Plan selection section */}
       <div className="mp-section">
         <h2 className="mp-section-title">
           Select the <span className="mp-highlight">best plan</span> for your needs
@@ -129,6 +135,7 @@ const MembershipPlan: React.FC = () => {
             </ul>
           </div>
         ))}
+      </div>
       </div>
     </div>
   );
