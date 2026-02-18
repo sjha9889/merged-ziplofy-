@@ -15,13 +15,12 @@ const BillingDetailsSection: React.FC<BillingDetailsSectionProps> = ({ onViewCha
   ];
 
   return (
-    <div className="border border-gray-200 bg-white/95">
-      <div className="flex justify-between items-center p-4 border-b border-gray-200">
-        <h2 className="text-sm font-medium text-gray-900">
-          Details
-        </h2>
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+      <div className="flex justify-between items-center p-5 border-b border-gray-200">
+        <h2 className="text-base font-semibold text-gray-900">Details</h2>
         <button
-          className="cursor-pointer px-3 py-1.5 border border-gray-200 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
+          type="button"
+          className="rounded-lg px-4 py-2 border border-gray-200 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
           onClick={handleViewCharges}
         >
           View in charge table
@@ -30,14 +29,10 @@ const BillingDetailsSection: React.FC<BillingDetailsSectionProps> = ({ onViewCha
       {details.map((row) => (
         <div
           key={row.label}
-          className="flex justify-between px-4 py-3 border-t border-gray-200"
+          className="flex justify-between px-5 py-3 border-t border-gray-200"
         >
-          <p className="text-sm font-medium text-gray-900">
-            {row.label}
-          </p>
-          <p className="text-sm font-medium text-gray-900">
-            {row.value}
-          </p>
+          <p className="text-sm font-medium text-gray-900">{row.label}</p>
+          <p className="text-sm font-medium text-gray-900">{row.value}</p>
         </div>
       ))}
     </div>

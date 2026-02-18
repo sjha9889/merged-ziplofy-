@@ -9,7 +9,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import AddSenderEmailModal from '../../components/AddSenderEmailModal';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import NotificationList from '../../components/NotificationList';
 import SenderEmailSection from '../../components/SenderEmailSection';
 import { useNotificationCategories } from '../../contexts/notification-categories.context';
@@ -130,12 +129,14 @@ const NotificationsPage: React.FC = () => {
   ];
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        {/* Page Header */}
-        <div className="mb-4 border-b border-gray-200 pb-4">
-          <h1 className="text-xl font-medium text-gray-900">Notifications</h1>
-        </div>
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+        <header>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Notifications</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Configure sender email, notification categories, and webhooks.
+          </p>
+        </header>
 
         {/* Sender email Section */}
         <SenderEmailSection
@@ -157,7 +158,7 @@ const NotificationsPage: React.FC = () => {
         {/* Notifications List Section */}
         <NotificationList items={dynamicItems} onNavigate={navigate} />
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

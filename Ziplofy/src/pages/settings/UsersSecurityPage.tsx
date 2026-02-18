@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ClipboardDocumentIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import { useStore } from '../../contexts/store.context';
 import { useStoreSecuritySettings } from '../../contexts/store-security-settings.context';
 
@@ -17,16 +16,12 @@ const UsersSecurityPage: React.FC = () => {
   const [updating, setUpdating] = useState<boolean>(false);
   const [generatingCode, setGeneratingCode] = useState<boolean>(false);
 
-  // Fetch security settings on mount
   useEffect(() => {
     if (activeStoreId) {
-      fetchByStoreId(activeStoreId).catch(() => {
-        // Error already handled in context
-      });
+      fetchByStoreId(activeStoreId).catch(() => {});
     }
   }, [activeStoreId, fetchByStoreId]);
 
-  // Update local state when settings are fetched
   useEffect(() => {
     if (settings) {
       setRequireCode(settings.requireCode);
@@ -79,12 +74,9 @@ const UsersSecurityPage: React.FC = () => {
       toast.error('Settings not available');
       return;
     }
-
     setUpdating(true);
     try {
-      await update(settings._id, {
-        requireCode: false,
-      });
+      await update(settings._id, { requireCode: false });
       toast.dismiss();
       toast.success('Security code requirement disabled');
       setRequireCode(false);
@@ -103,12 +95,9 @@ const UsersSecurityPage: React.FC = () => {
       toast.error('Settings not available');
       return;
     }
-
     setUpdating(true);
     try {
-      await update(settings._id, {
-        requireCode: true,
-      });
+      await update(settings._id, { requireCode: true });
       toast.dismiss();
       toast.success('Security code requirement enabled');
       setRequireCode(true);
@@ -122,104 +111,113 @@ const UsersSecurityPage: React.FC = () => {
   }, [activeStoreId, settings, update]);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        {/* Loading State */}
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Security</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Manage collaborator access and security codes for your store.
+            </p>
+          </div>
+        </header>
+
         {loading && (
-          <div className="flex justify-center py-4">
-            <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-12 flex flex-col items-center justify-center">
+            <div className="w-8 h-8 rounded-full border-2 border-gray-200 border-t-blue-600 animate-spin" />
+            <p className="mt-4 text-sm text-gray-500">Loading security settings...</p>
           </div>
         )}
 
-        {/* Collaborators Section */}
         {!loading && settings && (
-          <div className="border border-gray-200 bg-white p-4">
-            <h2 className="text-base font-medium text-gray-900 mb-1">Collaborators</h2>
-            <p className="text-xs text-gray-600 mb-3">
-              Give designers, developers, and marketers access to this store. Collaborators don't count toward your staff limit.
-              Learn more about{' '}
-              <a href="#" className="text-gray-700 hover:underline">
-                collaborators
-              </a>
-              .
-            </p>
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5">
+            <div className="mb-5">
+              <h2 className="text-base font-semibold text-gray-900">Collaborators</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Give designers, developers, and marketers access to this store. Collaborators don&apos;t count toward your staff limit.{' '}
+                <button type="button" onClick={() => {}} className="text-gray-700 font-medium hover:underline">
+                  Learn more about collaborators
+                </button>
+                .
+              </p>
+            </div>
 
-            {/* When requireCode is false */}
             {!settings.requireCode && (
-              <div className="border border-gray-200 p-3 bg-gray-50">
-                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-600">
-                      Anyone can send a collaborator request for {activeStore?.storeName || 'My Store'}. A code is not required.
+              <div className="rounded-lg border border-gray-200 bg-gray-50/80 p-4">
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-600">
+                      Anyone can send a collaborator request for <strong className="text-gray-900">{activeStore?.storeName || 'My Store'}</strong>. A code is not required.
                     </p>
-                    <p className="text-xs text-gray-600 mt-1">
-                      You'll still need to review and approve this request from{' '}
-                      <a href="#" className="text-gray-700 hover:underline">
+                    <p className="text-sm text-gray-500 mt-1">
+                      You&apos;ll still need to review and approve requests from{' '}
+                      <button type="button" onClick={() => {}} className="text-gray-700 font-medium hover:underline">
                         Users
-                      </a>
+                      </button>
                       .
                     </p>
                   </div>
                   <button
+                    type="button"
                     onClick={handleRequireCodeButton}
                     disabled={updating}
-                    className="px-3 py-1.5 text-sm border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 transition-colors disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                   >
-                    Require code
+                    {updating ? 'Updating...' : 'Require code'}
                   </button>
                 </div>
               </div>
             )}
 
-            {/* When requireCode is true */}
             {settings.requireCode && (
-              <div className="border border-gray-200 p-3 bg-gray-50">
-                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-600 uppercase tracking-wide">My Store</p>
-                    <p className="text-sm font-medium text-gray-900">
+              <div className="rounded-lg border border-gray-200 bg-gray-50/80 p-4">
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Store</p>
+                    <p className="text-sm font-medium text-gray-900 mt-0.5">
                       {activeStore?.storeName || 'My Store'}
                     </p>
-                    <p className="text-xs text-gray-600 mt-1">
-                      Share this code to allow someone to send you a collaborator request for this store. You'll still need to
-                      review and approve this request from{' '}
-                      <a href="#" className="text-gray-700 hover:underline">
+                    <p className="text-sm text-gray-500 mt-1">
+                      Share this code to allow someone to send you a collaborator request. You&apos;ll still need to review and approve from{' '}
+                      <button type="button" onClick={() => {}} className="text-gray-700 font-medium hover:underline">
                         Users
-                      </a>
+                      </button>
                       .
                     </p>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
                     {settings.securityCode && (
                       <button
+                        type="button"
                         onClick={handleCopySecurityCode}
-                        className="px-3 py-1.5 text-sm border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 transition-colors font-mono font-medium"
+                        className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-colors font-mono"
                       >
-                        <span className="flex items-center gap-1.5">
-                          <ClipboardDocumentIcon className="w-4 h-4" />
-                          {settings.securityCode}
-                        </span>
+                        <ClipboardDocumentIcon className="w-4 h-4" />
+                        {settings.securityCode}
                       </button>
                     )}
                     <button
+                      type="button"
                       onClick={handleGenerateNewSecurityCode}
                       disabled={generatingCode}
-                      className="px-3 py-1.5 text-sm text-white bg-gray-900 hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      className="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {generatingCode ? (
-                        <span className="flex items-center gap-1.5">
-                          <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                           Generating...
-                        </span>
+                        </>
                       ) : (
                         'Generate new code'
                       )}
                     </button>
                     <button
+                      type="button"
                       onClick={handleDisableRequireCode}
                       disabled={updating}
-                      className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      aria-label="Remove code requirement"
                     >
                       <TrashIcon className="w-4 h-4" />
                     </button>
@@ -230,7 +228,7 @@ const UsersSecurityPage: React.FC = () => {
           </div>
         )}
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

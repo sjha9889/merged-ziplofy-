@@ -32,7 +32,7 @@ const NotificationListItem: React.FC<NotificationListItemProps> = ({
         <div className="flex-1 text-left">
           <p className="text-sm font-medium text-gray-900">{title}</p>
           {description && (
-            <p className="text-xs text-gray-600 mt-0.5">{description}</p>
+            <p className="text-sm text-gray-500 mt-0.5">{description}</p>
           )}
         </div>
         <ChevronRightIcon className="w-4 h-4 text-gray-500 shrink-0" />

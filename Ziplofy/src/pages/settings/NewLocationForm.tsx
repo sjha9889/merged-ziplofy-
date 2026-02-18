@@ -2,7 +2,6 @@ import React, { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import FulfillmentSection from '../../components/FulfillmentSection';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import LocationFormFields from '../../components/LocationFormFields';
 import { useLocations } from '../../contexts/location.context';
 import { useStore } from '../../contexts/store.context';
@@ -71,26 +70,42 @@ const NewLocationForm: React.FC = () => {
   );
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-3 border-b border-gray-200 pb-3">
-          <div className="flex items-center gap-2">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3">
             <button
+              type="button"
               onClick={handleCancel}
-              className="p-1 hover:bg-gray-50 transition-colors"
+              className="mt-0.5 inline-flex items-center justify-center p-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors shrink-0"
+              aria-label="Back to locations"
             >
-              <ArrowLeftIcon className="w-5 h-5 text-gray-600" />
+              <ArrowLeftIcon className="w-5 h-5" />
             </button>
-            <h1 className="text-xl font-medium text-gray-900">Add Location</h1>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Add location</h1>
+              <p className="mt-1 text-sm text-gray-500">
+                Add a new store location with address and fulfillment options.
+              </p>
+            </div>
           </div>
-          <button
-            onClick={handleAdd}
-            className="cursor-pointer px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
-          >
-            Add
-          </button>
-        </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleAdd}
+              className="rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+            >
+              Add location
+            </button>
+          </div>
+        </header>
 
         <LocationFormFields form={form} onChange={handleChange} />
         <FulfillmentSection
@@ -104,7 +119,7 @@ const NewLocationForm: React.FC = () => {
           onCanPickupChange={(checked) => handleFulfillmentOptionChange('canPickup', checked)}
         />
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

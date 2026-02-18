@@ -9,17 +9,18 @@ const CustomOrderFulfillmentCard: React.FC<CustomOrderFulfillmentCardProps> = ({
   onAddClick,
 }) => {
   return (
-    <div className="bg-white/95 border border-gray-200 p-4 mb-4">
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
       <div className="flex items-center gap-2 mb-1">
-        <h2 className="text-sm font-medium text-gray-900">Custom order fulfillment</h2>
+        <h2 className="text-base font-semibold text-gray-900">Custom order fulfillment</h2>
         <InformationCircleIcon className="w-4 h-4 text-gray-500" />
       </div>
-      <p className="text-xs text-gray-600 mb-3">
+      <p className="text-sm text-gray-500 mb-3">
         Add an email for a custom fulfillment service that fulfills orders for you
       </p>
       <button
+        type="button"
         onClick={onAddClick}
-        className="px-3 py-1.5 text-xs font-medium border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 transition-colors flex items-center gap-2"
+        className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
       >
         <PlusIcon className="w-4 h-4" />
         Add fulfillment service

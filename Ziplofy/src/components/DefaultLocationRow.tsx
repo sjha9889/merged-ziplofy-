@@ -37,7 +37,7 @@ const DefaultLocationRow: React.FC<DefaultLocationRowProps> = ({
     <div className="flex justify-between items-center">
       <div>
         <p className="text-sm font-medium text-gray-900">{name}</p>
-        <p className="text-xs text-gray-600">{addressLine}</p>
+        <p className="text-sm text-gray-500">{addressLine}</p>
       </div>
       <DefaultLocationChangeButton otherLocations={otherLocations} onSelect={handleSelect} />
     </div>

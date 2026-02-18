@@ -23,9 +23,9 @@ const DeliveryExpectationsCard: React.FC<DeliveryExpectationsCardProps> = ({
   };
 
   return (
-    <div className="bg-white/95 border border-gray-200 p-4 mb-4">
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
       <div className="flex items-center gap-2 mb-4">
-        <h2 className="text-sm font-medium text-gray-900">Delivery expectations</h2>
+        <h2 className="text-base font-semibold text-gray-900">Delivery expectations</h2>
         <InformationCircleIcon className="w-4 h-4 text-gray-500" />
       </div>
 
@@ -36,7 +36,7 @@ const DeliveryExpectationsCard: React.FC<DeliveryExpectationsCardProps> = ({
       >
         <div className="flex-1">
           <p className="text-sm font-medium text-gray-900 mb-1">Estimated delivery dates</p>
-          <p className="text-xs text-gray-600">
+          <p className="text-sm text-gray-500">
             Increase conversion and build trust with delivery dates on your store.
           </p>
         </div>
@@ -59,7 +59,7 @@ const DeliveryExpectationsCard: React.FC<DeliveryExpectationsCardProps> = ({
       >
         <div className="flex-1">
           <p className="text-sm font-medium text-gray-900 mb-1">Shop Promise</p>
-          <p className="text-xs text-gray-600">
+          <p className="text-sm text-gray-500">
             Highlight that you're an exceptional shipper with dates backed by a badge and guarantee.
           </p>
         </div>

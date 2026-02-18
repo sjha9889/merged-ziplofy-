@@ -7,7 +7,6 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import AddPixelModal from '../../components/AddPixelModal';
 import CustomerEventsHeader from '../../components/CustomerEventsHeader';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import PixelsTable from '../../components/PixelsTable';
 import Tabs from '../../components/Tabs';
 import { DataSaleOption, Pixel, usePixels } from '../../contexts/pixel.context';
@@ -98,7 +97,7 @@ const CustomerEventsPage: React.FC = () => {
   const renderStatusChip = useCallback((pixel: Pixel) => {
     const label = statusLabelMap[pixel.status?.toLowerCase()] || pixel.status;
     return (
-      <span className="px-2 py-0.5 text-xs font-medium text-gray-700 bg-gray-50 border border-gray-200 capitalize">
+      <span className="px-2.5 py-1 rounded-md text-xs font-medium text-gray-700 bg-gray-100 border border-gray-200 capitalize">
         {label}
       </span>
     );
@@ -131,17 +130,20 @@ const CustomerEventsPage: React.FC = () => {
   ], []);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        <h1 className="text-xl font-medium text-gray-900 mb-4 border-b border-gray-200 pb-4">
-          Customer events
-        </h1>
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+        <header>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Customer events</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Manage pixels and integrations that collect customer event data from your store.
+          </p>
+        </header>
 
-        <div className="border border-gray-200 p-4 bg-white/95">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
           <CustomerEventsHeader onOpenModal={handleOpenModal} />
 
-          <div className="mt-4 border border-gray-200 bg-white/95">
-            <div className="px-3 pt-3">
+          <div className="mt-4 rounded-xl border border-gray-200 overflow-hidden bg-white">
+            <div className="px-4 pt-4">
               <Tabs
                 tabs={tabs}
                 activeTab={tab}
@@ -151,16 +153,18 @@ const CustomerEventsPage: React.FC = () => {
 
             <div className="h-px bg-gray-200" />
 
-            <div className="px-3 py-2 flex justify-end gap-2">
+            <div className="px-4 py-3 flex justify-end gap-2 bg-gray-50/80">
               <button
+                type="button"
                 disabled
-                className="p-1.5 text-gray-400 cursor-not-allowed"
+                className="inline-flex items-center justify-center p-2 rounded-lg border border-gray-200 text-gray-300 bg-white cursor-not-allowed"
               >
                 <MagnifyingGlassIcon className="w-4 h-4" />
               </button>
               <button
+                type="button"
                 onClick={handleRefresh}
-                className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                className="inline-flex items-center justify-center p-2 rounded-lg border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 transition-colors"
               >
                 <ArrowPathIcon className="w-4 h-4" />
               </button>
@@ -180,20 +184,20 @@ const CustomerEventsPage: React.FC = () => {
               />
             ) : (
               <div className="py-12 text-center text-gray-600">
-                <p className="text-xs">No pixels found for this store.</p>
+                <p className="text-sm text-gray-500">No pixels found for this store.</p>
               </div>
             )}
           </div>
 
-          <p className="text-xs text-gray-600 mt-4">
+          <p className="text-sm text-gray-500 mt-4">
             This list only shows{' '}
-            <button className="text-gray-700 hover:underline">
+            <button type="button" className="text-gray-700 font-medium hover:underline">
               pixels
             </button>{' '}
             that use the applicable Shopify APIs, the supported pixel integration.
           </p>
 
-          <button className="text-xs text-gray-700 mt-4 inline-flex items-center hover:underline">
+          <button type="button" className="text-sm text-gray-700 font-medium mt-4 inline-flex items-center hover:underline">
             Learn more about pixels
           </button>
         </div>
@@ -213,7 +217,7 @@ const CustomerEventsPage: React.FC = () => {
           maxName={MAX_NAME}
         />
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

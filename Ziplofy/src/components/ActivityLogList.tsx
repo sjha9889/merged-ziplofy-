@@ -6,7 +6,7 @@ interface ActivityLogListProps {
 }
 
 const ActivityLogList: React.FC<ActivityLogListProps> = ({ entries }) => (
-  <div className="border border-gray-200 bg-white p-4">
+  <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 overflow-hidden">
     {entries.map((entry, index) => (
       <ActivityLogEntry
         key={entry.id}

@@ -31,24 +31,30 @@ const LocationDetailsSection: React.FC<LocationDetailsSectionProps> = ({
   onLocationClick,
 }) => {
   return (
-    <div className="border border-gray-200 bg-white/95 p-3">
-      <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-medium text-gray-900">Location Details</h2>
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
+      <div className="flex items-start sm:items-center justify-between gap-3 mb-4">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900">Locations</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Add and manage locations for fulfillment, pickup, and local delivery.
+          </p>
+        </div>
         <button
+          type="button"
           onClick={onAddLocation}
-          className="cursor-pointer px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+          className="shrink-0 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
         >
           Add Location
         </button>
       </div>
       {error && (
-        <div className="mb-3 p-2 bg-gray-50 border border-gray-200 text-xs text-gray-700">
+        <div className="mb-4 p-3 rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-700">
           {error}
         </div>
       )}
       {loading ? (
-        <div className="flex justify-center py-6">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400"></div>
+        <div className="flex justify-center py-10">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-400"></div>
         </div>
       ) : (
         <>

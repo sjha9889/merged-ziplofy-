@@ -1,12 +1,10 @@
 import {
   ArrowLeftIcon,
-  ChevronRightIcon,
-  TruckIcon,
   MapPinIcon,
+  TruckIcon,
 } from '@heroicons/react/24/outline';
 import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import { useLocalDeliveryLocationEntries } from '../../contexts/local-delivery-location-entries.context';
 
 const LocalDeliveriesPage: React.FC = () => {
@@ -29,97 +27,103 @@ const LocalDeliveriesPage: React.FC = () => {
   const isLoading = entriesLoading && !missingLocalDeliveryId;
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        {/* Back Button and Header */}
-        <div className="flex items-center gap-3 mb-3 border-b border-gray-200 pb-4">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+        <header className="flex items-start gap-3">
           <button
+            type="button"
             onClick={() => navigate('/settings/shipping-and-delivery')}
-            className="p-1 text-gray-600 hover:text-gray-900 transition-colors"
+            className="mt-0.5 inline-flex items-center justify-center p-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+            aria-label="Back to shipping"
           >
             <ArrowLeftIcon className="w-5 h-5" />
           </button>
-          <TruckIcon className="w-5 h-5 text-gray-700" />
-          <ChevronRightIcon className="w-4 h-4 text-gray-500" />
-          <h1 className="text-xl font-medium text-gray-900">
-            Local delivery
-          </h1>
-        </div>
-
-        {/* Subtitle */}
-        <p className="text-sm text-gray-600 mb-4">
-          Deliver orders to customers directly from your locations
-        </p>
-
-        {/* Your locations card */}
-        <div className="border border-gray-200 bg-white/95 p-4">
-          <h2 className="text-sm font-medium text-gray-900 mb-3">
-            Your locations
-          </h2>
-
-          {missingLocalDeliveryId ? (
-            <p className="text-sm text-gray-600 py-3">
-              Local delivery identifier missing. Please navigate via the Manage button.
-            </p>
-          ) : isLoading ? (
-            <div className="py-8 text-center">
-              <div className="inline-block w-6 h-6 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
+          <div className="flex items-center gap-2 min-w-0">
+            <TruckIcon className="w-6 h-6 text-gray-600 shrink-0" />
+            <div className="min-w-0">
+              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+                Local delivery
+              </h1>
+              <p className="mt-1 text-sm text-gray-500">
+                Deliver orders to customers directly from your locations.
+              </p>
             </div>
-          ) : combinedEntries.length === 0 ? (
-            <p className="text-sm text-gray-600 py-3">
-              No locations found.
+          </div>
+        </header>
+
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+          <div className="p-5 border-b border-gray-200">
+            <h2 className="text-base font-semibold text-gray-900">Your locations</h2>
+            <p className="mt-1 text-sm text-gray-500">
+              Manage which locations offer local delivery and their settings.
             </p>
-          ) : (
-            <div className="space-y-2">
-              {combinedEntries.map((entry, index) => {
-                const location =
-                  typeof entry.locationId === 'string' || !entry.locationId
-                    ? null
-                    : entry.locationId;
-                const locationId =
-                  typeof entry.locationId === 'string' ? entry.locationId : entry.locationId?._id;
-                if (!locationId) return null;
-                return (
-                  <div
-                    key={locationId}
-                    onClick={() => {
-                      if (!localDeliveryId) return;
-                      navigate(
-                        `/settings/shipping-and-delivery/local_deliveries/${localDeliveryId}/locations/${locationId}`
-                      );
-                    }}
-                    className={`flex items-center justify-between py-2 ${
-                      index !== combinedEntries.length - 1 ? 'border-b border-gray-100' : ''
-                    } cursor-pointer hover:bg-gray-50 transition-colors`}
-                  >
-                    <div className="flex items-center gap-3 flex-1">
-                      <MapPinIcon className="w-5 h-5 text-gray-600 shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {location?.name || 'Unknown location'}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          {location?.countryRegion || 'No country specified'}
-                        </p>
-                      </div>
-                    </div>
-                    <span
-                      className={`px-2 py-0.5 text-xs font-medium ${
-                        entry.canLocalDeliver
-                          ? 'bg-green-50 text-green-700'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
+          </div>
+
+          <div className="p-5">
+            {missingLocalDeliveryId ? (
+              <p className="text-sm text-gray-500 py-2">
+                Local delivery identifier missing. Please navigate via the Manage button.
+              </p>
+            ) : isLoading ? (
+              <div className="py-12 flex flex-col items-center justify-center gap-3">
+                <div className="w-8 h-8 border-2 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
+                <p className="text-sm text-gray-500">Loading locations…</p>
+              </div>
+            ) : combinedEntries.length === 0 ? (
+              <p className="text-sm text-gray-500 py-2">No locations found.</p>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {combinedEntries.map((entry) => {
+                  const location =
+                    typeof entry.locationId === 'string' || !entry.locationId
+                      ? null
+                      : entry.locationId;
+                  const locationId =
+                    typeof entry.locationId === 'string' ? entry.locationId : entry.locationId?._id;
+                  if (!locationId) return null;
+                  return (
+                    <button
+                      key={locationId}
+                      type="button"
+                      onClick={() => {
+                        if (!localDeliveryId) return;
+                        navigate(
+                          `/settings/shipping-and-delivery/local_deliveries/${localDeliveryId}/locations/${locationId}`
+                        );
+                      }}
+                      className="w-full flex items-center justify-between gap-4 py-4 text-left rounded-lg hover:bg-gray-50 transition-colors first:pt-0 last:pb-0"
                     >
-                      {entry.canLocalDeliver ? 'Offers delivery' : "Doesn't offer delivery"}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 text-gray-600 shrink-0">
+                          <MapPinIcon className="w-5 h-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {location?.name || 'Unknown location'}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            {location?.countryRegion || 'No country specified'}
+                          </p>
+                        </div>
+                      </div>
+                      <span
+                        className={`shrink-0 px-2.5 py-1 rounded-md text-xs font-medium ${
+                          entry.canLocalDeliver
+                            ? 'bg-green-50 text-green-700'
+                            : 'bg-gray-100 text-gray-600'
+                        }`}
+                      >
+                        {entry.canLocalDeliver ? 'Offers delivery' : "Doesn't offer delivery"}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

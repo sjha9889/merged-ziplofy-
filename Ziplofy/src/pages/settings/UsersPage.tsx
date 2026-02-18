@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { UserGroupIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
+import { ShieldCheckIcon } from '@heroicons/react/24/outline';
 
 interface User {
   _id: string;
@@ -46,31 +45,37 @@ const UsersPage: React.FC = () => {
   const isIndeterminate = selectedUsers.size > 0 && selectedUsers.size < users.length;
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <UserGroupIcon className="w-5 h-5 text-gray-900" />
-            <h1 className="text-xl font-medium text-gray-900">Users</h1>
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Users</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Manage staff accounts, roles, and permissions.
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <button className="px-3 py-1.5 text-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+            >
               Export
             </button>
-            <button className="px-3 py-1.5 text-sm text-white bg-gray-900 hover:bg-gray-800 transition-colors">
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+            >
               Add users
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* User Table */}
-        <div className="border border-gray-200 bg-white overflow-hidden">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-white border-b border-gray-200">
-                  <th className="w-12 px-3 py-2 text-left">
+                <tr className="border-b border-gray-200 bg-gray-50/80">
+                  <th className="w-12 pl-5 pr-3 py-3 text-left">
                     <input
                       type="checkbox"
                       ref={(input) => {
@@ -80,41 +85,49 @@ const UsersPage: React.FC = () => {
                       }}
                       checked={isAllSelected}
                       onChange={handleSelectAll}
-                      className="w-4 h-4 text-gray-900 focus:ring-gray-400"
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/30"
                     />
                   </th>
-                  <th className="px-3 py-2 text-left text-sm font-medium text-gray-900">User</th>
-                  <th className="px-3 py-2 text-left text-sm font-medium text-gray-900">Status</th>
-                  <th className="px-3 py-2 text-left text-sm font-medium text-gray-900">Role</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-100">
                 {users.map((user) => (
                   <tr
                     key={user._id}
-                    className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
+                    className="hover:bg-gray-50/80 transition-colors"
                   >
-                    <td className="px-3 py-2">
+                    <td className="pl-5 pr-3 py-3">
                       <input
                         type="checkbox"
                         checked={selectedUsers.has(user._id)}
                         onChange={() => handleSelectUser(user._id)}
-                        className="w-4 h-4 text-gray-900 focus:ring-gray-400"
+                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/30"
                       />
                     </td>
-                    <td className="px-3 py-2">
-                      <p className="text-sm text-gray-900 truncate max-w-[300px]">
+                    <td className="px-4 py-3">
+                      <p className="text-sm font-medium text-gray-900 truncate max-w-[300px]">
                         {user.email}
                       </p>
                     </td>
-                    <td className="px-3 py-2">
-                      <span className="inline-block px-2 py-0.5 text-xs bg-gray-100 text-gray-700">
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          user.status === 'active'
+                            ? 'bg-green-50 text-green-700'
+                            : user.status === 'pending'
+                              ? 'bg-amber-50 text-amber-700'
+                              : 'bg-gray-100 text-gray-600'
+                        }`}
+                      >
                         {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
                       </span>
                     </td>
-                    <td className="px-3 py-2">
-                      <div className="flex items-center gap-1">
-                        <ShieldCheckIcon className="w-4 h-4 text-gray-600" />
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <ShieldCheckIcon className="w-4 h-4 text-gray-400" />
                         <span className="text-sm text-gray-900">{user.role}</span>
                       </div>
                     </td>
@@ -125,21 +138,17 @@ const UsersPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Footer Link */}
-        <div className="mt-3">
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              // Handle learn more click
-            }}
-            className="text-xs text-gray-700 hover:underline"
+        <p className="text-sm text-gray-500">
+          <button
+            type="button"
+            onClick={() => {}}
+            className="text-gray-700 font-medium hover:underline"
           >
             Learn more about users
-          </a>
-        </div>
+          </button>
+        </p>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

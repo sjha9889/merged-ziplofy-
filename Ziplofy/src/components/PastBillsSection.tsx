@@ -68,26 +68,30 @@ const PastBillsSection: React.FC<PastBillsSectionProps> = ({ onViewCharges }) =>
   }, [menuOpen, handleMenuClose]);
 
   return (
-    <div className="border border-gray-200 bg-white/95">
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between relative">
-        <h3 className="text-sm font-medium text-gray-900">
-          Past bills
-        </h3>
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+      <div className="p-5 border-b border-gray-100 flex items-center justify-between relative">
+        <div>
+          <h2 className="text-base font-semibold text-gray-900">Past bills</h2>
+          <p className="mt-1 text-sm text-gray-500">View and download previous invoices.</p>
+        </div>
         <div className="relative">
           <button
             ref={menuButtonRef}
-            className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors"
+            type="button"
+            className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
             onClick={handleMenuToggle}
+            aria-label="More options"
           >
             <EllipsisHorizontalIcon className="w-4 h-4" />
           </button>
           {menuOpen && (
             <div
               ref={menuRef}
-              className="absolute right-0 top-full mt-1 bg-white border border-gray-200 z-10 min-w-[180px]"
+              className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-[180px] overflow-hidden"
             >
               <button
-                className="w-full px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-50 transition-colors"
+                type="button"
+                className="w-full px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                 onClick={handleViewChargesClick}
               >
                 View in charge table
@@ -96,33 +100,36 @@ const PastBillsSection: React.FC<PastBillsSectionProps> = ({ onViewCharges }) =>
           )}
         </div>
       </div>
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-3 gap-3 border-b border-gray-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3 gap-3 border-b border-gray-100">
         <div className="flex gap-1">
           <button
-            className={`px-2 py-1 text-xs font-medium transition-colors ${
+            type="button"
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
               billFilter === 'all'
-                ? 'bg-gray-100 text-gray-900'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                ? 'bg-gray-900 text-white'
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
             }`}
             onClick={handleFilterAll}
           >
             All
           </button>
           <button
-            className={`px-2 py-1 text-xs font-medium transition-colors ${
+            type="button"
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
               billFilter === 'paid'
-                ? 'bg-gray-100 text-gray-900'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                ? 'bg-gray-900 text-white'
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
             }`}
             onClick={handleFilterPaid}
           >
             Paid
           </button>
           <button
-            className={`px-2 py-1 text-xs font-medium transition-colors ${
+            type="button"
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
               billFilter === 'unpaid'
-                ? 'bg-gray-100 text-gray-900'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                ? 'bg-gray-900 text-white'
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
             }`}
             onClick={handleFilterUnpaid}
           >
@@ -131,37 +138,47 @@ const PastBillsSection: React.FC<PastBillsSectionProps> = ({ onViewCharges }) =>
         </div>
 
         <div className="flex gap-1">
-          <button className="p-1.5 border border-gray-200 hover:bg-gray-50 transition-colors">
-            <MagnifyingGlassIcon className="w-3.5 h-3.5 text-gray-600" />
+          <button
+            type="button"
+            className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+            aria-label="Search"
+          >
+            <MagnifyingGlassIcon className="w-4 h-4 text-gray-600" />
           </button>
-          <button className="p-1.5 border border-gray-200 hover:bg-gray-50 transition-colors">
-            <FunnelIcon className="w-3.5 h-3.5 text-gray-600" />
+          <button
+            type="button"
+            className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+            aria-label="Filter"
+          >
+            <FunnelIcon className="w-4 h-4 text-gray-600" />
           </button>
-          <button className="p-1.5 border border-gray-200 hover:bg-gray-50 transition-colors">
-            <ArrowPathIcon className="w-3.5 h-3.5 text-gray-600" />
+          <button
+            type="button"
+            className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+            aria-label="Refresh"
+          >
+            <ArrowPathIcon className="w-4 h-4 text-gray-600" />
           </button>
         </div>
       </div>
 
-      <div className="border border-gray-200 mx-4 my-4 h-[200px] flex items-center justify-center bg-gray-50">
-        <p className="text-xs text-gray-600">
-          Your past bills will appear here.
-        </p>
+      <div className="mx-5 my-6 rounded-lg border border-gray-100 h-[200px] flex items-center justify-center bg-gray-50/80">
+        <p className="text-sm text-gray-500">Your past bills will appear here.</p>
       </div>
 
-      <div className="flex justify-between items-center px-4 py-3 border-t border-gray-200">
-        <p className="text-xs text-gray-600">
-          Showing 0 results
-        </p>
+      <div className="flex justify-between items-center px-5 py-3 border-t border-gray-100 bg-gray-50/50">
+        <p className="text-xs text-gray-500">Showing 0 results</p>
         <div className="flex gap-1">
           <button
-            className="min-w-[32px] px-2 py-1 border border-gray-200 text-xs text-gray-400 cursor-not-allowed"
+            type="button"
+            className="min-w-[32px] px-2 py-1.5 rounded border border-gray-200 text-xs text-gray-400 cursor-not-allowed"
             disabled
           >
             ‹
           </button>
           <button
-            className="min-w-[32px] px-2 py-1 border border-gray-200 text-xs text-gray-400 cursor-not-allowed"
+            type="button"
+            className="min-w-[32px] px-2 py-1.5 rounded border border-gray-200 text-xs text-gray-400 cursor-not-allowed"
             disabled
           >
             ›

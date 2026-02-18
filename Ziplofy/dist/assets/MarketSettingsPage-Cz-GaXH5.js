@@ -1,1 +1,0 @@
-import{j as r}from"./index-C7S6h9OR.js";import{G as t}from"./GridBackgroundWrapper-Du1VLjut.js";const s=()=>r.jsx(t,{children:r.jsx("div",{children:"MarketSettingsPage"})});export{s as MarketSettingsPage};

@@ -11,7 +11,6 @@ import DeliveryCustomizationsCard from '../../components/DeliveryCustomizationsC
 import DeliveryExpectationsCard from '../../components/DeliveryExpectationsCard';
 import EditPackageModal from '../../components/EditPackageModal';
 import EstimatedDeliveryModal from '../../components/EstimatedDeliveryModal';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import LocalDeliveryCard from '../../components/LocalDeliveryCard';
 import LocalDeliverySetupModal from '../../components/LocalDeliverySetupModal';
 import OrderRoutingCard from '../../components/OrderRoutingCard';
@@ -243,19 +242,24 @@ const ShippingSettings: React.FC = () => {
   }, [packagings, ratePackageId]);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        <h1 className="text-xl font-medium text-gray-900 mb-4 border-b border-gray-200 pb-4">
-          Shipping and Delivery Settings
-        </h1>
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Shipping and delivery</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Manage shipping profiles, rates, labels, and delivery options.
+            </p>
+          </div>
+        </header>
 
         {/* Shipping Section */}
-        <div className="border border-gray-200 bg-white/95 p-4 mb-4">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
           <div className="flex items-center gap-2 mb-2">
-            <h2 className="text-sm font-medium text-gray-900">Shipping</h2>
+            <h2 className="text-base font-semibold text-gray-900">Shipping</h2>
             <InformationCircleIcon className="w-4 h-4 text-gray-500" />
           </div>
-          <p className="text-xs text-gray-600 mb-4">
+          <p className="text-sm text-gray-500 mb-4">
             Manage where you ship and how much you charge
           </p>
 
@@ -264,7 +268,7 @@ const ShippingSettings: React.FC = () => {
 
           <RouterLink
             to="/settings/shipping-and-delivery/profiles/create"
-            className="text-gray-600 hover:text-gray-900 transition-colors text-xs block mb-4"
+            className="text-sm text-gray-600 hover:text-gray-900 transition-colors block mt-4"
           >
             Create a custom profile to set different rates or restrict destinations for specific products
           </RouterLink>
@@ -345,12 +349,12 @@ const ShippingSettings: React.FC = () => {
       <DeliveryCustomizationsCard />
 
         {/* Packages Section */}
-        <div className="border border-gray-200 bg-white/95 p-4 mb-4">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
           <div className="flex items-center gap-2 mb-2">
-            <h2 className="text-sm font-medium text-gray-900">Packages</h2>
+            <h2 className="text-base font-semibold text-gray-900">Packages</h2>
             <InformationCircleIcon className="w-4 h-4 text-gray-500" />
           </div>
-          <p className="text-xs text-gray-600 mb-4">
+          <p className="text-sm text-gray-500 mb-4">
             Used to calculate shipping rates at checkout and pre-selected when buying labels
           </p>
 
@@ -362,11 +366,12 @@ const ShippingSettings: React.FC = () => {
 
           {packagings.length === 0 && (
             <button
+              type="button"
               onClick={handleAddPackage}
-              className="flex items-center gap-2 py-2 text-gray-700 hover:bg-gray-50 transition-colors w-full text-sm"
+              className="flex items-center gap-2 rounded-lg py-2.5 px-3 text-gray-700 hover:bg-gray-50 transition-colors w-full text-sm font-medium border border-gray-200 border-dashed"
             >
               <PlusIcon className="w-4 h-4" />
-              <span className="font-medium">Add package</span>
+              Add package
             </button>
           )}
         </div>
@@ -423,7 +428,7 @@ const ShippingSettings: React.FC = () => {
         packageName={packageToDelete?.name}
       />
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

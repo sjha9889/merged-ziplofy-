@@ -16,7 +16,7 @@ interface ActivityLogEntryProps {
 
 const ActivityLogEntry: React.FC<ActivityLogEntryProps> = ({ entry, showDivider }) => (
   <>
-    <div className="py-2.5">
+    <div className="py-3 px-1">
       <p className="text-sm font-medium text-gray-900">
         {entry.title}
         {entry.linkLabel && (
@@ -24,7 +24,7 @@ const ActivityLogEntry: React.FC<ActivityLogEntryProps> = ({ entry, showDivider 
             {': '}
             <a
               href={entry.linkHref}
-              className="text-gray-700 ml-0.5 hover:text-gray-900 transition-colors"
+              className="text-gray-700 font-medium hover:text-gray-900 hover:underline transition-colors"
             >
               {entry.linkLabel}
             </a>
@@ -32,15 +32,15 @@ const ActivityLogEntry: React.FC<ActivityLogEntryProps> = ({ entry, showDivider 
         )}
       </p>
       {entry.description && !entry.linkLabel && (
-        <p className="text-sm text-gray-600 mt-1">
+        <p className="text-sm text-gray-500 mt-1">
           {entry.description}
         </p>
       )}
-      <p className="text-xs text-gray-500 mt-1">
+      <p className="text-sm text-gray-500 mt-1">
         {entry.timestamp}
       </p>
     </div>
-    {showDivider && <hr className="my-2 border-gray-200" />}
+    {showDivider && <hr className="my-0 border-gray-200" />}
   </>
 );
 

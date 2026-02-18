@@ -9,7 +9,7 @@ const BillingChargesTableCell: React.FC<BillingChargesTableCellProps> = ({ cell,
   return (
     <td
       className={`py-3 px-3 text-sm text-gray-900 border-b border-gray-100 ${
-        index === 4 ? 'font-medium' : ''
+        index === 4 ? 'font-semibold' : ''
       }`}
     >
       {cell}

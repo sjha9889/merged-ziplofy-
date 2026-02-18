@@ -17,11 +17,11 @@ const PixelsTable: React.FC<PixelsTableProps> = ({
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-gray-200 bg-white">
-            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700">Pixels</th>
-            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700">Type</th>
-            <th className="px-3 py-2 text-left text-xs font-medium text-gray-700">Status</th>
-            <th className="px-3 py-2 text-right">&nbsp;</th>
+          <tr className="border-b border-gray-200 bg-gray-50/80">
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Pixel</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Type</th>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-700">Status</th>
+            <th className="px-4 py-3 text-right">&nbsp;</th>
           </tr>
         </thead>
         <tbody>

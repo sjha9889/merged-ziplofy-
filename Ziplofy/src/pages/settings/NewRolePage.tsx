@@ -1,6 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ChevronDownIcon, ChevronUpIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
+import {
+  ArrowLeftIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  MagnifyingGlassIcon,
+} from '@heroicons/react/24/outline';
 import { usePermissions } from '../../contexts/permissions.context';
 import { useStoreRoles } from '../../contexts/store-roles.context';
 import { useStore } from '../../contexts/store.context';
@@ -208,13 +212,15 @@ const NewRolePage: React.FC = () => {
     return (
       <div key={node.key}>
         <div
-          className="flex items-center py-1.5"
+          className="flex items-center py-2 rounded-lg hover:bg-gray-50 transition-colors"
           style={{ paddingLeft: `${indent}rem` }}
         >
           {hasChildren ? (
             <button
+              type="button"
               onClick={() => toggleExpand(node.key)}
-              className="p-0.5 text-gray-600 hover:text-gray-700 mr-1"
+              className="p-1 text-gray-500 hover:text-gray-700 mr-1 rounded-md hover:bg-white transition-colors"
+              aria-label={expanded ? 'Collapse' : 'Expand'}
             >
               {expanded ? (
                 <ChevronUpIcon className="w-4 h-4" />
@@ -234,13 +240,13 @@ const NewRolePage: React.FC = () => {
             }}
             checked={state.checked}
             onChange={() => toggleNodeSelection(node)}
-            className="w-4 h-4 text-gray-900 focus:ring-gray-400 mr-2"
+            className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/30 mr-2"
           />
           <span className="text-sm text-gray-900">
             {node.name}
           </span>
           {hasChildren && (
-            <span className="text-xs text-gray-600 ml-auto mr-2">
+            <span className="text-xs text-gray-500 ml-auto mr-2">
               {state.selected}/{state.total}
             </span>
           )}
@@ -255,119 +261,162 @@ const NewRolePage: React.FC = () => {
   };
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-medium text-gray-900">Create role</h1>
-          {canSave && (
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3">
             <button
+              type="button"
+              onClick={() => navigate('/settings/users/roles')}
+              className="mt-0.5 inline-flex items-center justify-center p-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+              aria-label="Back to roles"
+            >
+              <ArrowLeftIcon className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Create role</h1>
+              <p className="mt-1 text-sm text-gray-500">
+                Name the role and pick the permissions staff should have.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => navigate('/settings/users/roles')}
+              className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
               onClick={handleSave}
-              disabled={saving}
-              className="px-3 py-1.5 text-sm text-white bg-gray-900 hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              disabled={!canSave || saving}
+              className="rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors disabled:bg-gray-300 disabled:text-gray-600 disabled:cursor-not-allowed"
             >
               {saving ? 'Saving...' : 'Save'}
             </button>
-          )}
-        </div>
+          </div>
+        </header>
 
-        {/* Role meta form */}
-        <div className="border border-gray-200 bg-white p-4 mb-4">
-          <div className="flex flex-col gap-3">
-            <div>
-              <label className="block text-xs text-gray-600 mb-1">Name</label>
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5">
+          <h2 className="text-base font-semibold text-gray-900">Role details</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            This name will appear when assigning roles to staff.
+          </p>
+
+          <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
               <input
                 type="text"
-                placeholder="Name"
+                placeholder="e.g. Support agent"
                 value={roleName}
                 onChange={(e) => setRoleName(e.target.value)}
-                className="w-full border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
               />
             </div>
-            <div>
-              <label className="block text-xs text-gray-600 mb-1">Description</label>
+            <div className="md:col-span-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
               <textarea
-                placeholder="Description"
+                placeholder="What can this role do?"
                 rows={2}
                 value={roleDescription}
                 onChange={(e) => setRoleDescription(e.target.value)}
-                className="w-full border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 resize-y"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 resize-y"
               />
             </div>
           </div>
         </div>
 
-        {/* Permissions */}
-        <div className="border border-gray-200 bg-white p-4">
-          <h2 className="text-base font-medium text-gray-900 mb-1">Permissions</h2>
-          <p className="text-xs text-gray-600 mb-3">
-            Role category determines available permissions.
-          </p>
-          {loading && (
-            <div className="flex items-center gap-2 text-gray-600">
-              <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin" />
-              <span className="text-sm">Loading permissions…</span>
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+            <div>
+              <h2 className="text-base font-semibold text-gray-900">Permissions</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Choose what this role can view and manage.
+              </p>
             </div>
-          )}
-          {error && (
-            <p className="text-sm text-red-600">
-              {error}
-            </p>
-          )}
-          {!loading && !error && (
-            <div className="flex flex-col gap-3">
-              <div className="relative">
-                <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-600" />
-                <input
-                  type="text"
-                  placeholder="Search"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full border border-gray-200 bg-gray-50 pl-10 pr-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
-                />
+            <div className="text-sm text-gray-500">
+              Selected <span className="font-medium text-gray-900">{selectedLeafKeys.size}</span>
+              {allLeafKeys.length > 0 ? (
+                <>
+                  {' '}
+                  of <span className="font-medium text-gray-900">{allLeafKeys.length}</span>
+                </>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="mt-4">
+            {loading && (
+              <div className="flex items-center gap-2 text-gray-600">
+                <div className="w-4 h-4 border-2 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
+                <span className="text-sm">Loading permissions…</span>
               </div>
-              <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-2">
+            )}
+
+            {error && <p className="text-sm text-red-600">{error}</p>}
+
+            {!loading && !error && (
+              <div className="flex flex-col gap-3">
+                <div className="relative">
+                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                   <input
-                    type="checkbox"
-                    ref={(input) => {
-                      if (input) {
-                        input.indeterminate =
-                          selectedLeafKeys.size > 0 && selectedLeafKeys.size < allLeafKeys.length;
-                      }
-                    }}
-                    checked={selectedLeafKeys.size === allLeafKeys.length && allLeafKeys.length > 0}
-                    onChange={handleSelectAll}
-                    className="w-4 h-4 text-gray-900 focus:ring-gray-400"
+                    type="text"
+                    placeholder="Search permissions"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full rounded-lg border border-gray-200 bg-gray-50/80 pl-10 pr-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                   />
-                  <span className="text-sm text-gray-900 font-medium">
-                    Select all permissions
-                  </span>
                 </div>
-                <button
-                  onClick={handleExpandAll}
-                  className="text-xs text-gray-700 hover:underline"
-                >
-                  Expand all
-                </button>
-              </div>
-              <div>
-                {filteredTree.map((node) => renderNode(node))}
-                {filteredTree.length === 0 && (
-                  <p className="text-sm text-gray-600 mt-2">
-                    No permissions match your search.
-                  </p>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      ref={(input) => {
+                        if (input) {
+                          input.indeterminate =
+                            selectedLeafKeys.size > 0 && selectedLeafKeys.size < allLeafKeys.length;
+                        }
+                      }}
+                      checked={selectedLeafKeys.size === allLeafKeys.length && allLeafKeys.length > 0}
+                      onChange={handleSelectAll}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/30"
+                      aria-label="Select all permissions"
+                    />
+                    <span className="text-sm font-medium text-gray-900">Select all permissions</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleExpandAll}
+                    className="text-sm font-medium text-gray-700 hover:underline"
+                  >
+                    {expandableKeys.length > 0 &&
+                    expandableKeys.every((key) => expandedKeys.has(key))
+                      ? 'Collapse all'
+                      : 'Expand all'}
+                  </button>
+                </div>
+
+                <div className="rounded-lg border border-gray-200 bg-gray-50/50 p-3 max-h-[520px] overflow-auto">
+                  {filteredTree.map((node) => renderNode(node))}
+                  {filteredTree.length === 0 && (
+                    <p className="text-sm text-gray-500 mt-1">No permissions match your search.</p>
+                  )}
+                </div>
+
+                {tree.length === 0 && (
+                  <p className="text-sm text-gray-500">No permissions found.</p>
                 )}
               </div>
-            </div>
-          )}
-          {!loading && !error && tree.length === 0 && (
-            <p className="text-sm text-gray-600">
-              No permissions found.
-            </p>
-          )}
+            )}
+          </div>
         </div>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

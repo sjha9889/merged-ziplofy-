@@ -1,7 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CancelTrialModal from '../../components/CancelTrialModal';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import PlanDetailsSection from '../../components/PlanDetailsSection';
 import SubscriptionsSection from '../../components/SubscriptionsSection';
 
@@ -33,27 +32,32 @@ const PlanSettingsPage: React.FC = () => {
 
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        <h1 className="text-xl font-medium text-gray-900 mb-4">
-          Plan
-        </h1>
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+        <header className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Plan</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Manage your plan, trial, and subscriptions.
+            </p>
+          </div>
+        </header>
 
-      <PlanDetailsSection
-        onCancelTrial={handleOpenCancelDialog}
-        onChoosePlan={handleNavigateToSelectPlan}
-      />
+        <PlanDetailsSection
+          onCancelTrial={handleOpenCancelDialog}
+          onChoosePlan={handleNavigateToSelectPlan}
+        />
 
-      <SubscriptionsSection onViewAllSubscriptions={handleNavigateToSubscriptions} />
+        <SubscriptionsSection onViewAllSubscriptions={handleNavigateToSubscriptions} />
 
-      <CancelTrialModal
-        open={cancelDialogOpen}
-        onClose={handleCloseCancelDialog}
-        acknowledged={acknowledged}
-        onAcknowledgedChange={handleAcknowledgedChange}
-      />
+        <CancelTrialModal
+          open={cancelDialogOpen}
+          onClose={handleCloseCancelDialog}
+          acknowledged={acknowledged}
+          onAcknowledgedChange={handleAcknowledgedChange}
+        />
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 
