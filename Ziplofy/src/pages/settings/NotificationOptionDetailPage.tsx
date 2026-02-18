@@ -588,7 +588,6 @@ const NotificationOptionDetailPage: React.FC = () => {
           </div>
         </Modal>
       </div>
-      </div>
     </div>
   );
 };
