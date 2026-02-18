@@ -18,7 +18,7 @@ const NotificationList: React.FC<NotificationListProps> = ({
   onNavigate,
 }) => {
   return (
-    <div className="border border-gray-200 bg-white/95">
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
       {items.map((item, index) => (
         <NotificationListItem
           key={item.path}

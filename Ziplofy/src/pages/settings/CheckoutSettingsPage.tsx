@@ -12,7 +12,6 @@ import {
 } from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import Modal from '../../components/Modal';
 import Tabs from '../../components/Tabs';
 import ToggleSwitch from '../../components/ToggleSwitch';
@@ -492,23 +491,29 @@ const CheckoutSettingsPage: React.FC = () => {
   }, [selectedRegions.length, countries.length]);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        <div className="flex items-center justify-between mb-4 border-b border-gray-200 pb-4">
-          <h1 className="text-xl font-medium text-gray-900">Checkout settings</h1>
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto py-6 px-4">
+        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Checkout</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Manage contact, marketing, and advanced checkout preferences.
+            </p>
+          </div>
           {isDirty && (
             <button
+              type="button"
               onClick={handleSave}
               disabled={isSaving || checkoutLoading || !settings}
-              className="px-3 py-1.5 text-sm font-medium border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
             >
-              {isSaving ? 'Saving...' : 'Save'}
+              {isSaving ? 'Saving...' : 'Save changes'}
             </button>
           )}
-        </div>
+        </header>
 
         {/* Customer contact method, Order tracking, and Checkout requirements */}
-        <div className="p-4 mb-4 border border-gray-200 bg-white/95">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
           {/* Customer contact method */}
           <div className="flex items-center gap-1 mb-1">
             <h2 className="text-sm font-medium text-gray-900">Customer contact method</h2>
@@ -529,7 +534,7 @@ const CheckoutSettingsPage: React.FC = () => {
               value="phone_or_email"
               checked={contactMethod === 'phone_or_email'}
               onChange={(e) => handleContactMethodChange(e.target.value as 'phone_or_email' | 'email')}
-              className="mt-1 w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-900"
+              className="mt-1 w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500/30"
             />
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-900">Phone number or email</p>
@@ -566,7 +571,7 @@ const CheckoutSettingsPage: React.FC = () => {
             type="checkbox"
             checked={showOrderTracking}
             onChange={(e) => handleShowOrderTrackingChange(e.target.checked)}
-            className="mt-1 w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900"
+            className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500/30"
           />
           <div className="flex-1">
             <p className="text-sm font-medium text-gray-900">
@@ -628,7 +633,7 @@ const CheckoutSettingsPage: React.FC = () => {
       </div>
 
         {/* Customer information */}
-        <div className="p-4 mb-4 border border-gray-200 bg-white/95">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
           <h2 className="text-sm font-medium text-gray-900 mb-4">Customer information</h2>
 
           {/* Full name */}
@@ -832,7 +837,7 @@ const CheckoutSettingsPage: React.FC = () => {
       </div>
 
         {/* Marketing options */}
-        <div className="p-4 mb-4 border border-gray-200 bg-white/95">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
           <div className="flex items-center gap-1 mb-1">
             <h2 className="text-sm font-medium text-gray-900">Marketing options</h2>
             <InformationCircleIcon className="w-4 h-4 text-gray-500" />
@@ -952,7 +957,7 @@ const CheckoutSettingsPage: React.FC = () => {
       </div>
 
         {/* Tipping */}
-        <div className="p-4 mb-4 border border-gray-200 bg-white/95">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
           <div className="flex items-center gap-1 mb-1">
             <h2 className="text-sm font-medium text-gray-900">Tipping</h2>
             <InformationCircleIcon className="w-4 h-4 text-gray-500" />
@@ -1033,7 +1038,7 @@ const CheckoutSettingsPage: React.FC = () => {
         </div>
 
         {/* Checkout language */}
-        <div className="p-4 mb-4 border border-gray-200 bg-white/95">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
           <h2 className="text-sm font-medium text-gray-900 mb-3">Checkout language</h2>
           <div className="p-3 border border-gray-200">
             <input
@@ -1046,7 +1051,7 @@ const CheckoutSettingsPage: React.FC = () => {
         </div>
 
         {/* Advanced preferences */}
-        <div className="p-4 mb-4 border border-gray-200 bg-white/95">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
           <h2 className="text-sm font-medium text-gray-900 mb-4">Advanced preferences</h2>
 
           {/* Address collection */}
@@ -1100,7 +1105,7 @@ const CheckoutSettingsPage: React.FC = () => {
         </div>
 
         {/* Checkout rules */}
-        <div className="p-4 border border-gray-200 bg-white/95">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5">
           <div className="flex items-center gap-1 mb-1">
             <h2 className="text-sm font-medium text-gray-900">Checkout rules</h2>
             <InformationCircleIcon className="w-4 h-4 text-gray-500" />
@@ -1216,7 +1221,7 @@ const CheckoutSettingsPage: React.FC = () => {
               type="checkbox"
               checked={useShippingAsBilling}
               onChange={(e) => handleUseShippingAsBillingChange(e.target.checked)}
-              className="mt-1 w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900"
+              className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500/30"
             />
             <p className="text-base font-medium text-gray-900">
               Use the shipping address as the billing address by default
@@ -1294,7 +1299,7 @@ const CheckoutSettingsPage: React.FC = () => {
                       }
                     }}
                     onChange={(e) => handleSelectAllRegions(e.target.checked)}
-                    className="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900"
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500/30"
                   />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-900">Regions</p>
@@ -1314,7 +1319,7 @@ const CheckoutSettingsPage: React.FC = () => {
                         type="checkbox"
                         checked={selectedRegions.includes(country._id)}
                         onChange={(e) => handleRegionToggle(country._id, e.target.checked)}
-                        className="w-4 h-4 text-gray-900 border-gray-300 rounded focus:ring-gray-900"
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500/30"
                       />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
@@ -1338,7 +1343,7 @@ const CheckoutSettingsPage: React.FC = () => {
         </div>
       </Modal>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

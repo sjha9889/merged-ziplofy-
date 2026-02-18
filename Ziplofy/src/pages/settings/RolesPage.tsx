@@ -1,7 +1,11 @@
 import React, { useEffect } from 'react';
-import { PlusIcon, ArrowUpTrayIcon, MagnifyingGlassIcon, ArrowsUpDownIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowsUpDownIcon,
+  ArrowUpTrayIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
+} from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import { useStoreRoles } from '../../contexts/store-roles.context';
 import { useStore } from '../../contexts/store.context';
 
@@ -46,44 +50,64 @@ const RolesPage: React.FC = () => {
   const isIndeterminate = rows.length > 0 && selectedCount > 0 && selectedCount < rows.length;
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-medium text-gray-900">Roles</h1>
-          <div className="flex items-center gap-2">
-            <button className="px-3 py-1.5 text-sm border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-1.5">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Roles</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Define permissions and assign roles to staff.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+            >
               <ArrowUpTrayIcon className="w-4 h-4" />
               Export
             </button>
             <button
+              type="button"
               onClick={() => navigate('/settings/users/roles/new')}
-              className="px-3 py-1.5 text-sm text-white bg-gray-900 hover:bg-gray-800 transition-colors flex items-center gap-1.5"
+              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
             >
               <PlusIcon className="w-4 h-4" />
               Add role
             </button>
           </div>
-        </div>
+        </header>
 
-        <div className="border border-gray-200 bg-white">
-          <div className="flex items-center gap-2 p-3">
-            <button className="px-3 py-1 text-xs border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
+            <button
+              type="button"
+              className="rounded-lg px-3 py-1.5 text-xs font-medium bg-gray-900 text-white"
+            >
               All
             </button>
             <div className="flex-1" />
-            <button className="p-1 text-gray-600 hover:text-gray-700 hover:bg-gray-50 transition-colors">
+            <button
+              type="button"
+              className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors"
+              aria-label="Search"
+            >
               <MagnifyingGlassIcon className="w-4 h-4" />
             </button>
-            <button className="p-1 text-gray-600 hover:text-gray-700 hover:bg-gray-50 transition-colors">
+            <button
+              type="button"
+              className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors"
+              aria-label="Sort"
+            >
               <ArrowsUpDownIcon className="w-4 h-4" />
             </button>
           </div>
-          <hr className="border-gray-200" />
+
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-white border-b border-gray-200">
-                  <th className="w-12 px-3 py-2 text-left">
+                <tr className="border-b border-gray-200 bg-gray-50/80">
+                  <th className="w-12 pl-5 pr-3 py-3 text-left">
                     <input
                       type="checkbox"
                       ref={(input) => {
@@ -93,26 +117,36 @@ const RolesPage: React.FC = () => {
                       }}
                       checked={isAllSelected}
                       onChange={toggleAll}
-                      className="w-4 h-4 text-gray-900 focus:ring-gray-400"
-                      aria-label="select all roles"
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/30"
+                      aria-label="Select all roles"
                     />
                   </th>
-                  <th className="px-3 py-2 text-left text-sm font-medium text-gray-900">Name</th>
-                  <th className="px-3 py-2 text-right text-sm font-medium text-gray-900">Users</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Users</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-100">
                 {loading && (
                   <tr>
-                    <td colSpan={3} className="px-3 py-4 text-sm text-gray-600 text-center">
-                      Loading...
+                    <td colSpan={3} className="px-4 py-12 text-center">
+                      <div className="inline-block w-8 h-8 rounded-full border-2 border-gray-200 border-t-blue-600 animate-spin" />
+                      <p className="mt-3 text-sm text-gray-500">Loading roles...</p>
                     </td>
                   </tr>
                 )}
                 {!loading && rows.length === 0 && (
                   <tr>
-                    <td colSpan={3} className="px-3 py-4 text-sm text-gray-600 text-center">
-                      Currently you have no roles added.
+                    <td colSpan={3} className="px-4 py-12 text-center">
+                      <p className="text-sm font-medium text-gray-900">No roles yet</p>
+                      <p className="mt-1 text-sm text-gray-500">Create a role to manage permissions.</p>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/settings/users/roles/new')}
+                        className="mt-4 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+                      >
+                        <PlusIcon className="w-4 h-4" />
+                        Add role
+                      </button>
                     </td>
                   </tr>
                 )}
@@ -121,34 +155,37 @@ const RolesPage: React.FC = () => {
                   rows.map((row) => (
                     <tr
                       key={row.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer"
+                      className="hover:bg-gray-50/80 transition-colors cursor-pointer"
                       onClick={() => navigate(`/settings/users/roles/${row.id}`)}
                     >
-                      <td className="px-3 py-2">
+                      <td className="pl-5 pr-3 py-3">
                         <input
                           type="checkbox"
                           checked={Boolean(selected[row.id])}
                           onChange={() => toggleRow(row.id)}
                           onClick={(e) => e.stopPropagation()}
-                          className="w-4 h-4 text-gray-900 focus:ring-gray-400"
-                          aria-label={`select role ${row.name}`}
+                          className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/30"
+                          aria-label={`Select role ${row.name}`}
                         />
                       </td>
-                      <td className="px-3 py-2 text-sm text-gray-900">{row.name}</td>
-                      <td className="px-3 py-2 text-sm text-gray-900 text-right">{row.users}</td>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900">{row.name}</td>
+                      <td className="px-4 py-3 text-sm text-gray-500 text-right">{row.users}</td>
                     </tr>
                   ))}
               </tbody>
             </table>
           </div>
-          <div className="p-3 text-center border-t border-gray-200">
-            <p className="text-xs text-gray-600">
-              Learn more about <a href="#" className="text-gray-700 hover:underline">roles</a>
+
+          <div className="px-5 py-3 border-t border-gray-100 bg-gray-50/50">
+            <p className="text-sm text-gray-500 text-center">
+              <button type="button" onClick={() => {}} className="text-gray-700 font-medium hover:underline">
+                Learn more about roles
+              </button>
             </p>
           </div>
         </div>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

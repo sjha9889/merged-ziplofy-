@@ -6,7 +6,6 @@ import {
   ChevronUpIcon,
 } from '@heroicons/react/24/outline';
 import { useNavigate, useParams } from 'react-router-dom';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import { useNotificationOptions } from '../../contexts/notification-options.context';
 import { useNotificationCategories } from '../../contexts/notification-categories.context';
 import type { NotificationOption } from '../../contexts/notification-options.context';
@@ -140,57 +139,62 @@ const CustomerNotificationsPage: React.FC = () => {
 
   if (!categoryId) {
     return (
-      <GridBackgroundWrapper>
-        <div className="max-w-7xl mx-auto py-8 px-4">
+      <div className="min-h-screen bg-page-background-color">
+        <div className="max-w-[1400px] mx-auto w-full py-6 px-4">
           <p className="text-sm text-gray-900">Notification category not found.</p>
         </div>
-      </GridBackgroundWrapper>
+      </div>
     );
   }
 
   if (loading) {
     return (
-      <GridBackgroundWrapper>
-        <div className="max-w-7xl mx-auto py-8 px-4">
+      <div className="min-h-screen bg-page-background-color">
+        <div className="max-w-[1400px] mx-auto w-full py-6 px-4">
           <div className="flex justify-center mt-8">
             <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
           </div>
         </div>
-      </GridBackgroundWrapper>
+      </div>
     );
   }
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        <div className="flex items-center justify-between mb-4 border-b border-gray-200 pb-4">
-          <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+        <header className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
             <button
+              type="button"
               onClick={() => navigate('/settings/notifications')}
-              className="p-1 text-gray-600 hover:text-gray-900 transition-colors"
+              className="mt-0.5 inline-flex items-center justify-center p-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+              aria-label="Back to notifications"
             >
               <BellIcon className="w-5 h-5" />
             </button>
-            <ChevronRightIcon className="w-4 h-4 text-gray-500" />
-            <h1 className="text-xl font-medium text-gray-900">
-              {categoryName}
-            </h1>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{categoryName}</h1>
+              <p className="mt-1 text-sm text-gray-500">
+                Manage how and when notifications are sent for this category.
+              </p>
+            </div>
           </div>
           {isCustomerCategory && (
             <button
+              type="button"
               onClick={() => {
                 navigate('/settings/notifications/customer/templates');
               }}
-              className="px-3 py-1.5 border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+              className="rounded-lg px-4 py-2 border border-gray-200 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
             >
               Customize email templates
             </button>
           )}
-        </div>
+        </header>
 
         {isCustomerCategory ? (
           groupedSections.length > 0 ? (
-            <div className="border border-gray-200 p-4 bg-white/95">
+            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5">
               {groupedSections.map((section, sectionIndex) => {
                 const sectionKey = section.title.toLowerCase().replace(/\s+/g, '');
                 const isExpanded = expandedSections[sectionKey] ?? true;
@@ -198,10 +202,11 @@ const CustomerNotificationsPage: React.FC = () => {
                 return (
                   <div key={sectionIndex} className={sectionIndex < groupedSections.length - 1 ? 'mb-4 pb-4 border-b border-gray-200' : ''}>
                     <button
+                      type="button"
                       onClick={() => handleToggleSection(sectionKey)}
                       className="w-full flex items-center justify-between py-2 hover:bg-transparent transition-colors"
                     >
-                      <h2 className="text-sm font-medium text-gray-900 flex-1 text-left">
+                      <h2 className="text-base font-semibold text-gray-900 flex-1 text-left">
                         {section.title}
                       </h2>
                       {isExpanded ? (
@@ -223,6 +228,7 @@ const CustomerNotificationsPage: React.FC = () => {
                             className={itemIndex < section.items.length - 1 ? 'mb-1 pb-1 border-b border-gray-100' : ''}
                           >
                             <button
+                              type="button"
                               onClick={() => navigate(buildOptionPath(item))}
                               className="w-full flex items-center justify-between py-2 hover:bg-gray-50 transition-colors"
                             >
@@ -231,7 +237,7 @@ const CustomerNotificationsPage: React.FC = () => {
                                   {item.optionName}
                                 </p>
                                 {item.optionDesc && (
-                                  <p className="text-xs text-gray-600">{item.optionDesc}</p>
+                                  <p className="text-sm text-gray-500">{item.optionDesc}</p>
                                 )}
                               </div>
                               <ChevronRightIcon className="w-4 h-4 text-gray-500 ml-3 shrink-0" />
@@ -245,16 +251,17 @@ const CustomerNotificationsPage: React.FC = () => {
               })}
             </div>
           ) : (
-            <div className="border border-gray-200 p-4 bg-white/95">
-              <p className="text-xs text-gray-600">No notification options found.</p>
+            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5">
+              <p className="text-sm text-gray-500">No notification options found.</p>
             </div>
           )
         ) : (
-          <div className="border border-gray-200 p-4 bg-white/95">
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5">
             {simpleOptions.length > 0 ? (
               simpleOptions.map((item, index) => (
                 <React.Fragment key={item._id}>
                   <button
+                    type="button"
                     onClick={() => navigate(buildOptionPath(item))}
                     className="w-full flex items-center justify-between py-2 hover:bg-gray-50 transition-colors"
                   >
@@ -263,7 +270,7 @@ const CustomerNotificationsPage: React.FC = () => {
                         {item.optionName}
                       </p>
                       {item.optionDesc && (
-                        <p className="text-xs text-gray-600">{item.optionDesc}</p>
+                        <p className="text-sm text-gray-500">{item.optionDesc}</p>
                       )}
                     </div>
                     <ChevronRightIcon className="w-4 h-4 text-gray-500 ml-3 shrink-0" />
@@ -274,12 +281,12 @@ const CustomerNotificationsPage: React.FC = () => {
                 </React.Fragment>
               ))
             ) : (
-              <p className="text-xs text-gray-600">No notification options found.</p>
+              <p className="text-sm text-gray-500">No notification options found.</p>
             )}
           </div>
         )}
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

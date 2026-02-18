@@ -248,25 +248,28 @@ const AdminApp: React.FC = () => {
   const isCodeFullScreen = location.pathname.startsWith('/themes/code-fullscreen/');
   const isBuilderFullScreen = location.pathname.startsWith('/themes/builder');
   const isBasicElementor = location.pathname.startsWith('/themes/basic-elementor');
-  const hideSidebar = isCodeFullScreen || isBuilderFullScreen || isBasicElementor;
+  const isFullScreen = isCodeFullScreen || isBuilderFullScreen || isBasicElementor;
+  const isSettings = location.pathname.startsWith('/settings');
+  const showNavbar = !isFullScreen;
+  const showSidebar = !isFullScreen && !isSettings;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-      {!hideSidebar && <Navbar />}
+      {showNavbar && <Navbar />}
 
       <div style={{ display: "flex", flexGrow: 1, overflow: "hidden", position: "relative" }}>
-        {!hideSidebar && <Sidebar />}
+        {showSidebar && <Sidebar />}
 
         <main
           style={{
             flexGrow: 1,
-            padding: hideSidebar ? 0 : "24px",
+            padding: isFullScreen ? 0 : "24px",
             overflow: "auto",
-            marginTop: hideSidebar ? 0 : `${NAVBAR_HEIGHT}px`,
-            marginLeft: hideSidebar ? 0 : `${SIDEBAR_WIDTH}px`,
-            width: hideSidebar ? '100%' : `calc(100% - ${SIDEBAR_WIDTH}px)`,
-            height: hideSidebar ? `100vh` : `calc(100vh - ${NAVBAR_HEIGHT}px)`,
-            backgroundColor: hideSidebar ? 'transparent' : '#fdfdfd',
+            marginTop: showNavbar ? `${NAVBAR_HEIGHT}px` : 0,
+            marginLeft: showSidebar ? `${SIDEBAR_WIDTH}px` : 0,
+            width: showSidebar ? `calc(100% - ${SIDEBAR_WIDTH}px)` : '100%',
+            height: showNavbar ? `calc(100vh - ${NAVBAR_HEIGHT}px)` : '100vh',
+            backgroundColor: isFullScreen ? 'transparent' : '#fdfdfd',
             color: '#000',
             transition: 'margin-left 0.3s ease',
           }}

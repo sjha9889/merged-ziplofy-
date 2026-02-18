@@ -29,8 +29,11 @@ export default function StoreDefaultsSection({
   onTimeZoneChange,
 }: StoreDefaultsSectionProps) {
   return (
-    <div className="bg-white border border-gray-200 p-4">
-      <h2 className="text-base font-medium text-gray-900 mb-4">Store defaults</h2>
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5">
+      <div className="mb-4">
+        <h2 className="text-base font-semibold text-gray-900">Store defaults</h2>
+        <p className="mt-1 text-sm text-gray-500">Configure currency, measurement units, and time zone.</p>
+      </div>
 
       {/* Currency display */}
       <div className="mb-6">
@@ -41,7 +44,7 @@ export default function StoreDefaultsSection({
           id="currency-label"
           value="INR"
           disabled
-          className="w-full border border-gray-200 px-3 py-1.5 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
         >
           <option value="INR">Indian Rupee (INR ₹)</option>
         </select>
@@ -62,7 +65,7 @@ export default function StoreDefaultsSection({
           id="backup-region-label"
           value={backupRegion}
           onChange={onBackupRegionChange}
-          className="w-full border border-gray-200 px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white outline-none transition-all focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
         >
           <option value="India">India</option>
           <option value="United States">United States</option>
@@ -83,7 +86,7 @@ export default function StoreDefaultsSection({
           id="unit-system-label"
           value={unitSystem}
           onChange={onUnitSystemChange}
-          className="w-full border border-gray-200 px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white outline-none transition-all focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
         >
           <option value="metric">Metric system</option>
           <option value="imperial">Imperial system</option>
@@ -99,7 +102,7 @@ export default function StoreDefaultsSection({
           id="weight-unit-label"
           value={weightUnit}
           onChange={onWeightUnitChange}
-          className="w-full border border-gray-200 px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white outline-none transition-all focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
         >
           <option value="kg">Kilogram (kg)</option>
           <option value="g">Gram (g)</option>
@@ -117,7 +120,7 @@ export default function StoreDefaultsSection({
           id="timezone-label"
           value={timeZone}
           onChange={onTimeZoneChange}
-          className="w-full border border-gray-200 px-3 py-1.5 text-sm bg-white focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white outline-none transition-all focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
         >
           {timeZones.map((tz) => (
             <option key={tz.value} value={tz.value}>

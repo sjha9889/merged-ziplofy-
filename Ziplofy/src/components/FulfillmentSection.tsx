@@ -24,20 +24,27 @@ const FulfillmentSection: React.FC<FulfillmentSectionProps> = ({
   onCanPickupChange,
 }) => {
   return (
-    <div className="bg-white/95 p-3 border border-gray-200">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-gray-900">Fulfillment</h3>
-        <ToggleSwitch checked={fulfillmentEnabled} onChange={onFulfillmentToggle} label="Enable"/>
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h3 className="text-base font-semibold text-gray-900">Fulfillment</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Choose how this location can fulfill orders.
+          </p>
+        </div>
+        <ToggleSwitch checked={fulfillmentEnabled} onChange={onFulfillmentToggle} label="Enable" />
       </div>
       {fulfillmentEnabled && (
-        <FulfillmentOptions
-          canShip={canShip}
-          canLocalDeliver={canLocalDeliver}
-          canPickup={canPickup}
-          onCanShipChange={onCanShipChange}
-          onCanLocalDeliverChange={onCanLocalDeliverChange}
-          onCanPickupChange={onCanPickupChange}
-        />
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <FulfillmentOptions
+            canShip={canShip}
+            canLocalDeliver={canLocalDeliver}
+            canPickup={canPickup}
+            onCanShipChange={onCanShipChange}
+            onCanLocalDeliverChange={onCanLocalDeliverChange}
+            onCanPickupChange={onCanPickupChange}
+          />
+        </div>
       )}
     </div>
   );

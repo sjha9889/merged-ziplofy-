@@ -2,7 +2,8 @@ import React, { useCallback } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import SettingsSidebar from '../../components/SettingsSidebar';
 
-const NAVBAR_HEIGHT = 60;
+const NAVBAR_HEIGHT = 48; // keep consistent with main Navbar (h-12 = 48px)
+const SETTINGS_SIDEBAR_WIDTH = 240;
 
 const SettingsLayout: React.FC = () => {
   const location = useLocation();
@@ -23,6 +24,7 @@ const SettingsLayout: React.FC = () => {
       <SettingsSidebar currentPath={currentPath} onNavigate={handleNavigate} onBack={handleBack} />
       <main
         className="overflow-y-auto w-full"
+        style={{ paddingLeft: `${SETTINGS_SIDEBAR_WIDTH}px` }}
       >
         <Outlet />
       </main>

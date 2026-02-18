@@ -39,12 +39,13 @@ const DefaultLocationChangeButton: React.FC<DefaultLocationChangeButtonProps> = 
 
   return (
     <div className="flex items-center gap-2">
-      <span className="px-2 py-0.5 text-xs font-medium text-gray-700 bg-gray-100">
+      <span className="px-2.5 py-1 rounded-md text-xs font-medium text-gray-700 bg-gray-100">
         Default
       </span>
       <button
+        type="button"
         onClick={handleOpen}
-        className="cursor-pointer px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+        className="cursor-pointer rounded-lg px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
       >
         Change
       </button>

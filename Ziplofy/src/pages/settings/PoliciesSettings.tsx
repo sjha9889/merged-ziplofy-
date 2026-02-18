@@ -8,7 +8,6 @@ import {
 } from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import Modal from '../../components/Modal';
 import PoliciesRow from '../../components/PoliciesRow';
 import TextEditorToolbar from '../../components/TextEditorToolbar';
@@ -100,19 +99,24 @@ const PoliciesSettings: React.FC = () => {
   }, [stores, activeStoreId, loggedInUser]);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        <h1 className="text-xl font-medium text-gray-900 mb-4">Policies</h1>
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+        <header>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Policies</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Manage return rules and the policies shown in checkout and your store footer.
+          </p>
+        </header>
 
       {/* Return rules */}
-      <div className="bg-white border border-gray-200 p-4 mb-4">
+      <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-medium text-gray-900 mb-1">Return rules</h2>
+            <h2 className="text-base font-semibold text-gray-900 mb-1">Return rules</h2>
             {rules && (
               <>
                 <span
-                  className={`inline-block px-2 py-0.5 text-xs font-medium mr-2 ${
+                  className={`inline-block px-2.5 py-1 rounded-md text-xs font-medium mr-2 ${
                     rules.enabled
                       ? 'bg-gray-100 text-gray-700'
                       : 'bg-gray-100 text-gray-700'
@@ -120,14 +124,15 @@ const PoliciesSettings: React.FC = () => {
                 >
                   {rules.enabled ? 'On' : 'Off'}
                 </span>
-                <p className="text-xs text-gray-600 mt-2">
+                <p className="text-sm text-gray-500 mt-2">
                   Enable return rules to simplify return management, set up return fees, return shipping and define final sale items
                 </p>
               </>
             )}
           </div>
           <button
-            className="px-3 py-1.5 bg-gray-900 text-white text-sm hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            type="button"
+            className="rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
             disabled={loading}
             onClick={() => navigate(rules ? '/settings/policies/manage-return-rules' : '/settings/policies/manage-return-rules/new')}
           >
@@ -137,15 +142,19 @@ const PoliciesSettings: React.FC = () => {
       </div>
 
       {/* Written policies */}
-      <div className="bg-white border border-gray-200 mb-4">
-        <div className="p-4 pb-3 flex items-center justify-between">
+      <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm mb-6 overflow-hidden">
+        <div className="p-5 pb-4 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-base font-medium text-gray-900">Written policies</h2>
-            <p className="text-xs text-gray-600 mt-1">
+            <h2 className="text-base font-semibold text-gray-900">Written policies</h2>
+            <p className="text-sm text-gray-500 mt-1">
               Policies are linked in the footer of checkout and can be added to your online store menu
             </p>
           </div>
-          <button className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors">
+          <button
+            type="button"
+            className="inline-flex items-center justify-center p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-50 transition-colors border border-gray-200 bg-white"
+            aria-label="More actions"
+          >
             <EllipsisHorizontalIcon className="w-4 h-4" />
           </button>
         </div>
@@ -211,7 +220,7 @@ const PoliciesSettings: React.FC = () => {
             label="Contact information"
             right={
               !info ? (
-                <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-700">Required</span>
+                <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700">Required</span>
               ) : undefined
             }
             onClick={() => {
@@ -695,7 +704,7 @@ const PoliciesSettings: React.FC = () => {
         )}
       </Modal>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

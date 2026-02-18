@@ -3,7 +3,6 @@ import toast from 'react-hot-toast';
 import BillingInformationModal from '../../components/BillingInformationModal';
 import EditProfileModal from '../../components/EditProfileModal';
 import GeneralSettingsFooter from '../../components/GeneralSettingsFooter';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import KeyboardShortcutsModal from '../../components/KeyboardShortcutsModal';
 import OrderIdSection from '../../components/OrderIdSection';
 import OrderProcessingSection from '../../components/OrderProcessingSection';
@@ -568,8 +567,17 @@ const GeneralSettingsPage: React.FC = () => {
   }, []);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto w-full flex flex-col gap-4 py-8 px-4">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4 pb-28">
+        <header className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">General</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Manage your store profile, defaults, order settings, and resources.
+            </p>
+          </div>
+        </header>
+
         {/* Store details section ✅ */}
         <StoreDetailsSection
         settings={settings}
@@ -672,7 +680,7 @@ const GeneralSettingsPage: React.FC = () => {
         onClose={handleCloseShortcutsModal}
       />
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

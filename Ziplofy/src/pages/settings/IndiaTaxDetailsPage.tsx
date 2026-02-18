@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Link as RouterLink, useParams } from 'react-router-dom';
+import { Link as RouterLink, useParams, useNavigate } from 'react-router-dom';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import {
   Box,
   Typography,
@@ -54,6 +55,7 @@ import { useCollections, Collection } from '../../contexts/collection.context';
 
 const IndiaTaxDetailsPage: React.FC = () => {
   const { countryId } = useParams<{ countryId: string }>();
+  const navigate = useNavigate();
   const { countries, getCountries } = useCountries();
   const { getStatesByCountryId, statesByCountry, loading: statesLoading } = useStates();
   const { taxDefaults, loading: taxDefaultsLoading, getTaxDefaultsByCountryId } = useTaxRateDefaults();
@@ -680,45 +682,31 @@ const IndiaTaxDetailsPage: React.FC = () => {
     });
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', py: 4 }}>
-      {/* Breadcrumb */}
-      <Breadcrumbs sx={{ mb: 2 }} separator={<ChevronRightIcon fontSize="small" />}>
-        <Link
-          component={RouterLink}
-          to="/settings/taxes-and-duties"
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            color: '#6b7280',
-            textDecoration: 'none',
-            '&:hover': { color: '#111827' },
-          }}
-        >
-          <BagIcon sx={{ mr: 0.5, fontSize: 20 }} />
-          Taxes and duties
-        </Link>
-        <Typography color="text.primary" sx={{ fontWeight: 500 }}>
-          {country?.name || 'Loading...'}
-        </Typography>
-      </Breadcrumbs>
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+        {/* Header */}
+        <header className="flex items-start gap-3">
+          <button
+            type="button"
+            onClick={() => navigate('/settings/taxes-and-duties')}
+            className="mt-0.5 inline-flex items-center justify-center p-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors shrink-0"
+            aria-label="Back to taxes and duties"
+          >
+            <ArrowLeftIcon className="w-5 h-5" />
+          </button>
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+              {country?.name || 'Loading...'}
+            </h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Manage tax rates, overrides, and exemptions for this country.
+            </p>
+          </div>
+        </header>
 
-      {/* Header */}
-      <Typography variant="h4" sx={{ fontWeight: 700, color: '#111827', mb: 3 }}>
-        {country?.name || 'Loading...'}
-      </Typography>
-
-      {/* Country Tax Section - Above Base taxes */}
-      {countryId && (countryTaxMap[countryId] || (activeStoreId && countryTaxOverrideMap[`${activeStoreId}-${countryId}`])) && (
-        <Paper
-          elevation={0}
-          sx={{
-            p: 3,
-            mb: 3,
-            borderRadius: 2,
-            border: '1px solid #e5e7eb',
-            backgroundColor: '#fff',
-          }}
-        >
+        {/* Country Tax Section - Above Base taxes */}
+        {countryId && (countryTaxMap[countryId] || (activeStoreId && countryTaxOverrideMap[`${activeStoreId}-${countryId}`])) && (
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5">
           <Stack direction="row" alignItems="center" spacing={2}>
             <Typography sx={{ minWidth: 120, color: '#111827', fontWeight: 500 }}>
               {country?.name || 'Loading...'}
@@ -778,19 +766,11 @@ const IndiaTaxDetailsPage: React.FC = () => {
               <EditIcon fontSize="small" />
             </IconButton>
           </Stack>
-        </Paper>
+        </div>
       )}
 
-      {/* Base taxes section */}
-      <Paper
-        elevation={0}
-        sx={{
-          p: 3,
-          borderRadius: 2,
-          border: '1px solid #e5e7eb',
-          backgroundColor: '#fff',
-        }}
-      >
+        {/* Base taxes section */}
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5">
         <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
           <Typography variant="h6" sx={{ fontWeight: 600, color: '#111827' }}>
             Base taxes
@@ -892,25 +872,16 @@ const IndiaTaxDetailsPage: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
-      </Paper>
+        </div>
 
-      {/* Tax rates and exemptions section */}
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h6" sx={{ fontWeight: 600, color: '#111827', mb: 2 }}>
-          Tax rates and exemptions
-        </Typography>
+        {/* Tax rates and exemptions section */}
+        <div>
+          <Typography variant="h6" sx={{ fontWeight: 600, color: '#111827', mb: 2 }}>
+            Tax rates and exemptions
+          </Typography>
 
-        {/* Shipping overrides */}
-        <Paper
-          elevation={0}
-          sx={{
-            p: 3,
-            mb: 3,
-            borderRadius: 2,
-            border: '1px solid #e5e7eb',
-            backgroundColor: '#fff',
-          }}
-        >
+          {/* Shipping overrides */}
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
           <Box
             sx={{
               display: 'flex',
@@ -1036,7 +1007,7 @@ const IndiaTaxDetailsPage: React.FC = () => {
             <AddIcon sx={{ fontSize: 20 }} />
             <Typography sx={{ fontWeight: 500 }}>Add override</Typography>
           </Box>
-        </Paper>
+          </div>
 
         <Menu
           anchorEl={productMenuState.anchorEl}
@@ -1086,16 +1057,7 @@ const IndiaTaxDetailsPage: React.FC = () => {
         </Menu>
 
         {/* Product overrides */}
-        <Paper
-          elevation={0}
-          sx={{
-            p: 3,
-            mb: 3,
-            borderRadius: 2,
-            border: '1px solid #e5e7eb',
-            backgroundColor: '#fff',
-          }}
-        >
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
           <Box
             sx={{
               display: 'flex',
@@ -1252,9 +1214,9 @@ const IndiaTaxDetailsPage: React.FC = () => {
               })}
             </Stack>
           )}
-        </Paper>
+        </div>
 
-        <Box sx={{ textAlign: 'center', mt: 3 }}>
+        <div className="text-center mt-6">
           <Link
             href="#"
             underline="hover"
@@ -1268,8 +1230,8 @@ const IndiaTaxDetailsPage: React.FC = () => {
           >
             Learn more about sales tax
           </Link>
-        </Box>
-      </Box>
+        </div>
+        </div>
 
       {/* Edit Modal */}
       <Dialog
@@ -2253,7 +2215,8 @@ const IndiaTaxDetailsPage: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-    </Box>
+      </div>
+    </div>
   );
 };
 

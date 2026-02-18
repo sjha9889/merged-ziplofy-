@@ -35,21 +35,21 @@ const LocationRow: React.FC<LocationRowProps> = ({ location, isDefault, onLocati
   return (
     <div
       onClick={handleClick}
-      className="flex justify-between items-center py-2 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors last:border-b-0"
+      className="flex justify-between items-center py-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50/80 transition-colors last:border-b-0 -mx-4 px-4"
     >
       <div>
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium text-gray-900">{location.name}</p>
           {isDefault && (
-            <span className="px-2 py-0.5 text-xs font-medium text-gray-700 bg-gray-100">
+            <span className="px-2.5 py-1 rounded-md text-xs font-medium text-gray-700 bg-gray-100">
               Default
             </span>
           )}
         </div>
-        <p className="text-xs text-gray-600">{addressLine}</p>
+        <p className="text-sm text-gray-500">{addressLine}</p>
       </div>
       <span
-        className={`px-2 py-0.5 text-xs font-medium ${
+        className={`px-2.5 py-1 rounded-md text-xs font-medium ${
           location.isActive 
             ? 'bg-gray-100 text-gray-700' 
             : 'bg-gray-100 text-gray-500'

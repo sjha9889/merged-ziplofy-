@@ -5,7 +5,6 @@ import {
   ChevronRightIcon,
   PencilIcon,
 } from '@heroicons/react/24/outline';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import Modal from '../../components/Modal';
 import ToggleSwitch from '../../components/ToggleSwitch';
 import { useNotificationOptions } from '../../contexts/notification-options.context';
@@ -274,23 +273,23 @@ const NotificationOptionDetailPage: React.FC = () => {
 
   if (!categoryId || !categorySlug) {
     return (
-      <GridBackgroundWrapper>
-        <div className="max-w-7xl mx-auto py-8 px-4">
+      <div className="min-h-screen bg-page-background-color">
+        <div className="max-w-[1400px] mx-auto w-full py-6 px-4">
           <p className="text-sm text-gray-900">Notification category not found.</p>
         </div>
-      </GridBackgroundWrapper>
+      </div>
     );
   }
 
   if (!currentOption) {
     return (
-      <GridBackgroundWrapper>
-        <div className="max-w-7xl mx-auto py-8 px-4">
+      <div className="min-h-screen bg-page-background-color">
+        <div className="max-w-[1400px] mx-auto w-full py-6 px-4">
           <div className="flex justify-center mt-8">
             <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
           </div>
         </div>
-      </GridBackgroundWrapper>
+      </div>
     );
   }
 
@@ -330,7 +329,7 @@ const NotificationOptionDetailPage: React.FC = () => {
     const processedHtml = replaceTemplateVariables(emailBody);
 
     return (
-      <div className="border border-gray-200 p-3 bg-white max-w-[600px] overflow-auto">
+      <div className="rounded-lg border border-gray-200 p-3 bg-white max-w-[600px] overflow-auto">
         <div
           dangerouslySetInnerHTML={{ __html: processedHtml }}
           className="[&_img]:max-w-full [&_img]:h-auto [&_img]:block [&_*]:box-border"
@@ -347,24 +346,25 @@ const NotificationOptionDetailPage: React.FC = () => {
 
     return (
       <>
-        <div className="border border-gray-200 p-3 bg-white max-w-[600px] mb-3">
+        <div className="rounded-lg border border-gray-200 p-3 bg-white max-w-[600px] mb-3">
           <p className="text-gray-900 whitespace-pre-wrap break-words text-sm leading-relaxed">
             {processedSms}
           </p>
         </div>
 
         {/* SMS Notifications Information Section */}
-        <div className="p-3 border border-gray-200 bg-white/95 max-w-[600px]">
+        <div className="p-4 rounded-lg border border-gray-200 bg-gray-50/80 max-w-[600px]">
           <h3 className="text-sm font-medium text-gray-900 mb-2">SMS notifications</h3>
-          <p className="text-xs text-gray-600 mb-2">
+          <p className="text-sm text-gray-500 mb-2">
             Transactional SMS notifications can't be edited. Customer name, order number, and other specific details will automatically update with the correct information.
           </p>
           <button
+            type="button"
             onClick={(e) => {
               e.preventDefault();
               // TODO: Navigate to SMS notifications documentation
             }}
-            className="text-xs text-gray-700 hover:underline"
+            className="text-sm text-gray-700 font-medium hover:underline"
           >
             Learn more about SMS notifications.
           </button>
@@ -374,88 +374,78 @@ const NotificationOptionDetailPage: React.FC = () => {
   };
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        {/* Breadcrumbs */}
-        <div className="flex items-center gap-1 mb-3 text-xs text-gray-600">
-          <button
-            onClick={() => navigate('/settings/notifications')}
-            className="hover:underline"
-          >
-            Notifications
-          </button>
-          <ChevronRightIcon className="w-3 h-3" />
-          <button
-            onClick={handleBack}
-            className="hover:underline"
-          >
-            {categoryName}
-          </button>
-          <ChevronRightIcon className="w-3 h-3" />
-          <span className="text-gray-900">{currentOption.optionName}</span>
-        </div>
-
-        {/* Header */}
-        <div className="flex items-center justify-between mb-3 border-b border-gray-200 pb-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <button
-                onClick={handleBack}
-                className="p-1 hover:bg-gray-50 transition-colors"
-              >
-                <ArrowLeftIcon className="w-5 h-5 text-gray-600" />
-              </button>
-              <h1 className="text-xl font-medium text-gray-900">
-                {currentOption.optionName}
-              </h1>
-              {hasOverride === false && (
-                <span className="px-2 py-0.5 text-xs font-medium text-gray-700 bg-gray-100 border border-gray-200">
-                  Default
-                </span>
-              )}
-              {hasOverride === true && (
-                <>
-                  <span className="px-2 py-0.5 text-xs font-medium text-gray-700 bg-gray-100 border border-gray-200">
-                    Custom
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+        <header className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="mt-0.5 inline-flex items-center justify-center p-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+              aria-label="Back"
+            >
+              <ArrowLeftIcon className="w-5 h-5" />
+            </button>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+                  {currentOption.optionName}
+                </h1>
+                {hasOverride === false && (
+                  <span className="px-2.5 py-1 rounded-md text-xs font-medium text-gray-700 bg-gray-100 border border-gray-200">
+                    Default
                   </span>
-                  <button
-                    onClick={handleUseDefault}
-                    className="px-2 py-0.5 text-xs font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
-                  >
-                    Use default
-                  </button>
-                </>
+                )}
+                {hasOverride === true && (
+                  <>
+                    <span className="px-2.5 py-1 rounded-md text-xs font-medium text-gray-700 bg-gray-100 border border-gray-200">
+                      Custom
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleUseDefault}
+                      className="rounded-lg px-3 py-1.5 text-xs font-medium text-gray-700 border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
+                    >
+                      Use default
+                    </button>
+                  </>
+                )}
+              </div>
+              <p className="mt-1 text-sm text-gray-500">
+                {categoryName} • Preview and customize notification templates.
+              </p>
+              {currentOption.toggle === true && (
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-sm text-gray-500">Enable this notification</span>
+                  <ToggleSwitch
+                    checked={toggleState}
+                    onChange={handleToggleChange}
+                  />
+                </div>
               )}
             </div>
-            {currentOption.toggle === true && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-600">Enable this notification</span>
-                <ToggleSwitch
-                  checked={toggleState}
-                  onChange={handleToggleChange}
-                />
-              </div>
-            )}
           </div>
           {activeTab === 'email' && (
             <button
+              type="button"
               onClick={handleSendTest}
-              className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+              className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
             >
               Send test
             </button>
           )}
-        </div>
+        </header>
 
         {/* Email/SMS Preview Section */}
-        <div className="border border-gray-200 p-3 bg-white/95">
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5">
           <div className="flex justify-between items-center mb-3">
             <div className="flex items-center gap-2">
               <span className="text-xs font-medium text-gray-600">Preview</span>
               {activeTab === 'email' && currentOption?.emailSupported && (
                 <button
                   onClick={handleOpenEdit}
-                  className="p-1 text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                  type="button"
+                  className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors border border-gray-200 bg-white"
                 >
                   <PencilIcon className="w-4 h-4" />
                 </button>
@@ -464,7 +454,7 @@ const NotificationOptionDetailPage: React.FC = () => {
             <select
               value={selectedLanguage}
               onChange={(e) => setSelectedLanguage(e.target.value)}
-              className="px-2 py-1 text-xs border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+              className="px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
             >
               <option value="English">English</option>
               <option value="Spanish">Spanish</option>
@@ -598,7 +588,8 @@ const NotificationOptionDetailPage: React.FC = () => {
           </div>
         </Modal>
       </div>
-    </GridBackgroundWrapper>
+      </div>
+    </div>
   );
 };
 

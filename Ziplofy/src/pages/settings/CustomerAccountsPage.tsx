@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CustomerAccountsManagementCard from '../../components/CustomerAccountsManagementCard';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import SignInLinksCard from '../../components/SignInLinksCard';
 import TurnOffSelfServeReturnsModal from '../../components/TurnOffSelfServeReturnsModal';
 import { useCustomerAccountSettings } from '../../contexts/customer-account-settings.context';
@@ -132,28 +131,34 @@ const CustomerAccountsPage: React.FC = () => {
   }, [navigate]);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 border-b border-gray-200 pb-4">
-          <h1 className="text-xl font-medium text-gray-900">Customer accounts</h1>
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Customer accounts</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Configure sign-in options, authentication, and account features.
+            </p>
+          </div>
           {settings && (
             <button
+              type="button"
               onClick={handleSave}
               disabled={!hasUnsavedChanges || isControlsDisabled}
-              className="px-3 py-1.5 text-sm font-medium border border-gray-200 text-gray-700 min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
             >
-              {saving ? 'Saving...' : 'Save'}
+              {saving ? 'Saving...' : 'Save changes'}
             </button>
           )}
-        </div>
+        </header>
 
         {error && (
-          <div className="bg-gray-50 border border-gray-200 text-gray-700 px-4 py-3 mb-4 text-xs">
+          <div className="rounded-xl border border-red-200 bg-red-50/80 text-red-800 px-4 py-3 text-sm">
             {error}
           </div>
         )}
 
-        <div className="space-y-4">
+        <div className="space-y-6">
         {/* Sign-in links */}
         <SignInLinksCard
           showSignInLinks={showSignInLinks}
@@ -183,7 +188,7 @@ const CustomerAccountsPage: React.FC = () => {
         onConfirm={handleConfirmTurnOff}
       />
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

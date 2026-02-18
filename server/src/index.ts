@@ -10,6 +10,7 @@ import { validateEnv, loadedEnvFile } from './utils/env.utils';
 // validate environment variables before starting the server
 validateEnv();
 
+
 // connect to database
 connectDB();
 

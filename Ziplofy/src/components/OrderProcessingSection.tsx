@@ -23,12 +23,12 @@ export default function OrderProcessingSection({
   onAutoArchiveChange,
 }: OrderProcessingSectionProps) {
   return (
-    <div className="bg-white border border-gray-200 p-4">
-      <div className="flex items-center mb-3">
-        <h2 className="text-base font-medium text-gray-900">Order processing</h2>
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5">
+      <div className="flex items-center mb-2">
+        <h2 className="text-base font-semibold text-gray-900">Order processing</h2>
         <div className="ml-2 group relative">
           <button
-            className="p-1 text-gray-600 hover:text-gray-700"
+            className="p-1 text-gray-500 hover:text-gray-700"
             title="Order processing settings"
             aria-label="Order processing settings"
           >
@@ -36,10 +36,11 @@ export default function OrderProcessingSection({
           </button>
         </div>
       </div>
+      <p className="text-sm text-gray-500 mb-4">Automate fulfillment and archiving behavior for paid orders.</p>
 
       {/* After an order has been paid */}
       <div className="mb-6">
-        <p className="text-xs text-gray-600 mb-3">After an order has been paid</p>
+        <p className="text-xs font-medium text-gray-500 mb-3">After an order has been paid</p>
         <div className="space-y-2">
           <div>
             <label className="flex items-center gap-2 cursor-pointer">
@@ -49,7 +50,7 @@ export default function OrderProcessingSection({
                 value="fulfill_all"
                 checked={fulfillmentOption === 'fulfill_all'}
                 onChange={onFulfillmentOptionChange}
-                className="w-4 h-4 text-gray-900 focus:ring-gray-400"
+                className="w-4 h-4 text-blue-600 focus:ring-blue-500/30"
               />
               <span className="text-sm text-gray-900">Automatically fulfill the order's line items</span>
             </label>
@@ -60,7 +61,7 @@ export default function OrderProcessingSection({
                     type="checkbox"
                     checked={notifyCustomers}
                     onChange={onNotifyCustomersChange}
-                    className="w-4 h-4 text-gray-900 focus:ring-gray-400"
+                    className="w-4 h-4 text-blue-600 focus:ring-blue-500/30"
                   />
                   <span className="text-sm text-gray-900">Notify customers of their shipment</span>
                 </label>
@@ -69,7 +70,7 @@ export default function OrderProcessingSection({
                     type="checkbox"
                     checked={fulfillHighRiskOrders}
                     onChange={onFulfillHighRiskOrdersChange}
-                    className="w-4 h-4 text-gray-900 focus:ring-gray-400"
+                    className="w-4 h-4 text-blue-600 focus:ring-blue-500/30"
                   />
                   <span className="text-sm text-gray-900">Automatically fulfill all orders, even those with a high risk of fraud</span>
                 </label>
@@ -83,7 +84,7 @@ export default function OrderProcessingSection({
               value="fulfill_gift_cards"
               checked={fulfillmentOption === 'fulfill_gift_cards'}
               onChange={onFulfillmentOptionChange}
-              className="w-4 h-4 text-gray-900 focus:ring-gray-400"
+              className="w-4 h-4 text-blue-600 focus:ring-blue-500/30"
             />
             <span className="text-sm text-gray-900">Automatically fulfill only the gift cards of the order</span>
           </label>
@@ -94,7 +95,7 @@ export default function OrderProcessingSection({
               value="dont_fulfill"
               checked={fulfillmentOption === 'dont_fulfill'}
               onChange={onFulfillmentOptionChange}
-              className="w-4 h-4 text-gray-900 focus:ring-gray-400"
+              className="w-4 h-4 text-blue-600 focus:ring-blue-500/30"
             />
             <span className="text-sm text-gray-900">Don't fulfill any of the order's line items automatically</span>
           </label>
@@ -103,7 +104,7 @@ export default function OrderProcessingSection({
 
       {/* After an order has been fulfilled and paid */}
       <div>
-        <p className="text-xs text-gray-600 mb-3">
+        <p className="text-xs font-medium text-gray-500 mb-3">
           After an order has been fulfilled and paid, or when all items have been refunded
         </p>
         <label className="flex items-center gap-2 cursor-pointer">
@@ -111,11 +112,11 @@ export default function OrderProcessingSection({
             type="checkbox"
             checked={autoArchive}
             onChange={onAutoArchiveChange}
-            className="w-4 h-4 text-gray-900 focus:ring-gray-400"
+            className="w-4 h-4 text-blue-600 focus:ring-blue-500/30"
           />
           <span className="text-sm text-gray-900">Automatically archive the order</span>
         </label>
-        <p className="text-xs text-gray-600 mt-1 ml-6">
+        <p className="text-xs text-gray-500 mt-1 ml-6">
           The order will be removed from your list of open orders.
         </p>
       </div>

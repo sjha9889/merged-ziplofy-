@@ -127,22 +127,32 @@ const EditNotificationOptionPage: React.FC = () => {
 
   if (!categoryId || !categorySlug) {
     return (
-      <Box sx={{ maxWidth: 1200, mx: 'auto', py: 4 }}>
-        <Typography>Notification category not found.</Typography>
-      </Box>
+      <div className="min-h-screen bg-page-background-color">
+        <div className="max-w-[1400px] mx-auto w-full py-6 px-4">
+          <Box sx={{ maxWidth: 1200, mx: 'auto', py: 0 }}>
+            <Typography>Notification category not found.</Typography>
+          </Box>
+        </div>
+      </div>
     );
   }
 
   if (!currentOption) {
     return (
-      <Box sx={{ maxWidth: 1200, mx: 'auto', py: 4 }}>
-        <Typography>Loading...</Typography>
-      </Box>
+      <div className="min-h-screen bg-page-background-color">
+        <div className="max-w-[1400px] mx-auto w-full py-6 px-4">
+          <Box sx={{ maxWidth: 1200, mx: 'auto', py: 0 }}>
+            <Typography>Loading...</Typography>
+          </Box>
+        </div>
+      </div>
     );
   }
 
   return (
-    <Box sx={{ maxWidth: 1200, mx: 'auto', py: 4 }}>
+    <div className="min-h-screen bg-page-background-color">
+      <div className="max-w-[1400px] mx-auto w-full py-6 px-4">
+        <Box sx={{ maxWidth: 1200, mx: 'auto', py: 0 }}>
       {/* Breadcrumbs */}
       <Breadcrumbs
         separator={<ChevronRightIcon sx={{ fontSize: 16 }} />}
@@ -385,7 +395,9 @@ const EditNotificationOptionPage: React.FC = () => {
           </Button>
         )}
       </Box>
-    </Box>
+        </Box>
+      </div>
+    </div>
   );
 };
 
