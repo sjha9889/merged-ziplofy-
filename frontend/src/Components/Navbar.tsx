@@ -98,6 +98,11 @@ const Navbar = () => {
     const menuItem = item as MenuItem;
     setActiveMenu(menuItem);
     sessionStorage.setItem("activeMenu", menuItem);
+    // When on client detail or analytics, navigate away so the selected menu content shows
+    const isOnClientPage = location.pathname.match(/\/admin\/client\/[^/]+(\/analytics)?/);
+    if (isOnClientPage) {
+      navigate("/admin/dashboard");
+    }
   };
 
   return (
@@ -183,6 +188,8 @@ const Navbar = () => {
           <ThemeEditPage />
         ) : location.pathname.match(/\/admin\/client\/[^/]+\/analytics/) ? (
           <ClientAnalytics />
+        ) : location.pathname.match(/\/admin\/client\/[^/]+\/stores/) ? (
+          <ClientStores />
         ) : location.pathname.match(/\/admin\/client\/[^/]+/) ? (
           <ClientDetail />
         ) : (

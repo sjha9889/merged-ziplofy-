@@ -160,14 +160,12 @@ const ClientList: React.FC = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [roleFilter, setRoleFilter] = useState<string>("all");
-  const [roles, setRoles] = useState<{ _id: string; name: string }[]>([]);
   const debouncedSearch = useDebounce(searchTerm, 300);
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [pendingEditData, setPendingEditData] = useState<{ userId: string; data: UserFormData } | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [allClientUsers, setAllClientUsers] = useState<User[]>([]);
-  const [sortBy, setSortBy] = useState<"name" | "email" | "createdAt">("name");
+  const [sortBy, setSortBy] = useState<"name" | "email" | "status" | "createdAt">("name");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [pagination, setPagination] = useState({
     page: 1,
@@ -175,16 +173,6 @@ const ClientList: React.FC = () => {
     total: 0,
     totalPages: 1,
   });
-
-  const fetchRoles = async () => {
-    try {
-      const res = await axios.get("/roles");
-      const data = res.data?.data || res.data || [];
-      setRoles(Array.isArray(data) ? data : []);
-    } catch {
-      setRoles([]);
-    }
-  };
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -195,7 +183,6 @@ const ClientList: React.FC = () => {
         limit: "500",
         search: debouncedSearch,
         status: statusFilter,
-        role: roleFilter,
       };
       const res = await axios.get("/user", { params });
       const data = res.data?.data || [];
@@ -222,9 +209,9 @@ const ClientList: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [debouncedSearch, statusFilter, roleFilter]);
+  }, [debouncedSearch, statusFilter]);
 
-  const handleSort = (column: "name" | "email" | "createdAt") => {
+  const handleSort = (column: "name" | "email" | "status" | "createdAt") => {
     if (sortBy === column) {
       setSortOrder((o) => (o === "asc" ? "desc" : "asc"));
     } else {
@@ -234,15 +221,30 @@ const ClientList: React.FC = () => {
     setPagination((p) => ({ ...p, page: 1 }));
   };
 
+  const handleSortFromDropdown = (value: string) => {
+    const [col, order] = value.split("-") as ["name" | "email" | "status" | "createdAt", "asc" | "desc"];
+    setSortBy(col);
+    setSortOrder(order);
+    setPagination((p) => ({ ...p, page: 1 }));
+  };
+
+  const sortDropdownValue = `${sortBy}-${sortOrder}`;
+
   const sortedUsers = useMemo(() => {
     const list = [...allClientUsers];
     const mult = sortOrder === "asc" ? 1 : -1;
+    const statusOrder = { active: 0, inactive: 1, suspended: 2 };
     list.sort((a, b) => {
       if (sortBy === "name") {
         return mult * (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" });
       }
       if (sortBy === "email") {
         return mult * (a.email || "").localeCompare(b.email || "", undefined, { sensitivity: "base" });
+      }
+      if (sortBy === "status") {
+        const sa = statusOrder[a.status as keyof typeof statusOrder] ?? 3;
+        const sb = statusOrder[b.status as keyof typeof statusOrder] ?? 3;
+        return mult * (sa - sb);
       }
       if (sortBy === "createdAt") {
         const da = new Date(a.createdAt || 0).getTime();
@@ -261,10 +263,6 @@ const ClientList: React.FC = () => {
   );
   const totalClientUsers = sortedUsers.length;
   const totalPages = Math.ceil(totalClientUsers / pagination.limit) || 1;
-
-  useEffect(() => {
-    fetchRoles();
-  }, []);
 
   useEffect(() => {
     setPagination((p) => ({ ...p, page: 1 }));
@@ -388,18 +386,19 @@ const ClientList: React.FC = () => {
             <option value="suspended">Suspended</option>
           </select>
           <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
+            value={sortDropdownValue}
+            onChange={(e) => handleSortFromDropdown(e.target.value)}
             className="filter-select"
+            title="Sort by"
           >
-            <option value="all">All Roles</option>
-            {roles
-              .filter((r) => !ADMIN_ROLES.includes(r.name.toLowerCase()))
-              .map((r) => (
-                <option key={r._id} value={r.name}>
-                  {r.name.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-                </option>
-              ))}
+            <option value="name-asc">Name (A → Z)</option>
+            <option value="name-desc">Name (Z → A)</option>
+            <option value="email-asc">Email (A → Z)</option>
+            <option value="email-desc">Email (Z → A)</option>
+            <option value="status-asc">Status (Active first)</option>
+            <option value="status-desc">Status (Suspended first)</option>
+            <option value="createdAt-desc">Created (Newest)</option>
+            <option value="createdAt-asc">Created (Oldest)</option>
           </select>
         </div>
 
@@ -410,7 +409,7 @@ const ClientList: React.FC = () => {
             <div className="client-list-empty">
               <Users className="client-list-empty-icon" size={64} strokeWidth={1.5} />
               <p className="client-list-empty-message">
-                {searchTerm || statusFilter !== "all" || roleFilter !== "all"
+                {searchTerm || statusFilter !== "all"
                   ? "No users match your search criteria"
                   : "No clients yet"}
               </p>
@@ -430,7 +429,11 @@ const ClientList: React.FC = () => {
                         Email {sortBy === "email" ? (sortOrder === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />) : null}
                       </button>
                     </th>
-                    <th style={{ textAlign: "left" }}>Status</th>
+                    <th style={{ textAlign: "left" }} className="client-list-sortable">
+                      <button type="button" onClick={() => handleSort("status")} className="client-list-sort-btn">
+                        Status {sortBy === "status" ? (sortOrder === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />) : null}
+                      </button>
+                    </th>
                     <th style={{ textAlign: "left" }} className="client-list-sortable">
                       <button type="button" onClick={() => handleSort("createdAt")} className="client-list-sort-btn">
                         Created {sortBy === "createdAt" ? (sortOrder === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />) : null}

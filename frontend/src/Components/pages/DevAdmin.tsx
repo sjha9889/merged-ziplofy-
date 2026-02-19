@@ -1,6 +1,5 @@
-import { faEnvelope, faSave, faTimes, faUser, faUserPlus } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { ChangeEvent, FormEvent, useState } from "react";
+import { Mail, Save, RotateCcw, User } from "lucide-react";
 import { useSupportDevelopers } from '../../contexts/supportdeveloper.context';
 import './DevAdmin.css';
 
@@ -63,12 +62,16 @@ const DevAdmin = () => {
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-
-    await addSupportDeveloper({
-      email: formData.email,
-      username: formData.username
-    });
-
+    try {
+      await addSupportDeveloper({
+        email: formData.email,
+        username: formData.username,
+      });
+      setFormData({ email: '', username: '' });
+      setErrors({});
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReset = () => {
@@ -77,7 +80,7 @@ const DevAdmin = () => {
   };
 
   return (
-    <div className="dev-admin-container">
+    <div className="dev-admin-page main-content">
       <div className="dev-admin-card">
         <div className="dev-admin-card-header">
           <div className="dev-admin-title-block">
@@ -101,7 +104,7 @@ const DevAdmin = () => {
             {/* Email Field */}
             <div className="form-group">
               <label htmlFor="email" className="form-label">
-                <FontAwesomeIcon icon={faEnvelope} />
+                <Mail size={16} />
                 Email Address
               </label>
               <input
@@ -120,7 +123,7 @@ const DevAdmin = () => {
             {/* Username Field */}
             <div className="form-group">
               <label htmlFor="username" className="form-label">
-                <FontAwesomeIcon icon={faUser} />
+                <User size={16} />
                 Username
               </label>
               <input
@@ -145,7 +148,7 @@ const DevAdmin = () => {
               className="btn btn-secondary"
               disabled={isSubmitting}
             >
-              <FontAwesomeIcon icon={faTimes} />
+              <RotateCcw size={16} />
               Reset
             </button>
             <button
@@ -153,7 +156,7 @@ const DevAdmin = () => {
               className="btn btn-primary"
               disabled={isSubmitting}
             >
-              <FontAwesomeIcon icon={faSave} />
+              <Save size={16} />
               {isSubmitting ? 'Adding...' : 'Add Support Developer'}
             </button>
           </div>

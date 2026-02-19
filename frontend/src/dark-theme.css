@@ -98,18 +98,23 @@
 }
 
 [data-theme="dark"] .loading-state,
-[data-theme="dark"] .error-state {
+[data-theme="dark"] .error-state,
+[data-theme="dark"] .support-developer-loading,
+[data-theme="dark"] .support-developer-error {
   background: var(--z-bg);
   border-color: var(--z-border);
   color: var(--z-text);
 }
 
 [data-theme="dark"] .loading-state p,
-[data-theme="dark"] .error-state p {
+[data-theme="dark"] .error-state p,
+[data-theme="dark"] .support-developer-loading p,
+[data-theme="dark"] .support-developer-error p {
   color: var(--z-text-muted);
 }
 
-[data-theme="dark"] .error-state h3 {
+[data-theme="dark"] .error-state h3,
+[data-theme="dark"] .support-developer-error h3 {
   color: var(--z-text);
 }
 
@@ -347,6 +352,19 @@
 
 [data-theme="dark"] .support-developer-card-header {
   border-color: var(--z-border);
+}
+
+[data-theme="dark"] .support-developer-empty {
+  background: var(--z-surface);
+  border-color: var(--z-border);
+}
+
+[data-theme="dark"] .support-developer-empty h3 {
+  color: var(--z-text);
+}
+
+[data-theme="dark"] .support-developer-empty p {
+  color: var(--z-text-muted);
 }
 
 /* Pagination */

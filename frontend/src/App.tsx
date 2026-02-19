@@ -50,6 +50,7 @@ const App = () => {
               />
               <Route path="/admin/profile" element={<></>} />
               <Route path="/admin/client/:userId/analytics" element={<AdminProtectedRoute><></></AdminProtectedRoute>} />
+              <Route path="/admin/client/:userId/stores" element={<AdminProtectedRoute><></></AdminProtectedRoute>} />
               <Route path="/admin/client/:userId" element={<AdminProtectedRoute><></></AdminProtectedRoute>} />
               <Route
                 path="/admin/themes/edit/:themeId"

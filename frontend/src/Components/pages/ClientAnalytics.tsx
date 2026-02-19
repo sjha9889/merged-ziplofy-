@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
   BarChart3,
@@ -84,14 +84,20 @@ interface ProductSummary {
 const ClientAnalytics: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const match = location.pathname.match(/\/admin\/client\/([^/]+)/);
   const userId = match?.[1] ?? "";
 
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
+  const [selectedStoreId, setSelectedStoreId] = useState<string | null>(() => searchParams.get("store") || null);
   const [timeRange, setTimeRange] = useState<TimeRange>("12");
+
+  useEffect(() => {
+    const storeFromUrl = searchParams.get("store");
+    setSelectedStoreId(storeFromUrl || null);
+  }, [searchParams]);
   const [activeSection, setActiveSection] = useState<SectionTab>("overview");
   const [rawOrders, setRawOrders] = useState<OrderWithItems[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
@@ -307,7 +313,11 @@ const ClientAnalytics: React.FC = () => {
             <label>Store</label>
             <select
               value={selectedStoreId ?? ""}
-              onChange={(e) => setSelectedStoreId(e.target.value || null)}
+              onChange={(e) => {
+                const storeId = e.target.value || null;
+                setSelectedStoreId(storeId);
+                setSearchParams(storeId ? { store: storeId } : {}, { replace: true });
+              }}
               className="client-analytics-select"
             >
               <option value="">All Stores</option>
