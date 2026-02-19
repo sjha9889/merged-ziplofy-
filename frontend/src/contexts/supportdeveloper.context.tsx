@@ -42,12 +42,8 @@ export const SupportDevelopersProvider = ({ children }: { children: ReactNode })
 
   // Fetch all support developers
   const fetchSupportDevelopers = useCallback(async (): Promise<void> => {
-    try {
-      const response = await axiosi.get<GetSupportDevelopersApiResponseType>('/support-developer');
-      setSupportDevelopers(response.data.supportDevelopers || []);
-    } catch (error) {
-      console.error('Failed to fetch support developers:', error);
-    }
+    const response = await axiosi.get<GetSupportDevelopersApiResponseType>('/support-developer');
+    setSupportDevelopers(response.data.supportDevelopers || []);
   }, []);
 
   // Add a new support developer

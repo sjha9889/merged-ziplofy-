@@ -1,16 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSupportDevelopers } from '../../contexts/supportdeveloper.context';
-import { useAssignedDevelopers } from '../../contexts/assign-developer.context';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faUsers, 
-  faEnvelope, 
-  faUser, 
-  faCalendar, 
-  faSpinner, 
-  faExclamationTriangle 
-} from '@fortawesome/free-solid-svg-icons';
-import { Users, Calendar, Mail } from 'lucide-react';
+import { Users, Calendar, Mail, User, Loader2, AlertTriangle } from 'lucide-react';
 import AssignDeveloperModal from '../AssignDeveloperModal';
 import './SupportDeveloper.css';
 
@@ -23,19 +13,24 @@ interface Developer {
 }
 
 const SupportDeveloper: React.FC = () => {
-  const { 
-    supportDevelopers, 
-    loading, 
-    error, 
-    fetchSupportDevelopers 
-  } = useSupportDevelopers();
-
+  const { supportDevelopers, fetchSupportDevelopers } = useSupportDevelopers();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [selectedDeveloper, setSelectedDeveloper] = useState<Developer | null>(null);
 
-  // Fetch support developers on component mount
   useEffect(() => {
-    fetchSupportDevelopers();
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetchSupportDevelopers()
+      .catch((err: any) => {
+        if (!cancelled) setError(err?.response?.data?.message || err?.message || 'Failed to load developers');
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => { cancelled = true; };
   }, [fetchSupportDevelopers]);
 
   const formatDate = (dateString: string) => {
@@ -51,9 +46,9 @@ const SupportDeveloper: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="support-developer-container">
-        <div className="loading-state">
-          <FontAwesomeIcon icon={faSpinner} className="spinner" />
+      <div className="support-developer-page main-content">
+        <div className="support-developer-loading">
+          <Loader2 size={32} className="support-developer-spinner" />
           <p>Loading support developers...</p>
         </div>
       </div>
@@ -62,13 +57,19 @@ const SupportDeveloper: React.FC = () => {
 
   if (error) {
     return (
-      <div className="support-developer-container">
-        <div className="error-state">
-          <FontAwesomeIcon icon={faExclamationTriangle} />
+      <div className="support-developer-page main-content">
+        <div className="support-developer-error">
+          <AlertTriangle size={48} />
           <h3>Error Loading Support Developers</h3>
           <p>{error}</p>
-          <button 
-            onClick={fetchSupportDevelopers}
+          <button
+            onClick={() => {
+              setError(null);
+              setLoading(true);
+              fetchSupportDevelopers()
+                .catch((err: any) => setError(err?.response?.data?.message || err?.message || 'Failed to load'))
+                .finally(() => setLoading(false));
+            }}
             className="btn btn-primary"
           >
             Try Again
@@ -89,7 +90,7 @@ const SupportDeveloper: React.FC = () => {
   };
 
   return (
-    <div className="support-developer-container">
+    <div className="support-developer-page main-content">
       <div className="support-developer-card">
         <div className="support-developer-card-header">
           <div className="support-developer-title-block">
@@ -110,8 +111,8 @@ const SupportDeveloper: React.FC = () => {
         {/* Content */}
       <div className="support-developer-content">
         {supportDevelopers.length === 0 ? (
-          <div className="empty-state">
-            <FontAwesomeIcon icon={faUsers} />
+          <div className="support-developer-empty">
+            <Users size={64} className="support-developer-empty-icon" />
             <h3>No Support Developers</h3>
             <p>There are currently no support developers in the system.</p>
             <p>Add new support developers from the Dev Admin panel.</p>
@@ -122,12 +123,12 @@ const SupportDeveloper: React.FC = () => {
               <div key={developer._id} className="developer-card">
                 <div className="developer-card-header">
                   <div className="developer-avatar">
-                    <FontAwesomeIcon icon={faUser} />
+                    <User size={24} />
                   </div>
                   <div className="developer-info">
                     <h3 className="developer-name">{developer.username}</h3>
                     <p className="developer-email">
-                      <FontAwesomeIcon icon={faEnvelope} />
+                      <Mail size={14} />
                       {developer.email}
                     </p>
                   </div>
@@ -136,7 +137,7 @@ const SupportDeveloper: React.FC = () => {
                 <div className="developer-card-body">
                   <div className="developer-meta">
                     <div className="meta-item">
-                      <FontAwesomeIcon icon={faCalendar} />
+                      <Calendar size={14} />
                       <span>Joined: {formatDate(developer.createdAt)}</span>
                     </div>
                     <div className="meta-item">
