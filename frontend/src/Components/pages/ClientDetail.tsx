@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, Store, Mail, User, Calendar } from "lucide-react";
 import axios from "../../config/axios";
 import "./ClientDetail.css";
@@ -18,9 +18,10 @@ interface ClientUser {
 }
 
 const ClientDetail: React.FC = () => {
+  const location = useLocation();
   const navigate = useNavigate();
-  const { userId } = useParams<{ userId: string }>();
-  const id = userId ?? "";
+  const match = location.pathname.match(/\/admin\/client\/([^/]+)(?:\/|$)/);
+  const id = match?.[1] ?? "";
   const [user, setUser] = useState<ClientUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -36,7 +37,7 @@ const ClientDetail: React.FC = () => {
         setLoading(true);
         setError("");
         try {
-          const res = await axios.get(`/client-user-stats/${userId}`);
+          const res = await axios.get(`/client-user-stats/${id}`);
           const d = res.data?.data;
           setUser(d?.user || null);
         } catch (statsErr: any) {
@@ -70,7 +71,7 @@ const ClientDetail: React.FC = () => {
       }
     };
     fetchData();
-  }, [userId]);
+  }, [id]);
 
   const formatDate = (d: string | undefined) =>
     d ? new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "—";
