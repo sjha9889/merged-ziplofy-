@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ArrowLeft, BarChart3 } from "lucide-react";
 import axios from "../../config/axios";
 import "./ClientDetail.css";
@@ -38,9 +38,10 @@ const getStoreIdentification = (s: { storeName: string; storeCode?: string; _id:
 };
 
 const ClientStores: React.FC = () => {
+  const location = useLocation();
   const navigate = useNavigate();
-  const match = window.location.pathname.match(/\/admin\/client\/([^/]+)/);
-  const userId = match?.[1] ?? "";
+  const match = location.pathname.match(/\/admin\/client\/([^/]+)/);
+  const id = match?.[1] ?? "";
   const [data, setData] = useState<ClientStoresData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -56,7 +57,7 @@ const ClientStores: React.FC = () => {
         setLoading(true);
         setError("");
         try {
-          const res = await axios.get(`/client-user-stats/${userId}`);
+          const res = await axios.get(`/client-user-stats/${id}`);
           const d = res.data?.data;
           setData(d ? { user: d.user, stores: d.stores || [], totals: d.totals || { storesCount: 0, ordersCount: 0, productsSold: 0, totalRevenue: 0 } } : null);
         } catch (statsErr: any) {
@@ -89,7 +90,7 @@ const ClientStores: React.FC = () => {
       }
     };
     fetchData();
-  }, [userId]);
+  }, [id]);
 
   if (loading) return <div className="client-list-page"><div className="loading">Loading...</div></div>;
   if (error || !data) return <div className="client-list-page"><div className="error-alert">{error || "Not found"}</div></div>;
@@ -135,7 +136,7 @@ const ClientStores: React.FC = () => {
                 </div>
                 <button
                   className="btn primary"
-                  onClick={() => navigate(`/admin/client/${userId}/analytics?store=${s._id}`)}
+                  onClick={() => navigate(`/admin/client/${id}/analytics?store=${s._id}`)}
                 >
                   <BarChart3 size={16} /> Analytics
                 </button>

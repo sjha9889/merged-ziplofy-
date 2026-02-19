@@ -8,6 +8,7 @@ import { useAdminAuth } from "../contexts/admin-auth.context";
 import { useTheme } from "../contexts/theme.context";
 import ClientList from "./pages/ClientList";
 import ClientDetail from "./pages/ClientDetail";
+import ClientStores from "./pages/ClientStores";
 import ClientAnalytics from "./pages/ClientAnalytics";
 import DevAdmin from "./pages/DevAdmin";
 import DevRequests from "./pages/DevRequests";
