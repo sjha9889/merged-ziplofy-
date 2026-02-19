@@ -35,6 +35,14 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Store = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
+const ALPHANUM = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function generateStoreCode() {
+    let code = "";
+    for (let i = 0; i < 8; i++) {
+        code += ALPHANUM.charAt(Math.floor(Math.random() * ALPHANUM.length));
+    }
+    return code;
+}
 const storeSchema = new mongoose_1.Schema({
     userId: {
         type: mongoose_1.Schema.Types.ObjectId,
@@ -55,6 +63,12 @@ const storeSchema = new mongoose_1.Schema({
         maxLength: [500, "Store description cannot exceed 500 characters"],
         minLength: [10, "Store description must be at least 10 characters"],
     },
+    storeCode: {
+        type: String,
+        unique: true,
+        sparse: true,
+        uppercase: true,
+    },
     defaultLocation: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: 'Location',
@@ -70,4 +84,21 @@ storeSchema.index({ userId: 1 });
 storeSchema.index({ storeName: 1 });
 // Ensure unique store name per user
 storeSchema.index({ userId: 1, storeName: 1 }, { unique: true });
+storeSchema.index({ storeCode: 1 }, { unique: true, sparse: true });
+storeSchema.pre("save", async function (next) {
+    if (!this.storeCode) {
+        const Model = this.constructor;
+        let attempts = 0;
+        let code = "";
+        do {
+            code = generateStoreCode();
+            const existing = await Model.findOne({ storeCode: code });
+            if (!existing)
+                break;
+            attempts++;
+        } while (attempts < 10);
+        this.storeCode = code;
+    }
+    next();
+});
 exports.Store = mongoose_1.default.model("Store", storeSchema);

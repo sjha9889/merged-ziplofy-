@@ -7,6 +7,8 @@ import Sidebar from "./Sidebar";
 import { useAdminAuth } from "../contexts/admin-auth.context";
 import { useTheme } from "../contexts/theme.context";
 import ClientList from "./pages/ClientList";
+import ClientDetail from "./pages/ClientDetail";
+import ClientAnalytics from "./pages/ClientAnalytics";
 import DevAdmin from "./pages/DevAdmin";
 import DevRequests from "./pages/DevRequests";
 import Domain from "./pages/Domain";
@@ -73,6 +75,14 @@ const Navbar = () => {
     localStorage.setItem("app-settings", JSON.stringify(settings));
   }, [settings]);
   const userMenuRef = useRef<HTMLDivElement | null>(null);
+  const isSuperAdmin = user?.roleName === "super-admin" || (typeof window !== "undefined" && localStorage.getItem("isSuperAdmin") === "true");
+
+  useEffect(() => {
+    if (user && activeMenu === "Client List" && !isSuperAdmin) {
+      setActiveMenu("Payment");
+      sessionStorage.setItem("activeMenu", "Payment");
+    }
+  }, [user, activeMenu, isSuperAdmin]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -171,10 +181,14 @@ const Navbar = () => {
           <Profile />
         ) : location.pathname.startsWith("/admin/themes/edit/") ? (
           <ThemeEditPage />
+        ) : location.pathname.match(/\/admin\/client\/[^/]+\/analytics/) ? (
+          <ClientAnalytics />
+        ) : location.pathname.match(/\/admin\/client\/[^/]+/) ? (
+          <ClientDetail />
         ) : (
           <>
-            {activeMenu === "Client List" && <ClientList />}
-            {activeMenu === "Payment" && <Payment />}
+            {activeMenu === "Client List" && isSuperAdmin && <ClientList />}
+            {((activeMenu === "Client List" && !isSuperAdmin) || activeMenu === "Payment") && <Payment />}
             {activeMenu === "Invoice" && <Invoice />}
             {activeMenu === "Manage User" && <ManageUser />}
             {activeMenu === "Roles & Permission" && <RolesPermission />}

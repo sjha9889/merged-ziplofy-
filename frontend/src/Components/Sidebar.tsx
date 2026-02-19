@@ -116,7 +116,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle, activeItem, onSelec
       <ul className="sidebar-menu">
         <p className="sidebar-section-title">Main Menu</p>
 
-        {(hasViewPermission("Client List") || shouldShowAllSections) && (
+        {isSuperAdmin && (
           <li
             className={activeItem === "Client List" ? "active" : ""}
             onClick={() => onSelect && onSelect("Client List")}

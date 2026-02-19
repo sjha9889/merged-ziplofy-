@@ -9,6 +9,8 @@ exports.storeRouter = (0, express_1.Router)();
 exports.storeRouter.use(auth_middleware_1.protect);
 // Get stores for authenticated user
 exports.storeRouter.get("/my-stores", store_controller_1.getStoresByUserId);
+// Get stores for a specific user (super-admin/support-admin only)
+exports.storeRouter.get("/user/:userId", store_controller_1.getStoresByUserParam);
 // Create a new store
 exports.storeRouter.post("/", store_controller_1.createStore);
 // Update a store

@@ -190,6 +190,25 @@
   letter-spacing: 0.05em;
 }
 
+.client-list-page .client-list-sortable .client-list-sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: color 0.2s;
+}
+
+.client-list-page .client-list-sortable .client-list-sort-btn:hover {
+  color: var(--z-primary);
+}
+
 .client-list-page .table td {
   padding: 16px 24px;
   font-size: 14px;

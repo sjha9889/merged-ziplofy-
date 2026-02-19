@@ -19,7 +19,8 @@
     "seed:permissions": "node build/seed/permissions/seed.permissions.js",
     "seed:states": "node build/seed/seed.states.js",
     "seed:tax-defaults-india": "node build/seed/seed.tax-defaults-india.js",
-    "seed:country-tax": "node build/seed/seed.country-tax.js"
+    "seed:country-tax": "node build/seed/seed.country-tax.js",
+    "seed:store-codes": "node build/seed/seed.store-codes.js"
   },
   "keywords": [
     "express",
