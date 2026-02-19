@@ -44,7 +44,7 @@ exports.getOrdersByStoreId = (0, error_utils_1.asyncErrorHandler)(async (req, re
     }
     const orders = await models_1.Order.find({ storeId: new mongoose_1.Types.ObjectId(storeId) })
         .populate([
-        { path: 'storeId', select: 'storeName' },
+        { path: 'storeId', select: 'storeName storeCode' },
         { path: 'customerId', select: '-password' },
         { path: 'shippingAddressId' },
         { path: 'billingAddressId' },
@@ -78,7 +78,7 @@ exports.getOrderById = (0, error_utils_1.asyncErrorHandler)(async (req, res) => 
     }
     const order = await models_1.Order.findById(id)
         .populate([
-        { path: 'storeId', select: 'storeName' },
+        { path: 'storeId', select: 'storeName storeCode' },
         { path: 'customerId', select: '-password' },
         { path: 'shippingAddressId' },
         { path: 'billingAddressId' },

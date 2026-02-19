@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateStore = exports.getStoresByUserId = exports.createStore = void 0;
+exports.updateStore = exports.getStoresByUserParam = exports.getStoresByUserId = exports.createStore = void 0;
 const general_settings_model_1 = require("../models/general-settings/general-settings.model");
 const notification_settings_model_1 = require("../models/notification-settings/notification-settings.model");
 const location_model_1 = require("../models/location/location.model");
@@ -97,6 +97,25 @@ exports.createStore = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
 exports.getStoresByUserId = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const userId = req.user?.id;
     const stores = await store_model_1.Store.find({ userId });
+    res.status(200).json({
+        success: true,
+        data: stores,
+        count: stores.length,
+    });
+});
+// Get stores for a specific user (super-admin or support-admin only)
+exports.getStoresByUserParam = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
+    const { userId } = req.params;
+    const userRole = req.user?.role;
+    const isSuperAdmin = req.user?.superAdmin;
+    const isSupportAdmin = userRole?.toLowerCase() === "support-admin";
+    if (!isSuperAdmin && !isSupportAdmin) {
+        throw new error_utils_1.CustomError("Only super-admin or support-admin can view another user's stores", 403);
+    }
+    if (!userId) {
+        throw new error_utils_1.CustomError("User ID is required", 400);
+    }
+    const stores = await store_model_1.Store.find({ userId }).lean();
     res.status(200).json({
         success: true,
         data: stores,

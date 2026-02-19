@@ -1,5 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Search, ChevronLeft, ChevronRight, Edit, Trash2, Eye, X, Users } from "lucide-react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAdminAuth } from "../../contexts/admin-auth.context";
+import { Search, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Edit, Trash2, Eye, X, Users } from "lucide-react";
 import axios from "../../config/axios";
 import { useDebounce } from "../../hooks/useDebounce";
 import { EditVerificationModal } from "../EditVerificationModal";
@@ -12,8 +14,12 @@ interface User {
   email: string;
   role: string;
   status: "active" | "inactive" | "suspended";
+  userCode?: string;
   createdAt: string;
 }
+
+const formatClientDisplay = (u: User) =>
+  u.userCode ? `${u.name} ${u.userCode}/${u._id}` : u.name;
 
 interface UserModalProps {
   user?: User | null;
@@ -135,6 +141,18 @@ const ADMIN_ROLES = ["super-admin", "support-admin", "client-admin", "developer-
 
 // ---------------------- Client List (Client users only - non-admin) ----------------------
 const ClientList: React.FC = () => {
+  const navigate = useNavigate();
+  const { user: adminUser } = useAdminAuth();
+  const isSuperAdmin =
+    adminUser?.roleName === "super-admin" || localStorage.getItem("isSuperAdmin") === "true";
+
+  useEffect(() => {
+    if (!isSuperAdmin) {
+      sessionStorage.setItem("activeMenu", "Payment");
+      window.location.href = "/admin/dashboard";
+    }
+  }, [isSuperAdmin]);
+
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
@@ -149,6 +167,8 @@ const ClientList: React.FC = () => {
   const [pendingEditData, setPendingEditData] = useState<{ userId: string; data: UserFormData } | null>(null);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const [allClientUsers, setAllClientUsers] = useState<User[]>([]);
+  const [sortBy, setSortBy] = useState<"name" | "email" | "createdAt">("name");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -204,12 +224,42 @@ const ClientList: React.FC = () => {
     }
   }, [debouncedSearch, statusFilter, roleFilter]);
 
+  const handleSort = (column: "name" | "email" | "createdAt") => {
+    if (sortBy === column) {
+      setSortOrder((o) => (o === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(column);
+      setSortOrder("asc");
+    }
+    setPagination((p) => ({ ...p, page: 1 }));
+  };
+
+  const sortedUsers = useMemo(() => {
+    const list = [...allClientUsers];
+    const mult = sortOrder === "asc" ? 1 : -1;
+    list.sort((a, b) => {
+      if (sortBy === "name") {
+        return mult * (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" });
+      }
+      if (sortBy === "email") {
+        return mult * (a.email || "").localeCompare(b.email || "", undefined, { sensitivity: "base" });
+      }
+      if (sortBy === "createdAt") {
+        const da = new Date(a.createdAt || 0).getTime();
+        const db = new Date(b.createdAt || 0).getTime();
+        return mult * (da - db);
+      }
+      return 0;
+    });
+    return list;
+  }, [allClientUsers, sortBy, sortOrder]);
+
   // Paginate client users for display
-  const paginatedUsers = allClientUsers.slice(
+  const paginatedUsers = sortedUsers.slice(
     (pagination.page - 1) * pagination.limit,
     pagination.page * pagination.limit
   );
-  const totalClientUsers = allClientUsers.length;
+  const totalClientUsers = sortedUsers.length;
   const totalPages = Math.ceil(totalClientUsers / pagination.limit) || 1;
 
   useEffect(() => {
@@ -370,17 +420,29 @@ const ClientList: React.FC = () => {
               <table className="table">
                 <thead>
                   <tr>
-                    <th style={{ textAlign: "left" }}>Name</th>
-                    <th style={{ textAlign: "left" }}>Email</th>
+                    <th style={{ textAlign: "left" }} className="client-list-sortable">
+                      <button type="button" onClick={() => handleSort("name")} className="client-list-sort-btn">
+                        Name {sortBy === "name" ? (sortOrder === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />) : null}
+                      </button>
+                    </th>
+                    <th style={{ textAlign: "left" }} className="client-list-sortable">
+                      <button type="button" onClick={() => handleSort("email")} className="client-list-sort-btn">
+                        Email {sortBy === "email" ? (sortOrder === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />) : null}
+                      </button>
+                    </th>
                     <th style={{ textAlign: "left" }}>Status</th>
-                    <th style={{ textAlign: "left" }}>Created</th>
+                    <th style={{ textAlign: "left" }} className="client-list-sortable">
+                      <button type="button" onClick={() => handleSort("createdAt")} className="client-list-sort-btn">
+                        Created {sortBy === "createdAt" ? (sortOrder === "asc" ? <ChevronUp size={14} /> : <ChevronDown size={14} />) : null}
+                      </button>
+                    </th>
                     <th style={{ textAlign: "left" }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedUsers.map((user) => (
                     <tr key={user._id}>
-                      <td style={{ textAlign: "left" }}>{user.name}</td>
+                      <td style={{ textAlign: "left" }}>{formatClientDisplay(user)}</td>
                       <td style={{ textAlign: "left" }}>{user.email}</td>
                       <td style={{ textAlign: "left" }}>
                         <span
@@ -396,7 +458,7 @@ const ClientList: React.FC = () => {
                         <div className="action-buttons">
                           <button
                             className="btn view"
-                            onClick={() => openEditModal(user)}
+                            onClick={() => navigate(`/admin/client/${user._id}`)}
                           >
                             <Eye size={14} /> View
                           </button>

@@ -111,6 +111,30 @@ export const getStoresByUserId = asyncErrorHandler(async (req: Request, res: Res
   });
 });
 
+// Get stores for a specific user (super-admin or support-admin only)
+export const getStoresByUserParam = asyncErrorHandler(async (req: Request, res: Response) => {
+  const { userId } = req.params as { userId: string };
+  const userRole = (req.user as any)?.role;
+  const isSuperAdmin = (req.user as any)?.superAdmin;
+  const isSupportAdmin = userRole?.toLowerCase() === "support-admin";
+
+  if (!isSuperAdmin && !isSupportAdmin) {
+    throw new CustomError("Only super-admin or support-admin can view another user's stores", 403);
+  }
+
+  if (!userId) {
+    throw new CustomError("User ID is required", 400);
+  }
+
+  const stores = await Store.find({ userId }).lean();
+
+  res.status(200).json({
+    success: true,
+    data: stores,
+    count: stores.length,
+  });
+});
+
 // Update a store
 export const updateStore = asyncErrorHandler(async (req: Request, res: Response) => {
   const { id } = req.params;

@@ -12,7 +12,7 @@ export const getOrdersByStoreId = asyncErrorHandler(async (req: Request, res: Re
 
   const orders = await Order.find({ storeId: new Types.ObjectId(storeId) })
     .populate([
-      { path: 'storeId', select: 'storeName' },
+      { path: 'storeId', select: 'storeName storeCode' },
       { path: 'customerId', select: '-password' },
       { path: 'shippingAddressId' },
       { path: 'billingAddressId' },
@@ -54,7 +54,7 @@ export const getOrderById = asyncErrorHandler(async (req: Request, res: Response
 
   const order = await Order.findById(id)
     .populate([
-      { path: 'storeId', select: 'storeName' },
+      { path: 'storeId', select: 'storeName storeCode' },
       { path: 'customerId', select: '-password' },
       { path: 'shippingAddressId' },
       { path: 'billingAddressId' },
