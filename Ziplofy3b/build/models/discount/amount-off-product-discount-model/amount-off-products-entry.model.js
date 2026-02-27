@@ -40,15 +40,10 @@ const amountOffProductsEntrySchema = new mongoose_1.Schema({
     discountId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'AmountOffProductsDiscount', required: true, index: true },
     productId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Product', default: null, index: true },
     collectionId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Collections', default: null, index: true },
-}, {
-    timestamps: true,
-    versionKey: false,
-});
-// Compound indexes for better query performance
+}, { timestamps: true, versionKey: false });
 amountOffProductsEntrySchema.index({ storeId: 1, discountId: 1 });
 amountOffProductsEntrySchema.index({ storeId: 1, productId: 1 });
 amountOffProductsEntrySchema.index({ storeId: 1, collectionId: 1 });
-// Check if model already exists to prevent duplicate registration
 const AmountOffProductsEntry = mongoose_1.default.models.AmountOffProductsEntry ||
     mongoose_1.default.model('AmountOffProductsEntry', amountOffProductsEntrySchema);
 exports.AmountOffProductsEntry = AmountOffProductsEntry;

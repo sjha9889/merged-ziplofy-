@@ -2,12 +2,24 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 import { CustomerAddress, ICustomerAddress } from "../models/customer/customer-address.model";
 import { Customer } from "../models/customer/customer.model";
+import { Country } from "../models/country/country.model";
 import { asyncErrorHandler, CustomError } from "../utils/error.utils";
+
+function resolveCountryId(countryId?: string | mongoose.Types.ObjectId, countryIso2?: string): Promise<mongoose.Types.ObjectId | null> {
+  const idStr = typeof countryId === "string" ? countryId : countryId?.toString?.();
+  if (idStr && mongoose.Types.ObjectId.isValid(idStr)) {
+    return Promise.resolve(new mongoose.Types.ObjectId(idStr));
+  }
+  if (countryIso2 && typeof countryIso2 === "string" && countryIso2.length === 2) {
+    return Country.findOne({ iso2: countryIso2.toUpperCase() }).then((c) => (c ? c._id : null));
+  }
+  return Promise.resolve(null);
+}
 
 // Create a new customer address
 export const createCustomerAddress = asyncErrorHandler(async (req: Request, res: Response) => {
-  const { customerId, country, firstName, lastName, company, address, apartment, city, state, pinCode, phoneNumber, addressType}
-    = req.body as  Omit<ICustomerAddress, "_id">;
+  const { customerId, countryId, country, firstName, lastName, company, address, apartment, city, state, pinCode, phoneNumber, addressType }
+    = req.body as Omit<ICustomerAddress, "_id"> & { country?: string };
 
   if (!customerId) {
     throw new CustomError("Customer ID is required", 400);
@@ -15,8 +27,13 @@ export const createCustomerAddress = asyncErrorHandler(async (req: Request, res:
   if (!mongoose.Types.ObjectId.isValid(customerId)) {
     throw new CustomError("Invalid customer ID format", 400);
   }
-  if (!country || !firstName || !lastName || !address || !city || !state || !pinCode || !phoneNumber) {
+  if (!firstName || !lastName || !address || !city || !state || !pinCode || !phoneNumber) {
     throw new CustomError("Missing required address fields", 400);
+  }
+
+  const resolvedCountryId = await resolveCountryId(countryId, country);
+  if (!resolvedCountryId) {
+    throw new CustomError("Valid country ID or country ISO2 code (e.g. US, IN) is required", 400);
   }
 
   // Check if this is the first address for this customer
@@ -25,7 +42,7 @@ export const createCustomerAddress = asyncErrorHandler(async (req: Request, res:
 
   const newAddress = await CustomerAddress.create({
     customerId,
-    country,
+    countryId: resolvedCountryId,
     firstName,
     lastName,
     company,
@@ -45,31 +62,43 @@ export const createCustomerAddress = asyncErrorHandler(async (req: Request, res:
     });
   }
 
+  const populated = await CustomerAddress.findById(newAddress._id).populate("countryId", "name iso2").lean();
   res.status(201).json({
     success: true,
     message: "Customer address created successfully",
-    data: newAddress,
+    data: populated || newAddress,
   });
 });
 
 // Update a customer address
 export const updateCustomerAddress = asyncErrorHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
-  const payload = req.body as Partial<ICustomerAddress>;
+  const payload = req.body as Partial<ICustomerAddress> & { country?: string };
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw new CustomError("Invalid address ID format", 400);
   }
 
-  const updated = await CustomerAddress.findByIdAndUpdate(id, payload, { new: true, runValidators: true });
+  const { country, ...rest } = payload;
+  const updatePayload = { ...rest } as Partial<ICustomerAddress>;
+  if (payload.countryId !== undefined || country !== undefined) {
+    const resolved = await resolveCountryId(payload.countryId, country);
+    if (!resolved) {
+      throw new CustomError("Valid country ID or country ISO2 code (e.g. US, IN) is required", 400);
+    }
+    updatePayload.countryId = resolved;
+  }
+
+  const updated = await CustomerAddress.findByIdAndUpdate(id, updatePayload, { new: true, runValidators: true });
   if (!updated) {
     throw new CustomError("Customer address not found", 404);
   }
 
+  const populated = await CustomerAddress.findById(updated._id).populate("countryId", "name iso2").lean();
   res.status(200).json({
     success: true,
     message: "Customer address updated successfully",
-    data: updated,
+    data: populated || updated,
   });
 });
 
@@ -126,7 +155,10 @@ export const getCustomerAddressesByCustomerId = asyncErrorHandler(async (req: Re
     throw new CustomError("Invalid customer ID format", 400);
   }
 
-  const addresses = await CustomerAddress.find({ customerId }).sort({ createdAt: -1 });
+  const addresses = await CustomerAddress.find({ customerId })
+    .populate("countryId", "name iso2")
+    .sort({ createdAt: -1 })
+    .lean();
 
   res.status(200).json({
     success: true,

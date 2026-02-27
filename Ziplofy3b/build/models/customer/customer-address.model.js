@@ -37,7 +37,7 @@ exports.CustomerAddress = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const customerAddressSchema = new mongoose_1.Schema({
     customerId: { type: mongoose_1.Schema.Types.ObjectId, ref: "Customer", required: [true, "Customer ID is required"] },
-    country: { type: String, required: [true, "Country is required"], trim: true, maxLength: [100, "Country cannot exceed 100 characters"] },
+    countryId: { type: mongoose_1.Schema.Types.ObjectId, ref: "Country", required: [true, "Country ID is required"], index: true },
     firstName: { type: String, required: [true, "First name is required"], trim: true, maxLength: [50, "First name cannot exceed 50 characters"] },
     lastName: { type: String, required: [true, "Last name is required"], trim: true, maxLength: [50, "Last name cannot exceed 50 characters"] },
     company: { type: String, trim: true, maxLength: [100, "Company name cannot exceed 100 characters"] },
@@ -49,6 +49,6 @@ const customerAddressSchema = new mongoose_1.Schema({
     phoneNumber: { type: String, required: [true, "Phone number is required"], trim: true, maxLength: [20, "Phone number cannot exceed 20 characters"] },
     addressType: { type: String, default: 'home' },
 }, { timestamps: true, versionKey: false });
-customerAddressSchema.index({ country: 1, city: 1 });
+customerAddressSchema.index({ countryId: 1, city: 1 });
 customerAddressSchema.index({ customerId: 1, createdAt: -1 });
 exports.CustomerAddress = mongoose_1.default.model("CustomerAddress", customerAddressSchema);

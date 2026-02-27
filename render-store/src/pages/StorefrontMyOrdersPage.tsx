@@ -4,6 +4,7 @@ import { FiPackage, FiChevronDown, FiChevronUp, FiMapPin, FiCreditCard, FiTruck,
 import StorefrontNavbar from '../components/StorefrontNavbar';
 import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 import { useStorefrontOrder, type StorefrontOrder } from '../contexts/storefront-order.context';
+import { formatINR } from '../utils/currency';
 
 const NAVBAR_HEIGHT = 64;
 
@@ -38,7 +39,7 @@ const StorefrontMyOrdersPage: React.FC = () => {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
-  const formatCurrency = (amount: number) => `$${(amount / 100).toFixed(2)}`;
+  const formatCurrency = (amount: number) => formatINR(amount);
 
   const getStatusColor = (status: StorefrontOrder['status']) => {
     switch (status) {
@@ -234,7 +235,7 @@ const StorefrontMyOrdersPage: React.FC = () => {
                             <div className="text-sm text-[#2b1e1e]">
                               {shippingAddress.city}, {shippingAddress.state} {shippingAddress.pinCode}
                             </div>
-                            <div className="text-sm text-[#2b1e1e]">{shippingAddress.country}</div>
+                            <div className="text-sm text-[#2b1e1e]">{typeof shippingAddress.countryId === 'object' && shippingAddress.countryId ? (shippingAddress.countryId as { name?: string }).name : ''}</div>
                             <div className="text-sm text-[#2b1e1e] mt-1">Phone: {shippingAddress.phoneNumber}</div>
                           </div>
                         </div>

@@ -9,6 +9,7 @@ const error_utils_1 = require("../utils/error.utils");
 const collections_model_1 = require("../models/collections/collections.model");
 const collection_entry_model_1 = require("../models/collection-entry/collection-entry.model");
 const product_model_1 = require("../models/product/product.model");
+const models_1 = require("../models");
 // Get collections by store id
 exports.getCollectionsByStoreId = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const { storeId } = req.params;
@@ -27,6 +28,12 @@ exports.getProductsInCollection = (0, error_utils_1.asyncErrorHandler)(async (re
     const pageNum = Math.max(1, Number(page) || 1);
     const limitNum = Math.min(100, Math.max(1, Number(limit) || 12));
     const skip = (pageNum - 1) * limitNum;
+    // Get the collection to find the storeId
+    const collection = await collections_model_1.Collections.findById(collectionId).select('storeId').lean();
+    if (!collection) {
+        throw new error_utils_1.CustomError("Collection not found", 404);
+    }
+    const storeId = collection.storeId;
     // Resolve product ids from collection entries
     const productIds = await collection_entry_model_1.CollectionEntry.find({ collectionId })
         .distinct("productId");
@@ -34,7 +41,8 @@ exports.getProductsInCollection = (0, error_utils_1.asyncErrorHandler)(async (re
         return res.status(200).json({
             success: true,
             data: [],
-            pagination: { currentPage: pageNum, totalPages: 0, totalItems: 0, itemsPerPage: limitNum }
+            pagination: { currentPage: pageNum, totalPages: 0, totalItems: 0, itemsPerPage: limitNum },
+            orderDiscount: null
         });
     }
     const filter = { _id: { $in: productIds } };
@@ -65,14 +73,155 @@ exports.getProductsInCollection = (0, error_utils_1.asyncErrorHandler)(async (re
             .lean(),
         product_model_1.Product.countDocuments(filter),
     ]);
+    // ===== DISCOUNT LOGIC START =====
+    const now = new Date();
+    const nowDateStr = now.toISOString().split('T')[0];
+    const nowTimeStr = now.toISOString().split('T')[1].substring(0, 5);
+    const isDiscountActive = (d) => {
+        if (d.startDate && d.startDate > nowDateStr)
+            return false;
+        if (d.startDate === nowDateStr && d.startTime && d.startTime > nowTimeStr)
+            return false;
+        if (!d.setEndDate || !d.endDate)
+            return true;
+        if (d.endDate > nowDateStr)
+            return true;
+        if (d.endDate === nowDateStr && d.endTime && d.endTime >= nowTimeStr)
+            return true;
+        if (d.endDate === nowDateStr && !d.endTime)
+            return true;
+        return false;
+    };
+    // ===== AMOUNT OFF PRODUCTS DISCOUNTS =====
+    const activeProductDiscounts = await models_1.AmountOffProductsDiscount.find({
+        storeId,
+        status: 'active',
+        // Fetch both automatic and discount-code based discounts
+    }).lean();
+    const validProductDiscounts = activeProductDiscounts.filter(isDiscountActive);
+    const productDiscountIds = validProductDiscounts.map((d) => d._id);
+    const productDiscountEntries = productDiscountIds.length > 0
+        ? await models_1.AmountOffProductsEntry.find({
+            storeId,
+            discountId: { $in: productDiscountIds }
+        }).lean()
+        : [];
+    const entriesByDiscount = new Map();
+    for (const entry of productDiscountEntries) {
+        const key = String(entry.discountId);
+        if (!entriesByDiscount.has(key))
+            entriesByDiscount.set(key, []);
+        entriesByDiscount.get(key).push(entry);
+    }
+    const collectionIdsInEntries = productDiscountEntries
+        .filter((e) => e.collectionId)
+        .map((e) => e.collectionId);
+    let collectionProductMap = new Map();
+    if (collectionIdsInEntries.length > 0) {
+        const collectionEntries = await collection_entry_model_1.CollectionEntry.find({
+            collectionId: { $in: collectionIdsInEntries }
+        }).lean();
+        for (const ce of collectionEntries) {
+            const colKey = String(ce.collectionId);
+            if (!collectionProductMap.has(colKey))
+                collectionProductMap.set(colKey, []);
+            collectionProductMap.get(colKey).push(String(ce.productId));
+        }
+    }
+    const productDiscountMap = new Map();
+    for (const discount of validProductDiscounts) {
+        const discountId = String(discount._id);
+        const entries = entriesByDiscount.get(discountId) || [];
+        const applicableProductIds = [];
+        for (const entry of entries) {
+            if (entry.productId) {
+                applicableProductIds.push(String(entry.productId));
+            }
+            else if (entry.collectionId) {
+                const productsInCollection = collectionProductMap.get(String(entry.collectionId)) || [];
+                applicableProductIds.push(...productsInCollection);
+            }
+        }
+        for (const productId of applicableProductIds) {
+            const existing = productDiscountMap.get(productId);
+            const newDiscount = {
+                valueType: discount.valueType,
+                percentage: discount.percentage,
+                fixedAmount: discount.fixedAmount,
+                title: discount.title,
+                method: discount.method,
+                discountCode: discount.discountCode
+            };
+            if (!existing) {
+                productDiscountMap.set(productId, newDiscount);
+            }
+            else {
+                const existingValue = existing.valueType === 'percentage' ? (existing.percentage || 0) : (existing.fixedAmount || 0);
+                const newValue = newDiscount.valueType === 'percentage' ? (newDiscount.percentage || 0) : (newDiscount.fixedAmount || 0);
+                if (existing.valueType === newDiscount.valueType) {
+                    if (newValue > existingValue) {
+                        productDiscountMap.set(productId, newDiscount);
+                    }
+                }
+                else if (newDiscount.valueType === 'fixed-amount' && newValue > existingValue) {
+                    productDiscountMap.set(productId, newDiscount);
+                }
+            }
+        }
+    }
+    // ===== AMOUNT OFF ORDER DISCOUNTS =====
+    const activeOrderDiscounts = await models_1.AmountOffOrderDiscount.find({
+        storeId,
+        status: 'active',
+        method: 'automatic',
+    }).lean();
+    const validOrderDiscounts = activeOrderDiscounts.filter(isDiscountActive);
+    let bestOrderDiscount = null;
+    for (const discount of validOrderDiscounts) {
+        const d = discount;
+        const newDiscount = {
+            valueType: d.valueType,
+            percentage: d.percentage,
+            fixedAmount: d.fixedAmount,
+            title: d.title,
+            minimumPurchase: d.minimumPurchase,
+            minimumAmount: d.minimumAmount,
+            minimumQuantity: d.minimumQuantity
+        };
+        if (!bestOrderDiscount) {
+            bestOrderDiscount = newDiscount;
+        }
+        else {
+            const existingValue = bestOrderDiscount.valueType === 'percentage'
+                ? (bestOrderDiscount.percentage || 0)
+                : (bestOrderDiscount.fixedAmount || 0);
+            const newValue = newDiscount.valueType === 'percentage'
+                ? (newDiscount.percentage || 0)
+                : (newDiscount.fixedAmount || 0);
+            if (newValue > existingValue) {
+                bestOrderDiscount = newDiscount;
+            }
+        }
+    }
+    // Enrich products with discount info
+    const enrichedProducts = products.map((product) => {
+        const productId = String(product._id);
+        const discount = productDiscountMap.get(productId);
+        return {
+            ...product,
+            productDiscount: discount || null
+        };
+    });
+    // ===== DISCOUNT LOGIC END =====
     res.status(200).json({
         success: true,
-        data: products,
+        data: enrichedProducts,
         pagination: {
             currentPage: pageNum,
             totalPages: Math.ceil(total / limitNum),
             totalItems: total,
             itemsPerPage: limitNum,
         },
+        orderDiscount: bestOrderDiscount
     });
 });

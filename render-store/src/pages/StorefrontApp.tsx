@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiShoppingCart, FiHeart, FiArrowRight, FiTruck, FiShield, FiHeadphones, FiCheck } from 'react-icons/fi';
-import { FaStar, FaFacebook, FaTwitter, FaInstagram, FaPinterest } from 'react-icons/fa';
+import { FiShoppingCart, FiArrowRight, FiTruck, FiShield, FiHeadphones, FiCheck } from 'react-icons/fi';
+import { FaFacebook, FaTwitter, FaInstagram, FaPinterest } from 'react-icons/fa';
 import StorefrontNavbar from '../components/StorefrontNavbar';
 import AuthPopup from '../components/AuthPopup';
 import type { StorefrontProductItem } from '../contexts/product.context';
@@ -11,10 +11,11 @@ import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 import { useStorefrontCart } from '../contexts/storefront-cart.context';
 import { useStorefrontCollections } from '../contexts/storefront-collections.context';
 import { useStorefrontProductVariants } from '../contexts/product-variant.context';
+import { formatINR } from '../utils/currency';
 
 const StorefrontApp: React.FC = () => {
   const { storeFrontMeta } = useStorefront();
-  const { products, loading, pagination, fetchProductsByStoreId } = useStorefrontProducts();
+  const { products, loading, pagination, orderDiscount, fetchProductsByStoreId } = useStorefrontProducts();
   const { user, logout, checkAuth } = useStorefrontAuth();
   const { getCartByCustomerId, createCartEntry } = useStorefrontCart();
   const { fetchVariantsByProductId } = useStorefrontProductVariants();
@@ -50,20 +51,19 @@ const StorefrontApp: React.FC = () => {
     async (product: StorefrontProductItem, e: React.MouseEvent) => {
       e.stopPropagation();
       if (!storeFrontMeta?.storeId) return;
-      if (!user) {
-        setAuthPopupOpen(true);
-        return;
-      }
       try {
         const variants = await fetchVariantsByProductId(product._id);
         const realVariants = variants.filter((v) => !v.isSynthetic);
         const variantToAdd = realVariants.length === 1 ? realVariants[0] : variants[0];
         if (variantToAdd) {
-          await createCartEntry({
-            storeId: storeFrontMeta.storeId,
-            productVariantId: variantToAdd._id,
-            quantity: 1,
-          });
+          await createCartEntry(
+            {
+              storeId: storeFrontMeta.storeId,
+              productVariantId: variantToAdd._id,
+              quantity: 1,
+            },
+            variantToAdd // Pass variant for guest cart
+          );
         } else {
           navigate(`/products/${product._id}`);
         }
@@ -71,12 +71,40 @@ const StorefrontApp: React.FC = () => {
         navigate(`/products/${product._id}`);
       }
     },
-    [storeFrontMeta?.storeId, user, fetchVariantsByProductId, createCartEntry, navigate]
+    [storeFrontMeta?.storeId, fetchVariantsByProductId, createCartEntry, navigate]
   );
+
+  // Build order discount text
+  const orderDiscountText = orderDiscount
+    ? orderDiscount.valueType === 'fixed-amount'
+      ? `${formatINR(orderDiscount.fixedAmount || 0)} off`
+      : `${orderDiscount.percentage || 0}% off`
+    : null;
+
+  const orderDiscountCondition = orderDiscount?.minimumPurchase === 'minimum-amount' && orderDiscount.minimumAmount
+    ? `on orders above ${formatINR(orderDiscount.minimumAmount)}`
+    : orderDiscount?.minimumPurchase === 'minimum-quantity' && orderDiscount.minimumQuantity
+    ? `on orders with ${orderDiscount.minimumQuantity}+ items`
+    : 'on all orders';
 
   return (
     <div className="min-h-screen bg-white">
       <StorefrontNavbar showSearch searchValue={search} onSearchChange={setSearch} />
+
+      {/* Order Discount Banner */}
+      {orderDiscount && (
+        <div className="fixed top-16 left-0 right-0 z-40 bg-gradient-to-r from-emerald-500 to-teal-500 text-white py-2 px-4 text-center shadow-md">
+          <div className="max-w-7xl mx-auto flex items-center justify-center gap-2">
+            <span className="text-lg font-bold">{orderDiscountText}</span>
+            <span className="text-sm opacity-90">{orderDiscountCondition}</span>
+            {orderDiscount.title && (
+              <span className="ml-2 px-2 py-0.5 bg-white/20 rounded text-xs font-medium">
+                {orderDiscount.title}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Confirm Logout Modal */}
       {confirmLogoutOpen && (
@@ -105,7 +133,7 @@ const StorefrontApp: React.FC = () => {
       )}
 
       {/* Hero Section - ORNATIVA Theme */}
-      <section className="relative mt-20 overflow-hidden bg-gradient-to-br from-[#fefcf8] via-[#f5f1e8] to-[#e8e0d5] min-h-[85vh] flex items-center">
+      <section className={`relative overflow-hidden bg-gradient-to-br from-[#fefcf8] via-[#f5f1e8] to-[#e8e0d5] min-h-[85vh] flex items-center ${orderDiscount ? 'mt-28' : 'mt-20'}`}>
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
           {/* Subtle gold accents */}
@@ -508,7 +536,7 @@ const CollectionCard: React.FC<{
   );
 };
 
-// Modern Product Card Component
+// Minimal Product Card Component with Gold Theme
 const ProductCard: React.FC<{
   product: StorefrontProductItem;
   onClick: () => void;
@@ -518,7 +546,6 @@ const ProductCard: React.FC<{
     ? product.imageUrls 
     : ['https://via.placeholder.com/600x400?text=Product'];
   const [idx, setIdx] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     if (images.length <= 1) return;
@@ -532,103 +559,112 @@ const ProductCard: React.FC<{
     ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
     : 0;
 
+  const productOfferText = product.productDiscount
+    ? product.productDiscount.valueType === 'fixed-amount'
+      ? `Extra ${formatINR(product.productDiscount.fixedAmount || 0)} off`
+      : `Extra ${product.productDiscount.percentage || 0}% off`
+    : null;
+
+  const isCodeBased = product.productDiscount?.method === 'discount-code';
+  const discountCode = product.productDiscount?.discountCode;
+
   return (
-    <div
-      className="group relative overflow-hidden rounded-lg bg-white border border-[#e8e0d5] hover:shadow-lg hover:border-[#d4af37] transition-all duration-300 hover:-translate-y-1"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+    <div 
+      className="group bg-white rounded-lg overflow-hidden border border-gray-100 hover:border-[#d4af37]/30 hover:shadow-md transition-all duration-300 cursor-pointer"
+      onClick={onClick}
     >
-      <button
-        type="button"
-        onClick={onClick}
-        className="w-full h-full flex flex-col focus:outline-none focus:ring-2 focus:ring-[#d4af37] focus:ring-offset-2 rounded-lg"
-      >
-        {/* Image Container */}
-        <div className="relative h-64 overflow-hidden bg-[#f5f1e8]">
-          {images.map((src, i) => (
-            <img
-              key={i}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${
-                i === idx ? 'opacity-100' : 'opacity-0'
-              } group-hover:scale-105 transition-transform duration-700`}
-              src={src}
-              alt={product.title}
-            />
-          ))}
-          
-          {/* Gradient Overlay on Hover */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      {/* Image Section */}
+      <div className="relative aspect-square overflow-hidden bg-gray-50">
+        {images.map((src, i) => (
+          <img
+            key={i}
+            className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ${
+              i === idx ? 'opacity-100' : 'opacity-0'
+            } group-hover:scale-105`}
+            src={src}
+            alt={product.title}
+          />
+        ))}
 
-          {/* Discount Badge */}
-          {discountPercentage > 0 && (
-            <div className="absolute top-3 left-3 bg-[#d4af37] text-[#0c100c] px-2.5 py-1 rounded-md text-xs font-bold shadow-md">
-              -{discountPercentage}%
-            </div>
-          )}
+        {/* Discount Badge */}
+        {productOfferText && (
+          <span className="absolute top-2 left-2 inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-[#d4af37] text-white">
+            {productOfferText}
+          </span>
+        )}
 
-          {/* Wishlist Button */}
-          <div className={`absolute top-3 right-3 z-10 transition-all duration-300 ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-90'}`}>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                // Handle wishlist logic here
-              }}
-              className="p-2.5 bg-white/95 backdrop-blur-sm hover:bg-white rounded-lg transition-all shadow-md hover:scale-110"
-            >
-              <FiHeart className="w-4 h-4 text-[#0c100c]" />
-            </button>
-          </div>
-        </div>
+        {/* Sale Badge */}
+        {discountPercentage > 0 && !productOfferText && (
+          <span className="absolute top-2 left-2 px-2 py-1 rounded text-[11px] font-semibold bg-[#d4af37] text-white">
+            {discountPercentage}% OFF
+          </span>
+        )}
 
-        {/* Product Info */}
-        <div className="flex-1 p-5">
-          {/* Vendor */}
-          <div className="flex items-center gap-1.5 mb-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-[#d4af37]" />
-            <span className="text-xs font-medium text-[#2b1e1e] uppercase tracking-wide">
-              {product.vendor?.name || 'Brand'}
-            </span>
-          </div>
-
-          <h3 className="text-base font-semibold text-[#0c100c] mb-2.5 line-clamp-2 leading-snug group-hover:text-[#d4af37] transition-colors duration-300">
-            {product.title}
-          </h3>
-
-          {/* Price */}
-          <div className="flex items-baseline gap-2 mb-3">
-            <span className="text-lg font-bold text-[#d4af37]">
-              ${(product.price / 100).toFixed(2)}
-            </span>
-            {product.compareAtPrice && product.compareAtPrice > product.price && (
-              <span className="text-sm text-[#2b1e1e]/60 line-through">
-                ${(product.compareAtPrice / 100).toFixed(2)}
-              </span>
-            )}
-          </div>
-
-          {/* Rating */}
-          <div className="flex items-center gap-1 mb-4">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <FaStar
+        {/* Image Dots */}
+        {images.length > 1 && (
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+            {images.map((_, i) => (
+              <span
                 key={i}
-                className={`w-3.5 h-3.5 ${i <= 4 ? 'text-[#d4af37] fill-[#d4af37]' : 'text-[#e8e0d5]'}`}
+                className={`w-1.5 h-1.5 rounded-full transition-all ${
+                  i === idx ? 'bg-[#d4af37]' : 'bg-white/60'
+                }`}
               />
             ))}
-            <span className="text-xs text-[#2b1e1e]/60 ml-1">(4.0)</span>
           </div>
+        )}
+      </div>
 
-          {/* Add to Cart Button */}
-          <button
-            type="button"
-            onClick={(e) => onAddToCart(product, e)}
-            className="w-full py-2.5 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#e6c547] text-[#0c100c] text-sm font-semibold hover:shadow-lg transition-all opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-            style={{ boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)' }}
-          >
-            Add to Cart
-          </button>
+      {/* Content */}
+      <div className="p-3">
+        {/* Vendor */}
+        {product.vendor?.name && (
+          <p className="text-[10px] font-medium text-[#d4af37] uppercase tracking-wide mb-1">
+            {product.vendor.name}
+          </p>
+        )}
+
+        {/* Title */}
+        <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-2 min-h-[2.5rem] leading-tight">
+          {product.title}
+        </h3>
+
+        {/* Price */}
+        <div className="flex items-baseline gap-2 mb-2">
+          <span className="text-base font-bold text-gray-900">
+            {formatINR(product.price)}
+          </span>
+          {product.compareAtPrice && product.compareAtPrice > product.price && (
+            <>
+              <span className="text-xs text-gray-400 line-through">
+                {formatINR(product.compareAtPrice)}
+              </span>
+              <span className="text-xs font-medium text-[#d4af37]">
+                {discountPercentage}% off
+              </span>
+            </>
+          )}
         </div>
-      </button>
+
+        {/* Discount Code */}
+        {isCodeBased && discountCode && (
+          <p className="text-[10px] text-gray-500 mb-2">
+            Use code: <span className="font-semibold text-[#d4af37]">{discountCode}</span>
+          </p>
+        )}
+
+        {/* Add to Cart */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddToCart(product, e);
+          }}
+          className="w-full py-2 rounded bg-[#1a1a1a] text-white text-xs font-medium hover:bg-[#d4af37] transition-colors duration-200"
+        >
+          Add to Cart
+        </button>
+      </div>
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { FiCalendar, FiEdit, FiMail, FiMapPin, FiPhone, FiPlus, FiStar, FiTrash2
 import { HiShieldCheck } from 'react-icons/hi';
 import { useNavigate } from 'react-router-dom';
 import StorefrontNavbar from '../components/StorefrontNavbar';
-import { COUNTRIES } from '../constants/countries';
+import { useStorefrontCountries } from '../contexts/storefront-country.context';
 import type { CustomerAddress } from '../contexts/customer-address-storefront.context';
 import { useCustomerAddresses } from '../contexts/customer-address-storefront.context';
 import { useStorefrontAuth } from '../contexts/storefront-auth.context';
@@ -23,6 +23,7 @@ const StorefrontProfilePage: React.FC = () => {
     updateCustomerAddress,
     deleteCustomerAddress
   } = useCustomerAddresses();
+  const { countries, getCountries, loading: countriesLoading } = useStorefrontCountries();
 
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameForm, setNameForm] = useState({
@@ -38,8 +39,8 @@ const StorefrontProfilePage: React.FC = () => {
 
   const [addressDialogOpen, setAddressDialogOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<CustomerAddress | null>(null);
-  const [addressForm, setAddressForm] = useState<Partial<CustomerAddress>>({
-    country: '',
+  const [addressForm, setAddressForm] = useState<Partial<CustomerAddress> & { countryId?: string }>({
+    countryId: '',
     firstName: '',
     lastName: '',
     company: '',
@@ -84,6 +85,25 @@ const StorefrontProfilePage: React.FC = () => {
       });
     }
   }, [user]);
+
+  // Fetch countries when address dialog opens
+  useEffect(() => {
+    if (addressDialogOpen && countries.length === 0) {
+      getCountries({ limit: 300 }).catch(() => {});
+    }
+  }, [addressDialogOpen, countries.length, getCountries]);
+
+  // Set default country (India) when countries are loaded and no country is selected
+  useEffect(() => {
+    if (countries.length > 0 && !addressForm.countryId && !editingAddress) {
+      const india = countries.find((c) => c.iso2 === 'IN');
+      if (india) {
+        setAddressForm((prev) => ({ ...prev, countryId: india._id }));
+      } else {
+        setAddressForm((prev) => ({ ...prev, countryId: countries[0]._id }));
+      }
+    }
+  }, [countries, addressForm.countryId, editingAddress]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -172,8 +192,9 @@ const StorefrontProfilePage: React.FC = () => {
 
   const handleAddAddress = () => {
     setEditingAddress(null);
+    const defaultCountryId = countries.find((c) => c.iso2 === 'IN')?._id || countries[0]?._id || '';
     setAddressForm({
-      country: '',
+      countryId: defaultCountryId,
       firstName: user?.firstName || '',
       lastName: user?.lastName || '',
       company: '',
@@ -191,7 +212,8 @@ const StorefrontProfilePage: React.FC = () => {
 
   const handleEditAddress = (address: CustomerAddress) => {
     setEditingAddress(address);
-    setAddressForm(address);
+    const countryId = typeof address.countryId === 'object' && address.countryId ? (address.countryId as { _id?: string })._id : (address.countryId as string);
+    setAddressForm({ ...address, countryId } as Partial<CustomerAddress> & { countryId?: string });
     if (address.addressType && !['home', 'work', 'other'].includes(address.addressType)) {
       setCustomAddressType(address.addressType);
       setAddressForm(prev => ({ ...prev, addressType: 'other' }));
@@ -209,7 +231,7 @@ const StorefrontProfilePage: React.FC = () => {
     }
   };
 
-  const handleAddressFormChange = (field: keyof CustomerAddress, value: string) => {
+  const handleAddressFormChange = (field: keyof CustomerAddress | 'countryId', value: string) => {
     setAddressForm(prev => ({ ...prev, [field]: value }));
   };
 
@@ -553,7 +575,7 @@ const StorefrontProfilePage: React.FC = () => {
                             {address.apartment && `, ${address.apartment}`}
                           </p>
                           <p>{address.city}, {address.state} {address.pinCode}</p>
-                          <p>{address.country}</p>
+                          <p>{typeof address.countryId === 'object' && address.countryId ? (address.countryId as { name?: string }).name : ''}</p>
                           <p className="mt-2 flex items-center gap-1">
                             <FiPhone className="w-3 h-3" />
                             {address.phoneNumber}
@@ -730,15 +752,22 @@ const StorefrontProfilePage: React.FC = () => {
                       Country <span className="text-red-500">*</span>
                     </label>
                     <select
-                      value={addressForm.country}
-                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleAddressFormChange('country', e.target.value)}
+                      value={addressForm.countryId}
+                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleAddressFormChange('countryId', e.target.value)}
                       className="w-full px-3 py-2 text-sm border border-[#e8e0d5] rounded-lg focus:ring-2 focus:ring-[#d4af37] focus:border-[#d4af37] outline-none"
+                      disabled={countriesLoading}
                     >
-                      {COUNTRIES.map((country) => (
-                        <option key={country.code} value={country.code}>
-                          {country.name}
-                        </option>
-                      ))}
+                      {countriesLoading ? (
+                        <option value="">Loading countries...</option>
+                      ) : countries.length === 0 ? (
+                        <option value="">No countries available</option>
+                      ) : (
+                        countries.map((country) => (
+                          <option key={country._id} value={country._id}>
+                            {country.name}
+                          </option>
+                        ))
+                      )}
                     </select>
                   </div>
                   <div>
@@ -787,7 +816,7 @@ const StorefrontProfilePage: React.FC = () => {
                     !addressForm.address || 
                     !addressForm.city || 
                     !addressForm.state || 
-                    !addressForm.country || 
+                    !addressForm.countryId || 
                     !addressForm.pinCode || 
                     !addressForm.phoneNumber ||
                     (addressForm.addressType === 'other' && !customAddressType.trim())

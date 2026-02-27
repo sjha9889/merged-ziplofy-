@@ -36,13 +36,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getOrdersByCustomerId = exports.createOrder = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const models_1 = require("../../models");
+const free_shipping_discount_model_1 = require("../../models/discount/free-shipping-discount-model/free-shipping-discount.model");
+const free_shipping_discount_usage_model_1 = require("../../models/discount/free-shipping-discount-model/free-shipping-discount-usage.model");
+const buy_x_get_y_discount_model_1 = require("../../models/discount/buy-x-get-y-discount-model/buy-x-get-y-discount.model");
+const buy_x_get_y_discount_usage_model_1 = require("../../models/discount/buy-x-get-y-discount-model/buy-x-get-y-discount-usage.model");
 const error_utils_1 = require("../../utils/error.utils");
 const email_utils_1 = require("../../utils/email.utils");
 exports.createOrder = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const user = req.storefrontUser;
     if (!user)
         throw new error_utils_1.CustomError('Unauthorized', 401);
-    const { storeId, shippingAddressId, billingAddressId, items, paymentMethod, subtotal, tax, shippingCost, total, notes, } = req.body;
+    const { storeId, shippingAddressId, billingAddressId, items, paymentMethod, subtotal, tax, shippingCost, total, notes, freeShippingDiscountId, amountOffOrderDiscountId, amountOffProductDiscountId, buyXGetYDiscountId, } = req.body;
     // Validate required fields
     if (!storeId || !mongoose_1.default.Types.ObjectId.isValid(storeId)) {
         throw new error_utils_1.CustomError('Valid storeId is required', 400);
@@ -119,11 +123,143 @@ exports.createOrder = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
         price: item.price,
         total: item.total,
     })));
+    // Create amount-off-product discount usage if such a discount was applied
+    if (amountOffProductDiscountId && mongoose_1.default.Types.ObjectId.isValid(amountOffProductDiscountId)) {
+        const discountId = new mongoose_1.Types.ObjectId(amountOffProductDiscountId);
+        const discount = await models_1.AmountOffProductsDiscount.findOne({
+            _id: discountId,
+            storeId: new mongoose_1.Types.ObjectId(storeId),
+            status: 'active',
+        });
+        if (discount) {
+            let canCreateUsage = true;
+            if (discount.limitOneUsePerCustomer) {
+                const alreadyUsed = await models_1.AmountOffProductsDiscountUsage.findOne({
+                    discountId,
+                    customerId: new mongoose_1.Types.ObjectId(user._id),
+                });
+                if (alreadyUsed)
+                    canCreateUsage = false;
+            }
+            if (canCreateUsage && discount.limitTotalUses && discount.totalUsesLimit) {
+                const totalUses = await models_1.AmountOffProductsDiscountUsage.countDocuments({ discountId });
+                if (totalUses >= discount.totalUsesLimit)
+                    canCreateUsage = false;
+            }
+            if (canCreateUsage) {
+                await models_1.AmountOffProductsDiscountUsage.create({
+                    customerId: new mongoose_1.Types.ObjectId(user._id),
+                    discountId,
+                    storeId: new mongoose_1.Types.ObjectId(storeId),
+                    orderId: order._id,
+                });
+            }
+        }
+    }
+    // Create amount-off-order discount usage if such a discount was applied
+    if (amountOffOrderDiscountId && mongoose_1.default.Types.ObjectId.isValid(amountOffOrderDiscountId)) {
+        const discountId = new mongoose_1.Types.ObjectId(amountOffOrderDiscountId);
+        const discount = await models_1.AmountOffOrderDiscount.findOne({
+            _id: discountId,
+            storeId: new mongoose_1.Types.ObjectId(storeId),
+            status: 'active',
+        });
+        if (discount) {
+            let canCreateUsage = true;
+            if (discount.limitOneUsePerCustomer) {
+                const alreadyUsed = await models_1.AmountOffOrderDiscountUsage.findOne({
+                    discountId,
+                    customerId: new mongoose_1.Types.ObjectId(user._id),
+                });
+                if (alreadyUsed)
+                    canCreateUsage = false;
+            }
+            if (canCreateUsage && discount.limitTotalUses && discount.totalUsesLimit) {
+                const totalUses = await models_1.AmountOffOrderDiscountUsage.countDocuments({ discountId });
+                if (totalUses >= discount.totalUsesLimit)
+                    canCreateUsage = false;
+            }
+            if (canCreateUsage) {
+                await models_1.AmountOffOrderDiscountUsage.create({
+                    customerId: new mongoose_1.Types.ObjectId(user._id),
+                    discountId,
+                    storeId: new mongoose_1.Types.ObjectId(storeId),
+                    orderId: order._id,
+                });
+            }
+        }
+    }
+    // Create Buy X Get Y discount usage if such a discount was applied
+    if (buyXGetYDiscountId && mongoose_1.default.Types.ObjectId.isValid(buyXGetYDiscountId)) {
+        const discountId = new mongoose_1.Types.ObjectId(buyXGetYDiscountId);
+        const discount = await buy_x_get_y_discount_model_1.BuyXGetYDiscount.findOne({
+            _id: discountId,
+            storeId: new mongoose_1.Types.ObjectId(storeId),
+            status: 'active',
+        });
+        if (discount) {
+            let canCreateUsage = true;
+            if (discount.limitOneUsePerCustomer) {
+                const alreadyUsed = await buy_x_get_y_discount_usage_model_1.BuyXGetYDiscountUsage.findOne({
+                    discountId,
+                    customerId: new mongoose_1.Types.ObjectId(user._id),
+                });
+                if (alreadyUsed)
+                    canCreateUsage = false;
+            }
+            if (canCreateUsage && discount.limitTotalUses && discount.totalUsesLimit) {
+                const totalUses = await buy_x_get_y_discount_usage_model_1.BuyXGetYDiscountUsage.countDocuments({ discountId });
+                if (totalUses >= discount.totalUsesLimit)
+                    canCreateUsage = false;
+            }
+            if (canCreateUsage) {
+                await buy_x_get_y_discount_usage_model_1.BuyXGetYDiscountUsage.create({
+                    customerId: new mongoose_1.Types.ObjectId(user._id),
+                    discountId,
+                    storeId: new mongoose_1.Types.ObjectId(storeId),
+                    orderId: order._id,
+                });
+            }
+        }
+    }
+    // Create free shipping discount usage if a free shipping discount was applied
+    if (freeShippingDiscountId && mongoose_1.default.Types.ObjectId.isValid(freeShippingDiscountId)) {
+        const discountId = new mongoose_1.Types.ObjectId(freeShippingDiscountId);
+        const discount = await free_shipping_discount_model_1.FreeShippingDiscount.findOne({
+            _id: discountId,
+            storeId: new mongoose_1.Types.ObjectId(storeId),
+            status: 'active',
+        });
+        if (discount) {
+            let canCreateUsage = true;
+            if (discount.limitOneUsePerCustomer) {
+                const alreadyUsed = await free_shipping_discount_usage_model_1.FreeShippingDiscountUsage.findOne({
+                    discountId,
+                    customerId: new mongoose_1.Types.ObjectId(user._id),
+                });
+                if (alreadyUsed)
+                    canCreateUsage = false;
+            }
+            if (canCreateUsage && discount.limitTotalUses && discount.totalUsesLimit) {
+                const totalUses = await free_shipping_discount_usage_model_1.FreeShippingDiscountUsage.countDocuments({ discountId });
+                if (totalUses >= discount.totalUsesLimit)
+                    canCreateUsage = false;
+            }
+            if (canCreateUsage) {
+                await free_shipping_discount_usage_model_1.FreeShippingDiscountUsage.create({
+                    customerId: new mongoose_1.Types.ObjectId(user._id),
+                    discountId,
+                    storeId: new mongoose_1.Types.ObjectId(storeId),
+                    orderId: order._id,
+                });
+            }
+        }
+    }
     // Populate order with addresses
     await order.populate([
         { path: 'customerId', select: '-password' },
-        { path: 'shippingAddressId' },
-        { path: 'billingAddressId' },
+        { path: 'shippingAddressId', populate: { path: 'countryId', select: 'name iso2' } },
+        { path: 'billingAddressId', populate: { path: 'countryId', select: 'name iso2' } },
     ]);
     // Populate order items with productVariantId (same as getOrdersByCustomerId)
     const populatedOrderItems = await models_1.OrderItem.populate(orderItems, {
@@ -182,8 +318,8 @@ exports.getOrdersByCustomerId = (0, error_utils_1.asyncErrorHandler)(async (req,
     const orders = await models_1.Order.find({ customerId: new mongoose_1.Types.ObjectId(customerId) })
         .populate([
         { path: 'customerId', select: '-password' },
-        { path: 'shippingAddressId' },
-        { path: 'billingAddressId' },
+        { path: 'shippingAddressId', populate: { path: 'countryId', select: 'name iso2' } },
+        { path: 'billingAddressId', populate: { path: 'countryId', select: 'name iso2' } },
     ])
         .sort({ orderDate: -1 })
         .lean();

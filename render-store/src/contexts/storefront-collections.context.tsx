@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useState } from 'react';
 import { axiosi } from '../config/axios.config';
-import type { StorefrontProductItem } from './product.context';
+import type { StorefrontProductItem, OrderDiscount } from './product.context';
 
 export interface StorefrontCollection {
 	_id: string;
@@ -33,11 +33,13 @@ interface FetchProductsInCollectionApiResponse {
 	success: boolean;
 	data: StorefrontProductItem[];
 	pagination: FetchProductsInCollectionPagination;
+	orderDiscount?: OrderDiscount | null;
 }
 
 interface StorefrontCollectionsContextType {
 	collections: StorefrontCollection[];
 	products: StorefrontProductItem[];
+	orderDiscount: OrderDiscount | null;
 	loading: boolean;
 	error: string | null;
 	fetchCollectionsByStoreId: (storeId: string) => Promise<StorefrontCollection[]>;
@@ -53,6 +55,7 @@ const StorefrontCollectionsContext = createContext<StorefrontCollectionsContextT
 export const StorefrontCollectionsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [collections, setCollections] = useState<StorefrontCollection[]>([]);
 	const [products, setProducts] = useState<StorefrontProductItem[]>([]);
+	const [orderDiscount, setOrderDiscount] = useState<OrderDiscount | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
@@ -88,10 +91,12 @@ export const StorefrontCollectionsProvider: React.FC<{ children: React.ReactNode
 				},
 			});
 			setProducts(res.data?.data ?? []);
+			setOrderDiscount(res.data?.orderDiscount || null);
 		} catch (err: any) {
 			const msg = err?.response?.data?.message || err?.message || 'Failed to fetch products in collection';
 			setError(msg);
 			setProducts([]);
+			setOrderDiscount(null);
 			throw err;
 		} finally {
 			setLoading(false);
@@ -101,12 +106,14 @@ export const StorefrontCollectionsProvider: React.FC<{ children: React.ReactNode
 	const clear = useCallback(() => {
 		setCollections([]);
 		setProducts([]);
+		setOrderDiscount(null);
 		setError(null);
 	}, []);
 
 	const value: StorefrontCollectionsContextType = {
 		collections,
 		products,
+		orderDiscount,
 		loading,
 		error,
 		fetchCollectionsByStoreId,

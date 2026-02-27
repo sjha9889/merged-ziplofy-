@@ -17,7 +17,7 @@ interface StorefrontNavbarProps {
 const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ showSearch, searchValue, onSearchChange }) => {
 	const navigate = useNavigate();
 	const { storeFrontMeta } = useStorefront();
-	const { items } = useStorefrontCart();
+	const { items, guestItems, isGuest } = useStorefrontCart();
 	const { user, logout } = useStorefrontAuth();
 	const [cartOpen, setCartOpen] = React.useState(false);
 	const [menuOpen, setMenuOpen] = React.useState(false);
@@ -30,7 +30,17 @@ const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ showSearch, searchV
 		return () => document.removeEventListener('click', onDocClick);
 	}, [menuOpen]);
 
-	const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+	// Listen for global \"open-cart-drawer\" events so other pages (like product detail)
+	// can trigger the cart drawer to open.
+	React.useEffect(() => {
+		const handler = () => setCartOpen(true);
+		window.addEventListener('open-cart-drawer', handler);
+		return () => window.removeEventListener('open-cart-drawer', handler);
+	}, []);
+
+	// Get all cart items (both authenticated and guest)
+	const displayItems = isGuest ? guestItems : items;
+	const totalItems = displayItems.reduce((sum, item) => sum + item.quantity, 0);
 
 	return (
 		<>

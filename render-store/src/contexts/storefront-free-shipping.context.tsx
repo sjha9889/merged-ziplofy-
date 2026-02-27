@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useCallback, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
 import { axiosi } from '../config/axios.config';
 
@@ -13,6 +13,10 @@ export interface FreeShippingDiscount {
   selectedCountryCodes?: string[];
   excludeShippingRates: boolean;
   shippingRateLimit?: number;
+  combinations: {
+    productDiscounts: boolean;
+    orderDiscounts: boolean;
+  };
 }
 
 export interface CartItem {
@@ -22,7 +26,8 @@ export interface CartItem {
 }
 
 export interface ShippingAddress {
-  country: string;
+  country?: string;
+  countryId?: string;
   state?: string;
   city?: string;
 }
@@ -48,6 +53,7 @@ export interface FreeShippingContextType {
   // State
   eligibleDiscounts: FreeShippingDiscount[];
   discountCodeResult: FreeShippingDiscount | null;
+  appliedAutomaticDiscount: FreeShippingDiscount | null;
   loading: boolean;
   error: string | null;
   discountCodeLoading: boolean;
@@ -56,6 +62,8 @@ export interface FreeShippingContextType {
   // Functions
   checkEligibleFreeShippingDiscounts: (request: CheckEligibleFreeShippingRequest) => Promise<void>;
   validateFreeShippingDiscountCode: (request: ValidateFreeShippingCodeRequest) => Promise<void>;
+  applyAutomaticDiscount: (discount: FreeShippingDiscount) => void;
+  clearAppliedAutomaticDiscount: () => void;
   clearDiscountCodeResult: () => void;
   clearError: () => void;
 }
@@ -78,13 +86,14 @@ export const FreeShippingProvider: React.FC<FreeShippingProviderProps> = ({ chil
   // State
   const [eligibleDiscounts, setEligibleDiscounts] = useState<FreeShippingDiscount[]>([]);
   const [discountCodeResult, setDiscountCodeResult] = useState<FreeShippingDiscount | null>(null);
+  const [appliedAutomaticDiscount, setAppliedAutomaticDiscount] = useState<FreeShippingDiscount | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [discountCodeLoading, setDiscountCodeLoading] = useState(false);
   const [discountCodeError, setDiscountCodeError] = useState<string | null>(null);
 
   // Check eligible free shipping discounts (automatic)
-  const checkEligibleFreeShippingDiscounts = async (request: CheckEligibleFreeShippingRequest) => {
+  const checkEligibleFreeShippingDiscounts = useCallback(async (request: CheckEligibleFreeShippingRequest) => {
     try {
       setLoading(true);
       setError(null);
@@ -105,10 +114,22 @@ export const FreeShippingProvider: React.FC<FreeShippingProviderProps> = ({ chil
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Apply an automatic discount (user clicked Apply on eligible discount)
+  const applyAutomaticDiscount = useCallback((discount: FreeShippingDiscount) => {
+    setAppliedAutomaticDiscount(discount);
+    setDiscountCodeResult(null);
+    setDiscountCodeError(null);
+  }, []);
+
+  // Clear applied automatic discount
+  const clearAppliedAutomaticDiscount = useCallback(() => {
+    setAppliedAutomaticDiscount(null);
+  }, []);
 
   // Validate free shipping discount code
-  const validateFreeShippingDiscountCode = async (request: ValidateFreeShippingCodeRequest) => {
+  const validateFreeShippingDiscountCode = useCallback(async (request: ValidateFreeShippingCodeRequest) => {
     try {
       setDiscountCodeLoading(true);
       setDiscountCodeError(null);
@@ -117,6 +138,7 @@ export const FreeShippingProvider: React.FC<FreeShippingProviderProps> = ({ chil
 
       if (response.data.success) {
         setDiscountCodeResult(response.data.data.discount);
+        setAppliedAutomaticDiscount(null);
       } else {
         setDiscountCodeError(response.data.message || 'Invalid discount code');
         setDiscountCodeResult(null);
@@ -129,13 +151,13 @@ export const FreeShippingProvider: React.FC<FreeShippingProviderProps> = ({ chil
     } finally {
       setDiscountCodeLoading(false);
     }
-  };
+  }, []);
 
   // Clear discount code result
-  const clearDiscountCodeResult = () => {
+  const clearDiscountCodeResult = useCallback(() => {
     setDiscountCodeResult(null);
     setDiscountCodeError(null);
-  };
+  }, []);
 
   // Clear error
   const clearError = () => {
@@ -146,6 +168,7 @@ export const FreeShippingProvider: React.FC<FreeShippingProviderProps> = ({ chil
     // State
     eligibleDiscounts,
     discountCodeResult,
+    appliedAutomaticDiscount,
     loading,
     error,
     discountCodeLoading,
@@ -154,6 +177,8 @@ export const FreeShippingProvider: React.FC<FreeShippingProviderProps> = ({ chil
     // Functions
     checkEligibleFreeShippingDiscounts,
     validateFreeShippingDiscountCode,
+    applyAutomaticDiscount,
+    clearAppliedAutomaticDiscount,
     clearDiscountCodeResult,
     clearError,
   };

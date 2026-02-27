@@ -39,8 +39,8 @@ const GettingStartedCard: React.FC<GettingStartedCardProps> = ({
     {
       id: 'shipping',
       title: 'Set up shipping zones to deliver your items efficiently',
-      buttonText: 'Added',
-      buttonVariant: 'added',
+      buttonText: 'Setup',
+      buttonVariant: 'primary',
     },
     {
       id: 'payment',

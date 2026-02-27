@@ -133,6 +133,49 @@ export interface FetchBuyXGetYResponse {
   };
 }
 
+export interface GetBuyXGetYDiscountByIdResponse {
+  success: boolean;
+  data: BuyXGetYDiscount;
+}
+
+export interface UpdateBuyXGetYResponse {
+  success: boolean;
+  message: string;
+  data: BuyXGetYDiscount;
+}
+
+export interface BuyXGetYDiscountUsageOrder {
+  usage: { usedAt: string };
+  customer: {
+    _id: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phoneNumber?: string;
+  } | null;
+  order: {
+    _id: string;
+    orderDate: string;
+    status: string;
+    subtotal: number;
+    shippingCost: number;
+    total: number;
+    shippingAddress?: unknown;
+  } | null;
+}
+
+export interface GetOrdersByBuyXGetYDiscountResponse {
+  success: boolean;
+  data: BuyXGetYDiscountUsageOrder[];
+  discount: { _id: string; title?: string; discountCode?: string; method: string };
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+  };
+}
+
 interface BuyXGetYContextType {
   discounts: BuyXGetYDiscount[];
   loading: boolean;
@@ -140,7 +183,11 @@ interface BuyXGetYContextType {
   pagination: FetchBuyXGetYResponse['pagination'] | null;
 
   createDiscount: (payload: CreateBuyXGetYRequest) => Promise<CreateBuyXGetYResponse>;
+  updateDiscount: (discountId: string, payload: CreateBuyXGetYRequest) => Promise<UpdateBuyXGetYResponse>;
+  deleteDiscount: (discountId: string) => Promise<{ success: boolean; message: string }>;
   fetchDiscountsByStoreId: (storeId: string, opts?: { page?: number; limit?: number; status?: 'active' | 'draft'; method?: BXGYMethod; }) => Promise<FetchBuyXGetYResponse>;
+  fetchDiscountById: (discountId: string) => Promise<GetBuyXGetYDiscountByIdResponse>;
+  fetchOrdersByDiscountId: (discountId: string, opts?: { page?: number; limit?: number }) => Promise<GetOrdersByBuyXGetYDiscountResponse>;
   clearError: () => void;
   setDiscounts: (items: BuyXGetYDiscount[]) => void;
 }
@@ -197,16 +244,104 @@ export const BuyXGetYDiscountProvider: React.FC<{ children: ReactNode }> = ({ ch
     }
   }, []);
 
+  const fetchDiscountById = useCallback(async (discountId: string): Promise<GetBuyXGetYDiscountByIdResponse> => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await axiosi.get<GetBuyXGetYDiscountByIdResponse>(`/buy-x-get-y-discounts/${discountId}`);
+      return res.data;
+    } catch (e: any) {
+      const msg = e?.response?.data?.error || e?.message || 'Failed to fetch discount';
+      setError(msg);
+      throw new Error(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchOrdersByDiscountId = useCallback(
+    async (discountId: string, opts?: { page?: number; limit?: number }): Promise<GetOrdersByBuyXGetYDiscountResponse> => {
+      try {
+        setLoading(true);
+        setError(null);
+        const q = new URLSearchParams();
+        if (opts?.page) q.append('page', String(opts.page));
+        if (opts?.limit) q.append('limit', String(opts.limit));
+        const res = await axiosi.get<GetOrdersByBuyXGetYDiscountResponse>(
+          `/buy-x-get-y-discounts/${discountId}/orders${q.toString() ? `?${q.toString()}` : ''}`
+        );
+        return res.data;
+      } catch (e: any) {
+        const msg = e?.response?.data?.error || e?.message || 'Failed to fetch orders for this discount';
+        setError(msg);
+        throw new Error(msg);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [],
+  );
+
+  const updateDiscount = useCallback(async (discountId: string, payload: CreateBuyXGetYRequest): Promise<UpdateBuyXGetYResponse> => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await axiosi.put<UpdateBuyXGetYResponse>(`/buy-x-get-y-discounts/${discountId}`, payload);
+      if (res.data?.success && res.data?.data) {
+        // Refetch full discount (with populated targets) so list stays in sync with getById/list shape
+        try {
+          const fullRes = await axiosi.get<GetBuyXGetYDiscountByIdResponse>(`/buy-x-get-y-discounts/${discountId}`);
+          if (fullRes.data?.success && fullRes.data?.data) {
+            setDiscounts(prev => prev.map(d => d._id === discountId ? fullRes.data!.data : d));
+          } else {
+            setDiscounts(prev => prev.map(d => d._id === discountId ? res.data!.data : d));
+          }
+        } catch {
+          setDiscounts(prev => prev.map(d => d._id === discountId ? res.data!.data : d));
+        }
+      }
+      return res.data;
+    } catch (e: any) {
+      const msg = e?.response?.data?.error || e?.message || 'Failed to update Buy X Get Y discount';
+      setError(msg);
+      throw new Error(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const deleteDiscount = useCallback(async (discountId: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await axiosi.delete<{ success: boolean; message: string }>(`/buy-x-get-y-discounts/${discountId}`);
+      if (res.data?.success) {
+        setDiscounts(prev => prev.filter(d => d._id !== discountId));
+      }
+      return res.data;
+    } catch (e: any) {
+      const msg = e?.response?.data?.error || e?.message || 'Failed to delete Buy X Get Y discount';
+      setError(msg);
+      throw new Error(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const value = useMemo<BuyXGetYContextType>(() => ({
     discounts,
     loading,
     error,
     pagination,
     createDiscount,
+    updateDiscount,
+    deleteDiscount,
     fetchDiscountsByStoreId,
+    fetchDiscountById,
+    fetchOrdersByDiscountId,
     clearError,
     setDiscounts,
-  }), [discounts, loading, error, pagination, createDiscount, fetchDiscountsByStoreId, clearError]);
+  }), [discounts, loading, error, pagination, createDiscount, updateDiscount, deleteDiscount, fetchDiscountsByStoreId, fetchDiscountById, fetchOrdersByDiscountId, clearError]);
 
   return (
     <BuyXGetYContext.Provider value={value}>{children}</BuyXGetYContext.Provider>

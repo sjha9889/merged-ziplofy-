@@ -1,24 +1,25 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ArrowLeftIcon, ShoppingCartIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useProducts } from "../../contexts/product.context";
 import { useCollections } from "../../contexts/collection.context";
 import { useStore } from "../../contexts/store.context";
 import { useCustomerSegments } from "../../contexts/customer-segment.context";
 import { useCustomers } from "../../contexts/customer.context";
 import { useBuyXGetYDiscount } from "../../contexts/buy-x-get-y-discount.context";
-import GridBackgroundWrapper from "../../components/GridBackgroundWrapper";
 import MultiSelect from "../../components/MultiSelect";
 import Select from "../../components/Select";
 
 const BuyXGetYPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit') || null;
   const { activeStoreId } = useStore();
   const { searchBasic, loading: productsLoading } = useProducts();
   const { searchCollections, loading: collectionsLoading, collections } = useCollections();
   const { segments, searchCustomerSegments, fetchSegmentsByStoreId, loading: segmentsLoading } = useCustomerSegments();
   const { customers, searchCustomers, fetchCustomersByStoreId, loading: customersLoading } = useCustomers();
-  const { createDiscount, loading: creating, error: createError } = useBuyXGetYDiscount();
+  const { createDiscount, updateDiscount, fetchDiscountById, loading: creating, error: createError, clearError } = useBuyXGetYDiscount();
   
   const [formData, setFormData] = useState({
     method: 'discount-code' as 'discount-code' | 'automatic',
@@ -136,9 +137,67 @@ const BuyXGetYPage: React.FC = () => {
     };
   })(), [activeStoreId, searchCustomers, fetchCustomersByStoreId]);
 
+  // Edit mode: load discount by id and prefill form
+  useEffect(() => {
+    if (!editId || !activeStoreId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetchDiscountById(editId);
+        if (cancelled || !res.success || !res.data) return;
+        const d = res.data;
+        const toId = (x: any) => (typeof x === 'string' ? x : x?._id) || '';
+        setFormData(prev => ({
+          ...prev,
+          method: d.method,
+          discountCode: d.discountCode ?? '',
+          title: d.title ?? '',
+          allowDiscountOnChannels: !!d.allowDiscountOnChannels,
+          customerBuys: d.customerBuys,
+          quantity: d.quantity != null ? String(d.quantity) : '',
+          amount: d.amount != null ? String(d.amount) : '',
+          anyItemsFrom: d.anyItemsFrom,
+          customerGetsQuantity: d.customerGetsQuantity != null ? String(d.customerGetsQuantity) : '',
+          customerGetsAnyItemsFrom: d.customerGetsAnyItemsFrom,
+          discountedValue: d.discountedValue,
+          discountedAmount: d.discountedAmount != null ? String(d.discountedAmount) : '',
+          discountedPercentage: d.discountedPercentage != null ? String(d.discountedPercentage) : '',
+          setMaxUsersPerOrder: !!d.setMaxUsersPerOrder,
+          maxUsersPerOrder: d.maxUsersPerOrder != null ? String(d.maxUsersPerOrder) : '',
+          eligibility: d.eligibility,
+          applyOnPOSPro: !!d.applyOnPOSPro,
+          limitTotalUses: !!d.limitTotalUses,
+          totalUsesLimit: d.totalUsesLimit != null ? String(d.totalUsesLimit) : '',
+          limitOneUsePerCustomer: !!d.limitOneUsePerCustomer,
+          productDiscounts: !!d.productDiscounts,
+          orderDiscounts: !!d.orderDiscounts,
+          shippingDiscounts: !!d.shippingDiscounts,
+          startDate: d.startDate ?? '',
+          startTime: d.startTime ?? '',
+          setEndDate: !!d.setEndDate,
+          endDate: d.endDate ?? '',
+          endTime: d.endTime ?? '',
+        }));
+        setSelectedBuyProductIds(Array.isArray(d.buysProductIds) ? d.buysProductIds.map(toId).filter(Boolean) : []);
+        setSelectedBuyCollectionIds(Array.isArray(d.buysCollectionIds) ? d.buysCollectionIds.map(toId).filter(Boolean) : []);
+        setSelectedGetProductIds(Array.isArray(d.getsProductIds) ? d.getsProductIds.map(toId).filter(Boolean) : []);
+        setSelectedGetCollectionIds(Array.isArray(d.getsCollectionIds) ? d.getsCollectionIds.map(toId).filter(Boolean) : []);
+        setSelectedSegmentIds(Array.isArray(d.targetCustomerSegmentIds) ? d.targetCustomerSegmentIds.map(toId).filter(Boolean) : []);
+        setSelectedCustomerIds(Array.isArray(d.targetCustomerIds) ? d.targetCustomerIds.map(toId).filter(Boolean) : []);
+      } catch (e) {
+        if (!cancelled) console.error('Failed to load discount for edit:', e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [editId, activeStoreId, fetchDiscountById]);
+
   const handleCancel = useCallback(() => {
-    navigate('/discounts?createDiscountModal=open');
-  }, [navigate]);
+    if (editId) {
+      navigate(`/discounts/pyxgety/${editId}`);
+    } else {
+      navigate('/discounts?createDiscountModal=open');
+    }
+  }, [navigate, editId]);
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -182,14 +241,21 @@ const BuyXGetYPage: React.FC = () => {
         targetCustomerIds: selectedCustomerIds,
       };
 
-      const res = await createDiscount(payload);
-      if (res.success) {
-        navigate('/discounts');
+      if (editId) {
+        const res = await updateDiscount(editId, payload);
+        if (res.success) {
+          navigate(`/discounts/pyxgety/${editId}`);
+        }
+      } else {
+        const res = await createDiscount(payload);
+        if (res.success) {
+          navigate('/discounts');
+        }
       }
     } catch (err) {
       // error handled by context
     }
-  }, [formData, selectedBuyProductIds, selectedBuyCollectionIds, selectedGetProductIds, selectedGetCollectionIds, selectedSegmentIds, selectedCustomerIds, activeStoreId, createDiscount, navigate]);
+  }, [formData, selectedBuyProductIds, selectedBuyCollectionIds, selectedGetProductIds, selectedGetCollectionIds, selectedSegmentIds, selectedCustomerIds, activeStoreId, createDiscount, updateDiscount, editId, navigate]);
 
   // Prepare options for selects
   const anyItemsFromOptions = [
@@ -228,234 +294,227 @@ const BuyXGetYPage: React.FC = () => {
     secondaryText: c.email,
   }));
 
-  return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
-        {/* Page Header */}
-        <div className="border-b border-gray-200 px-4 py-3">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleCancel}
-              className="p-1 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeftIcon className="w-4 h-4" />
-            </button>
-            <h1 className="text-xl font-medium text-gray-900">
-              Buy X get Y
-            </h1>
-          </div>
-        </div>
+  const inputClass =
+    'w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm';
 
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto py-6 px-4">
-          <form onSubmit={handleSubmit}>
-            {/* Error Display */}
+  return (
+    <div className="min-h-screen">
+        <div className="max-w-6xl mx-auto py-8 px-4 sm:px-6">
+          {/* Page Header */}
+          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden mb-6">
+            <div className="px-5 py-4 sm:px-6 sm:py-5">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="p-2 rounded-lg text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                  aria-label="Back"
+                >
+                  <ArrowLeftIcon className="w-5 h-5" />
+                </button>
+                <h1 className="text-lg font-semibold text-gray-900 sm:text-xl">
+                  {editId ? 'Edit Buy X get Y' : 'Buy X get Y'}
+                </h1>
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
             {createError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 flex items-center justify-between">
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 flex items-center justify-between gap-3">
                 <p className="text-sm text-red-800">{createError}</p>
                 <button
                   type="button"
-                  onClick={() => {}}
-                  className="text-red-600 hover:text-red-800"
+                  onClick={clearError}
+                  className="shrink-0 p-1 rounded-lg text-red-600 hover:bg-red-100 transition-colors"
+                  aria-label="Dismiss"
                 >
                   <XMarkIcon className="w-4 h-4" />
                 </button>
               </div>
             )}
 
-            {/* Method Section */}
-            <div className="mb-6 border border-gray-200 p-4 bg-white/95">
-              <h2 className="text-base font-medium mb-3 text-gray-900">Method</h2>
-              
-              <fieldset className="mb-3">
-                <legend className="text-xs text-gray-600 mb-1.5">Discount Method</legend>
-                <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 cursor-pointer">
+            {/* Method */}
+            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 sm:px-6 sm:py-5">
+                <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Method</h2>
+                <fieldset className="mb-3">
+                  <legend className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Discount method</legend>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="method"
+                        value="discount-code"
+                        checked={formData.method === 'discount-code'}
+                        onChange={(e) => handleInputChange('method', e.target.value)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Discount code</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="method"
+                        value="automatic"
+                        checked={formData.method === 'automatic'}
+                        onChange={(e) => handleInputChange('method', e.target.value)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Automatic discount</span>
+                    </label>
+                  </div>
+                </fieldset>
+                {formData.method === 'discount-code' && (
+                  <div className="mt-4">
+                    <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Discount code</label>
                     <input
-                      type="radio"
-                      name="method"
-                      value="discount-code"
-                      checked={formData.method === 'discount-code'}
-                      onChange={(e) => handleInputChange('method', e.target.value)}
-                      className="w-4 h-4 text-gray-900"
+                      type="text"
+                      value={formData.discountCode}
+                      onChange={(e) => handleInputChange('discountCode', e.target.value)}
+                      placeholder="e.g. BUY2GET1"
+                      className={inputClass}
                     />
-                    <span className="text-sm text-gray-700">Discount code</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
+                    <p className="mt-1.5 text-xs text-gray-500">Customers enter this code at checkout</p>
+                  </div>
+                )}
+                {formData.method === 'automatic' && (
+                  <div className="mt-4">
+                    <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Title</label>
                     <input
-                      type="radio"
-                      name="method"
-                      value="automatic"
-                      checked={formData.method === 'automatic'}
-                      onChange={(e) => handleInputChange('method', e.target.value)}
-                      className="w-4 h-4 text-gray-900"
+                      type="text"
+                      value={formData.title}
+                      onChange={(e) => handleInputChange('title', e.target.value)}
+                      placeholder="e.g. Buy 2 get 1 free"
+                      className={inputClass}
                     />
-                    <span className="text-sm text-gray-700">Automatic discount</span>
-                  </label>
-                </div>
-              </fieldset>
-
-              {formData.method === 'discount-code' && (
-                <div className="mt-3">
-                  <label className="block text-xs text-gray-600 mb-1.5">
-                    Discount code
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.discountCode}
-                    onChange={(e) => handleInputChange('discountCode', e.target.value)}
-                    placeholder="Enter discount code"
-                    className="w-full px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 text-base"
-                  />
-                  <p className="mt-1 text-xs text-gray-600">Customers will enter this code at checkout</p>
-                </div>
-              )}
-
-              {formData.method === 'automatic' && (
-                <div className="mt-3">
-                  <label className="block text-xs text-gray-600 mb-1.5">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.title}
-                    onChange={(e) => handleInputChange('title', e.target.value)}
-                    placeholder="Enter discount title"
-                    className="w-full px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 text-base"
-                  />
-                  <p className="mt-1 text-xs text-gray-600">This title will be shown to customers</p>
-                </div>
-              )}
+                    <p className="mt-1.5 text-xs text-gray-500">Shown to customers when the discount applies</p>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Sales Channel Access Section */}
             {formData.method === 'discount-code' && (
-              <>
-                <hr className="my-4 border-gray-200" />
-                <div className="mb-6 border border-gray-200 p-4 bg-white/95">
-                  <h2 className="text-base font-medium mb-3 text-gray-900">Sales channel access</h2>
-                  
-                  <label className="flex items-center gap-2 cursor-pointer">
+              <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+                <div className="px-5 py-4 sm:px-6 sm:py-5">
+                  <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Sales channel access</h2>
+                  <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
                     <input
                       type="checkbox"
                       checked={formData.allowDiscountOnChannels}
                       onChange={(e) => handleInputChange('allowDiscountOnChannels', e.target.checked)}
-                      className="w-4 h-4 text-gray-900"
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                     <span className="text-sm text-gray-700">Allow discount to be featured on selected channels</span>
                   </label>
                 </div>
-              </>
+              </div>
             )}
 
-            <hr className="my-4 border-gray-200" />
-
-            {/* Customer Buys/Spends Section */}
-            <div className="mb-6 border border-gray-200 p-4 bg-white/95">
-              <h2 className="text-base font-medium mb-3 text-gray-900">
-                {formData.customerBuys === 'minimum-amount' ? 'Customer spends' : 'Customer buys'}
-              </h2>
-              
-              <fieldset className="mb-3">
-                <legend className="text-xs text-gray-600 mb-1.5">
+            {/* Customer buys / spends */}
+            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 sm:px-6 sm:py-5">
+                <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">
                   {formData.customerBuys === 'minimum-amount' ? 'Customer spends' : 'Customer buys'}
-                </legend>
-                <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="customerBuys"
-                      value="minimum-quantity"
-                      checked={formData.customerBuys === 'minimum-quantity'}
-                      onChange={(e) => handleInputChange('customerBuys', e.target.value)}
-                      className="w-4 h-4 text-gray-900"
-                    />
-                    <span className="text-sm text-gray-700">Minimum quantity of items</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="customerBuys"
-                      value="minimum-amount"
-                      checked={formData.customerBuys === 'minimum-amount'}
-                      onChange={(e) => handleInputChange('customerBuys', e.target.value)}
-                      className="w-4 h-4 text-gray-900"
-                    />
-                    <span className="text-sm text-gray-700">Minimum purchase amount</span>
-                  </label>
-                </div>
-              </fieldset>
-
-              {(formData.customerBuys === 'minimum-quantity' || formData.customerBuys === 'minimum-amount') && (
-                <div className="mt-3">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs text-gray-600 mb-1.5">
-                        {formData.customerBuys === 'minimum-quantity' ? 'Quantity' : 'Amount'}
-                      </label>
-                      {formData.customerBuys === 'minimum-amount' ? (
-                        <div className="relative">
-                          <span className="absolute left-3 top-2 text-gray-500 text-sm">₹</span>
+                </h2>
+                <fieldset className="mb-4">
+                  <legend className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                    {formData.customerBuys === 'minimum-amount' ? 'Customer spends' : 'Customer buys'}
+                  </legend>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="customerBuys"
+                        value="minimum-quantity"
+                        checked={formData.customerBuys === 'minimum-quantity'}
+                        onChange={(e) => handleInputChange('customerBuys', e.target.value)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Minimum quantity of items</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="customerBuys"
+                        value="minimum-amount"
+                        checked={formData.customerBuys === 'minimum-amount'}
+                        onChange={(e) => handleInputChange('customerBuys', e.target.value)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Minimum purchase amount</span>
+                    </label>
+                  </div>
+                </fieldset>
+                {(formData.customerBuys === 'minimum-quantity' || formData.customerBuys === 'minimum-amount') && (
+                  <div className="mt-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                          {formData.customerBuys === 'minimum-quantity' ? 'Quantity' : 'Amount'}
+                        </label>
+                        {formData.customerBuys === 'minimum-amount' ? (
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">₹</span>
+                            <input
+                              type="number"
+                              value={formData.amount}
+                              onChange={(e) => handleInputChange('amount', e.target.value)}
+                              placeholder="e.g. 500"
+                              className={`${inputClass} pl-8`}
+                            />
+                          </div>
+                        ) : (
                           <input
                             type="number"
-                            value={formData.amount}
-                            onChange={(e) => handleInputChange('amount', e.target.value)}
-                            placeholder="Enter minimum amount"
-                            className="w-full px-3 py-1.5 pl-8 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 text-base"
+                            value={formData.quantity}
+                            onChange={(e) => handleInputChange('quantity', e.target.value)}
+                            placeholder="e.g. 2"
+                            className={inputClass}
                           />
-                        </div>
-                      ) : (
-                        <input
-                          type="number"
-                          value={formData.quantity}
-                          onChange={(e) => handleInputChange('quantity', e.target.value)}
-                          placeholder="Enter minimum quantity"
-                          className="w-full px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 text-base"
+                        )}
+                        <p className="mt-1.5 text-xs text-gray-500">
+                          {formData.customerBuys === 'minimum-quantity' ? 'Minimum quantity required' : 'Minimum amount in rupees'}
+                        </p>
+                      </div>
+                      <div>
+                        <Select
+                          label="Any items from"
+                          value={formData.anyItemsFrom}
+                          options={anyItemsFromOptions}
+                          onChange={(value) => handleInputChange('anyItemsFrom', value)}
                         />
-                      )}
-                      <p className="mt-1 text-xs text-gray-600">
-                        {formData.customerBuys === 'minimum-quantity' ? 'Enter the minimum quantity of items required' : 'Enter the minimum purchase amount in rupees'}
-                      </p>
-                    </div>
-
-                    <div>
-                      <Select
-                        label="Any items from"
-                        value={formData.anyItemsFrom}
-                        options={anyItemsFromOptions}
-                        onChange={(value) => handleInputChange('anyItemsFrom', value)}
-                      />
-                    </div>
-
-                    <div className="col-span-full">
-                      <label className="block text-xs text-gray-600 mb-1.5">
-                        {formData.anyItemsFrom === 'specific-products' ? 'Search products' : 'Search collections'}
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          value={formData.searchQuery}
-                          onChange={(e) => {
-                            const q = e.target.value;
-                            handleInputChange('searchQuery', q);
-                            if (formData.anyItemsFrom === 'specific-products') {
-                              debouncedSearchProducts(q, 'buy');
-                            } else {
-                              debouncedSearchCollections(q);
-                            }
-                          }}
-                          placeholder={formData.anyItemsFrom === 'specific-products' ? 'Search for products...' : 'Search for collections...'}
-                          className="w-full px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 pr-10 text-base"
-                        />
+                      </div>
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                          {formData.anyItemsFrom === 'specific-products' ? 'Search products' : 'Search collections'}
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={formData.searchQuery}
+                            onChange={(e) => {
+                              const q = e.target.value;
+                              handleInputChange('searchQuery', q);
+                              if (formData.anyItemsFrom === 'specific-products') {
+                                debouncedSearchProducts(q, 'buy');
+                              } else {
+                                debouncedSearchCollections(q);
+                              }
+                            }}
+                            placeholder={formData.anyItemsFrom === 'specific-products' ? 'Search for products...' : 'Search for collections...'}
+                            className={inputClass}
+                          />
                         {((formData.anyItemsFrom === 'specific-products' && productsLoading) || (formData.anyItemsFrom === 'specific-collections' && collectionsLoading)) && (
-                          <div className="absolute right-3 top-2">
-                            <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
                           </div>
                         )}
-                      </div>
-                      <p className="mt-1 text-xs text-gray-600">
+                        </div>
+                      <p className="mt-1.5 text-xs text-gray-500">
                         {formData.anyItemsFrom === 'specific-products' ? 'Search and select products to apply the discount to' : 'Search and select collections to apply the discount to'}
                       </p>
+                      </div>
                     </div>
 
                     {formData.anyItemsFrom === 'specific-products' && (
@@ -494,60 +553,54 @@ const BuyXGetYPage: React.FC = () => {
                       </div>
                     )}
                   </div>
-                </div>
               )}
+              </div>
             </div>
 
-            <hr className="my-4 border-gray-200" />
-
-            {/* Customer Gets Section */}
-            <div className="mb-6 border border-gray-200 p-4 bg-white/95">
-              <h2 className="text-base font-medium mb-3 text-gray-900">Customer gets</h2>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1.5">
-                    Quantity
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.customerGetsQuantity}
-                    onChange={(e) => handleInputChange('customerGetsQuantity', e.target.value)}
-                    placeholder="Enter quantity"
-                    className="w-full px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 text-base"
-                  />
-                  <p className="mt-1 text-xs text-gray-600">Enter the quantity of items customers will get</p>
-                </div>
-
-                <div>
-                  <Select
-                    label="Any items from"
-                    value={formData.customerGetsAnyItemsFrom}
-                    options={anyItemsFromOptions}
-                    onChange={(value) => handleInputChange('customerGetsAnyItemsFrom', value)}
-                  />
-                </div>
-
-                <div className="col-span-full">
-                  <label className="block text-xs text-gray-600 mb-1.5">
-                    {formData.customerGetsAnyItemsFrom === 'specific-products' ? 'Search products' : 'Search collections'}
-                  </label>
-                  <div className="relative">
+            {/* Customer gets */}
+            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 sm:px-6 sm:py-5">
+                <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Customer gets</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Quantity</label>
                     <input
-                      type="text"
-                      value={formData.customerGetsSearchQuery}
-                      onChange={(e) => {
-                        const q = e.target.value;
-                        handleInputChange('customerGetsSearchQuery', q);
-                        if (formData.customerGetsAnyItemsFrom === 'specific-products') {
-                          debouncedSearchProducts(q, 'get');
-                        } else {
-                          debouncedSearchCollections(q);
-                        }
-                      }}
-                      placeholder={formData.customerGetsAnyItemsFrom === 'specific-products' ? 'Search for products...' : 'Search for collections...'}
-                      className="w-full px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 pr-10 text-base"
+                      type="number"
+                      value={formData.customerGetsQuantity}
+                      onChange={(e) => handleInputChange('customerGetsQuantity', e.target.value)}
+                      placeholder="e.g. 1"
+                      className={inputClass}
                     />
+                    <p className="mt-1.5 text-xs text-gray-500">Quantity of items customers will get</p>
+                  </div>
+                  <div>
+                    <Select
+                      label="Any items from"
+                      value={formData.customerGetsAnyItemsFrom}
+                      options={anyItemsFromOptions}
+                      onChange={(value) => handleInputChange('customerGetsAnyItemsFrom', value)}
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                      {formData.customerGetsAnyItemsFrom === 'specific-products' ? 'Search products' : 'Search collections'}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={formData.customerGetsSearchQuery}
+                        onChange={(e) => {
+                          const q = e.target.value;
+                          handleInputChange('customerGetsSearchQuery', q);
+                          if (formData.customerGetsAnyItemsFrom === 'specific-products') {
+                            debouncedSearchProducts(q, 'get');
+                          } else {
+                            debouncedSearchCollections(q);
+                          }
+                        }}
+                        placeholder={formData.customerGetsAnyItemsFrom === 'specific-products' ? 'Search for products...' : 'Search for collections...'}
+                        className={inputClass}
+                      />
                     {((formData.customerGetsAnyItemsFrom === 'specific-products' && productsLoading) || (formData.customerGetsAnyItemsFrom === 'specific-collections' && collectionsLoading)) && (
                       <div className="absolute right-3 top-2">
                         <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
@@ -596,462 +649,392 @@ const BuyXGetYPage: React.FC = () => {
                 )}
               </div>
 
-              {/* At a discounted value section */}
-              <div className="mt-4">
-                <h3 className="text-base font-medium mb-3 text-gray-900">At a discounted value</h3>
-                
-                <fieldset className="mb-3">
-                  <legend className="text-xs text-gray-600 mb-1.5">Discounted Value</legend>
-                  <div className="space-y-1.5">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="discountedValue"
-                        value="free"
-                        checked={formData.discountedValue === 'free'}
-                        onChange={(e) => handleInputChange('discountedValue', e.target.value)}
-                        className="w-4 h-4 text-gray-900"
-                      />
-                      <span className="text-sm text-gray-700">Free</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="discountedValue"
-                        value="amount"
-                        checked={formData.discountedValue === 'amount'}
-                        onChange={(e) => handleInputChange('discountedValue', e.target.value)}
-                        className="w-4 h-4 text-gray-900"
-                      />
-                      <span className="text-sm text-gray-700">Amount of each</span>
-                    </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="discountedValue"
-                        value="percentage"
-                        checked={formData.discountedValue === 'percentage'}
-                        onChange={(e) => handleInputChange('discountedValue', e.target.value)}
-                        className="w-4 h-4 text-gray-900"
-                      />
-                      <span className="text-sm text-gray-700">Percentage</span>
-                    </label>
-                  </div>
-                </fieldset>
-
-                {formData.discountedValue === 'amount' && (
-                  <>
-                    <div className="mt-3">
-                      <label className="block text-xs text-gray-600 mb-1.5">
-                        Amount
+                <div className="mt-6 pt-4 border-t border-gray-100">
+                  <h3 className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-3">At a discounted value</h3>
+                  <fieldset className="mb-4">
+                    <legend className="sr-only">Discounted value</legend>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                        <input
+                          type="radio"
+                          name="discountedValue"
+                          value="free"
+                          checked={formData.discountedValue === 'free'}
+                          onChange={(e) => handleInputChange('discountedValue', e.target.value)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">Free</span>
                       </label>
+                      <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                        <input
+                          type="radio"
+                          name="discountedValue"
+                          value="amount"
+                          checked={formData.discountedValue === 'amount'}
+                          onChange={(e) => handleInputChange('discountedValue', e.target.value)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">Amount off each</span>
+                      </label>
+                      <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                        <input
+                          type="radio"
+                          name="discountedValue"
+                          value="percentage"
+                          checked={formData.discountedValue === 'percentage'}
+                          onChange={(e) => handleInputChange('discountedValue', e.target.value)}
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <span className="text-sm text-gray-700">Percentage off</span>
+                      </label>
+                    </div>
+                  </fieldset>
+                  {formData.discountedValue === 'amount' && (
+                    <>
+                      <div className="mt-3">
+                        <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Amount (₹)</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">₹</span>
+                          <input
+                            type="number"
+                            value={formData.discountedAmount}
+                            onChange={(e) => handleInputChange('discountedAmount', e.target.value)}
+                            placeholder="e.g. 100"
+                            className={`${inputClass} pl-8`}
+                          />
+                        </div>
+                        <p className="mt-1.5 text-xs text-gray-500">Amount off each eligible item</p>
+                      </div>
+                    </>
+                  )}
+                  {formData.discountedValue === 'percentage' && (
+                    <div className="mt-3">
+                      <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Percentage</label>
                       <div className="relative">
-                        <span className="absolute left-3 top-2 text-gray-500 text-sm">₹</span>
                         <input
                           type="number"
-                          value={formData.discountedAmount}
-                          onChange={(e) => handleInputChange('discountedAmount', e.target.value)}
-                          placeholder="Enter amount"
-                          className="w-full px-3 py-1.5 pl-8 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 text-base"
+                          value={formData.discountedPercentage}
+                          onChange={(e) => handleInputChange('discountedPercentage', e.target.value)}
+                          placeholder="e.g. 50"
+                          className={`${inputClass} pr-8`}
                         />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
                       </div>
-                      <p className="mt-1 text-xs text-gray-600">Enter the amount in rupees</p>
-                    </div>
-                    <p className="mt-2 text-xs text-gray-600">
-                      For multiple quantities, the discount amount will be taken off each eligible item.
-                    </p>
-                  </>
-                )}
-
-                {formData.discountedValue === 'percentage' && (
-                  <div className="mt-3">
-                    <label className="block text-xs text-gray-600 mb-1.5">
-                      Percentage
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={formData.discountedPercentage}
-                        onChange={(e) => handleInputChange('discountedPercentage', e.target.value)}
-                        placeholder="Enter percentage"
-                        className="w-full px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 pr-8 text-base"
-                      />
-                      <span className="absolute right-3 top-2 text-gray-500 text-sm">%</span>
-                    </div>
-                    <p className="mt-1 text-xs text-gray-600">Enter the percentage discount</p>
-                  </div>
-                )}
-
-                <div className="mt-3">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={formData.setMaxUsersPerOrder}
-                      onChange={(e) => handleInputChange('setMaxUsersPerOrder', e.target.checked)}
-                      className="w-4 h-4 text-gray-900"
-                    />
-                    <span className="text-sm text-gray-700">Set a maximum number of users per order</span>
-                  </label>
-                  
-                  {formData.setMaxUsersPerOrder && (
-                    <div className="ml-6 mt-2">
-                      <label className="block text-xs text-gray-600 mb-1.5">
-                        Maximum number of users per order
-                      </label>
-                      <input
-                        type="number"
-                        value={formData.maxUsersPerOrder}
-                        onChange={(e) => handleInputChange('maxUsersPerOrder', e.target.value)}
-                        placeholder="Enter maximum number"
-                        className="w-full px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 text-base"
-                      />
-                      <p className="mt-1 text-xs text-gray-600">Enter the maximum number of users per order</p>
+                      <p className="mt-1.5 text-xs text-gray-500">Percentage off each eligible item</p>
                     </div>
                   )}
+                  <div className="mt-4">
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                      <input
+                        type="checkbox"
+                        checked={formData.setMaxUsersPerOrder}
+                        onChange={(e) => handleInputChange('setMaxUsersPerOrder', e.target.checked)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Set a maximum number of uses per order</span>
+                    </label>
+                    {formData.setMaxUsersPerOrder && (
+                      <div className="ml-6 mt-2">
+                        <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Maximum uses per order</label>
+                        <input
+                          type="number"
+                          value={formData.maxUsersPerOrder}
+                          onChange={(e) => handleInputChange('maxUsersPerOrder', e.target.value)}
+                          placeholder="e.g. 1"
+                          className={inputClass}
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
-            <hr className="my-4 border-gray-200" />
-
-            {/* Eligibility Section */}
-            <div className="mb-6 border border-gray-200 p-4 bg-white/95">
-              <h2 className="text-base font-medium mb-1 text-gray-900">Eligibility</h2>
-              <p className="text-xs text-gray-600 mb-3">Available on all sales channels</p>
-              
-              <fieldset className="mb-3">
-                <legend className="text-xs text-gray-600 mb-1.5">Customer Eligibility</legend>
-                <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="eligibility"
-                      value="all-customers"
-                      checked={formData.eligibility === 'all-customers'}
-                      onChange={(e) => handleInputChange('eligibility', e.target.value)}
-                      className="w-4 h-4 text-gray-900"
-                    />
-                    <span className="text-sm text-gray-700">All customers</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="eligibility"
-                      value="specific-customer-segments"
-                      checked={formData.eligibility === 'specific-customer-segments'}
-                      onChange={(e) => handleInputChange('eligibility', e.target.value)}
-                      className="w-4 h-4 text-gray-900"
-                    />
-                    <span className="text-sm text-gray-700">Specific customer segments</span>
-                  </label>
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="eligibility"
-                      value="specific-customers"
-                      checked={formData.eligibility === 'specific-customers'}
-                      onChange={(e) => handleInputChange('eligibility', e.target.value)}
-                      className="w-4 h-4 text-gray-900"
-                    />
-                    <span className="text-sm text-gray-700">Specific customers</span>
-                  </label>
-                </div>
-              </fieldset>
-
-              {formData.method === 'automatic' && formData.eligibility === 'all-customers' && (
-                <div className="ml-2 mt-2">
-                  <label className="flex items-center gap-2 cursor-pointer">
+            {/* Eligibility */}
+            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 sm:px-6 sm:py-5">
+                <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-1">Eligibility</h2>
+                <p className="text-xs text-gray-500 mb-4">Available on all sales channels</p>
+                <fieldset className="mb-4">
+                  <legend className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Customer eligibility</legend>
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="eligibility"
+                        value="all-customers"
+                        checked={formData.eligibility === 'all-customers'}
+                        onChange={(e) => handleInputChange('eligibility', e.target.value)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">All customers</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="eligibility"
+                        value="specific-customer-segments"
+                        checked={formData.eligibility === 'specific-customer-segments'}
+                        onChange={(e) => handleInputChange('eligibility', e.target.value)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Specific customer segments</span>
+                    </label>
+                    <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                      <input
+                        type="radio"
+                        name="eligibility"
+                        value="specific-customers"
+                        checked={formData.eligibility === 'specific-customers'}
+                        onChange={(e) => handleInputChange('eligibility', e.target.value)}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <span className="text-sm text-gray-700">Specific customers</span>
+                    </label>
+                  </div>
+                </fieldset>
+                {formData.method === 'automatic' && formData.eligibility === 'all-customers' && (
+                  <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50 mt-2">
                     <input
                       type="checkbox"
                       checked={formData.applyOnPOSPro}
                       onChange={(e) => handleInputChange('applyOnPOSPro', e.target.checked)}
-                      className="w-4 h-4 text-gray-900"
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                     <span className="text-sm text-gray-700">Apply on POS Pro locations</span>
                   </label>
-                </div>
-              )}
-
-              {(formData.eligibility === 'specific-customer-segments' || formData.eligibility === 'specific-customers') && (
-                <div className="mt-3">
-                  <label className="block text-xs text-gray-600 mb-1.5">
-                    {formData.eligibility === 'specific-customer-segments' ? 'Search customer segments' : 'Search customers'}
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={formData.eligibility === 'specific-customer-segments' ? segmentSearchQuery : customerSearchQuery}
-                      onChange={(e) => {
-                        const q = e.target.value;
-                        if (formData.eligibility === 'specific-customer-segments') {
-                          setSegmentSearchQuery(q);
-                          debouncedSearchSegments(q);
-                        } else {
-                          setCustomerSearchQuery(q);
-                          debouncedSearchCustomers(q);
-                        }
-                      }}
-                      placeholder={formData.eligibility === 'specific-customer-segments' ? 'Search for customer segments...' : 'Search for customers...'}
-                      className="w-full px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 pr-10 text-base"
-                    />
-                    {((formData.eligibility === 'specific-customer-segments' && segmentsLoading) || (formData.eligibility === 'specific-customers' && customersLoading)) && (
-                      <div className="absolute right-3 top-2">
-                        <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                )}
+                {(formData.eligibility === 'specific-customer-segments' || formData.eligibility === 'specific-customers') && (
+                  <div className="mt-4">
+                    <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+                      {formData.eligibility === 'specific-customer-segments' ? 'Search customer segments' : 'Search customers'}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={formData.eligibility === 'specific-customer-segments' ? segmentSearchQuery : customerSearchQuery}
+                        onChange={(e) => {
+                          const q = e.target.value;
+                          if (formData.eligibility === 'specific-customer-segments') {
+                            setSegmentSearchQuery(q);
+                            debouncedSearchSegments(q);
+                          } else {
+                            setCustomerSearchQuery(q);
+                            debouncedSearchCustomers(q);
+                          }
+                        }}
+                        placeholder={formData.eligibility === 'specific-customer-segments' ? 'Search segments...' : 'Search customers...'}
+                        className={inputClass}
+                      />
+                      {((formData.eligibility === 'specific-customer-segments' && segmentsLoading) || (formData.eligibility === 'specific-customers' && customersLoading)) && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      )}
+                    </div>
+                    <p className="mt-1.5 text-xs text-gray-500">
+                      {formData.eligibility === 'specific-customer-segments' ? 'Search and select segments' : 'Search and select customers'}
+                    </p>
+                    {formData.eligibility === 'specific-customer-segments' && segments.length > 0 && (
+                      <div className="mt-3">
+                        <MultiSelect
+                          label="Choose customer segments"
+                          value={selectedSegmentIds}
+                          options={segmentOptions}
+                          onChange={setSelectedSegmentIds}
+                          renderValue={(selected) => segments.filter(s => selected.includes(s._id)).map(s => s.name).join(', ')}
+                        />
+                        <p className="mt-1.5 text-xs text-gray-500">{selectedSegmentIds.length} segment(s) selected</p>
+                      </div>
+                    )}
+                    {formData.eligibility === 'specific-customers' && customers.length > 0 && (
+                      <div className="mt-3">
+                        <MultiSelect
+                          label="Choose customers"
+                          value={selectedCustomerIds}
+                          options={customerOptions}
+                          onChange={setSelectedCustomerIds}
+                          renderValue={(selected) => customers.filter(c => selected.includes(c._id)).map(c => `${c.firstName} ${c.lastName}`.trim() || c.email).join(', ')}
+                        />
+                        <p className="mt-1.5 text-xs text-gray-500">{selectedCustomerIds.length} customer(s) selected</p>
                       </div>
                     )}
                   </div>
-                  <p className="mt-1 text-xs text-gray-600">
-                    {formData.eligibility === 'specific-customer-segments' ? 'Search and select customer segments to apply the discount to' : 'Search and select customers to apply the discount to'}
-                  </p>
-
-                  {formData.eligibility === 'specific-customer-segments' && segments.length > 0 && (
-                    <div className="mt-3">
-                      <MultiSelect
-                        label="Choose Customer Segments"
-                        value={selectedSegmentIds}
-                        options={segmentOptions}
-                        onChange={setSelectedSegmentIds}
-                        renderValue={(selected) => segments.filter(s => selected.includes(s._id)).map(s => s.name).join(', ')}
-                      />
-                      <p className="mt-1 text-xs text-gray-600">
-                        {selectedSegmentIds.length} segment(s) selected
-                      </p>
-                    </div>
-                  )}
-
-                  {formData.eligibility === 'specific-customers' && customers.length > 0 && (
-                    <div className="mt-3">
-                      <MultiSelect
-                        label="Choose Customers"
-                        value={selectedCustomerIds}
-                        options={customerOptions}
-                        onChange={setSelectedCustomerIds}
-                        renderValue={(selected) => customers.filter(c => selected.includes(c._id)).map(c => `${c.firstName} ${c.lastName}`.trim() || c.email).join(', ')}
-                      />
-                      <p className="mt-1 text-xs text-gray-600">
-                        {selectedCustomerIds.length} customer(s) selected
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
-            {/* Maximum Discount Uses Section */}
             {formData.method === 'discount-code' && (
-              <>
-                <hr className="my-4 border-gray-200" />
-
-                <div className="mb-6 border border-gray-200 p-4 bg-white/95">
-                  <h2 className="text-base font-medium mb-3 text-gray-900">Maximum discount uses</h2>
-                  
-                  <div className="mb-3">
-                    <label className="flex items-center gap-2 cursor-pointer">
+              <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+                <div className="px-5 py-4 sm:px-6 sm:py-5">
+                  <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Maximum discount uses</h2>
+                  <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                    <input
+                      type="checkbox"
+                      checked={formData.limitTotalUses}
+                      onChange={(e) => handleInputChange('limitTotalUses', e.target.checked)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Limit total number of uses</span>
+                  </label>
+                  {formData.limitTotalUses && (
+                    <div className="ml-6 mt-2">
+                      <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Total uses limit</label>
                       <input
-                        type="checkbox"
-                        checked={formData.limitTotalUses}
-                        onChange={(e) => handleInputChange('limitTotalUses', e.target.checked)}
-                        className="w-4 h-4 text-gray-900"
+                        type="number"
+                        value={formData.totalUsesLimit}
+                        onChange={(e) => handleInputChange('totalUsesLimit', e.target.value)}
+                        placeholder="e.g. 100"
+                        className={inputClass}
                       />
-                      <span className="text-sm text-gray-700">Limit number of times this discount can be used in total</span>
-                    </label>
-                    {formData.limitTotalUses && (
-                      <div className="ml-6 mt-2">
-                        <label className="block text-xs text-gray-600 mb-1.5">
-                          Total uses limit
-                        </label>
-                        <input
-                          type="number"
-                          value={formData.totalUsesLimit}
-                          onChange={(e) => handleInputChange('totalUsesLimit', e.target.value)}
-                          placeholder="Enter maximum number of uses"
-                          className="w-full px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 text-base"
-                        />
-                        <p className="mt-1 text-xs text-gray-600">Enter the maximum number of times this discount can be used</p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.limitOneUsePerCustomer}
-                        onChange={(e) => handleInputChange('limitOneUsePerCustomer', e.target.checked)}
-                        className="w-4 h-4 text-gray-900"
-                      />
-                      <span className="text-sm text-gray-700">Limit to one use per customer</span>
-                    </label>
-                  </div>
+                    </div>
+                  )}
+                  <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50 mt-3">
+                    <input
+                      type="checkbox"
+                      checked={formData.limitOneUsePerCustomer}
+                      onChange={(e) => handleInputChange('limitOneUsePerCustomer', e.target.checked)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Limit to one use per customer</span>
+                  </label>
                 </div>
-              </>
+              </div>
             )}
 
-            <hr className="my-4 border-gray-200" />
-
-            {/* Combinations Section */}
-            <div className="mb-6 border border-gray-200 p-4 bg-white/95">
-              <h2 className="text-base font-medium mb-3 text-gray-900">Combinations</h2>
-              
-              <div className="mb-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.productDiscounts}
-                    onChange={(e) => handleInputChange('productDiscounts', e.target.checked)}
-                    className="w-4 h-4 text-gray-900"
-                  />
-                  <span className="text-sm text-gray-700">Product Discounts</span>
-                </label>
-                {formData.productDiscounts && (
-                  <p className="mt-1 ml-6 text-xs text-gray-600">
-                    Each eligible item in the cart may receive up to one product discount.
-                  </p>
-                )}
-              </div>
-
-              <div className="mb-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.orderDiscounts}
-                    onChange={(e) => handleInputChange('orderDiscounts', e.target.checked)}
-                    className="w-4 h-4 text-gray-900"
-                  />
-                  <span className="text-sm text-gray-700">Order Discounts</span>
-                </label>
-                {formData.orderDiscounts && (
-                  <p className="mt-1 ml-6 text-xs text-gray-600">
-                    All eligible order discounts will apply in addition to eligible product discounts.
-                  </p>
-                )}
-              </div>
-
-              <div className="mb-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.shippingDiscounts}
-                    onChange={(e) => handleInputChange('shippingDiscounts', e.target.checked)}
-                    className="w-4 h-4 text-gray-900"
-                  />
-                  <span className="text-sm text-gray-700">Shipping Discounts</span>
-                </label>
-                {formData.shippingDiscounts && (
-                  <p className="mt-1 ml-6 text-xs text-gray-600">
-                    The largest eligible shipping discount will apply in addition to eligible product discounts.
-                  </p>
-                )}
-              </div>
-
-              {(formData.productDiscounts || formData.orderDiscounts || formData.shippingDiscounts) && (
-                <div className="mt-3 p-3 bg-white/95 border border-gray-200">
-                  <p className="text-xs text-gray-600">
-                    This discount won't combine with any other discount at checkout.
-                  </p>
+            {/* Combinations */}
+            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 sm:px-6 sm:py-5">
+                <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Combinations</h2>
+                <div className="space-y-3">
+                  <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                    <input
+                      type="checkbox"
+                      checked={formData.productDiscounts}
+                      onChange={(e) => handleInputChange('productDiscounts', e.target.checked)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Product discounts</span>
+                  </label>
+                  {formData.productDiscounts && (
+                    <p className="ml-6 text-xs text-gray-500">Each eligible item may receive one product discount.</p>
+                  )}
+                  <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                    <input
+                      type="checkbox"
+                      checked={formData.orderDiscounts}
+                      onChange={(e) => handleInputChange('orderDiscounts', e.target.checked)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Order discounts</span>
+                  </label>
+                  {formData.orderDiscounts && (
+                    <p className="ml-6 text-xs text-gray-500">Order discounts apply in addition to product discounts.</p>
+                  )}
+                  <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50">
+                    <input
+                      type="checkbox"
+                      checked={formData.shippingDiscounts}
+                      onChange={(e) => handleInputChange('shippingDiscounts', e.target.checked)}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700">Shipping discounts</span>
+                  </label>
+                  {formData.shippingDiscounts && (
+                    <p className="ml-6 text-xs text-gray-500">Largest eligible shipping discount applies.</p>
+                  )}
                 </div>
-              )}
+                {(formData.productDiscounts || formData.orderDiscounts || formData.shippingDiscounts) && (
+                  <div className="mt-4 p-3 rounded-lg bg-amber-50 border border-amber-200">
+                    <p className="text-xs text-amber-800">This discount won't combine with other discounts at checkout.</p>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <hr className="my-4 border-gray-200" />
-
-            {/* Active Dates Section */}
-            <div className="mb-6 border border-gray-200 p-4 bg-white/95">
-              <h2 className="text-base font-medium mb-3 text-gray-900">Active dates</h2>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1.5">
-                    Start date
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e) => handleInputChange('startDate', e.target.value)}
-                    className="w-full px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 text-base"
-                  />
+            {/* Active dates */}
+            <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+              <div className="px-5 py-4 sm:px-6 sm:py-5">
+                <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Active dates</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Start date</label>
+                    <input
+                      type="date"
+                      value={formData.startDate}
+                      onChange={(e) => handleInputChange('startDate', e.target.value)}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Start time (IST)</label>
+                    <input
+                      type="time"
+                      value={formData.startTime}
+                      onChange={(e) => handleInputChange('startTime', e.target.value)}
+                      className={inputClass}
+                    />
+                    <p className="mt-1.5 text-xs text-gray-500">Indian Standard Time</p>
+                  </div>
                 </div>
-                
-                <div>
-                  <label className="block text-xs text-gray-600 mb-1.5">
-                    Start time (IST)
-                  </label>
-                  <input
-                    type="time"
-                    value={formData.startTime}
-                    onChange={(e) => handleInputChange('startTime', e.target.value)}
-                    className="w-full px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 text-base"
-                  />
-                  <p className="mt-1 text-xs text-gray-600">Indian Standard Time</p>
-                </div>
-              </div>
-
-              <div className="mt-3">
-                <label className="flex items-center gap-2 cursor-pointer">
+                <label className="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50 mt-4">
                   <input
                     type="checkbox"
                     checked={formData.setEndDate}
                     onChange={(e) => handleInputChange('setEndDate', e.target.checked)}
-                    className="w-4 h-4 text-gray-900"
+                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   />
                   <span className="text-sm text-gray-700">Set end date</span>
                 </label>
+                {formData.setEndDate && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">End date</label>
+                      <input
+                        type="date"
+                        value={formData.endDate}
+                        onChange={(e) => handleInputChange('endDate', e.target.value)}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">End time (IST)</label>
+                      <input
+                        type="time"
+                        value={formData.endTime}
+                        onChange={(e) => handleInputChange('endTime', e.target.value)}
+                        className={inputClass}
+                      />
+                      <p className="mt-1.5 text-xs text-gray-500">Indian Standard Time</p>
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {formData.setEndDate && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1.5">
-                      End date
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.endDate}
-                      onChange={(e) => handleInputChange('endDate', e.target.value)}
-                      className="w-full px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 text-base"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1.5">
-                      End time (IST)
-                    </label>
-                    <input
-                      type="time"
-                      value={formData.endTime}
-                      onChange={(e) => handleInputChange('endTime', e.target.value)}
-                      className="w-full px-3 py-1.5 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 text-base"
-                    />
-                    <p className="mt-1 text-xs text-gray-600">Indian Standard Time</p>
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-2 justify-end mt-4">
+            {/* Actions */}
+            <div className="flex flex-wrap gap-3 justify-end">
               <button
                 type="button"
                 onClick={handleCancel}
-                className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors"
+                className="px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={creating}
-                className="px-3 py-1.5 text-sm font-medium bg-gray-900 text-white hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {creating && (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 )}
-                {creating ? 'Creating...' : 'Create Discount'}
+                {creating ? (editId ? 'Saving…' : 'Creating…') : (editId ? 'Save changes' : 'Create discount')}
               </button>
             </div>
           </form>
         </div>
       </div>
-    </GridBackgroundWrapper>
   );
 };
 

@@ -1,145 +1,279 @@
+/**
+ * Storefront: Amount off order discounts (checkout).
+ * Amount off order applies to the entire order.
+ * Combination flags (productDiscounts, orderDiscounts, shippingDiscounts) indicate
+ * whether this discount can stack with other discount types at checkout.
+ */
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
-import { CustomerSegmentEntry } from '../../models';
+import { CustomerSegment, CustomerSegmentEntry } from '../../models';
 import { AmountOffOrderDiscountUsage } from '../../models/discount/amount-off-order-discount-model/amount-off-order-discount-usage.model';
 import { AmountOffOrderDiscount } from '../../models/discount/amount-off-order-discount-model/amount-off-order-discount.model';
-import { AmountOffOrderEligibilityEntry } from '../../models/discount/amount-off-order-discount-model/amount-off-order-eligibility-entry.model';
+import { AmountOffOrderCustomerSegmentEntry } from '../../models/discount/amount-off-order-discount-model/amount-off-order-customer-segment-entry.model';
+import { AmountOffOrderCustomerEntry } from '../../models/discount/amount-off-order-discount-model/amount-off-order-customer-entry.model';
+import type { IAmountOffOrderDiscount } from '../../models/discount/amount-off-order-discount-model/amount-off-order-discount.model';
 import { asyncErrorHandler, CustomError } from '../../utils/error.utils';
 
-export const checkEligibleAmountOffOrderDiscounts = asyncErrorHandler(async (req: Request, res: Response) => {
-  const { storeId, customerId, cartItems } = req.body as {
-    storeId: string;
-    customerId: string;
-    cartItems: Array<{
-      productId: string;
-      quantity: number;
-      price: number;
-    }>;
-  };
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
-  // Validate required fields
+type CartItemInput = {
+  productId?: string;
+  collectionIds?: string[]; // optional: for "apply to specific collections" matching
+  quantity: number;
+  price: number;
+};
+
+const CART_ITEM_MIN_QUANTITY = 1;
+const CART_ITEM_MIN_PRICE = 0;
+
+// ---------------------------------------------------------------------------
+// Helpers: validate cart and compute totals
+// ---------------------------------------------------------------------------
+
+function validateAndParseCart(body: { storeId?: string; customerId?: string; cartItems?: unknown }): {
+  storeId: string;
+  customerId: string | null;
+  cartItems: CartItemInput[];
+  cartTotal: number;
+  totalQuantity: number;
+} {
+  const { storeId, customerId, cartItems: rawCartItems } = body;
+
   if (!storeId || !mongoose.isValidObjectId(storeId)) {
     throw new CustomError('Valid storeId is required', 400);
   }
-  if (!customerId || !mongoose.isValidObjectId(customerId)) {
-    throw new CustomError('Valid customerId is required', 400);
-  }
-  if (!Array.isArray(cartItems) || cartItems.length === 0) {
-    throw new CustomError('Cart items are required', 400);
+
+  let customerIdRes: string | null = null;
+  if (customerId != null && customerId !== '') {
+    if (!mongoose.isValidObjectId(customerId)) {
+      throw new CustomError('Invalid customerId when provided', 400);
+    }
+    customerIdRes = customerId;
   }
 
-  // Calculate cart totals
-  const cartTotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  if (!Array.isArray(rawCartItems) || rawCartItems.length === 0) {
+    throw new CustomError('Cart items are required and must be a non-empty array', 400);
+  }
+
+  const cartItems: CartItemInput[] = [];
+  for (let i = 0; i < rawCartItems.length; i++) {
+    const item = rawCartItems[i] as Record<string, unknown>;
+    const qty = Number(item?.quantity);
+    const price = Number(item?.price);
+    if (!Number.isFinite(qty) || qty < CART_ITEM_MIN_QUANTITY) {
+      throw new CustomError(`Cart item at index ${i}: quantity must be at least ${CART_ITEM_MIN_QUANTITY}`, 400);
+    }
+    if (!Number.isFinite(price) || price < CART_ITEM_MIN_PRICE) {
+      throw new CustomError(`Cart item at index ${i}: price must be a number >= ${CART_ITEM_MIN_PRICE}`, 400);
+    }
+    const collectionIds = Array.isArray(item?.collectionIds)
+      ? (item.collectionIds as unknown[]).filter((id): id is string => typeof id === 'string' && mongoose.isValidObjectId(id))
+      : undefined;
+    cartItems.push({
+      productId: typeof item?.productId === 'string' ? item.productId : undefined,
+      collectionIds,
+      quantity: qty,
+      price,
+    });
+  }
+
+  const cartTotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  // Get only automatic discounts for the store
+  return { storeId, customerId: customerIdRes, cartItems, cartTotal, totalQuantity };
+}
+
+// ---------------------------------------------------------------------------
+// Helpers: date validation (start/end with end-of-day for end date)
+// ---------------------------------------------------------------------------
+
+function isWithinActiveDates(discount: IAmountOffOrderDiscount): boolean {
+  const now = new Date();
+
+  if (discount.startDate) {
+    const startStr = `${discount.startDate}T${discount.startTime || '00:00:00'}`;
+    const start = new Date(startStr);
+    if (Number.isNaN(start.getTime())) return false;
+    if (now < start) return false;
+  }
+
+  if (discount.setEndDate && discount.endDate) {
+    const endStr = `${discount.endDate}T${discount.endTime || '23:59:59.999'}`;
+    const end = new Date(endStr);
+    if (Number.isNaN(end.getTime())) return false;
+    if (now > end) return false;
+  }
+
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// Helpers: discount amount calculation (capped at cart total for fixed amount)
+// ---------------------------------------------------------------------------
+
+function computeDiscountAmount(
+  discount: IAmountOffOrderDiscount,
+  cartTotal: number
+): number {
+  if (discount.valueType === 'percentage' && discount.percentage != null) {
+    const pct = Math.max(0, Math.min(100, discount.percentage));
+    return (cartTotal * pct) / 100;
+  }
+  if (discount.valueType === 'fixed-amount' && discount.fixedAmount != null && discount.fixedAmount >= 0) {
+    return Math.min(discount.fixedAmount, cartTotal);
+  }
+  return 0;
+}
+
+// ---------------------------------------------------------------------------
+// Helpers: eligibility (shared for automatic + code validation)
+// ---------------------------------------------------------------------------
+
+async function isCustomerEligibleForDiscount(
+  discount: IAmountOffOrderDiscount & { _id: mongoose.Types.ObjectId },
+  storeId: string,
+  customerId: string | null
+): Promise<boolean> {
+  if (discount.eligibility === 'all-customers') {
+    return true;
+  }
+
+  if (!customerId) {
+    return false;
+  }
+
+  if (discount.eligibility === 'specific-customers') {
+    const entry = await AmountOffOrderCustomerEntry.findOne({
+      storeId,
+      discountId: discount._id,
+      customerId,
+    });
+    return !!entry;
+  }
+
+  if (discount.eligibility === 'specific-customer-segments') {
+    const eligibleEntries = await AmountOffOrderCustomerSegmentEntry.find({
+      storeId,
+      discountId: discount._id,
+    })
+      .select('customerSegmentId')
+      .lean();
+
+    const eligibleSegmentIds = eligibleEntries
+      .map((e) => e.customerSegmentId?.toString())
+      .filter(Boolean) as string[];
+    if (eligibleSegmentIds.length === 0) return false;
+
+    const customerEntries = await CustomerSegmentEntry.find({ customerId })
+      .select('segmentId')
+      .lean();
+    const customerSegmentIds = customerEntries.map((e) => e.segmentId.toString());
+
+    const segmentsInStore = await CustomerSegment.find({
+      _id: { $in: customerSegmentIds.map((id) => new mongoose.Types.ObjectId(id)) },
+      storeId,
+    })
+      .select('_id')
+      .lean();
+    const customerSegmentIdsInStore = segmentsInStore.map((s) => s._id.toString());
+
+    const hasOverlap = customerSegmentIdsInStore.some((id) => eligibleSegmentIds.includes(id));
+    return hasOverlap;
+  }
+
+  return false;
+}
+
+// ---------------------------------------------------------------------------
+// Amount off order always applies to entire order.
+function cartMatchesDiscountTargets(): boolean {
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// POST /check – get eligible automatic amount-off-order discounts for checkout
+// ---------------------------------------------------------------------------
+
+export const checkEligibleAmountOffOrderDiscounts = asyncErrorHandler(async (req: Request, res: Response) => {
+  const { storeId, customerId, cartItems, cartTotal, totalQuantity } = validateAndParseCart(req.body);
+
   const discounts = await AmountOffOrderDiscount.find({
     storeId,
     status: 'active',
     method: 'automatic',
-  });
+  }).lean();
 
-  const eligibleDiscounts = [];
+  const eligibleDiscounts: Array<{
+    id: mongoose.Types.ObjectId;
+    method: string;
+    title?: string;
+    valueType: string;
+    percentage?: number;
+    fixedAmount?: number;
+    discountAmount: number;
+    message: string;
+    combinations: { productDiscounts: boolean; orderDiscounts: boolean; shippingDiscounts: boolean };
+  }> = [];
 
   for (const discount of discounts) {
-    let isEligible = false;
+    if (!isWithinActiveDates(discount)) continue;
 
-    // 1. ELIGIBILITY CHECK
-    if (discount.eligibility === 'all-customers') {
-      isEligible = true;
-    } 
-    else if (discount.eligibility === 'specific-customer-segments') {
-      // First, get all eligible segments for this discount
-      const eligibleSegments = await AmountOffOrderEligibilityEntry.find({
-        storeId,
-        discountId: discount._id,
-        customerSegmentId: { $exists: true, $ne: null },
-      }).select('customerSegmentId');
-      
-      if (eligibleSegments.length > 0) {
-        // Get customer's segments by finding which segments contain this customer
-        const customerSegmentEntries = await CustomerSegmentEntry.find({
-          customerId: customerId
-        }).select('segmentId');
-        
-        // Check if customer belongs to any eligible segment
-        const customerSegmentIds = customerSegmentEntries.map(entry => entry.segmentId.toString());
-        const eligibleSegmentIds = eligibleSegments
-          .filter(entry => entry.customerSegmentId)
-          .map(entry => entry.customerSegmentId!.toString());
-        
-        // Check if there's any overlap between customer segments and eligible segments
-        const hasMatchingSegment = customerSegmentIds.some(customerSegmentId => 
-          eligibleSegmentIds.includes(customerSegmentId)
-        );
-        
-        if (hasMatchingSegment) {
-          isEligible = true;
-        }
-      }
-    }
-    else if (discount.eligibility === 'specific-customers') {
-      // Check if customer is in the specific customers list
-      const customerEntry = await AmountOffOrderEligibilityEntry.findOne({
-        storeId,
-        discountId: discount._id,
-        customerId,
-      });
-      if (customerEntry) {
-        isEligible = true;
-      }
-    }
+    if (!cartMatchesDiscountTargets()) continue;
 
-    if (!isEligible) continue;
+    const eligible = await isCustomerEligibleForDiscount(
+      discount as IAmountOffOrderDiscount & { _id: mongoose.Types.ObjectId },
+      storeId,
+      customerId
+    );
+    if (!eligible) continue;
 
-    // 2. MINIMUM PURCHASE REQUIREMENTS CHECK
-    if (discount.minimumPurchase === 'minimum-amount' && discount.minimumAmount) {
+    if (discount.minimumPurchase === 'minimum-amount' && discount.minimumAmount != null) {
       if (cartTotal < discount.minimumAmount) continue;
     }
-
-    if (discount.minimumPurchase === 'minimum-quantity' && discount.minimumQuantity) {
+    if (discount.minimumPurchase === 'minimum-quantity' && discount.minimumQuantity != null) {
       if (totalQuantity < discount.minimumQuantity) continue;
     }
 
-    // Note: Usage limits are not applicable for automatic discounts
-    // They are only relevant for discount code discounts where customers manually enter codes
-
-    // 4. DATE VALIDATION (if dates are set)
-    const now = new Date();
-    if (discount.startDate) {
-      const startDateTime = new Date(`${discount.startDate}T${discount.startTime || '00:00'}`);
-      if (now < startDateTime) continue;
-    }
-    if (discount.setEndDate && discount.endDate) {
-      const endDateTime = new Date(`${discount.endDate}T${discount.endTime || '23:59'}`);
-      if (now > endDateTime) continue;
+    if (discount.limitTotalUses && discount.totalUsesLimit != null) {
+      const totalUses = await AmountOffOrderDiscountUsage.countDocuments({
+        discountId: discount._id,
+      });
+      if (totalUses >= discount.totalUsesLimit) continue;
     }
 
-    // Calculate discount amount
-    let discountAmount = 0;
-    if (discount.valueType === 'percentage' && discount.percentage) {
-      discountAmount = (cartTotal * discount.percentage) / 100;
-    } else if (discount.valueType === 'fixed-amount' && discount.fixedAmount) {
-      discountAmount = Math.min(discount.fixedAmount, cartTotal); // Don't exceed cart total
+    if (discount.limitOneUsePerCustomer && customerId) {
+      const alreadyUsed = await AmountOffOrderDiscountUsage.findOne({
+        discountId: discount._id,
+        customerId,
+      });
+      if (alreadyUsed) continue;
     }
 
-    // Add to eligible discounts
+    const discountAmount = computeDiscountAmount(discount, cartTotal);
+    const message =
+      discount.valueType === 'percentage' && discount.percentage != null
+        ? `You are eligible for ${discount.percentage}% off!`
+        : `You are eligible for ₹${discount.fixedAmount ?? 0} off!`;
+
     eligibleDiscounts.push({
       id: discount._id,
       method: discount.method,
-      discountCode: discount.discountCode,
       title: discount.title,
       valueType: discount.valueType,
       percentage: discount.percentage,
       fixedAmount: discount.fixedAmount,
       discountAmount,
-      message: discount.valueType === 'percentage' 
-        ? `You are eligible for ${discount.percentage}% off!`
-        : `You are eligible for ₹${discount.fixedAmount} off!`,
+      message,
+      combinations: {
+        productDiscounts: !!discount.productDiscounts,
+        orderDiscounts: !!discount.orderDiscounts,
+        shippingDiscounts: !!discount.shippingDiscounts,
+      },
     });
   }
 
-  // Sort by discount amount (highest first)
   eligibleDiscounts.sort((a, b) => b.discountAmount - a.discountAmount);
 
   res.status(200).json({
@@ -149,46 +283,40 @@ export const checkEligibleAmountOffOrderDiscounts = asyncErrorHandler(async (req
       cartTotal,
       totalQuantity,
     },
-    message: `Found ${eligibleDiscounts.length} eligible discount(s)`,
+    message: eligibleDiscounts.length > 0
+      ? `Found ${eligibleDiscounts.length} eligible discount(s)`
+      : 'No eligible discounts',
   });
 });
 
+// ---------------------------------------------------------------------------
+// POST /validate-code – validate a discount code and return applied discount
+// ---------------------------------------------------------------------------
+
 export const validateAmountOffOrderDiscountCode = asyncErrorHandler(async (req: Request, res: Response) => {
-  const { storeId, customerId, cartItems, discountCode } = req.body as {
-    storeId: string;
-    customerId: string;
-    cartItems: Array<{
-      productId: string;
-      quantity: number;
-      price: number;
-    }>;
-    discountCode: string;
+  const raw = req.body as {
+    storeId?: string;
+    customerId?: string;
+    cartItems?: unknown;
+    discountCode?: string;
   };
 
-  // Validate required fields
-  if (!storeId || !mongoose.isValidObjectId(storeId)) {
-    throw new CustomError('Valid storeId is required', 400);
-  }
-  if (!customerId || !mongoose.isValidObjectId(customerId)) {
-    throw new CustomError('Valid customerId is required', 400);
-  }
-  if (!Array.isArray(cartItems) || cartItems.length === 0) {
-    throw new CustomError('Cart items are required', 400);
-  }
-  if (!discountCode || !discountCode.trim()) {
+  const code = typeof raw.discountCode === 'string' ? raw.discountCode.trim() : '';
+  if (!code) {
     throw new CustomError('Discount code is required', 400);
   }
 
-  // Calculate cart totals
-  const cartTotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const { storeId, customerId, cartItems, cartTotal, totalQuantity } = validateAndParseCart({
+    storeId: raw.storeId,
+    customerId: raw.customerId,
+    cartItems: raw.cartItems,
+  });
 
-  // Find discount by code
   const discount = await AmountOffOrderDiscount.findOne({
     storeId,
     status: 'active',
     method: 'discount-code',
-    discountCode: discountCode.trim(),
+    discountCode: code,
   });
 
   if (!discount) {
@@ -198,63 +326,15 @@ export const validateAmountOffOrderDiscountCode = asyncErrorHandler(async (req: 
     });
   }
 
-  // 1. ELIGIBILITY CHECK
-  let isEligible = false;
-
-  if (discount.eligibility === 'all-customers') {
-    isEligible = true;
-  } 
-  else if (discount.eligibility === 'specific-customer-segments') {
-    // First, get all eligible segments for this discount
-    const eligibleSegments = await AmountOffOrderEligibilityEntry.find({
-      storeId,
-      discountId: discount._id,
-      customerSegmentId: { $exists: true, $ne: null },
-    }).select('customerSegmentId');
-    
-    if (eligibleSegments.length > 0) {
-      // Get customer's segments by finding which segments contain this customer
-      const customerSegmentEntries = await CustomerSegmentEntry.find({
-        customerId: customerId
-      }).select('segmentId');
-      
-      // Check if customer belongs to any eligible segment
-      const customerSegmentIds = customerSegmentEntries.map(entry => entry.segmentId.toString());
-      const eligibleSegmentIds = eligibleSegments
-        .filter(entry => entry.customerSegmentId)
-        .map(entry => entry.customerSegmentId!.toString());
-      
-      // Check if there's any overlap between customer segments and eligible segments
-      const hasMatchingSegment = customerSegmentIds.some(customerSegmentId => 
-        eligibleSegmentIds.includes(customerSegmentId)
-      );
-      
-      if (hasMatchingSegment) {
-        isEligible = true;
-      }
-    }
-  }
-  else if (discount.eligibility === 'specific-customers') {
-    // Check if customer is in the specific customers list
-    const customerEntry = await AmountOffOrderEligibilityEntry.findOne({
-      storeId,
-      discountId: discount._id,
-      customerId,
-    });
-    if (customerEntry) {
-      isEligible = true;
-    }
-  }
-
-  if (!isEligible) {
+  const eligible = await isCustomerEligibleForDiscount(discount, storeId, customerId);
+  if (!eligible) {
     return res.status(400).json({
       success: false,
       message: 'You are not eligible for this discount code',
     });
   }
 
-  // 2. MINIMUM PURCHASE REQUIREMENTS CHECK
-  if (discount.minimumPurchase === 'minimum-amount' && discount.minimumAmount) {
+  if (discount.minimumPurchase === 'minimum-amount' && discount.minimumAmount != null) {
     if (cartTotal < discount.minimumAmount) {
       return res.status(400).json({
         success: false,
@@ -262,8 +342,7 @@ export const validateAmountOffOrderDiscountCode = asyncErrorHandler(async (req: 
       });
     }
   }
-
-  if (discount.minimumPurchase === 'minimum-quantity' && discount.minimumQuantity) {
+  if (discount.minimumPurchase === 'minimum-quantity' && discount.minimumQuantity != null) {
     if (totalQuantity < discount.minimumQuantity) {
       return res.status(400).json({
         success: false,
@@ -272,8 +351,7 @@ export const validateAmountOffOrderDiscountCode = asyncErrorHandler(async (req: 
     }
   }
 
-  // 3. USAGE LIMITS CHECK (relevant for discount codes)
-  if (discount.limitTotalUses && discount.totalUsesLimit) {
+  if (discount.limitTotalUses && discount.totalUsesLimit != null) {
     const totalUses = await AmountOffOrderDiscountUsage.countDocuments({
       discountId: discount._id,
     });
@@ -285,7 +363,7 @@ export const validateAmountOffOrderDiscountCode = asyncErrorHandler(async (req: 
     }
   }
 
-  if (discount.limitOneUsePerCustomer) {
+  if (discount.limitOneUsePerCustomer && customerId) {
     const alreadyUsed = await AmountOffOrderDiscountUsage.findOne({
       discountId: discount._id,
       customerId,
@@ -298,36 +376,42 @@ export const validateAmountOffOrderDiscountCode = asyncErrorHandler(async (req: 
     }
   }
 
-  // 4. DATE VALIDATION (if dates are set)
-  const now = new Date();
-  if (discount.startDate) {
-    const startDateTime = new Date(`${discount.startDate}T${discount.startTime || '00:00'}`);
-    if (now < startDateTime) {
-      return res.status(400).json({
-        success: false,
-        message: 'This discount code is not yet active',
-      });
-    }
+  const cartMatches = cartMatchesDiscountTargets();
+  if (!cartMatches) {
+    return res.status(400).json({
+      success: false,
+      message: 'This discount does not apply to any items in your cart',
+    });
   }
-  if (discount.setEndDate && discount.endDate) {
-    const endDateTime = new Date(`${discount.endDate}T${discount.endTime || '23:59'}`);
-    if (now > endDateTime) {
-      return res.status(400).json({
-        success: false,
-        message: 'This discount code has expired',
-      });
+
+  if (!isWithinActiveDates(discount)) {
+    const now = new Date();
+    if (discount.startDate) {
+      const start = new Date(`${discount.startDate}T${discount.startTime || '00:00:00'}`);
+      if (now < start) {
+        return res.status(400).json({
+          success: false,
+          message: 'This discount code is not yet active',
+        });
+      }
+    }
+    if (discount.setEndDate && discount.endDate) {
+      const end = new Date(`${discount.endDate}T${discount.endTime || '23:59:59.999'}`);
+      if (now > end) {
+        return res.status(400).json({
+          success: false,
+          message: 'This discount code has expired',
+        });
+      }
     }
   }
 
-  // Calculate discount amount
-  let discountAmount = 0;
-  if (discount.valueType === 'percentage' && discount.percentage) {
-    discountAmount = (cartTotal * discount.percentage) / 100;
-  } else if (discount.valueType === 'fixed-amount' && discount.fixedAmount) {
-    discountAmount = Math.min(discount.fixedAmount, cartTotal); // Don't exceed cart total
-  }
+  const discountAmount = computeDiscountAmount(discount, cartTotal);
+  const message =
+    discount.valueType === 'percentage' && discount.percentage != null
+      ? `You are eligible for ${discount.percentage}% off!`
+      : `You are eligible for ₹${discount.fixedAmount ?? 0} off!`;
 
-  // Return valid discount
   res.status(200).json({
     success: true,
     data: {
@@ -335,13 +419,17 @@ export const validateAmountOffOrderDiscountCode = asyncErrorHandler(async (req: 
         id: discount._id,
         method: discount.method,
         discountCode: discount.discountCode,
+        title: discount.title,
         valueType: discount.valueType,
         percentage: discount.percentage,
         fixedAmount: discount.fixedAmount,
         discountAmount,
-        message: discount.valueType === 'percentage' 
-          ? `You are eligible for ${discount.percentage}% off!`
-          : `You are eligible for ₹${discount.fixedAmount} off!`,
+        message,
+        combinations: {
+          productDiscounts: !!discount.productDiscounts,
+          orderDiscounts: !!discount.orderDiscounts,
+          shippingDiscounts: !!discount.shippingDiscounts,
+        },
       },
       cartTotal,
       totalQuantity,

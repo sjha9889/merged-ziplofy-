@@ -1,0 +1,322 @@
+/**
+ * Storefront: Buy X Get Y discounts (checkout).
+ * Calls /storefront/discounts/buy-x-get-y/check and /validate-code.
+ * Use in checkout to get eligible automatic Buy X Get Y discounts and validate discount codes.
+ */
+import React, { createContext, useContext, useState, useCallback } from 'react';
+import type { ReactNode } from 'react';
+import { axiosi } from '../config/axios.config';
+
+// Types (aligned with storefront controller)
+export interface BuyXGetYCartItem {
+  productId?: string;
+  collectionIds?: string[];
+  quantity: number;
+  price: number;
+}
+
+// Populated gets item with rich product info
+export interface BuyXGetYGetsItem {
+  productId: string;
+  productVariantId: string;
+  productTitle: string;
+  productImage: string | null;
+  originalPrice: number;
+  discountedPrice: number;
+  discountPerItem: number;
+  quantity: number;
+  discountType: 'free' | 'amount' | 'percentage';
+  discountTypeLabel: string;
+  discountValue: number | null;
+  savings: number;
+}
+
+export interface BuyXGetYDiscount {
+  id: string;
+  method: string;
+  discountCode?: string;
+  title?: string;
+  discountedValue: 'free' | 'amount' | 'percentage';
+  discountedAmount?: number;
+  discountedPercentage?: number;
+  customerGetsAnyItemsFrom?: string;
+  customerGetsQuantity: number;
+  maxUsesPerOrder: number | null;
+  totalDiscountAmount: number;
+  getsItems: BuyXGetYGetsItem[];
+  discountSummary: string;
+  message: string;
+  combinations: {
+    productDiscounts: boolean;
+    orderDiscounts: boolean;
+    shippingDiscounts: boolean;
+  };
+  /** For "gets from specific collections": IDs to load products in choose-items modal */
+  getsCollectionIds?: string[];
+  getsCollectionNames?: string[];
+}
+
+interface BuyXGetYCheckResponse {
+  success: boolean;
+  data: {
+    eligibleDiscounts: Array<BuyXGetYDiscount & { getsCollectionIds?: string[]; getsCollectionNames?: string[] }>;
+    cartTotal: number;
+    totalQuantity: number;
+  };
+  message: string;
+}
+
+interface BuyXGetYValidateCodeResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: string;
+    discountCode: string;
+    method: string;
+    title?: string;
+    discountedValue: 'free' | 'amount' | 'percentage';
+    discountedAmount?: number;
+    discountedPercentage?: number;
+    customerGetsAnyItemsFrom?: string;
+    customerGetsQuantity: number;
+    maxUsesPerOrder: number | null;
+    totalDiscountAmount: number;
+    getsItems: BuyXGetYGetsItem[];
+    discountSummary: string;
+    getsCollectionIds?: string[];
+    getsCollectionNames?: string[];
+    combinations: {
+      productDiscounts: boolean;
+      orderDiscounts: boolean;
+      shippingDiscounts: boolean;
+    };
+    cartTotal: number;
+    totalQuantity: number;
+  } | null;
+}
+
+interface BuyXGetYContextType {
+  // State
+  eligibleDiscounts: BuyXGetYDiscount[];
+  cartTotal: number;
+  totalQuantity: number;
+  loading: boolean;
+  error: string | null;
+  discountCodeResult: BuyXGetYDiscount | null;
+  appliedAutomaticDiscount: BuyXGetYDiscount | null;
+  /** User-selected "gets" items when discount is "gets from specific collections" (from choose-items modal) */
+  selectedGetsItems: BuyXGetYGetsItem[] | null;
+  discountCodeLoading: boolean;
+  discountCodeError: string | null;
+
+  // Actions (customerId optional for guest checkout)
+  fetchEligibleDiscounts: (storeId: string, customerId: string | null, cartItems: BuyXGetYCartItem[]) => Promise<void>;
+  validateDiscountCode: (storeId: string, customerId: string | null, cartItems: BuyXGetYCartItem[], discountCode: string) => Promise<BuyXGetYDiscount | null>;
+  applyAutomaticDiscount: (discount: BuyXGetYDiscount) => void;
+  setSelectedGetsItems: (items: BuyXGetYGetsItem[] | null) => void;
+  clearAppliedAutomaticDiscount: () => void;
+  clearDiscounts: () => void;
+  clearDiscountCodeResult: () => void;
+}
+
+// Create Context
+const BuyXGetYContext = createContext<BuyXGetYContextType | undefined>(undefined);
+
+// Provider Props
+interface BuyXGetYProviderProps {
+  children: ReactNode;
+}
+
+// Provider Component
+export const BuyXGetYProvider: React.FC<BuyXGetYProviderProps> = ({ children }) => {
+  // State
+  const [eligibleDiscounts, setEligibleDiscounts] = useState<BuyXGetYDiscount[]>([]);
+  const [cartTotal, setCartTotal] = useState<number>(0);
+  const [totalQuantity, setTotalQuantity] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [discountCodeResult, setDiscountCodeResult] = useState<BuyXGetYDiscount | null>(null);
+  const [appliedAutomaticDiscount, setAppliedAutomaticDiscount] = useState<BuyXGetYDiscount | null>(null);
+  const [selectedGetsItems, setSelectedGetsItemsState] = useState<BuyXGetYGetsItem[] | null>(null);
+  const [discountCodeLoading, setDiscountCodeLoading] = useState<boolean>(false);
+  const [discountCodeError, setDiscountCodeError] = useState<string | null>(null);
+
+  const setSelectedGetsItems = useCallback((items: BuyXGetYGetsItem[] | null) => {
+    setSelectedGetsItemsState(items);
+  }, []);
+
+  // Fetch eligible automatic discounts (customerId optional for guest checkout)
+  const fetchEligibleDiscounts = useCallback(async (
+    storeId: string,
+    customerId: string | null,
+    cartItems: BuyXGetYCartItem[]
+  ) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await axiosi.post<BuyXGetYCheckResponse>(
+        '/storefront/discounts/buy-x-get-y/check',
+        {
+          storeId,
+          ...(customerId && { customerId }),
+          cartItems,
+        }
+      );
+
+      if (response.data.success) {
+        const { eligibleDiscounts: rawDiscounts, cartTotal, totalQuantity } = response.data.data;
+        const mappedDiscounts: BuyXGetYDiscount[] = rawDiscounts.map((d) => ({
+          ...d,
+          customerGetsAnyItemsFrom: d.customerGetsAnyItemsFrom,
+          getsCollectionIds: d.getsCollectionIds,
+          getsCollectionNames: d.getsCollectionNames,
+        }));
+        setEligibleDiscounts(mappedDiscounts);
+        setCartTotal(cartTotal);
+        setTotalQuantity(totalQuantity);
+      } else {
+        setError(response.data.message || 'Failed to fetch Buy X Get Y discounts');
+        setEligibleDiscounts([]);
+      }
+    } catch (err: any) {
+      console.error('Error fetching Buy X Get Y discounts:', err);
+      setError(err.response?.data?.message || 'Failed to fetch Buy X Get Y discounts');
+      setEligibleDiscounts([]);
+      setCartTotal(0);
+      setTotalQuantity(0);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Validate discount code (customerId optional for guest checkout)
+  const validateDiscountCode = useCallback(async (
+    storeId: string,
+    customerId: string | null,
+    cartItems: BuyXGetYCartItem[],
+    discountCode: string
+  ): Promise<BuyXGetYDiscount | null> => {
+    try {
+      setDiscountCodeLoading(true);
+      setDiscountCodeError(null);
+      setDiscountCodeResult(null);
+
+      const response = await axiosi.post<BuyXGetYValidateCodeResponse>(
+        '/storefront/discounts/buy-x-get-y/validate-code',
+        {
+          storeId,
+          ...(customerId && { customerId }),
+          cartItems,
+          discountCode: discountCode.trim(),
+        }
+      );
+
+      if (response.data.success && response.data.data) {
+        const data = response.data.data;
+        const discount: BuyXGetYDiscount = {
+          id: data.id,
+          method: data.method,
+          discountCode: data.discountCode,
+          title: data.title,
+          discountedValue: data.discountedValue,
+          discountedAmount: data.discountedAmount,
+          discountedPercentage: data.discountedPercentage,
+          customerGetsAnyItemsFrom: data.customerGetsAnyItemsFrom,
+          customerGetsQuantity: data.customerGetsQuantity,
+          maxUsesPerOrder: data.maxUsesPerOrder,
+          totalDiscountAmount: data.totalDiscountAmount,
+          getsItems: data.getsItems || [],
+          discountSummary: data.discountSummary,
+          message: response.data.message,
+          combinations: data.combinations,
+          getsCollectionIds: data.getsCollectionIds,
+          getsCollectionNames: data.getsCollectionNames,
+        };
+        setDiscountCodeResult(discount);
+        setAppliedAutomaticDiscount(null);
+        setSelectedGetsItemsState(null);
+        return discount;
+      } else {
+        setDiscountCodeError(response.data.message || 'Invalid discount code');
+        return null;
+      }
+    } catch (err: any) {
+      console.error('Error validating Buy X Get Y discount code:', err);
+      setDiscountCodeError(err.response?.data?.message || 'Failed to validate discount code');
+      setDiscountCodeResult(null);
+      return null;
+    } finally {
+      setDiscountCodeLoading(false);
+    }
+  }, []);
+
+  const applyAutomaticDiscount = useCallback((discount: BuyXGetYDiscount) => {
+    setAppliedAutomaticDiscount(discount);
+    setDiscountCodeResult(null);
+    setDiscountCodeError(null);
+    setSelectedGetsItemsState(null);
+  }, []);
+
+  const clearAppliedAutomaticDiscount = useCallback(() => {
+    setAppliedAutomaticDiscount(null);
+    setSelectedGetsItemsState(null);
+  }, []);
+
+  // Clear discount code result
+  const clearDiscountCodeResult = useCallback(() => {
+    setDiscountCodeResult(null);
+    setDiscountCodeError(null);
+    setSelectedGetsItemsState(null);
+  }, []);
+
+  // Clear all discounts
+  const clearDiscounts = useCallback(() => {
+    setEligibleDiscounts([]);
+    setCartTotal(0);
+    setTotalQuantity(0);
+    setError(null);
+    setDiscountCodeResult(null);
+    setAppliedAutomaticDiscount(null);
+    setSelectedGetsItemsState(null);
+    setDiscountCodeError(null);
+  }, []);
+
+  // Context value
+  const value: BuyXGetYContextType = {
+    eligibleDiscounts,
+    cartTotal,
+    totalQuantity,
+    loading,
+    error,
+    discountCodeResult,
+    appliedAutomaticDiscount,
+    selectedGetsItems,
+    discountCodeLoading,
+    discountCodeError,
+    fetchEligibleDiscounts,
+    validateDiscountCode,
+    applyAutomaticDiscount,
+    setSelectedGetsItems,
+    clearAppliedAutomaticDiscount,
+    clearDiscounts,
+    clearDiscountCodeResult,
+  };
+
+  return (
+    <BuyXGetYContext.Provider value={value}>
+      {children}
+    </BuyXGetYContext.Provider>
+  );
+};
+
+// Custom Hook
+export const useBuyXGetY = (): BuyXGetYContextType => {
+  const context = useContext(BuyXGetYContext);
+
+  if (context === undefined) {
+    throw new Error('useBuyXGetY must be used within a BuyXGetYProvider');
+  }
+
+  return context;
+};

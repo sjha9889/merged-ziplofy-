@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { InlineWidget } from 'react-calendly';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../contexts/socket.context';
 import { useUserContext } from '../contexts/user.context';
 import { SocketEventType } from '../types/event.types';
@@ -11,6 +12,7 @@ import DashboardContent from './DashboardContent';
 import GettingStartedPage from './GettingStartedPage';
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const [showCalendlyModal, setShowCalendlyModal] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'getting-started'>('dashboard');
 
@@ -40,6 +42,52 @@ export default function HomePage() {
   const handleScheduleMeetingClick = useCallback(() => {
     setShowCalendlyModal(true);
   }, []);
+
+  // Handle step clicks in Getting Started page
+  const handleStepClick = useCallback((stepId: string) => {
+    switch (stepId) {
+      case 'items':
+        navigate('/products');
+        break;
+      case 'theme':
+        navigate('/themes/all-themes');
+        break;
+      case 'domain':
+        navigate('/settings/domains');
+        break;
+      case 'shipping':
+        navigate('/settings/shipping-and-delivery');
+        break;
+      case 'payment':
+        navigate('/settings/payments');
+        break;
+      default:
+        console.log('Step clicked:', stepId);
+    }
+  }, [navigate]);
+
+  // Handle improvement item clicks in Getting Started page
+  const handleImprovementClick = useCallback((itemId: string) => {
+    switch (itemId) {
+      case 'taxes':
+        navigate('/settings/taxes-and-duties');
+        break;
+      case 'collections':
+        navigate('/products/collections');
+        break;
+      case 'coupons':
+        navigate('/discounts');
+        break;
+      case 'shipping':
+        navigate('/settings/shipping-and-delivery');
+        break;
+      case 'digital-downloads':
+        navigate('/settings/digital-downloads');
+        break;
+      default:
+        console.log('Improvement item clicked:', itemId);
+    }
+  }, [navigate]);
 
   // Get the assigned developer's Calendly URL - memoized to prevent re-renders
   const getCalendlyUrl = useMemo((): string => {
@@ -191,7 +239,7 @@ export default function HomePage() {
             </div>
           ) : (
             <div key="getting-started" className="animate-tab-fade">
-              <GettingStartedPage />
+              <GettingStartedPage onStepClick={handleStepClick} onImprovementClick={handleImprovementClick} />
             </div>
           )}
         </div>

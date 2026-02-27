@@ -137,7 +137,6 @@ const MarketSettingsPage = lazy(() => import("./pages/MarketSettingsPage").then(
 const MetafeildsAndMetaObjectsSettingsPage = lazy(() => import("./pages/MetafeildsAndMetaObjectsSettingsPage").then(m => ({ default: m.MetafeildsAndMetaObjectsSettingsPage })));
 const OnlineStorePage = lazy(() => import("./pages/OnlineStorePage"));
 const OnlineStorePreferencePage = lazy(() => import("./pages/OnlineStorePreferencePage"));
-const SelectDiscountToCreatePage = lazy(() => import("./pages/SelectDiscountToCreatePage"));
 const MarketDetailsPage = lazy(() => import("./pages/markets/MarketDetailsPage"));
 const MarketsCatalogDetailsPage = lazy(() => import("./pages/markets/MarketsCatalogDetailsPage"));
 const MarketsCatalogsNewPage = lazy(() => import("./pages/markets/MarketsCatalogsNewPage"));
@@ -317,7 +316,7 @@ const AdminApp: React.FC = () => {
             <Route path="/marketing/automations/create" element={<AutomationCreatePage />} />
             <Route path="/marketing/automations/:id" element={<AutomationDetailsPage />} />
             <Route path="/discounts" element={<DiscountsPage />} />
-            <Route path="/discounts/select-discount-to-create" element={<SelectDiscountToCreatePage />} />
+            <Route path="/discounts/amount-off-products/:id" element={<DiscountDetailsPage />} />
             <Route path="/discounts/:id" element={<DiscountDetailsPage />} />
             <Route path="/discounts/pyxgety/:id" element={<BuyXGetYDetailsPage />} />
             <Route path="/discounts/amount-off-order/:id" element={<AmountOffOrderDetailsPage />} />

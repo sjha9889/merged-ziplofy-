@@ -1,10 +1,24 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
-import { CustomerSegmentEntry } from '../../models';
+import { Country, CustomerSegmentEntry } from '../../models';
 import { FreeShippingDiscount } from '../../models/discount/free-shipping-discount-model/free-shipping-discount.model';
-import { FreeShippingEligibilityEntry } from '../../models/discount/free-shipping-discount-model/free-shipping-eligibility-entry.model';
+import { FreeShippingCustomerSegmentEntry } from '../../models/discount/free-shipping-discount-model/free-shipping-customer-segment-entry.model';
+import { FreeShippingCustomerEntry } from '../../models/discount/free-shipping-discount-model/free-shipping-customer-entry.model';
+import { FreeShippingCountryEntry } from '../../models/discount/free-shipping-discount-model/free-shipping-country-entry.model';
 import { FreeShippingDiscountUsage } from '../../models/discount/free-shipping-discount-model/free-shipping-discount-usage.model';
 import { asyncErrorHandler, CustomError } from '../../utils/error.utils';
+
+async function getShippingCountryIso2(addr?: { country?: string; countryId?: string }): Promise<string | null> {
+  if (!addr) return null;
+  if (addr.country && typeof addr.country === 'string' && addr.country.length === 2) {
+    return addr.country.toUpperCase();
+  }
+  if (addr.countryId && mongoose.isValidObjectId(addr.countryId)) {
+    const c = await Country.findById(addr.countryId).select('iso2').lean();
+    return (c as any)?.iso2 ?? null;
+  }
+  return null;
+}
 
 export const checkEligibleFreeShippingDiscounts = asyncErrorHandler(async (req: Request, res: Response) => {
   const { storeId, customerId, cartItems, shippingAddress, currentShippingRate } = req.body as {
@@ -16,7 +30,8 @@ export const checkEligibleFreeShippingDiscounts = asyncErrorHandler(async (req: 
       price: number;
     }>;
     shippingAddress?: {
-      country: string;
+      country?: string;
+      countryId?: string;
       state?: string;
       city?: string;
     };
@@ -56,11 +71,9 @@ export const checkEligibleFreeShippingDiscounts = asyncErrorHandler(async (req: 
       isEligible = true;
     } 
     else if (discount.eligibility === 'specific-customer-segments') {
-      // First, get all eligible segments for this discount
-      const eligibleSegments = await FreeShippingEligibilityEntry.find({
+      const eligibleSegments = await FreeShippingCustomerSegmentEntry.find({
         storeId,
         discountId: discount._id,
-        customerSegmentId: { $exists: true, $ne: null },
       }).select('customerSegmentId');
       
       if (eligibleSegments.length > 0) {
@@ -72,8 +85,8 @@ export const checkEligibleFreeShippingDiscounts = asyncErrorHandler(async (req: 
         // Check if customer belongs to any eligible segment
         const customerSegmentIds = customerSegmentEntries.map(entry => entry.segmentId.toString());
         const eligibleSegmentIds = eligibleSegments
-          .filter(entry => entry.customerSegmentId)
-          .map(entry => entry.customerSegmentId!.toString());
+          .map(entry => entry.customerSegmentId?.toString())
+          .filter(Boolean) as string[];
         
         // Check if there's any overlap between customer segments and eligible segments
         const hasMatchingSegment = customerSegmentIds.some(customerSegmentId => 
@@ -86,8 +99,7 @@ export const checkEligibleFreeShippingDiscounts = asyncErrorHandler(async (req: 
       }
     }
     else if (discount.eligibility === 'specific-customers') {
-      // Check if customer is in the specific customers list
-      const customerEntry = await FreeShippingEligibilityEntry.findOne({
+      const customerEntry = await FreeShippingCustomerEntry.findOne({
         storeId,
         discountId: discount._id,
         customerId,
@@ -100,13 +112,19 @@ export const checkEligibleFreeShippingDiscounts = asyncErrorHandler(async (req: 
     if (!isEligible) continue;
 
     // 2. COUNTRY ELIGIBILITY CHECK
-    if (discount.countrySelection === 'selected-countries' && discount.selectedCountryCodes && discount.selectedCountryCodes.length > 0) {
-      if (!shippingAddress?.country) {
-        continue; // No shipping address provided, skip
+    if (discount.countrySelection === 'selected-countries') {
+      const countryEntries = await FreeShippingCountryEntry.find({ storeId, discountId: discount._id })
+        .populate('countryId', 'iso2')
+        .lean();
+      const eligibleCountryIso2s = countryEntries
+        .map((e: any) => e.countryId?.iso2)
+        .filter(Boolean);
+      if (eligibleCountryIso2s.length > 0) {
+        const countryIso2 = await getShippingCountryIso2(shippingAddress);
+        if (!countryIso2) continue;
+        const isCountryEligible = eligibleCountryIso2s.includes(countryIso2);
+        if (!isCountryEligible) continue;
       }
-      
-      const isCountryEligible = discount.selectedCountryCodes.includes(shippingAddress.country);
-      if (!isCountryEligible) continue;
     }
 
     // 3. MINIMUM PURCHASE REQUIREMENTS CHECK
@@ -149,9 +167,12 @@ export const checkEligibleFreeShippingDiscounts = asyncErrorHandler(async (req: 
       title: discount.title,
       message: 'You are eligible for free shipping!',
       countrySelection: discount.countrySelection,
-      selectedCountryCodes: discount.selectedCountryCodes,
       excludeShippingRates: discount.excludeShippingRates,
       shippingRateLimit: discount.shippingRateLimit,
+      combinations: {
+        productDiscounts: !!discount.productDiscounts,
+        orderDiscounts: !!discount.orderDiscounts,
+      },
     });
   }
 
@@ -179,7 +200,8 @@ export const validateFreeShippingDiscountCode = asyncErrorHandler(async (req: Re
     }>;
     discountCode: string;
     shippingAddress?: {
-      country: string;
+      country?: string;
+      countryId?: string;
       state?: string;
       city?: string;
     };
@@ -226,10 +248,9 @@ export const validateFreeShippingDiscountCode = asyncErrorHandler(async (req: Re
     isEligible = true;
   } 
   else if (discount.eligibility === 'specific-customer-segments') {
-    const eligibleSegments = await FreeShippingEligibilityEntry.find({
+    const eligibleSegments = await FreeShippingCustomerSegmentEntry.find({
       storeId,
       discountId: discount._id,
-      customerSegmentId: { $exists: true, $ne: null },
     }).select('customerSegmentId');
     
     if (eligibleSegments.length > 0) {
@@ -252,7 +273,7 @@ export const validateFreeShippingDiscountCode = asyncErrorHandler(async (req: Re
     }
   }
   else if (discount.eligibility === 'specific-customers') {
-    const customerEntry = await FreeShippingEligibilityEntry.findOne({
+    const customerEntry = await FreeShippingCustomerEntry.findOne({
       storeId,
       discountId: discount._id,
       customerId,
@@ -270,20 +291,26 @@ export const validateFreeShippingDiscountCode = asyncErrorHandler(async (req: Re
   }
 
   // 2. COUNTRY ELIGIBILITY CHECK
-  if (discount.countrySelection === 'selected-countries' && discount.selectedCountryCodes && discount.selectedCountryCodes.length > 0) {
-    if (!shippingAddress?.country) {
-      return res.status(400).json({
-        success: false,
-        message: 'Shipping address is required for this discount',
-      });
-    }
-    
-    const isCountryEligible = discount.selectedCountryCodes.includes(shippingAddress.country);
-    if (!isCountryEligible) {
-      return res.status(400).json({
-        success: false,
-        message: 'This discount is not available in your country',
-      });
+  if (discount.countrySelection === 'selected-countries') {
+    const countryEntries = await FreeShippingCountryEntry.find({ storeId, discountId: discount._id })
+      .populate('countryId', 'iso2')
+      .lean();
+    const eligibleCountryIso2s = countryEntries.map((e: any) => e.countryId?.iso2).filter(Boolean);
+    if (eligibleCountryIso2s.length > 0) {
+      const countryIso2 = await getShippingCountryIso2(shippingAddress);
+      if (!countryIso2) {
+        return res.status(400).json({
+          success: false,
+          message: 'Shipping address with country is required for this discount',
+        });
+      }
+      const isCountryEligible = eligibleCountryIso2s.includes(countryIso2);
+      if (!isCountryEligible) {
+        return res.status(400).json({
+          success: false,
+          message: 'This discount is not available in your country',
+        });
+      }
     }
   }
 
@@ -384,9 +411,12 @@ export const validateFreeShippingDiscountCode = asyncErrorHandler(async (req: Re
         title: discount.title,
         message: 'Free shipping discount code applied!',
         countrySelection: discount.countrySelection,
-        selectedCountryCodes: discount.selectedCountryCodes,
         excludeShippingRates: discount.excludeShippingRates,
         shippingRateLimit: discount.shippingRateLimit,
+        combinations: {
+          productDiscounts: !!discount.productDiscounts,
+          orderDiscounts: !!discount.orderDiscounts,
+        },
       },
       cartTotal,
       totalQuantity,

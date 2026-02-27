@@ -34,6 +34,27 @@ interface DiscountTargetsCardProps {
   targetCustomerIds?: string[];
 }
 
+function TargetBlock({
+  title,
+  chips,
+  emptyLabel = "None",
+}: {
+  title: string;
+  chips: { key: string; label: string }[];
+  emptyLabel?: string;
+}) {
+  return (
+    <div>
+      <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">{title}</h3>
+      {chips.length > 0 ? (
+        <ChipList items={chips} />
+      ) : (
+        <p className="text-sm text-gray-400">{emptyLabel}</p>
+      )}
+    </div>
+  );
+}
+
 const DiscountTargetsCard: React.FC<DiscountTargetsCardProps> = ({
   targetProductDetails,
   targetProductIds,
@@ -44,54 +65,44 @@ const DiscountTargetsCard: React.FC<DiscountTargetsCardProps> = ({
   targetCustomerDetails,
   targetCustomerIds,
 }) => {
-  const renderChips = (items: { key: string; label: string }[]) => (
-    <ChipList items={items} />
-  );
+  const productChips =
+    targetProductDetails?.length
+      ? targetProductDetails.map((p) => ({ key: p._id, label: p.title || p._id }))
+      : targetProductIds?.length
+        ? targetProductIds.map((id) => ({ key: id, label: id }))
+        : [];
+  const collectionChips =
+    targetCollectionDetails?.length
+      ? targetCollectionDetails.map((c) => ({ key: c._id, label: c.title || c._id }))
+      : targetCollectionIds?.length
+        ? targetCollectionIds.map((id) => ({ key: id, label: id }))
+        : [];
+  const segmentChips =
+    targetCustomerSegmentDetails?.length
+      ? targetCustomerSegmentDetails.map((s) => ({ key: s._id, label: s.name || s._id }))
+      : targetCustomerSegmentIds?.length
+        ? targetCustomerSegmentIds.map((id) => ({ key: id, label: id }))
+        : [];
+  const customerChips =
+    targetCustomerDetails?.length
+      ? targetCustomerDetails.map((c) => ({
+          key: c._id,
+          label: `${c.firstName || ""} ${c.lastName || ""}`.trim() || c.email || c._id,
+        }))
+      : targetCustomerIds?.length
+        ? targetCustomerIds.map((id) => ({ key: id, label: id }))
+        : [];
 
   return (
-    <div className="bg-white border border-gray-200 p-4">
-      <h2 className="text-base font-medium mb-3 text-gray-900">Targets</h2>
-
-      <div className="mb-3">
-        <h3 className="text-xs font-medium text-gray-900 mb-1.5">Products</h3>
-        {targetProductDetails && targetProductDetails.length > 0
-          ? renderChips(targetProductDetails.map(p => ({ key: p._id, label: p.title || p._id })))
-          : targetProductIds && targetProductIds.length > 0
-            ? renderChips(targetProductIds.map(id => ({ key: id, label: id })))
-            : <p className="text-xs text-gray-600">None</p>}
-      </div>
-
-      <hr className="my-3 border-gray-200" />
-
-      <div className="mb-3">
-        <h3 className="text-xs font-medium text-gray-900 mb-1.5">Collections</h3>
-        {targetCollectionDetails && targetCollectionDetails.length > 0
-          ? renderChips(targetCollectionDetails.map(c => ({ key: c._id, label: c.title || c._id })))
-          : targetCollectionIds && targetCollectionIds.length > 0
-            ? renderChips(targetCollectionIds.map(id => ({ key: id, label: id })))
-            : <p className="text-xs text-gray-600">None</p>}
-      </div>
-
-      <hr className="my-3 border-gray-200" />
-
-      <div className="mb-3">
-        <h3 className="text-xs font-medium text-gray-900 mb-1.5">Customer Segments</h3>
-        {targetCustomerSegmentDetails && targetCustomerSegmentDetails.length > 0
-          ? renderChips(targetCustomerSegmentDetails.map(s => ({ key: s._id, label: s.name || s._id })))
-          : targetCustomerSegmentIds && targetCustomerSegmentIds.length > 0
-            ? renderChips(targetCustomerSegmentIds.map(id => ({ key: id, label: id })))
-            : <p className="text-xs text-gray-600">None</p>}
-      </div>
-
-      <hr className="my-3 border-gray-200" />
-
-      <div>
-        <h3 className="text-xs font-medium text-gray-900 mb-1.5">Customers</h3>
-        {targetCustomerDetails && targetCustomerDetails.length > 0
-          ? renderChips(targetCustomerDetails.map(c => ({ key: c._id, label: `${c.firstName || ''} ${c.lastName || ''}`.trim() || c.email || c._id })))
-          : targetCustomerIds && targetCustomerIds.length > 0
-            ? renderChips(targetCustomerIds.map(id => ({ key: id, label: id })))
-            : <p className="text-xs text-gray-600">None</p>}
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+      <div className="px-5 py-4 sm:px-6 sm:py-5">
+        <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Targets</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <TargetBlock title="Products" chips={productChips} />
+          <TargetBlock title="Collections" chips={collectionChips} />
+          <TargetBlock title="Customer segments" chips={segmentChips} />
+          <TargetBlock title="Customers" chips={customerChips} />
+        </div>
       </div>
     </div>
   );
