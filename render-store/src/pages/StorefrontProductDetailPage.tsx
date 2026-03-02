@@ -10,9 +10,11 @@ import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 import { useCustomerAddresses } from '../contexts/customer-address-storefront.context';
 import { useStorefrontOrder } from '../contexts/storefront-order.context';
 import { useProductOffers } from '../contexts/product-offers.context';
+import { useStorefrontCountries } from '../contexts/storefront-country.context';
 import StorefrontNavbar from '../components/StorefrontNavbar';
 import AuthPopup from '../components/AuthPopup';
 import { formatINR } from '../utils/currency';
+import ziplofyLogo from '../assets/ziplofy-logo.png';
 
 const NAVBAR_HEIGHT = 64;
 
@@ -29,7 +31,7 @@ const StorefrontProductDetailPage: React.FC = () => {
   } = useStorefrontProducts();
   const { storeFrontMeta } = useStorefront();
   const { variants, loading: variantsLoading, fetchVariantsByProductId } = useStorefrontProductVariants();
-  const { createCartEntry, items, getCartByCustomerId } = useStorefrontCart();
+  const { createCartEntry, getCartByCustomerId } = useStorefrontCart();
   const { user, checkAuth } = useStorefrontAuth();
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
@@ -38,10 +40,47 @@ const StorefrontProductDetailPage: React.FC = () => {
   const [search, setSearch] = useState<string>('');
   const [authPopupOpen, setAuthPopupOpen] = useState<boolean>(false);
   const [quickCheckoutOpen, setQuickCheckoutOpen] = useState<boolean>(false);
-  const { addresses } = useCustomerAddresses();
+  const { addresses, fetchCustomerAddressesByCustomerId, addCustomerAddress } = useCustomerAddresses();
+  const { countries, getCountries } = useStorefrontCountries();
   const { createOrder, loading: orderLoading } = useStorefrontOrder();
   const [selectedShippingAddressId, setSelectedShippingAddressId] = useState<string>('');
-  const [couponCode, setCouponCode] = useState<string>('');
+  
+  // Add address form state
+  const [showAddAddressForm, setShowAddAddressForm] = useState(false);
+  const [addingAddress, setAddingAddress] = useState(false);
+  const [addressForm, setAddressForm] = useState({
+    countryId: '',
+    firstName: '',
+    lastName: '',
+    address: '',
+    apartment: '',
+    city: '',
+    state: '',
+    pinCode: '',
+    phoneNumber: '',
+  });
+  
+  // Buy Now item state - separate from cart
+  const [buyNowItem, setBuyNowItem] = useState<{
+    productId: string;
+    variantId: string;
+    quantity: number;
+    product: {
+      _id: string;
+      title: string;
+      price: number;
+      compareAtPrice?: number;
+      imageUrls?: string[];
+    };
+    variant: {
+      _id: string;
+      price: number;
+      compareAtPrice?: number | null;
+      optionValues: Record<string, string> | Record<string, never>;
+      isSynthetic?: boolean;
+    } | null;
+  } | null>(null);
+
   const {
     freeShippingOffers,
     amountOffOrderOffers,
@@ -66,9 +105,29 @@ const StorefrontProductDetailPage: React.FC = () => {
   useEffect(() => {
     if (user?._id) {
       getCartByCustomerId(user._id).catch(() => {});
+      fetchCustomerAddressesByCustomerId(user._id).catch(() => {});
     }
-  }, [user?._id]);
+  }, [user?._id, getCartByCustomerId, fetchCustomerAddressesByCustomerId]);
 
+  // Fetch countries when add address form is shown
+  useEffect(() => {
+    if (showAddAddressForm && countries.length === 0) {
+      getCountries({ limit: 300 }).catch(() => {});
+    }
+  }, [showAddAddressForm, countries.length, getCountries]);
+
+  // Set default country (India) and user name when countries are loaded
+  useEffect(() => {
+    if (countries.length > 0 && !addressForm.countryId) {
+      const india = countries.find((c) => c.iso2 === 'IN');
+      setAddressForm((prev) => ({
+        ...prev,
+        countryId: india?._id || countries[0]._id,
+        firstName: user?.firstName || prev.firstName,
+        lastName: user?.lastName || prev.lastName,
+      }));
+    }
+  }, [countries, addressForm.countryId, user?.firstName, user?.lastName]);
 
   useEffect(() => {
     if (id) {
@@ -155,7 +214,7 @@ const StorefrontProductDetailPage: React.FC = () => {
   const handleAddToCart = async () => {
     if (!storeFrontMeta?.storeId || !selectedVariantId) return;
     try {
-      const selectedVariant = displayVariants.find(v => v._id === selectedVariantId);
+      const selectedVariant = variants.find(v => v._id === selectedVariantId);
       await createCartEntry(
         { storeId: storeFrontMeta.storeId, productVariantId: selectedVariantId, quantity: 1 },
         selectedVariant // Pass variant for guest cart
@@ -168,37 +227,40 @@ const StorefrontProductDetailPage: React.FC = () => {
   };
 
   const handleBuyNow = async () => {
-    if (!storeFrontMeta?.storeId || !selectedVariantId) return;
+    if (!storeFrontMeta?.storeId || !selectedVariantId || !product) return;
     // Buy Now requires login for checkout
     if (!user) {
       setAuthPopupOpen(true);
       return;
     }
-    try {
-      const selectedVariant = displayVariants.find(v => v._id === selectedVariantId);
-      await createCartEntry(
-        { storeId: storeFrontMeta.storeId, productVariantId: selectedVariantId, quantity: 1 },
-        selectedVariant // Pass variant for guest cart
-      );
-      if (user.defaultAddress) setSelectedShippingAddressId(user.defaultAddress);
-      else if (addresses.length > 0) setSelectedShippingAddressId(addresses[0]._id);
-      setQuickCheckoutOpen(true);
-    } catch {}
+    
+    // Set buyNowItem state instead of adding to cart
+    const selectedVariant = variants.find(v => v._id === selectedVariantId) || null;
+    setBuyNowItem({
+      productId: product._id,
+      variantId: selectedVariantId,
+      quantity: 1,
+      product: product,
+      variant: selectedVariant,
+    });
+    
+    if (user.defaultAddress) setSelectedShippingAddressId(user.defaultAddress);
+    else if (addresses.length > 0) setSelectedShippingAddressId(addresses[0]._id);
+    setQuickCheckoutOpen(true);
   };
 
   const handlePlaceOrder = async () => {
-    if (!selectedShippingAddressId || !user?._id || !storeFrontMeta?.storeId) return;
+    if (!selectedShippingAddressId || !user?._id || !storeFrontMeta?.storeId || !buyNowItem) return;
     try {
-      const orderItems = items.map((item) => {
-        const pv = typeof item.productVariantId === 'object' ? item.productVariantId : null;
-        const price = pv?.price ?? 0;
-        return {
-          productVariantId: typeof item.productVariantId === 'object' ? item.productVariantId._id : item.productVariantId,
-          quantity: item.quantity,
-          price,
-          total: price * item.quantity,
-        };
-      });
+      // Use buyNowItem instead of cart items
+      const price = buyNowItem.variant?.price ?? buyNowItem.product?.price ?? 0;
+      const orderItems = [{
+        productVariantId: buyNowItem.variantId,
+        quantity: buyNowItem.quantity,
+        price,
+        total: price * buyNowItem.quantity,
+      }];
+      
       await createOrder({
         storeId: storeFrontMeta.storeId,
         shippingAddressId: selectedShippingAddressId,
@@ -210,7 +272,48 @@ const StorefrontProductDetailPage: React.FC = () => {
         total: orderItems.reduce((s, it) => s + it.total, 0),
       } as any);
       setQuickCheckoutOpen(false);
+      setBuyNowItem(null); // Clear buy now item after order
     } catch (e) {}
+  };
+
+  const handleSaveAddress = async () => {
+    if (!user?._id || !addressForm.firstName || !addressForm.lastName || !addressForm.address || !addressForm.city || !addressForm.state || !addressForm.pinCode || !addressForm.phoneNumber || !addressForm.countryId) {
+      return;
+    }
+    try {
+      setAddingAddress(true);
+      const newAddress = await addCustomerAddress({
+        customerId: user._id,
+        countryId: addressForm.countryId,
+        firstName: addressForm.firstName,
+        lastName: addressForm.lastName,
+        address: addressForm.address,
+        apartment: addressForm.apartment,
+        city: addressForm.city,
+        state: addressForm.state,
+        pinCode: addressForm.pinCode,
+        phoneNumber: addressForm.phoneNumber,
+      });
+      // Select the newly created address
+      setSelectedShippingAddressId(newAddress._id);
+      // Reset form and hide it
+      setShowAddAddressForm(false);
+      setAddressForm({
+        countryId: countries.find((c) => c.iso2 === 'IN')?._id || countries[0]?._id || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        address: '',
+        apartment: '',
+        city: '',
+        state: '',
+        pinCode: '',
+        phoneNumber: '',
+      });
+    } catch (e) {
+      console.error('Failed to add address:', e);
+    } finally {
+      setAddingAddress(false);
+    }
   };
 
   if (productDetailLoading && !product) {
@@ -757,127 +860,476 @@ const StorefrontProductDetailPage: React.FC = () => {
       <AuthPopup open={authPopupOpen} onClose={() => setAuthPopupOpen(false)} />
 
       {/* Quick Checkout Popup (Buy Now) */}
-      {quickCheckoutOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setQuickCheckoutOpen(false)}>
+      {quickCheckoutOpen && buyNowItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => { setQuickCheckoutOpen(false); setBuyNowItem(null); }}>
           <div className="bg-white rounded-3xl max-w-md w-full max-h-[95vh] overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
-            {/* Top savings & items bar */}
-            <div className="flex items-center justify-between px-6 py-3 bg-[#0b1220] text-white text-xs sm:text-sm">
-              <div className="font-semibold">
-                {formatINR(
-                  product.compareAtPrice && product.compareAtPrice > product.price
-                    ? product.compareAtPrice - product.price
-                    : 0
-                )}{' '}
-                saved so far
-              </div>
-              <div className="flex items-center gap-2">
-                {product.compareAtPrice && product.compareAtPrice > product.price && (
-                  <span className="line-through opacity-80 text-[11px] sm:text-xs">
-                    {formatINR(product.compareAtPrice)}
-                  </span>
-                )}
-                <span className="font-semibold text-sm sm:text-base">{formatINR(product.price)}</span>
-                <span className="text-[11px] sm:text-xs opacity-80">1 item</span>
-              </div>
-            </div>
-
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => setQuickCheckoutOpen(false)}
-                  className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <FiArrowLeft className="w-5 h-5 text-[#0c100c]" />
-                </button>
-                <h2 className="text-lg font-semibold text-[#0c100c]" style={{ fontFamily: 'var(--font-serif)' }}>
-                  {storeFrontMeta?.name || 'Store'}
-                </h2>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-gray-600">
-                <span>100% Secured Payment</span>
-                <FiLock className="w-4 h-4 text-gray-700" />
-              </div>
-            </div>
-            <div className="p-0 overflow-y-auto" style={{ maxHeight: 'calc(95vh - 110px)' }}>
-              {/* Offers & Rewards (top coupon area) */}
-              <div className="px-6 pt-4 pb-2">
-                <div className="rounded-2xl border border-gray-200 bg-gray-50/60 overflow-hidden">
-                  <div className="p-4">
-                    <div className="relative mb-2">
-                      <input
-                        type="text"
-                        placeholder="Enter coupon code"
-                        value={couponCode}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCouponCode(e.target.value)}
-                        className="w-full pl-3 pr-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 outline-none bg-white text-gray-900"
-                      />
+            {(() => {
+              // Calculate prices and discounts
+              const itemPrice = buyNowItem.variant?.price ?? buyNowItem.product?.price ?? 0;
+              const compareAtPrice = buyNowItem.variant?.compareAtPrice ?? buyNowItem.product?.compareAtPrice ?? 0;
+              const quantity = buyNowItem.quantity;
+              const subtotal = itemPrice * quantity;
+              
+              // Helper: Calculate savings for a product discount
+              const calcProductSavings = (discount: typeof amountOffProductsOffers[0], base: number) => {
+                if (discount.valueType === 'percentage' && discount.percentage) {
+                  return base * (discount.percentage / 100);
+                } else if (discount.valueType === 'fixed-amount' && discount.fixedAmount) {
+                  return Math.min(discount.fixedAmount, base);
+                }
+                return 0;
+              };
+              
+              // Helper: Calculate savings for an order discount
+              const calcOrderSavings = (discount: typeof amountOffOrderOffers[0], base: number) => {
+                if (discount.valueType === 'percentage' && discount.percentage) {
+                  return base * (discount.percentage / 100);
+                } else if (discount.valueType === 'fixed-amount' && discount.fixedAmount) {
+                  return Math.min(discount.fixedAmount, base);
+                }
+                return 0;
+              };
+              
+              // Get all automatic discounts
+              const automaticProductDiscounts = amountOffProductsOffers.filter(o => o.method === 'automatic');
+              const automaticOrderDiscounts = amountOffOrderOffers.filter(o => o.method === 'automatic');
+              const automaticFreeShippingList = freeShippingOffers.filter(o => o.method === 'automatic');
+              
+              // Find best product discount (by savings)
+              let bestProductDiscount: typeof amountOffProductsOffers[0] | null = null;
+              let bestProductSavings = 0;
+              for (const pd of automaticProductDiscounts) {
+                const savings = calcProductSavings(pd, subtotal);
+                if (savings > bestProductSavings) {
+                  bestProductSavings = savings;
+                  bestProductDiscount = pd;
+                }
+              }
+              
+              // Find best order discount (by savings on subtotal)
+              let bestOrderDiscount: typeof amountOffOrderOffers[0] | null = null;
+              let bestOrderSavings = 0;
+              for (const od of automaticOrderDiscounts) {
+                const savings = calcOrderSavings(od, subtotal);
+                if (savings > bestOrderSavings) {
+                  bestOrderSavings = savings;
+                  bestOrderDiscount = od;
+                }
+              }
+              
+              // --- COMBINATION VALIDATION LOGIC ---
+              let appliedProductDiscount: typeof amountOffProductsOffers[0] | null = null;
+              let appliedOrderDiscount: typeof amountOffOrderOffers[0] | null = null;
+              let productDiscountSavings = 0;
+              let orderDiscountSavings = 0;
+              
+              if (bestProductDiscount && bestOrderDiscount) {
+                // Check if both can combine with each other
+                const productAllowsOrder = bestProductDiscount.combinations?.orderDiscounts ?? false;
+                const orderAllowsProduct = bestOrderDiscount.combinations?.productDiscounts ?? false;
+                
+                if (productAllowsOrder && orderAllowsProduct) {
+                  // Both allow each other - apply both
+                  appliedProductDiscount = bestProductDiscount;
+                  productDiscountSavings = bestProductSavings;
+                  appliedOrderDiscount = bestOrderDiscount;
+                  // Order discount applies on subtotal after product discount
+                  orderDiscountSavings = calcOrderSavings(bestOrderDiscount, subtotal - productDiscountSavings);
+                } else {
+                  // They can't combine - pick the one with better value for customer
+                  // Calculate combined savings if we only apply product discount
+                  const productOnlySavings = bestProductSavings;
+                  // Calculate combined savings if we only apply order discount
+                  const orderOnlySavings = bestOrderSavings;
+                  
+                  if (productOnlySavings >= orderOnlySavings) {
+                    // Product discount gives better or equal value
+                    appliedProductDiscount = bestProductDiscount;
+                    productDiscountSavings = productOnlySavings;
+                  } else {
+                    // Order discount gives better value
+                    appliedOrderDiscount = bestOrderDiscount;
+                    orderDiscountSavings = orderOnlySavings;
+                  }
+                }
+              } else if (bestProductDiscount) {
+                // Only product discount available
+                appliedProductDiscount = bestProductDiscount;
+                productDiscountSavings = bestProductSavings;
+              } else if (bestOrderDiscount) {
+                // Only order discount available
+                appliedOrderDiscount = bestOrderDiscount;
+                orderDiscountSavings = bestOrderSavings;
+              }
+              
+              // --- FREE SHIPPING VALIDATION ---
+              let appliedFreeShipping: typeof freeShippingOffers[0] | null = null;
+              
+              // Find best free shipping that can combine with applied discounts
+              for (const fs of automaticFreeShippingList) {
+                let canApply = true;
+                
+                // Check if free shipping can combine with the applied product discount
+                if (appliedProductDiscount) {
+                  const productAllowsShipping = appliedProductDiscount.combinations?.shippingDiscounts ?? false;
+                  const shippingAllowsProduct = fs.combinations?.productDiscounts ?? false;
+                  if (!productAllowsShipping || !shippingAllowsProduct) {
+                    canApply = false;
+                  }
+                }
+                
+                // Check if free shipping can combine with the applied order discount
+                if (appliedOrderDiscount && canApply) {
+                  const orderAllowsShipping = appliedOrderDiscount.combinations?.shippingDiscounts ?? false;
+                  const shippingAllowsOrder = fs.combinations?.orderDiscounts ?? false;
+                  if (!orderAllowsShipping || !shippingAllowsOrder) {
+                    canApply = false;
+                  }
+                }
+                
+                if (canApply) {
+                  appliedFreeShipping = fs;
+                  break;
+                }
+              }
+              
+              const hasFreeShipping = !!appliedFreeShipping;
+              
+              // Calculate totals
+              const compareAtSavings = compareAtPrice > itemPrice ? (compareAtPrice - itemPrice) * quantity : 0;
+              const totalSavings = compareAtSavings + productDiscountSavings + orderDiscountSavings;
+              const finalTotal = subtotal - productDiscountSavings - orderDiscountSavings;
+              
+              return (
+                <>
+                  {/* Top savings & items bar */}
+                  <div className="flex items-center justify-between px-6 py-3 bg-[#0b1220] text-white text-xs sm:text-sm">
+                    <div className="font-semibold">
+                      {totalSavings > 0 ? `${formatINR(totalSavings)} saved so far` : 'Best prices'}
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-700">8 coupons available</span>
-                      <button type="button" className="text-sm font-medium text-emerald-700 hover:text-emerald-800">
-                        View All
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Login / phone entry section */}
-              <div className="px-6 pb-4">
-                <div className="rounded-2xl border border-gray-200 overflow-hidden">
-                  <div className="bg-amber-100 text-amber-900 text-xs font-medium px-4 py-2">
-                    Login to redeem rewards or giftcard balance
-                  </div>
-                  <div className="p-4 space-y-4">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900 mb-1">Login to continue</p>
-                      <p className="text-xs text-gray-600 mb-3">Enter mobile number to receive order updates.</p>
-                      <div className="flex items-center gap-2">
-                        <span className="px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-700">
-                          +91
+                    <div className="flex items-center gap-2">
+                      {compareAtPrice > itemPrice && (
+                        <span className="line-through opacity-80 text-[11px] sm:text-xs">
+                          {formatINR(compareAtPrice * quantity)}
                         </span>
-                        <input
-                          type="tel"
-                          placeholder="Enter mobile number"
-                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 outline-none bg-white text-gray-900"
-                        />
+                      )}
+                      <span className="font-semibold text-sm sm:text-base">{formatINR(finalTotal)}</span>
+                      <span className="text-[11px] sm:text-xs opacity-80">{quantity} item</span>
+                    </div>
+                  </div>
+
+                  {/* Header */}
+                  <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => { setQuickCheckoutOpen(false); setBuyNowItem(null); }}
+                        className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                      >
+                        <FiArrowLeft className="w-5 h-5 text-[#0c100c]" />
+                      </button>
+                      <h2 className="text-lg font-semibold text-[#0c100c]" style={{ fontFamily: 'var(--font-serif)' }}>
+                        {storeFrontMeta?.name || 'Store'}
+                      </h2>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-600">
+                      <span>100% Secured Payment</span>
+                      <FiLock className="w-4 h-4 text-gray-700" />
+                    </div>
+                  </div>
+                  
+                  <div className="p-0 overflow-y-auto" style={{ maxHeight: 'calc(95vh - 180px)' }}>
+                    {/* Product Item */}
+                    <div className="px-6 pt-4 pb-3">
+                      <div className="flex gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-white border border-gray-200 flex-shrink-0">
+                          {buyNowItem.product?.imageUrls?.[0] ? (
+                            <img 
+                              src={buyNowItem.product.imageUrls[0]} 
+                              alt={buyNowItem.product.title || 'Product'} 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-200" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {buyNowItem.product?.title || 'Product'}
+                          </p>
+                          {buyNowItem.variant && !buyNowItem.variant.isSynthetic && Object.keys(buyNowItem.variant.optionValues || {}).length > 0 && (
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              {Object.entries(buyNowItem.variant.optionValues)
+                                .map(([k, v]) => `${k}: ${v}`)
+                                .join(', ')}
+                            </p>
+                          )}
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-sm font-semibold text-gray-900">
+                              {formatINR(itemPrice)}
+                            </span>
+                            {compareAtPrice > itemPrice && (
+                              <span className="text-xs text-gray-400 line-through">
+                                {formatINR(compareAtPrice)}
+                              </span>
+                            )}
+                            <span className="text-xs text-gray-500">× {quantity}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="pt-3 border-t border-gray-100 text-center">
-                      <p className="text-[11px] uppercase tracking-wide text-gray-400 mb-2">Powered by Ziplofy</p>
-                      <div className="flex items-center justify-center gap-6 text-[10px] text-gray-500">
-                        <span>PCI DSS Certified</span>
-                        <span>100% Secured Payments</span>
-                        <span>Verified Merchant</span>
+                    {/* Applied Discounts */}
+                    {(appliedProductDiscount || appliedOrderDiscount || hasFreeShipping) && (
+                      <div className="px-6 pb-3">
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Applied Discounts</p>
+                        <div className="space-y-2">
+                          {appliedProductDiscount && (
+                            <div className="flex items-center justify-between p-2.5 bg-green-50 rounded-lg border border-green-100">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <span className="w-5 h-5 rounded-full bg-green-500 text-white flex items-center justify-center text-[10px] flex-shrink-0">✓</span>
+                                <div className="min-w-0">
+                                  <span className="text-xs text-green-800 block truncate">{appliedProductDiscount.title || 'Product Discount'}</span>
+                                  {appliedProductDiscount.method === 'discount-code' && appliedProductDiscount.discountCode && (
+                                    <span className="text-[10px] text-green-600 block">Code: <span className="font-semibold">{appliedProductDiscount.discountCode}</span></span>
+                                  )}
+                                </div>
+                              </div>
+                              <span className="text-xs font-semibold text-green-700 flex-shrink-0">-{formatINR(productDiscountSavings)}</span>
+                            </div>
+                          )}
+                          {appliedOrderDiscount && (
+                            <div className="flex items-center justify-between p-2.5 bg-blue-50 rounded-lg border border-blue-100">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <span className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] flex-shrink-0">✓</span>
+                                <div className="min-w-0">
+                                  <span className="text-xs text-blue-800 block truncate">{appliedOrderDiscount.title || 'Order Discount'}</span>
+                                  {appliedOrderDiscount.method === 'discount-code' && appliedOrderDiscount.discountCode && (
+                                    <span className="text-[10px] text-blue-600 block">Code: <span className="font-semibold">{appliedOrderDiscount.discountCode}</span></span>
+                                  )}
+                                </div>
+                              </div>
+                              <span className="text-xs font-semibold text-blue-700 flex-shrink-0">-{formatINR(orderDiscountSavings)}</span>
+                            </div>
+                          )}
+                          {hasFreeShipping && appliedFreeShipping && (
+                            <div className="flex items-center justify-between p-2.5 bg-purple-50 rounded-lg border border-purple-100">
+                              <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <span className="w-5 h-5 rounded-full bg-purple-500 text-white flex items-center justify-center text-[10px] flex-shrink-0">✓</span>
+                                <div className="min-w-0">
+                                  <span className="text-xs text-purple-800 block truncate">{appliedFreeShipping.title || 'Free Shipping'}</span>
+                                  {appliedFreeShipping.method === 'discount-code' && appliedFreeShipping.discountCode && (
+                                    <span className="text-[10px] text-purple-600 block">Code: <span className="font-semibold">{appliedFreeShipping.discountCode}</span></span>
+                                  )}
+                                </div>
+                              </div>
+                              <span className="text-xs font-semibold text-purple-700 flex-shrink-0">FREE</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Order Summary */}
+                    <div className="px-6 pb-3">
+                      <div className="rounded-2xl border border-gray-200 overflow-hidden">
+                        <div className="p-4 space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Subtotal</span>
+                            <span className="text-gray-900">{formatINR(subtotal)}</span>
+                          </div>
+                          {productDiscountSavings > 0 && (
+                            <div className="flex justify-between text-sm">
+                              <span className="text-green-600">Product Discount</span>
+                              <span className="text-green-600">-{formatINR(productDiscountSavings)}</span>
+                            </div>
+                          )}
+                          {orderDiscountSavings > 0 && (
+                            <div className="flex justify-between text-sm">
+                              <span className="text-blue-600">Order Discount</span>
+                              <span className="text-blue-600">-{formatINR(orderDiscountSavings)}</span>
+                            </div>
+                          )}
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Shipping</span>
+                            <span className={hasFreeShipping ? 'text-green-600' : 'text-gray-900'}>
+                              {hasFreeShipping ? 'FREE' : 'Calculated at checkout'}
+                            </span>
+                          </div>
+                          <div className="pt-2 border-t border-gray-100 flex justify-between">
+                            <span className="text-sm font-semibold text-gray-900">Total</span>
+                            <span className="text-sm font-semibold text-gray-900">{formatINR(finalTotal)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Shipping Address */}
+                    <div className="px-6 pb-3">
+                      <div className="rounded-2xl border border-gray-200 overflow-hidden">
+                        <div className="p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <p className="text-sm font-semibold text-gray-900">Shipping Address</p>
+                            {!showAddAddressForm && (
+                              <button
+                                type="button"
+                                onClick={() => setShowAddAddressForm(true)}
+                                className="text-xs font-medium text-[#d4af37] hover:text-[#b8972e]"
+                              >
+                                + Add New
+                              </button>
+                            )}
+                          </div>
+                          
+                          {showAddAddressForm ? (
+                            <div className="space-y-3">
+                              <div className="grid grid-cols-2 gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="First Name *"
+                                  value={addressForm.firstName}
+                                  onChange={(e) => setAddressForm(prev => ({ ...prev, firstName: e.target.value }))}
+                                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37]/40 focus:border-[#d4af37] outline-none"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Last Name *"
+                                  value={addressForm.lastName}
+                                  onChange={(e) => setAddressForm(prev => ({ ...prev, lastName: e.target.value }))}
+                                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37]/40 focus:border-[#d4af37] outline-none"
+                                />
+                              </div>
+                              <input
+                                type="text"
+                                placeholder="Address *"
+                                value={addressForm.address}
+                                onChange={(e) => setAddressForm(prev => ({ ...prev, address: e.target.value }))}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37]/40 focus:border-[#d4af37] outline-none"
+                              />
+                              <input
+                                type="text"
+                                placeholder="Apartment, suite, etc. (optional)"
+                                value={addressForm.apartment}
+                                onChange={(e) => setAddressForm(prev => ({ ...prev, apartment: e.target.value }))}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37]/40 focus:border-[#d4af37] outline-none"
+                              />
+                              <div className="grid grid-cols-2 gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="City *"
+                                  value={addressForm.city}
+                                  onChange={(e) => setAddressForm(prev => ({ ...prev, city: e.target.value }))}
+                                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37]/40 focus:border-[#d4af37] outline-none"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="State *"
+                                  value={addressForm.state}
+                                  onChange={(e) => setAddressForm(prev => ({ ...prev, state: e.target.value }))}
+                                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37]/40 focus:border-[#d4af37] outline-none"
+                                />
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <input
+                                  type="text"
+                                  placeholder="PIN Code *"
+                                  value={addressForm.pinCode}
+                                  onChange={(e) => setAddressForm(prev => ({ ...prev, pinCode: e.target.value }))}
+                                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37]/40 focus:border-[#d4af37] outline-none"
+                                />
+                                <input
+                                  type="text"
+                                  placeholder="Phone Number *"
+                                  value={addressForm.phoneNumber}
+                                  onChange={(e) => setAddressForm(prev => ({ ...prev, phoneNumber: e.target.value }))}
+                                  className="px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37]/40 focus:border-[#d4af37] outline-none"
+                                />
+                              </div>
+                              <select
+                                value={addressForm.countryId}
+                                onChange={(e) => setAddressForm(prev => ({ ...prev, countryId: e.target.value }))}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37]/40 focus:border-[#d4af37] outline-none bg-white"
+                              >
+                                <option value="">Select Country *</option>
+                                {countries.map((c) => (
+                                  <option key={c._id} value={c._id}>{c.name}</option>
+                                ))}
+                              </select>
+                              <div className="flex gap-2 pt-1">
+                                <button
+                                  type="button"
+                                  onClick={() => setShowAddAddressForm(false)}
+                                  className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleSaveAddress}
+                                  disabled={addingAddress}
+                                  className="flex-1 px-3 py-2 text-sm bg-[#d4af37] text-white rounded-lg hover:bg-[#b8972e] disabled:opacity-50"
+                                >
+                                  {addingAddress ? 'Saving...' : 'Save Address'}
+                                </button>
+                              </div>
+                            </div>
+                          ) : addresses.length > 0 ? (
+                            <select
+                              value={selectedShippingAddressId}
+                              onChange={(e) => setSelectedShippingAddressId(e.target.value)}
+                              className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#d4af37]/40 focus:border-[#d4af37] outline-none bg-white text-gray-900"
+                            >
+                              <option value="">Select address</option>
+                              {addresses.map((addr) => (
+                                <option key={addr._id} value={addr._id}>
+                                  {addr.firstName} {addr.lastName}, {addr.address}, {addr.city}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <div className="text-center py-2">
+                              <p className="text-xs text-gray-500 mb-2">No saved addresses.</p>
+                              <button
+                                type="button"
+                                onClick={() => setShowAddAddressForm(true)}
+                                className="text-sm font-medium text-[#d4af37] hover:text-[#b8972e]"
+                              >
+                                + Add Address
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Trust badges */}
+                    <div className="px-6 pb-4">
+                      <div className="pt-3 border-t border-gray-100 text-center">
+                        <p className="text-[11px] uppercase tracking-wide text-gray-400 mb-2">Powered by Ziplofy</p>
+                        <img src={ziplofyLogo} alt="Ziplofy" className="h-6 mx-auto mb-3 object-contain" />
+                        <div className="flex items-center justify-center gap-6 text-[10px] text-gray-500">
+                          <span>PCI DSS Certified</span>
+                          <span>100% Secured Payments</span>
+                          <span>Verified Merchant</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* Updates opt-in */}
-              <div className="px-6 pb-2">
-                <label className="flex items-center gap-2 text-xs text-gray-700 cursor-pointer">
-                  <input type="checkbox" defaultChecked className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" />
-                  <span>Send me order updates &amp; offers - (no spam)</span>
-                </label>
-              </div>
-            </div>
-
-            {/* Bottom primary action */}
-            <div className="px-6 py-4 border-t border-gray-200 bg-white">
-              <button
-                type="button"
-                onClick={handlePlaceOrder}
-                disabled={orderLoading}
-                className="w-full px-6 py-3 text-sm rounded-full bg-black text-white font-semibold hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {orderLoading ? 'Processing...' : 'Continue'}
-              </button>
-            </div>
+                  {/* Bottom primary action */}
+                  <div className="px-6 py-4 border-t border-gray-200 bg-white">
+                    <button
+                      type="button"
+                      onClick={handlePlaceOrder}
+                      disabled={orderLoading || !selectedShippingAddressId}
+                      className="w-full px-6 py-3 text-sm rounded-full bg-black text-white font-semibold hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {orderLoading ? 'Processing...' : `Pay ${formatINR(finalTotal)}`}
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}

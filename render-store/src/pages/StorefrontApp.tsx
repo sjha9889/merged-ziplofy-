@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiShoppingCart, FiArrowRight, FiTruck, FiShield, FiHeadphones, FiCheck } from 'react-icons/fi';
+import { FiShoppingCart, FiArrowRight, FiTruck, FiShield, FiHeadphones, FiCheck, FiStar } from 'react-icons/fi';
 import { FaFacebook, FaTwitter, FaInstagram, FaPinterest } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 import StorefrontNavbar from '../components/StorefrontNavbar';
 import AuthPopup from '../components/AuthPopup';
 import type { StorefrontProductItem } from '../contexts/product.context';
@@ -93,12 +94,12 @@ const StorefrontApp: React.FC = () => {
 
       {/* Order Discount Banner */}
       {orderDiscount && (
-        <div className="fixed top-16 left-0 right-0 z-40 bg-gradient-to-r from-emerald-500 to-teal-500 text-white py-2 px-4 text-center shadow-md">
-          <div className="max-w-7xl mx-auto flex items-center justify-center gap-2">
-            <span className="text-lg font-bold">{orderDiscountText}</span>
-            <span className="text-sm opacity-90">{orderDiscountCondition}</span>
+        <div className="fixed top-16 left-0 right-0 z-40 bg-gradient-to-r from-[#d4af37] via-[#e6c547] to-[#d4af37] text-[#0c100c] py-2.5 px-4 text-center shadow-lg">
+          <div className="max-w-7xl mx-auto flex items-center justify-center gap-3 flex-wrap">
+            <span className="text-sm font-bold">{orderDiscountText}</span>
+            <span className="text-xs font-medium opacity-80">{orderDiscountCondition}</span>
             {orderDiscount.title && (
-              <span className="ml-2 px-2 py-0.5 bg-white/20 rounded text-xs font-medium">
+              <span className="px-2.5 py-0.5 bg-white/30 backdrop-blur-sm rounded-full text-xs font-semibold">
                 {orderDiscount.title}
               </span>
             )}
@@ -136,7 +137,6 @@ const StorefrontApp: React.FC = () => {
       <section className={`relative overflow-hidden bg-gradient-to-br from-[#fefcf8] via-[#f5f1e8] to-[#e8e0d5] min-h-[85vh] flex items-center ${orderDiscount ? 'mt-28' : 'mt-20'}`}>
         {/* Animated Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
-          {/* Subtle gold accents */}
           <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#d4af37] rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob" />
           <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-[#e6c547] rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob animation-delay-2000" />
         </div>
@@ -144,107 +144,131 @@ const StorefrontApp: React.FC = () => {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-20">
           <div className="max-w-4xl mx-auto text-center">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/30 mb-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/30 mb-6"
+            >
               <span className="w-2 h-2 bg-[#d4af37] rounded-full animate-pulse" />
               <span className="text-sm font-semibold text-[#0c100c]">Timeless Luxury, Crafted for You</span>
-            </div>
+            </motion.div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-[#0c100c] mb-4 leading-tight" style={{ fontFamily: 'var(--font-serif)' }}>
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-3xl sm:text-4xl lg:text-6xl font-bold text-[#0c100c] mb-6 leading-tight"
+              style={{ fontFamily: 'var(--font-serif)' }}
+            >
               {storeFrontMeta?.name || 'Welcome to Our Store'}
-            </h1>
-            <p className="text-base sm:text-lg text-[#2b1e1e] mb-8 max-w-2xl mx-auto leading-relaxed">
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-base sm:text-lg text-[#2b1e1e] mb-10 max-w-2xl mx-auto leading-relaxed"
+            >
               {storeFrontMeta?.description || 'Discover amazing products at unbeatable prices. Shop the latest trends and timeless classics.'}
-            </p>
+            </motion.p>
 
             {/* Stats */}
-            <div className="flex flex-wrap justify-center gap-6 mb-8">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-lg bg-[#d4af37]/10 flex items-center justify-center">
-                  <FiTruck className="w-5 h-5 text-[#d4af37]" />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="flex flex-wrap justify-center gap-8 mb-10"
+            >
+              {[
+                { icon: FiStar, value: '10K+', label: 'Happy Customers' },
+                { icon: FiShoppingCart, value: '500+', label: 'Products' },
+                { icon: FiHeadphones, value: '24/7', label: 'Support' },
+              ].map((stat, i) => (
+                <div key={i} className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/50 backdrop-blur-sm border border-[#e8e0d5]">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#d4af37] to-[#e6c547] flex items-center justify-center shadow-sm">
+                    <stat.icon className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="text-left">
+                    <div className="text-xl font-bold text-[#0c100c]">{stat.value}</div>
+                    <div className="text-xs text-[#2b1e1e]">{stat.label}</div>
+                  </div>
                 </div>
-                <div className="text-left">
-                  <div className="text-xl font-semibold text-[#0c100c]">10K+</div>
-                  <div className="text-xs text-[#2b1e1e]">Happy Customers</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-lg bg-[#d4af37]/10 flex items-center justify-center">
-                  <FiShoppingCart className="w-5 h-5 text-[#d4af37]" />
-                </div>
-                <div className="text-left">
-                  <div className="text-xl font-semibold text-[#0c100c]">500+</div>
-                  <div className="text-xs text-[#2b1e1e]">Products</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-lg bg-[#d4af37]/10 flex items-center justify-center">
-                  <FiHeadphones className="w-5 h-5 text-[#d4af37]" />
-                </div>
-                <div className="text-left">
-                  <div className="text-xl font-semibold text-[#0c100c]">24/7</div>
-                  <div className="text-xs text-[#2b1e1e]">Support</div>
-                </div>
-              </div>
-            </div>
+              ))}
+            </motion.div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-wrap justify-center gap-3">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              className="flex flex-wrap justify-center gap-4"
+            >
               <button
-                onClick={() => navigate('#products')}
-                className="group px-8 py-3 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#e6c547] text-[#0c100c] font-semibold text-sm hover:shadow-lg transition-all duration-300 flex items-center gap-2"
-                style={{ boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)' }}
+                onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
+                className="group px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#d4af37] to-[#e6c547] text-[#0c100c] font-semibold text-sm hover:shadow-xl transition-all duration-300 flex items-center gap-2 hover:scale-105"
+                style={{ boxShadow: '0 4px 20px rgba(212, 175, 55, 0.35)' }}
               >
                 Shop Now
                 <FiArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
               <button
-                onClick={() => navigate('#collections')}
-                className="px-8 py-3 rounded-lg border-2 border-[#0c100c] text-[#0c100c] font-semibold text-sm hover:bg-[#0c100c] hover:text-[#fefcf8] transition-all duration-300"
+                onClick={() => document.getElementById('collections')?.scrollIntoView({ behavior: 'smooth' })}
+                className="px-8 py-3.5 rounded-xl bg-[#0c100c] text-[#fefcf8] font-semibold text-sm hover:bg-[#2b1e1e] transition-all duration-300 hover:scale-105"
               >
                 Explore Collections
               </button>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* Trust Badges Section - ORNATIVA Theme */}
-      <section className="py-16 bg-[#fefcf8]">
+      <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-2xl sm:text-3xl font-semibold text-[#0c100c] mb-2" style={{ fontFamily: 'var(--font-serif)' }}>Why Choose Us</h2>
-            <p className="text-sm text-[#2b1e1e] max-w-2xl mx-auto">Experience shopping like never before</p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-14"
+          >
+            <span className="inline-block px-4 py-1.5 rounded-full bg-[#d4af37]/10 text-[#d4af37] text-xs font-semibold uppercase tracking-wider mb-4">Why Us</span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#0c100c] mb-3" style={{ fontFamily: 'var(--font-serif)' }}>Why Choose Us</h2>
+            <p className="text-sm text-[#2b1e1e] max-w-xl mx-auto">Experience shopping like never before with our premium service</p>
+          </motion.div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             {[
-              { icon: FiTruck, title: 'Free Shipping', desc: 'On orders over $50' },
+              { icon: FiTruck, title: 'Free Shipping', desc: 'On orders over ₹500' },
               { icon: FiShield, title: 'Secure Payment', desc: '100% secure checkout' },
               { icon: FiHeadphones, title: '24/7 Support', desc: 'Dedicated support team' },
               { icon: FiCheck, title: 'Easy Returns', desc: '30-day return policy' },
             ].map((item, index) => {
               const Icon = item.icon;
               return (
-                <div
+                <motion.div
                   key={index}
-                  className="group p-5 rounded-lg bg-white border border-[#e8e0d5] hover:border-[#d4af37] hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  className="group p-6 rounded-2xl bg-[#fefcf8] border border-[#e8e0d5] hover:border-[#d4af37]/50 hover:shadow-xl hover:shadow-[#d4af37]/5 transition-all duration-300 hover:-translate-y-1 text-center"
                 >
-                  <div className="w-12 h-12 rounded-lg bg-[#d4af37]/10 flex items-center justify-center mb-4 group-hover:bg-[#d4af37]/20 transition-all duration-300">
-                    <Icon className="w-6 h-6 text-[#d4af37] transition-colors duration-300" />
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#d4af37] to-[#e6c547] flex items-center justify-center mb-4 mx-auto shadow-lg shadow-[#d4af37]/20 group-hover:scale-110 transition-transform duration-300">
+                    <Icon className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-base font-semibold text-[#0c100c] mb-1.5">{item.title}</h3>
-                  <p className="text-xs text-[#2b1e1e] leading-relaxed">{item.desc}</p>
-                </div>
+                  <h3 className="text-sm font-bold text-[#0c100c] mb-1">{item.title}</h3>
+                  <p className="text-xs text-[#2b1e1e]">{item.desc}</p>
+                </motion.div>
               );
             })}
           </div>
         </div>
-
       </section>
 
       {/* Collections Section - ORNATIVA Theme */}
       {collections.length > 0 && (
-        <section id="collections" className="relative py-20 bg-[#f5f1e8] overflow-hidden">
+        <section id="collections" className="relative py-20 bg-gradient-to-b from-[#f5f1e8] to-[#fefcf8] overflow-hidden">
           {/* Subtle Background Pattern */}
           <div className="absolute inset-0 opacity-[0.03]" style={{
             backgroundImage: `radial-gradient(circle at 1px 1px, rgba(212, 175, 55, 0.15) 1px, transparent 0)`,
@@ -253,20 +277,21 @@ const StorefrontApp: React.FC = () => {
 
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Section Header */}
-            <div className="text-center mb-14">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/30 mb-5">
-                <span className="w-2 h-2 bg-[#d4af37] rounded-full" />
-                <span className="text-xs font-semibold text-[#0c100c] uppercase tracking-wide">
-                  Collections
-                </span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl font-semibold text-[#0c100c] mb-2" style={{ fontFamily: 'var(--font-serif)' }}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="text-center mb-14"
+            >
+              <span className="inline-block px-4 py-1.5 rounded-full bg-[#d4af37]/10 text-[#d4af37] text-xs font-semibold uppercase tracking-wider mb-4">Collections</span>
+              <h2 className="text-2xl sm:text-3xl font-bold text-[#0c100c] mb-3" style={{ fontFamily: 'var(--font-serif)' }}>
                 Shop by Collections
               </h2>
-              <p className="text-sm text-[#2b1e1e] max-w-2xl mx-auto">
+              <p className="text-sm text-[#2b1e1e] max-w-xl mx-auto">
                 Discover our curated collections featuring the latest trends and timeless classics
               </p>
-            </div>
+            </motion.div>
 
             {collectionsLoading && (
               <div className="text-center py-16">
@@ -283,32 +308,26 @@ const StorefrontApp: React.FC = () => {
               </div>
             )}
           </div>
-
         </section>
       )}
 
       {/* Featured Products Section - ORNATIVA Theme */}
-      <section id="products" className="relative py-20 bg-[#fefcf8] overflow-hidden">
-        {/* Subtle Background Pattern */}
-        <div className="absolute inset-0 opacity-[0.02]" style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, rgba(212, 175, 55, 0.15) 1px, transparent 0)`,
-          backgroundSize: '40px 40px',
-        }} />
-
+      <section id="products" className="relative py-20 bg-white overflow-hidden">
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header */}
-          <div className="text-center mb-14">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/30 mb-5">
-              <span className="w-2 h-2 bg-[#d4af37] rounded-full" />
-              <span className="text-xs font-semibold text-[#0c100c] uppercase tracking-wide">
-                Featured Selection
-              </span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-semibold text-[#0c100c] mb-2" style={{ fontFamily: 'var(--font-serif)' }}>Featured Products</h2>
-            <p className="text-sm text-[#2b1e1e] max-w-2xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="text-center mb-14"
+          >
+            <span className="inline-block px-4 py-1.5 rounded-full bg-[#d4af37]/10 text-[#d4af37] text-xs font-semibold uppercase tracking-wider mb-4">Featured</span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[#0c100c] mb-3" style={{ fontFamily: 'var(--font-serif)' }}>Featured Products</h2>
+            <p className="text-sm text-[#2b1e1e] max-w-xl mx-auto">
               Handpicked products that our customers love
             </p>
-          </div>
+          </motion.div>
 
           {loading && (
             <div className="text-center py-16">
@@ -318,66 +337,74 @@ const StorefrontApp: React.FC = () => {
           )}
 
           {!loading && products.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
               {products
                 .filter((p) => {
                   if (!search) return true;
                   const q = search.toLowerCase();
                   return p.title?.toLowerCase().includes(q) || (p.vendor?.name || '').toLowerCase().includes(q);
                 })
-                .map((p) => (
+                .map((p, index) => (
                   <ProductCard
                     key={p._id}
                     product={p}
                     onClick={() => navigate(`/products/${p._id}`)}
                     onAddToCart={handleAddToCartFromCard}
+                    index={index}
                   />
                 ))}
             </div>
           )}
 
           {pagination?.hasNext && (
-            <div className="text-center mt-16">
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="text-center mt-14"
+            >
               <button
                 type="button"
                 onClick={() => storeFrontMeta?.storeId && fetchProductsByStoreId({ storeId: storeFrontMeta.storeId, page: (pagination?.page || 1) + 1, limit: pagination?.limit || 12 })}
-                className="group px-8 py-4 bg-gradient-to-r from-[#d4af37] to-[#e6c547] text-[#0c100c] rounded-lg font-semibold hover:shadow-lg transition-all flex items-center gap-2 mx-auto"
-                style={{ boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)' }}
+                className="group px-8 py-3.5 bg-[#0c100c] text-white rounded-xl font-semibold hover:bg-[#2b1e1e] transition-all flex items-center gap-2 mx-auto hover:scale-105"
               >
                 Load More Products
-                <FiArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <FiArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </button>
-            </div>
+            </motion.div>
           )}
         </div>
-
       </section>
 
       {/* Footer - ORNATIVA Theme */}
-      <footer className="bg-[#0c100c] text-[#fefcf8]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+      <footer className="bg-[#0c100c] text-[#fefcf8] relative overflow-hidden">
+        {/* Decorative Background */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#d4af37]/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#e6c547]/5 rounded-full blur-3xl" />
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
             {/* Brand Column */}
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="h-14 w-14 rounded-lg bg-gradient-to-br from-[#d4af37] to-[#e6c547] flex items-center justify-center text-[#0c100c] text-xl font-black shadow-lg">
+            <div className="col-span-2 lg:col-span-1">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-[#d4af37] to-[#e6c547] flex items-center justify-center text-white text-lg font-black shadow-lg shadow-[#d4af37]/20">
                   {storeFrontMeta?.name?.charAt(0) || 'Z'}
                 </div>
-                <div className="text-lg font-semibold text-[#fefcf8]" style={{ fontFamily: 'var(--font-serif)' }}>
+                <div className="text-lg font-bold text-white" style={{ fontFamily: 'var(--font-serif)' }}>
                   {storeFrontMeta?.name || 'Store'}
                 </div>
               </div>
-              <p className="text-[#f5f1e8] mb-6 text-xs leading-relaxed">
+              <p className="text-gray-400 mb-5 text-sm leading-relaxed max-w-xs">
                 {storeFrontMeta?.description || 'Your trusted online shopping destination for quality products at great prices.'}
               </p>
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 {[FaFacebook, FaTwitter, FaInstagram, FaPinterest].map((Icon, i) => (
                   <button
                     key={i}
                     type="button"
-                    className="w-12 h-12 rounded-lg bg-[#2b1e1e] hover:bg-[#d4af37] text-[#fefcf8] hover:text-[#0c100c] transition-all duration-300 flex items-center justify-center hover:scale-110"
+                    className="w-10 h-10 rounded-xl bg-white/5 hover:bg-[#d4af37] text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110 border border-white/5 hover:border-[#d4af37]"
                   >
-                    <Icon className="w-5 h-5" />
+                    <Icon className="w-4 h-4" />
                   </button>
                 ))}
               </div>
@@ -385,13 +412,13 @@ const StorefrontApp: React.FC = () => {
 
             {/* Quick Links */}
             <div>
-              <h4 className="font-semibold mb-4 text-base" style={{ fontFamily: 'var(--font-serif)' }}>Quick Links</h4>
-              <div className="flex flex-col gap-3">
+              <h4 className="font-bold mb-4 text-sm text-white" style={{ fontFamily: 'var(--font-serif)' }}>Quick Links</h4>
+              <div className="flex flex-col gap-2.5">
                 {['About Us', 'Contact', 'FAQ', 'Blog'].map((link) => (
                   <button
                     key={link}
                     type="button"
-                    className="text-left text-[#f5f1e8] hover:text-[#d4af37] text-sm transition-colors duration-200 hover:translate-x-1 transform inline-block"
+                    className="text-left text-gray-400 hover:text-[#d4af37] text-sm transition-all duration-200 hover:translate-x-1 transform inline-block w-fit"
                   >
                     {link}
                   </button>
@@ -401,13 +428,13 @@ const StorefrontApp: React.FC = () => {
 
             {/* Customer Service */}
             <div>
-              <h4 className="font-semibold mb-6 text-base" style={{ fontFamily: 'var(--font-serif)' }}>Customer Service</h4>
-              <div className="flex flex-col gap-3">
+              <h4 className="font-bold mb-4 text-sm text-white" style={{ fontFamily: 'var(--font-serif)' }}>Customer Service</h4>
+              <div className="flex flex-col gap-2.5">
                 {['Help Center', 'Shipping Info', 'Returns', 'Track Order'].map((link) => (
                   <button
                     key={link}
                     type="button"
-                    className="text-left text-[#f5f1e8] hover:text-[#d4af37] text-sm transition-colors duration-200 hover:translate-x-1 transform inline-block"
+                    className="text-left text-gray-400 hover:text-[#d4af37] text-sm transition-all duration-200 hover:translate-x-1 transform inline-block w-fit"
                   >
                     {link}
                   </button>
@@ -417,20 +444,19 @@ const StorefrontApp: React.FC = () => {
 
             {/* Newsletter */}
             <div>
-              <h4 className="font-semibold mb-4 text-base" style={{ fontFamily: 'var(--font-serif)' }}>Stay Connected</h4>
-              <p className="text-[#f5f1e8] mb-4 text-xs">
-                Subscribe to get updates on new products and exclusive offers.
+              <h4 className="font-bold mb-4 text-sm text-white" style={{ fontFamily: 'var(--font-serif)' }}>Stay Connected</h4>
+              <p className="text-gray-400 mb-4 text-sm">
+                Subscribe for exclusive offers.
               </p>
-              <div className="flex gap-2">
+              <div className="flex flex-col gap-2">
                 <input
                   type="email"
                   placeholder="Your email"
-                  className="flex-1 px-5 py-3 rounded-lg bg-[#2b1e1e] border-2 border-[#2b1e1e] text-[#fefcf8] placeholder-[#f5f1e8]/50 focus:outline-none focus:border-[#d4af37] transition-colors"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#d4af37] transition-colors text-sm"
                 />
                 <button
                   type="button"
-                  className="px-8 py-3 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#e6c547] text-[#0c100c] font-bold hover:shadow-lg transition-all"
-                  style={{ boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)' }}
+                  className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-[#d4af37] to-[#e6c547] text-[#0c100c] font-bold text-sm hover:shadow-lg hover:shadow-[#d4af37]/20 transition-all hover:scale-[1.02]"
                 >
                   Subscribe
                 </button>
@@ -438,16 +464,16 @@ const StorefrontApp: React.FC = () => {
             </div>
           </div>
 
-          <div className="border-t border-[#2b1e1e] mt-16 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-[#f5f1e8] text-sm">
+          <div className="border-t border-white/10 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-gray-500 text-sm">
               © {new Date().getFullYear()} {storeFrontMeta?.name || 'Store'}. All rights reserved.
             </p>
-            <div className="flex gap-6">
-              {['Privacy Policy', 'Terms of Service', 'Cookie Policy'].map((link) => (
+            <div className="flex flex-wrap justify-center gap-4 lg:gap-6">
+              {['Privacy Policy', 'Terms of Service', 'Cookies'].map((link) => (
                 <button
                   key={link}
                   type="button"
-                  className="text-[#f5f1e8] hover:text-[#d4af37] text-sm transition-colors duration-200"
+                  className="text-gray-500 hover:text-[#d4af37] text-sm transition-colors duration-200"
                 >
                   {link}
                 </button>
@@ -468,45 +494,36 @@ const CollectionCard: React.FC<{
   navigate: (path: string) => void;
   index: number;
 }> = ({ collection, navigate, index }) => {
-  const bgColors = [
-    'bg-[#f5f1e8]',
-    'bg-[#e8e0d5]',
-    'bg-[#fefcf8]',
+  const gradients = [
+    'from-[#f5f1e8] to-[#e8e0d5]',
+    'from-[#e8e0d5] to-[#fefcf8]',
+    'from-[#fefcf8] to-[#f5f1e8]',
   ];
-  const bgColor = bgColors[index % bgColors.length];
+  const gradient = gradients[index % gradients.length];
 
   return (
-    <div className="group bg-white border border-[#e8e0d5] rounded-lg overflow-hidden hover:shadow-lg hover:border-[#d4af37] transition-all duration-300 hover:-translate-y-1">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4, delay: index * 0.1 }}
+      className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-[#e8e0d5]/50 hover:border-[#d4af37]/30 transition-all duration-300"
+    >
       <button
         type="button"
         onClick={() => navigate(`/collections/${collection._id}/${collection.urlHandle}`)}
-        className="w-full h-full text-left focus:outline-none focus:ring-2 focus:ring-[#d4af37] focus:ring-offset-2 rounded-lg"
+        className="w-full h-full text-left focus:outline-none focus:ring-2 focus:ring-[#d4af37] focus:ring-offset-2 rounded-2xl"
       >
         {/* Image/Header Section */}
-        <div className={`relative h-44 ${bgColor} overflow-hidden`}>
-          {/* Decorative Circle */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-[#d4af37]/10 blur-2xl group-hover:scale-150 transition-transform duration-500" />
-
-          {/* Status Badge */}
-          {(collection.onlineStorePublishing || collection.pointOfSalePublishing) && (
-            <div className="absolute top-4 right-4 flex gap-2 z-10">
-              {collection.onlineStorePublishing && (
-                <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-white/95 backdrop-blur-sm text-[#0c100c] border border-[#e8e0d5] shadow-sm">
-                  Online
-                </span>
-              )}
-              {collection.pointOfSalePublishing && (
-                <span className="px-2.5 py-1 rounded-md text-xs font-medium bg-white/95 backdrop-blur-sm text-[#0c100c] border border-[#e8e0d5] shadow-sm">
-                  POS
-                </span>
-              )}
-            </div>
-          )}
+        <div className={`relative h-48 bg-gradient-to-br ${gradient} overflow-hidden`}>
+          {/* Decorative Elements */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full bg-[#d4af37]/10 blur-3xl group-hover:scale-150 transition-transform duration-700" />
+          <div className="absolute bottom-0 right-0 w-32 h-32 rounded-full bg-[#e6c547]/10 blur-2xl" />
 
           {/* Collection Icon/Initial */}
           <div className="relative z-10 flex items-center justify-center h-full">
-            <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-[#d4af37] to-[#e6c547] flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-              <span className="text-3xl font-bold text-[#0c100c]" style={{ fontFamily: 'var(--font-serif)' }}>
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#d4af37] to-[#e6c547] flex items-center justify-center shadow-xl shadow-[#d4af37]/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+              <span className="text-3xl font-bold text-white" style={{ fontFamily: 'var(--font-serif)' }}>
                 {collection.title.charAt(0).toUpperCase()}
               </span>
             </div>
@@ -514,25 +531,25 @@ const CollectionCard: React.FC<{
         </div>
 
         {/* Content Section */}
-        <div className="p-6">
-          <h3 className="text-lg font-semibold text-[#0c100c] mb-2 line-clamp-1 group-hover:text-[#d4af37] transition-colors duration-300" style={{ fontFamily: 'var(--font-serif)' }}>
+        <div className="p-5">
+          <h3 className="text-base font-bold text-[#0c100c] mb-1.5 line-clamp-1 group-hover:text-[#d4af37] transition-colors duration-300" style={{ fontFamily: 'var(--font-serif)' }}>
             {collection.title}
           </h3>
-          <p className="text-xs text-[#2b1e1e] leading-relaxed line-clamp-2 mb-5 min-h-[2.5rem]">
+          <p className="text-xs text-[#2b1e1e] leading-relaxed line-clamp-2 mb-4">
             {collection.metaDescription || collection.description || 'Explore this curated collection'}
           </p>
-          <div className="flex items-center justify-between pt-4 border-t border-[#e8e0d5]">
-            <span className="text-xs text-[#2b1e1e] uppercase tracking-wider font-medium">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-[#2b1e1e]/60 uppercase tracking-wider font-medium px-2 py-1 rounded-md bg-[#f5f1e8]">
               {collection.urlHandle}
             </span>
-            <div className="flex items-center gap-1.5 text-[#2b1e1e] group-hover:text-[#d4af37] group-hover:gap-2 transition-all duration-300">
-              <span className="text-xs font-semibold">View Collection</span>
-              <FiArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+            <div className="flex items-center gap-1.5 text-[#d4af37] font-semibold text-xs group-hover:gap-2 transition-all duration-300">
+              <span>View</span>
+              <FiArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
             </div>
           </div>
         </div>
       </button>
-    </div>
+    </motion.div>
   );
 };
 
@@ -541,11 +558,13 @@ const ProductCard: React.FC<{
   product: StorefrontProductItem;
   onClick: () => void;
   onAddToCart: (product: StorefrontProductItem, e: React.MouseEvent) => void;
-}> = ({ product, onClick, onAddToCart }) => {
+  index?: number;
+}> = ({ product, onClick, onAddToCart, index = 0 }) => {
   const images = Array.isArray(product.imageUrls) && product.imageUrls.length > 0 
     ? product.imageUrls 
     : ['https://via.placeholder.com/600x400?text=Product'];
   const [idx, setIdx] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     if (images.length <= 1) return;
@@ -561,53 +580,77 @@ const ProductCard: React.FC<{
 
   const productOfferText = product.productDiscount
     ? product.productDiscount.valueType === 'fixed-amount'
-      ? `Extra ${formatINR(product.productDiscount.fixedAmount || 0)} off`
-      : `Extra ${product.productDiscount.percentage || 0}% off`
+      ? `${formatINR(product.productDiscount.fixedAmount || 0)} off`
+      : `${product.productDiscount.percentage || 0}% off`
     : null;
 
   const isCodeBased = product.productDiscount?.method === 'discount-code';
   const discountCode = product.productDiscount?.discountCode;
 
   return (
-    <div 
-      className="group bg-white rounded-lg overflow-hidden border border-gray-100 hover:border-[#d4af37]/30 hover:shadow-md transition-all duration-300 cursor-pointer"
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4, delay: (index % 4) * 0.05 }}
+      className="group bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-[#d4af37]/30 hover:shadow-xl hover:shadow-[#d4af37]/5 transition-all duration-300 cursor-pointer"
       onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Image Section */}
-      <div className="relative aspect-square overflow-hidden bg-gray-50">
+      <div className="relative aspect-square overflow-hidden bg-[#f8f8f8]">
         {images.map((src, i) => (
           <img
             key={i}
-            className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ${
-              i === idx ? 'opacity-100' : 'opacity-0'
-            } group-hover:scale-105`}
+            className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${
+              i === idx ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
+            } ${isHovered ? 'scale-110' : ''}`}
             src={src}
             alt={product.title}
           />
         ))}
 
+        {/* Gradient Overlay on Hover */}
+        <div className={`absolute inset-0 bg-gradient-to-t from-black/20 to-transparent transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`} />
+
         {/* Discount Badge */}
         {productOfferText && (
-          <span className="absolute top-2 left-2 inline-flex items-center px-2 py-1 rounded text-[11px] font-semibold bg-[#d4af37] text-white">
+          <span className="absolute top-3 left-3 inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-gradient-to-r from-[#d4af37] to-[#e6c547] text-white shadow-lg">
             {productOfferText}
           </span>
         )}
 
         {/* Sale Badge */}
         {discountPercentage > 0 && !productOfferText && (
-          <span className="absolute top-2 left-2 px-2 py-1 rounded text-[11px] font-semibold bg-[#d4af37] text-white">
+          <span className="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-gradient-to-r from-[#d4af37] to-[#e6c547] text-white shadow-lg">
             {discountPercentage}% OFF
           </span>
         )}
 
+        {/* Quick Add Button */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddToCart(product, e);
+          }}
+          className={`absolute bottom-3 left-3 right-3 py-2.5 rounded-xl bg-[#0c100c] text-white text-xs font-semibold hover:bg-[#d4af37] transition-all duration-300 transform ${
+            isHovered ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+          } flex items-center justify-center gap-2`}
+        >
+          <FiShoppingCart className="w-3.5 h-3.5" />
+          Add to Cart
+        </button>
+
         {/* Image Dots */}
         {images.length > 1 && (
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
             {images.map((_, i) => (
               <span
                 key={i}
-                className={`w-1.5 h-1.5 rounded-full transition-all ${
-                  i === idx ? 'bg-[#d4af37]' : 'bg-white/60'
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                  i === idx ? 'bg-[#d4af37] w-4' : 'bg-white/70'
                 }`}
               />
             ))}
@@ -616,22 +659,22 @@ const ProductCard: React.FC<{
       </div>
 
       {/* Content */}
-      <div className="p-3">
+      <div className="p-4">
         {/* Vendor */}
         {product.vendor?.name && (
-          <p className="text-[10px] font-medium text-[#d4af37] uppercase tracking-wide mb-1">
+          <p className="text-[10px] font-semibold text-[#d4af37] uppercase tracking-wider mb-1.5">
             {product.vendor.name}
           </p>
         )}
 
         {/* Title */}
-        <h3 className="text-sm font-medium text-gray-900 line-clamp-2 mb-2 min-h-[2.5rem] leading-tight">
+        <h3 className="text-sm font-semibold text-[#0c100c] line-clamp-2 mb-3 min-h-[2.5rem] leading-snug group-hover:text-[#d4af37] transition-colors">
           {product.title}
         </h3>
 
         {/* Price */}
-        <div className="flex items-baseline gap-2 mb-2">
-          <span className="text-base font-bold text-gray-900">
+        <div className="flex items-baseline gap-2">
+          <span className="text-lg font-bold text-[#0c100c]">
             {formatINR(product.price)}
           </span>
           {product.compareAtPrice && product.compareAtPrice > product.price && (
@@ -639,7 +682,7 @@ const ProductCard: React.FC<{
               <span className="text-xs text-gray-400 line-through">
                 {formatINR(product.compareAtPrice)}
               </span>
-              <span className="text-xs font-medium text-[#d4af37]">
+              <span className="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
                 {discountPercentage}% off
               </span>
             </>
@@ -648,24 +691,12 @@ const ProductCard: React.FC<{
 
         {/* Discount Code */}
         {isCodeBased && discountCode && (
-          <p className="text-[10px] text-gray-500 mb-2">
-            Use code: <span className="font-semibold text-[#d4af37]">{discountCode}</span>
+          <p className="text-[10px] text-gray-500 mt-2 flex items-center gap-1">
+            <span className="px-1.5 py-0.5 bg-[#d4af37]/10 rounded text-[#d4af37] font-semibold">{discountCode}</span>
           </p>
         )}
-
-        {/* Add to Cart */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onAddToCart(product, e);
-          }}
-          className="w-full py-2 rounded bg-[#1a1a1a] text-white text-xs font-medium hover:bg-[#d4af37] transition-colors duration-200"
-        >
-          Add to Cart
-        </button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

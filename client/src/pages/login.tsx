@@ -59,7 +59,7 @@ export default function Login() {
 
   return (
     <SlantedImageCarouselWrapper>
-      <div className="w-full max-w-md">
+      <div className="w-full">
         <div className="bg-white backdrop-blur-md rounded-xl border border-white/20 shadow-lg">
           <div className="px-8 py-8">
             <div className="flex flex-col gap-6">
@@ -73,7 +73,7 @@ export default function Login() {
                 <div className="space-y-4">
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                      Email address - updated
+                      Email address
                     </label>
                     <input
                       id="email"
@@ -88,7 +88,7 @@ export default function Login() {
                   </div>
                   <div>
                     <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                      Password - updated
+                      Password
                     </label>
                     <input
                       id="password"
@@ -154,7 +154,7 @@ export default function Login() {
                 Don't have an account?{' '}
                 <Link 
                   to="/register" 
-                  className="font-medium text-gray-900 hover:text-gray-700 transition-colors"
+                  className="font-medium text-blue-600 hover:text-blue-700 transition-colors"
                 >
                   Sign up
                 </Link>
