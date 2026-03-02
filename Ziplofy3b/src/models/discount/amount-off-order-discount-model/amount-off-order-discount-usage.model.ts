@@ -1,29 +1,49 @@
-import mongoose, { Document, Model, Schema } from 'mongoose';
+import mongoose, { Document, Schema } from 'mongoose';
 
-export interface IAmountOffOrderDiscountUsage {
-  _id: mongoose.Types.ObjectId;
+export interface IAmountOffOrderDiscountUsage extends Document {
+  customerId: mongoose.Types.ObjectId;
+  discountId: mongoose.Types.ObjectId;
   storeId: mongoose.Types.ObjectId;
-  discountId: mongoose.Types.ObjectId; // AmountOffOrderDiscount
-  customerId: mongoose.Types.ObjectId; // Customer who used the discount
-  orderId?: mongoose.Types.ObjectId; // Optional: reference to the order where discount was used
-  discountAmount: number; // Amount of discount applied
-  createdAt: Date;
-  updatedAt: Date;
+  orderId?: mongoose.Types.ObjectId;
+  usedAt: Date;
 }
 
-const amountOffOrderDiscountUsageSchema = new Schema<IAmountOffOrderDiscountUsage & Document>({
-  storeId: { type: Schema.Types.ObjectId, ref: 'Store', required: true, index: true },
-  discountId: { type: Schema.Types.ObjectId, ref: 'AmountOffOrderDiscount', required: true, index: true },
-  customerId: { type: Schema.Types.ObjectId, ref: 'Customer', required: true, index: true },
-  orderId: { type: Schema.Types.ObjectId, ref: 'Order', default: null, index: true },
-  discountAmount: { type: Number, required: true, min: 0 },
-}, { timestamps: true, versionKey: false });
+const AmountOffOrderDiscountUsageSchema = new Schema<IAmountOffOrderDiscountUsage>({
+  customerId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Customer',
+    required: true,
+    index: true
+  },
+  discountId: {
+    type: Schema.Types.ObjectId,
+    ref: 'AmountOffOrderDiscount',
+    required: true,
+    index: true
+  },
+  storeId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Store',
+    required: true,
+    index: true
+  },
+  orderId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Order',
+    required: false
+  },
+  usedAt: {
+    type: Date,
+    default: Date.now,
+    required: true
+  }
+}, {
+  timestamps: true
+});
 
 // Compound indexes for efficient queries
-amountOffOrderDiscountUsageSchema.index({ storeId: 1, discountId: 1 });
-amountOffOrderDiscountUsageSchema.index({ storeId: 1, customerId: 1 });
-amountOffOrderDiscountUsageSchema.index({ discountId: 1, customerId: 1 });
-amountOffOrderDiscountUsageSchema.index({ storeId: 1, discountId: 1, customerId: 1 });
+AmountOffOrderDiscountUsageSchema.index({ customerId: 1, discountId: 1 });
+AmountOffOrderDiscountUsageSchema.index({ discountId: 1, storeId: 1 });
+AmountOffOrderDiscountUsageSchema.index({ storeId: 1, usedAt: -1 });
 
-export const AmountOffOrderDiscountUsage: Model<IAmountOffOrderDiscountUsage & Document> =
-  mongoose.models.AmountOffOrderDiscountUsage || mongoose.model<IAmountOffOrderDiscountUsage & Document>('AmountOffOrderDiscountUsage', amountOffOrderDiscountUsageSchema);
+export const AmountOffOrderDiscountUsage = mongoose.model<IAmountOffOrderDiscountUsage>('AmountOffOrderDiscountUsage', AmountOffOrderDiscountUsageSchema);

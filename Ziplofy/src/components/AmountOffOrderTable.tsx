@@ -38,7 +38,8 @@ const AmountOffOrderTable: React.FC<AmountOffOrderTableProps> = ({
           <tbody className="bg-white divide-y divide-gray-100">
             {discounts.map((d) => {
               const codeOrTitle = d.method === 'discount-code' ? d.discountCode : d.title;
-              const value = d.valueType === 'percentage' ? `${d.percentage ?? 0}%` : `₹${d.fixedAmount ?? 0}`;
+              const fixedDisplay = (d.fixedAmount ?? 0) >= 1000 ? ((d.fixedAmount ?? 0) / 100) : (d.fixedAmount ?? 0);
+              const value = d.valueType === 'percentage' ? `${d.percentage ?? 0}%` : `₹${fixedDisplay}`;
               const minReq = d.minimumPurchase === 'minimum-amount'
                 ? `Min Amount ₹${d.minimumAmount ?? 0}`
                 : d.minimumPurchase === 'minimum-quantity'

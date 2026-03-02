@@ -27,45 +27,60 @@ const DiscountValueLimitsCard: React.FC<DiscountValueLimitsCardProps> = ({
 }) => {
   const yesNo = (v?: boolean) => (v ? 'Yes' : 'No');
 
+  const valueRows = [
+    { label: 'Value type', value: valueType ?? '—' },
+    { label: 'Value', value },
+    { label: 'Once per order', value: yesNo(oncePerOrder) },
+    { label: 'Allow discount on channels', value: yesNo(allowDiscountOnChannels) },
+  ];
+  const limitRows = [
+    { label: 'Limit total uses', value: limitTotalUses ? `Yes (${totalUsesLimit ?? '—'})` : 'No' },
+    { label: 'Limit one use per customer', value: yesNo(limitOneUsePerCustomer) },
+  ];
+  const comboRows = [
+    { label: 'Product discounts', value: yesNo(productDiscounts) },
+    { label: 'Order discounts', value: yesNo(orderDiscounts) },
+    { label: 'Shipping discounts', value: yesNo(shippingDiscounts) },
+  ];
+
   return (
-    <div className="bg-white border border-gray-200 p-4">
-      <h2 className="text-base font-medium mb-3 text-gray-900">Value & Limits</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <p className="text-xs text-gray-600 mb-1">Value type</p>
-          <p className="text-sm text-gray-900">{valueType}</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-600 mb-1">Value</p>
-          <p className="text-sm text-gray-900">{value}</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-600 mb-1">Once per order</p>
-          <p className="text-sm text-gray-900">{yesNo(oncePerOrder)}</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-600 mb-1">Allow discount on channels</p>
-          <p className="text-sm text-gray-900">{yesNo(allowDiscountOnChannels)}</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-600 mb-1">Limit total uses</p>
-          <p className="text-sm text-gray-900">{limitTotalUses ? `Yes (${totalUsesLimit ?? '-'})` : 'No'}</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-600 mb-1">Limit one use per customer</p>
-          <p className="text-sm text-gray-900">{yesNo(limitOneUsePerCustomer)}</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-600 mb-1">Product discounts combinable</p>
-          <p className="text-sm text-gray-900">{yesNo(productDiscounts)}</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-600 mb-1">Order discounts combinable</p>
-          <p className="text-sm text-gray-900">{yesNo(orderDiscounts)}</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-600 mb-1">Shipping discounts combinable</p>
-          <p className="text-sm text-gray-900">{yesNo(shippingDiscounts)}</p>
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+      <div className="px-5 py-4 sm:px-6 sm:py-5">
+        <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Value & limits</h2>
+        <div className="space-y-5">
+          <div>
+            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Discount value</h3>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {valueRows.map(({ label, value: v }) => (
+                <div key={label}>
+                  <dt className="text-xs text-gray-500">{label}</dt>
+                  <dd className="mt-0.5 text-sm text-gray-900">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+          <div className="border-t border-gray-100 pt-4">
+            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Usage limits</h3>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {limitRows.map(({ label, value: v }) => (
+                <div key={label}>
+                  <dt className="text-xs text-gray-500">{label}</dt>
+                  <dd className="mt-0.5 text-sm text-gray-900">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+          <div className="border-t border-gray-100 pt-4">
+            <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Can combine with</h3>
+            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {comboRows.map(({ label, value: v }) => (
+                <div key={label}>
+                  <dt className="text-xs text-gray-500">{label}</dt>
+                  <dd className="mt-0.5 text-sm text-gray-900">{v}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
         </div>
       </div>
     </div>

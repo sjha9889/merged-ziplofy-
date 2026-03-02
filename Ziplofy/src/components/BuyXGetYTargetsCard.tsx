@@ -30,6 +30,25 @@ interface BuyXGetYTargetsCardProps {
   customers: Customer[];
 }
 
+function TargetBlock({
+  title,
+  chips,
+}: {
+  title: string;
+  chips: { key: string; label: string }[];
+}) {
+  return (
+    <div>
+      <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">{title}</h3>
+      {chips.length > 0 ? (
+        <ChipList items={chips} />
+      ) : (
+        <p className="text-sm text-gray-400">None</p>
+      )}
+    </div>
+  );
+}
+
 const BuyXGetYTargetsCard: React.FC<BuyXGetYTargetsCardProps> = ({
   buysProducts,
   buysCollections,
@@ -39,71 +58,17 @@ const BuyXGetYTargetsCard: React.FC<BuyXGetYTargetsCardProps> = ({
   customers,
 }) => {
   return (
-    <div className="bg-white border border-gray-200 p-4">
-      <h2 className="text-base font-medium mb-3 text-gray-900">Targets</h2>
-
-      <div className="mb-3">
-        <h3 className="text-xs font-medium text-gray-900 mb-1.5">Buys - Products</h3>
-        {buysProducts.length > 0 ? (
-          <ChipList items={buysProducts.map(p => ({ key: p._id, label: p.title }))} />
-        ) : (
-          <p className="text-xs text-gray-600">None</p>
-        )}
-      </div>
-
-      <hr className="my-3 border-gray-200" />
-
-      <div className="mb-3">
-        <h3 className="text-xs font-medium text-gray-900 mb-1.5">Buys - Collections</h3>
-        {buysCollections.length > 0 ? (
-          <ChipList items={buysCollections.map(c => ({ key: c._id, label: c.title }))} />
-        ) : (
-          <p className="text-xs text-gray-600">None</p>
-        )}
-      </div>
-
-      <hr className="my-3 border-gray-200" />
-
-      <div className="mb-3">
-        <h3 className="text-xs font-medium text-gray-900 mb-1.5">Gets - Products</h3>
-        {getsProducts.length > 0 ? (
-          <ChipList items={getsProducts.map(p => ({ key: p._id, label: p.title }))} />
-        ) : (
-          <p className="text-xs text-gray-600">None</p>
-        )}
-      </div>
-
-      <hr className="my-3 border-gray-200" />
-
-      <div className="mb-3">
-        <h3 className="text-xs font-medium text-gray-900 mb-1.5">Gets - Collections</h3>
-        {getsCollections.length > 0 ? (
-          <ChipList items={getsCollections.map(c => ({ key: c._id, label: c.title }))} />
-        ) : (
-          <p className="text-xs text-gray-600">None</p>
-        )}
-      </div>
-
-      <hr className="my-3 border-gray-200" />
-
-      <div className="mb-3">
-        <h3 className="text-xs font-medium text-gray-900 mb-1.5">Customer Segments</h3>
-        {segments.length > 0 ? (
-          <ChipList items={segments.map(s => ({ key: s._id, label: s.name }))} />
-        ) : (
-          <p className="text-xs text-gray-600">None</p>
-        )}
-      </div>
-
-      <hr className="my-3 border-gray-200" />
-
-      <div>
-        <h3 className="text-xs font-medium text-gray-900 mb-1.5">Customers</h3>
-        {customers.length > 0 ? (
-          <ChipList items={customers.map(c => ({ key: c._id, label: c.name }))} />
-        ) : (
-          <p className="text-xs text-gray-600">None</p>
-        )}
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+      <div className="px-5 py-4 sm:px-6 sm:py-5">
+        <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Targets</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <TargetBlock title="Buys – Products" chips={buysProducts.map(p => ({ key: p._id, label: p.title }))} />
+          <TargetBlock title="Buys – Collections" chips={buysCollections.map(c => ({ key: c._id, label: c.title }))} />
+          <TargetBlock title="Gets – Products" chips={getsProducts.map(p => ({ key: p._id, label: p.title }))} />
+          <TargetBlock title="Gets – Collections" chips={getsCollections.map(c => ({ key: c._id, label: c.title }))} />
+          <TargetBlock title="Customer segments" chips={segments.map(s => ({ key: s._id, label: s.name }))} />
+          <TargetBlock title="Customers" chips={customers.map(c => ({ key: c._id, label: c.name }))} />
+        </div>
       </div>
     </div>
   );

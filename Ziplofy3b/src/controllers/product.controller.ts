@@ -6,6 +6,8 @@ import { IProductVariant, ProductVariant } from "../models/product/product-varia
 import { IProduct, Product } from "../models/product/product.model";
 import { Store } from "../models/store/store.model";
 import { asyncErrorHandler, CustomError } from "../utils/error.utils";
+import { AmountOffProductsDiscount, AmountOffProductsEntry, AmountOffOrderDiscount } from "../models";
+import { CollectionEntry } from "../models/collection-entry/collection-entry.model";
 
 // Create a new product
 export const createProduct = asyncErrorHandler(async (req: Request, res: Response) => {
@@ -259,6 +261,191 @@ export const getProductsByStoreIdPublic = asyncErrorHandler(async (req: Request,
     Product.countDocuments({status:"active",storeId})
   ]);
 
+  // ===== DISCOUNT LOGIC START =====
+  const now = new Date();
+  const nowDateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+  const nowTimeStr = now.toISOString().split('T')[1].substring(0, 5); // HH:mm
+
+  // Helper function to filter discounts by valid date range
+  const isDiscountActive = (d: any): boolean => {
+    // Check start date
+    if (d.startDate && d.startDate > nowDateStr) return false;
+    if (d.startDate === nowDateStr && d.startTime && d.startTime > nowTimeStr) return false;
+    
+    // Check end date
+    if (!d.setEndDate || !d.endDate) return true;
+    if (d.endDate > nowDateStr) return true;
+    if (d.endDate === nowDateStr && d.endTime && d.endTime >= nowTimeStr) return true;
+    if (d.endDate === nowDateStr && !d.endTime) return true;
+    return false;
+  };
+
+  // ===== AMOUNT OFF PRODUCTS DISCOUNTS =====
+  const activeProductDiscounts = await AmountOffProductsDiscount.find({
+    storeId,
+    status: 'active',
+    // Fetch both automatic and discount-code based discounts
+  }).lean();
+
+  const validProductDiscounts = activeProductDiscounts.filter(isDiscountActive);
+
+  // Get discount entries for product discounts
+  const productDiscountIds = validProductDiscounts.map((d: any) => d._id);
+  const productDiscountEntries = productDiscountIds.length > 0
+    ? await AmountOffProductsEntry.find({
+        storeId,
+        discountId: { $in: productDiscountIds }
+      }).lean()
+    : [];
+
+  // Build maps for quick lookup
+  const productDiscountById = new Map<string, any>();
+  for (const d of validProductDiscounts) {
+    productDiscountById.set(String(d._id), d);
+  }
+
+  // Group entries by discount
+  const entriesByDiscount = new Map<string, any[]>();
+  for (const entry of productDiscountEntries) {
+    const key = String(entry.discountId);
+    if (!entriesByDiscount.has(key)) entriesByDiscount.set(key, []);
+    entriesByDiscount.get(key)!.push(entry);
+  }
+
+  // Get collection-based product mappings
+  const collectionIdsInEntries = productDiscountEntries
+    .filter((e: any) => e.collectionId)
+    .map((e: any) => e.collectionId);
+
+  let collectionProductMap = new Map<string, string[]>(); // collectionId -> productIds
+  if (collectionIdsInEntries.length > 0) {
+    const collectionEntries = await CollectionEntry.find({
+      collectionId: { $in: collectionIdsInEntries }
+    }).lean();
+    for (const ce of collectionEntries) {
+      const colKey = String(ce.collectionId);
+      if (!collectionProductMap.has(colKey)) collectionProductMap.set(colKey, []);
+      collectionProductMap.get(colKey)!.push(String(ce.productId));
+    }
+  }
+
+  // Build productId -> best product discount map
+  const productDiscountMap = new Map<string, { 
+    valueType: 'percentage' | 'fixed-amount'; 
+    percentage?: number; 
+    fixedAmount?: number; 
+    title?: string;
+    method: 'automatic' | 'discount-code';
+    discountCode?: string;
+  }>();
+
+  for (const discount of validProductDiscounts) {
+    const discountId = String(discount._id);
+    const entries = entriesByDiscount.get(discountId) || [];
+    
+    // Get all product IDs this discount applies to
+    const applicableProductIds: string[] = [];
+    
+    for (const entry of entries) {
+      if (entry.productId) {
+        applicableProductIds.push(String(entry.productId));
+      } else if (entry.collectionId) {
+        const productsInCollection = collectionProductMap.get(String(entry.collectionId)) || [];
+        applicableProductIds.push(...productsInCollection);
+      }
+    }
+
+    // Apply discount to each applicable product (keep best discount)
+    for (const productId of applicableProductIds) {
+      const existing = productDiscountMap.get(productId);
+      const newDiscount = {
+        valueType: (discount as any).valueType as 'percentage' | 'fixed-amount',
+        percentage: (discount as any).percentage,
+        fixedAmount: (discount as any).fixedAmount,
+        title: (discount as any).title,
+        method: (discount as any).method as 'automatic' | 'discount-code',
+        discountCode: (discount as any).discountCode
+      };
+
+      if (!existing) {
+        productDiscountMap.set(productId, newDiscount);
+      } else {
+        // Compare and keep the better discount
+        const existingValue = existing.valueType === 'percentage' ? (existing.percentage || 0) : (existing.fixedAmount || 0);
+        const newValue = newDiscount.valueType === 'percentage' ? (newDiscount.percentage || 0) : (newDiscount.fixedAmount || 0);
+        
+        if (existing.valueType === newDiscount.valueType) {
+          if (newValue > existingValue) {
+            productDiscountMap.set(productId, newDiscount);
+          }
+        } else if (newDiscount.valueType === 'fixed-amount' && newValue > existingValue) {
+          productDiscountMap.set(productId, newDiscount);
+        }
+      }
+    }
+  }
+
+  // ===== AMOUNT OFF ORDER DISCOUNTS =====
+  const activeOrderDiscounts = await AmountOffOrderDiscount.find({
+    storeId,
+    status: 'active',
+    method: 'automatic', // Only automatic discounts show on storefront
+  }).lean();
+
+  const validOrderDiscounts = activeOrderDiscounts.filter(isDiscountActive);
+
+  // Find the best order discount to display (store-wide offer)
+  let bestOrderDiscount: {
+    valueType: 'percentage' | 'fixed-amount';
+    percentage?: number;
+    fixedAmount?: number;
+    title?: string;
+    minimumPurchase?: string;
+    minimumAmount?: number;
+    minimumQuantity?: number;
+  } | null = null;
+
+  for (const discount of validOrderDiscounts) {
+    const d = discount as any;
+    const newDiscount = {
+      valueType: d.valueType as 'percentage' | 'fixed-amount',
+      percentage: d.percentage,
+      fixedAmount: d.fixedAmount,
+      title: d.title,
+      minimumPurchase: d.minimumPurchase,
+      minimumAmount: d.minimumAmount,
+      minimumQuantity: d.minimumQuantity
+    };
+
+    if (!bestOrderDiscount) {
+      bestOrderDiscount = newDiscount;
+    } else {
+      // Keep the higher value discount
+      const existingValue = bestOrderDiscount.valueType === 'percentage' 
+        ? (bestOrderDiscount.percentage || 0) 
+        : (bestOrderDiscount.fixedAmount || 0);
+      const newValue = newDiscount.valueType === 'percentage' 
+        ? (newDiscount.percentage || 0) 
+        : (newDiscount.fixedAmount || 0);
+      
+      if (newValue > existingValue) {
+        bestOrderDiscount = newDiscount;
+      }
+    }
+  }
+
+  // ===== ENRICH PRODUCTS WITH DISCOUNT INFO =====
+  const enrichedProducts = products.map((product: any) => {
+    const productId = String(product._id);
+    const discount = productDiscountMap.get(productId);
+    return {
+      ...product,
+      productDiscount: discount || null
+    };
+  });
+
+  // ===== DISCOUNT LOGIC END =====
+
   // Calculate pagination metadata
   const totalPages = Math.ceil(total / limitNum);
   const hasNext = pageNum < totalPages;
@@ -266,7 +453,7 @@ export const getProductsByStoreIdPublic = asyncErrorHandler(async (req: Request,
 
   res.status(200).json({
     success: true,
-    data: products,
+    data: enrichedProducts,
     pagination: {
       page: pageNum,
       limit: limitNum,
@@ -274,7 +461,57 @@ export const getProductsByStoreIdPublic = asyncErrorHandler(async (req: Request,
       totalPages,
       hasNext,
       hasPrev
-    }
+    },
+    // Store-wide order discount (applies to whole order, not specific products)
+    orderDiscount: bestOrderDiscount
+  });
+});
+
+// Get product details by ID (public route)
+export const getProductByIdPublic = asyncErrorHandler(async (req: Request, res: Response) => {
+  const { productId } = req.params;
+
+  if (!productId || !mongoose.isValidObjectId(productId)) {
+    throw new CustomError("Valid product ID is required", 400);
+  }
+
+  const product = await Product.findOne({ _id: productId, status: "active" })
+    .populate({ path: "category", select: "name" })
+    .populate({ path: "vendor", model: "Vendor", select: "name" })
+    .select({
+      title: 1,
+      description: 1,
+      price: 1,
+      compareAtPrice: 1,
+      imageUrls: 1,
+      sku: 1,
+      status: 1,
+      category: 1,
+      vendor: 1,
+      storeId: 1,
+      variants: 1,
+      createdAt: 1,
+      updatedAt: 1,
+    })
+    .lean();
+
+  if (!product) {
+    throw new CustomError("Product not found", 404);
+  }
+
+  const variants = await ProductVariant.find({ productId, depricated: false })
+    .select({
+      price: 1,
+      compareAtPrice: 1,
+      optionValues: 1,
+      sku: 1,
+      images: 1,
+    })
+    .lean();
+
+  res.status(200).json({
+    success: true,
+    data: { ...product, variants },
   });
 });
 

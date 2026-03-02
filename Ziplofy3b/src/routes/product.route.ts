@@ -4,6 +4,7 @@ import {
   addVariantsToProduct,
   createProduct,
   deleteVariantsFromProduct,
+  getProductByIdPublic,
   getProductsByStoreId,
   getProductsByStoreIdPublic,
   searchProductsBasic,
@@ -17,6 +18,9 @@ export const productRouter = Router();
 
 // Public route for getting products by store ID with pagination
 productRouter.get("/public/store/:storeId", getProductsByStoreIdPublic);
+
+// Public route for getting product details by product ID
+productRouter.get("/public/:productId", getProductByIdPublic);
 
 // Protect all product routes (adjust if public create not desired)
 productRouter.use(protect);

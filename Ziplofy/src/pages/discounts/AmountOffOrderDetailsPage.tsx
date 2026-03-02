@@ -1,17 +1,26 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAmountOffOrderDiscount } from "../../contexts/amount-off-order-discount.context";
+import { useAmountOffOrderDiscount, type AmountOffOrderDiscountUsageOrder, type GetOrdersByAmountOffOrderDiscountResponse } from "../../contexts/amount-off-order-discount.context";
 import { useStore } from "../../contexts/store.context";
 import DiscountNotFound from "../../components/DiscountNotFound";
 import DiscountDetailsHeader from "../../components/DiscountDetailsHeader";
 import ChipList from "../../components/ChipList";
-import GridBackgroundWrapper from "../../components/GridBackgroundWrapper";
 
 const AmountOffOrderDetailsPage: React.FC = () => {
 	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
 	const { activeStoreId } = useStore();
-	const { discounts, fetchDiscountsByStoreId, loading, error } = useAmountOffOrderDiscount();
+	const {
+		discounts,
+		fetchDiscountsByStoreId,
+		deleteDiscount,
+		loading,
+		error,
+		fetchOrdersByDiscountId,
+	} = useAmountOffOrderDiscount();
+
+	const [ordersData, setOrdersData] = useState<GetOrdersByAmountOffOrderDiscountResponse | null>(null);
+	const [ordersLoading, setOrdersLoading] = useState(false);
 
 	const discount = discounts.find(d => d._id === id);
 
@@ -21,9 +30,42 @@ const AmountOffOrderDetailsPage: React.FC = () => {
 		}
 	}, [activeStoreId, discounts.length, fetchDiscountsByStoreId]);
 
+	useEffect(() => {
+		if (!id) return;
+		let cancelled = false;
+		setOrdersLoading(true);
+		fetchOrdersByDiscountId(id, { page: 1, limit: 20 })
+			.then((res) => {
+				if (!cancelled && res?.success) setOrdersData(res);
+			})
+			.catch(() => {
+				if (!cancelled) setOrdersData(null);
+			})
+			.finally(() => {
+				if (!cancelled) setOrdersLoading(false);
+			});
+		return () => { cancelled = true; };
+	}, [id, fetchOrdersByDiscountId]);
+
 	const handleBack = useCallback(() => {
 		navigate('/discounts');
 	}, [navigate]);
+
+	const handleEdit = useCallback(() => {
+		if (id) navigate(`/discounts/new/amount-off-order?edit=${id}`);
+	}, [navigate, id]);
+
+	const handleDelete = useCallback(async () => {
+		if (!id) return;
+		const confirmed = window.confirm('Are you sure you want to delete this discount? This action cannot be undone.');
+		if (!confirmed) return;
+		try {
+			const result = await deleteDiscount(id);
+			if (result?.success) navigate('/discounts');
+		} catch (err) {
+			console.error('Failed to delete discount:', err);
+		}
+	}, [id, deleteDiscount, navigate]);
 
 	const renderBoolean = useCallback((v?: boolean) => (v ? 'Yes' : 'No'), []);
 	const customerSegmentLabel = useCallback((s: any) => s?.name || s?._id, []);
@@ -34,44 +76,37 @@ const AmountOffOrderDetailsPage: React.FC = () => {
 
 	if (loading) {
 		return (
-			<GridBackgroundWrapper>
-				<div className="flex justify-center py-8">
-					<div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
-				</div>
-			</GridBackgroundWrapper>
+			<div className="flex justify-center py-8">
+				<div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+			</div>
 		);
 	}
 
 	if (error) {
 		return (
-			<GridBackgroundWrapper>
-				<div className="max-w-7xl mx-auto py-6 px-4">
-					<div className="p-3 bg-red-50 border border-red-200">
-						<p className="text-sm text-red-800">{error}</p>
-					</div>
+			<div className="max-w-7xl mx-auto py-6 px-4">
+				<div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+					<p className="text-sm text-red-800">{error}</p>
 				</div>
-			</GridBackgroundWrapper>
+			</div>
 		);
 	}
 
 	if (!discount) {
-		return (
-			<GridBackgroundWrapper>
-				<DiscountNotFound />
-			</GridBackgroundWrapper>
-		);
+		return <DiscountNotFound />;
 	}
 
 	const targetCustomerSegmentDetails = (discount as any).targetCustomerSegmentDetails || [];
 	const targetCustomerDetails = (discount as any).targetCustomerDetails || [];
 
+	// fixedAmount is stored in paisa; values < 1000 are legacy (rupees)
+	const fixedDisplay = (discount.fixedAmount ?? 0) >= 1000 ? (discount.fixedAmount! / 100) : (discount.fixedAmount ?? 0);
 	const value = discount.valueType === 'percentage' 
 		? `${discount.percentage ?? 0}%` 
-		: `₹${discount.fixedAmount ?? 0}`;
+		: `₹${fixedDisplay}`;
 
 	return (
-		<GridBackgroundWrapper>
-			<div className="min-h-screen">
+		<div className="min-h-screen">
 				<div className="max-w-7xl mx-auto py-6 px-4">
 					<div className="flex flex-col gap-4">
 						{/* Header */}
@@ -82,6 +117,8 @@ const AmountOffOrderDetailsPage: React.FC = () => {
 							value={value}
 							status={discount.status}
 							onBack={handleBack}
+							onEdit={handleEdit}
+							onDelete={handleDelete}
 						/>
 
 						{/* General Information */}
@@ -117,7 +154,7 @@ const AmountOffOrderDetailsPage: React.FC = () => {
 								{discount.valueType === 'fixed-amount' && (
 									<div>
 										<p className="text-xs text-gray-600 mb-1">Fixed Amount</p>
-										<p className="text-sm text-gray-900">₹{discount.fixedAmount}</p>
+										<p className="text-sm text-gray-900">₹{fixedDisplay}</p>
 									</div>
 								)}
 								<div>
@@ -256,10 +293,87 @@ const AmountOffOrderDetailsPage: React.FC = () => {
 								}))} />
 							</div>
 						)}
+
+						{/* Orders where this discount was used */}
+						<div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+							<div className="px-5 py-4 border-b border-gray-200">
+								<h3 className="text-base font-semibold text-gray-900">Orders using this discount</h3>
+								<p className="text-sm text-gray-500 mt-0.5">Orders where customers applied this amount off order discount</p>
+							</div>
+							<div className="p-5">
+								{ordersLoading ? (
+									<div className="flex justify-center py-8">
+										<div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+									</div>
+								) : ordersData && ordersData.data.length > 0 ? (
+									<div className="space-y-4">
+										<div className="overflow-x-auto">
+											<table className="min-w-full divide-y divide-gray-200">
+												<thead>
+													<tr className="bg-gray-50">
+														<th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Customer</th>
+														<th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Order</th>
+														<th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Total</th>
+														<th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Used at</th>
+														<th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
+													</tr>
+												</thead>
+												<tbody className="divide-y divide-gray-100">
+													{ordersData.data.map((row: AmountOffOrderDiscountUsageOrder, idx: number) => (
+														<tr key={idx} className="hover:bg-gray-50/50">
+															<td className="px-4 py-3 text-sm text-gray-900">
+																{row.customer ? (
+																	<span>
+																		{[row.customer.firstName, row.customer.lastName].filter(Boolean).join(' ').trim() || '—'}
+																		{row.customer.email && (
+																			<span className="block text-gray-500 text-xs">{row.customer.email}</span>
+																		)}
+																	</span>
+																) : '—'}
+															</td>
+															<td className="px-4 py-3 text-sm text-gray-900">
+																{row.order ? (
+																	<span className="font-mono text-xs">#{String(row.order._id).slice(-8)}</span>
+																) : '—'}
+															</td>
+															<td className="px-4 py-3 text-sm text-gray-900">
+																{row.order ? `₹${(row.order.total / 100).toFixed(2)}` : '—'}
+															</td>
+															<td className="px-4 py-3 text-sm text-gray-500">
+																{row.usage?.usedAt
+																	? new Date(row.usage.usedAt).toLocaleString()
+																	: '—'}
+															</td>
+															<td className="px-4 py-3">
+																{row.order && (
+																	<button
+																		type="button"
+																		onClick={() => navigate(`/orders/${row.order!._id}`)}
+																		className="text-sm font-medium text-blue-600 hover:text-blue-800"
+																	>
+																		View order
+																	</button>
+																)}
+															</td>
+														</tr>
+													))}
+												</tbody>
+											</table>
+										</div>
+										{ordersData.pagination && ordersData.pagination.totalItems > ordersData.pagination.itemsPerPage && (
+											<p className="text-sm text-gray-500">
+												Showing {ordersData.data.length} of {ordersData.pagination.totalItems} orders
+											</p>
+										)}
+									</div>
+								) : (
+									<p className="text-sm text-gray-500 py-6 text-center">No orders have used this discount yet.</p>
+								)}
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
-		</GridBackgroundWrapper>
 	);
 };
 

@@ -3,7 +3,7 @@ import mongoose, { Document, Model, Schema } from "mongoose";
 export interface ICustomerAddress {
   _id: mongoose.Types.ObjectId;
   customerId: mongoose.Types.ObjectId;
-  country: string;
+  countryId: mongoose.Types.ObjectId;
   firstName: string;
   lastName: string;
   company?: string;
@@ -20,7 +20,7 @@ export interface ICustomerAddress {
 
 const customerAddressSchema = new Schema<ICustomerAddress & Document>({
   customerId: { type: Schema.Types.ObjectId, ref: "Customer", required: [true, "Customer ID is required"] },
-  country: { type: String, required: [true, "Country is required"], trim: true, maxLength: [100, "Country cannot exceed 100 characters"] },
+  countryId: { type: Schema.Types.ObjectId, ref: "Country", required: [true, "Country ID is required"], index: true },
   firstName: { type: String, required: [true, "First name is required"], trim: true, maxLength: [50, "First name cannot exceed 50 characters"] },
   lastName: { type: String, required: [true, "Last name is required"], trim: true, maxLength: [50, "Last name cannot exceed 50 characters"] },
   company: { type: String, trim: true, maxLength: [100, "Company name cannot exceed 100 characters"] },
@@ -33,7 +33,7 @@ const customerAddressSchema = new Schema<ICustomerAddress & Document>({
   addressType: { type: String, default: 'home' },
 }, { timestamps: true, versionKey: false });
 
-customerAddressSchema.index({ country: 1, city: 1 });
+customerAddressSchema.index({ countryId: 1, city: 1 });
 customerAddressSchema.index({ customerId: 1, createdAt: -1 });
 
 export const CustomerAddress: Model<ICustomerAddress & Document> = mongoose.model<ICustomerAddress & Document>("CustomerAddress", customerAddressSchema);

@@ -110,6 +110,49 @@ export interface FetchAmountOffOrderResponse {
   };
 }
 
+export interface GetAmountOffOrderByIdResponse {
+  success: boolean;
+  data: AmountOffOrderDiscount;
+}
+
+export interface UpdateAmountOffOrderResponse {
+  success: boolean;
+  message?: string;
+  data: AmountOffOrderDiscount;
+}
+
+export interface AmountOffOrderDiscountUsageOrder {
+  usage: { usedAt: string };
+  customer: {
+    _id: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phoneNumber?: string;
+  } | null;
+  order: {
+    _id: string;
+    orderDate: string;
+    status: string;
+    subtotal: number;
+    shippingCost: number;
+    total: number;
+    shippingAddress?: unknown;
+  } | null;
+}
+
+export interface GetOrdersByAmountOffOrderDiscountResponse {
+  success: boolean;
+  data: AmountOffOrderDiscountUsageOrder[];
+  discount: { _id: string; title?: string; discountCode?: string; method: string };
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+  };
+}
+
 interface AmountOffOrderContextType {
   discounts: AmountOffOrderDiscount[];
   loading: boolean;
@@ -117,7 +160,11 @@ interface AmountOffOrderContextType {
   pagination: FetchAmountOffOrderResponse['pagination'] | null;
 
   createDiscount: (payload: CreateAmountOffOrderRequest) => Promise<CreateAmountOffOrderResponse>;
+  updateDiscount: (discountId: string, payload: CreateAmountOffOrderRequest) => Promise<UpdateAmountOffOrderResponse>;
+  deleteDiscount: (discountId: string) => Promise<{ success: boolean; message?: string }>;
+  fetchDiscountById: (discountId: string) => Promise<GetAmountOffOrderByIdResponse>;
   fetchDiscountsByStoreId: (storeId: string, opts?: { page?: number; limit?: number; status?: 'active' | 'draft'; method?: AOO_Method; }) => Promise<FetchAmountOffOrderResponse>;
+  fetchOrdersByDiscountId: (discountId: string, opts?: { page?: number; limit?: number }) => Promise<GetOrdersByAmountOffOrderDiscountResponse>;
   clearError: () => void;
   setDiscounts: (items: AmountOffOrderDiscount[]) => void;
 }
@@ -138,11 +185,87 @@ export const AmountOffOrderDiscountProvider: React.FC<{ children: ReactNode }> =
       setError(null);
       const res = await axiosi.post<CreateAmountOffOrderResponse>('/amount-off-order-discounts', payload);
       if (res.data?.success && res.data?.data) {
-        setDiscounts(prev => [res.data.data, ...prev]);
+        // Refetch full discount (with targetCustomerSegmentIds/targetCustomerIds) to keep list in sync
+        try {
+          const byIdRes = await axiosi.get<GetAmountOffOrderByIdResponse>(`/amount-off-order-discounts/${res.data.data._id}`);
+          if (byIdRes.data?.success && byIdRes.data?.data) {
+            setDiscounts(prev => [byIdRes.data!.data, ...prev]);
+            return { ...res.data, data: byIdRes.data.data };
+          }
+        } catch (_) {}
+        setDiscounts(prev => [res.data!.data, ...prev]);
       }
       return res.data;
     } catch (e: any) {
       const msg = e?.response?.data?.error || e?.message || 'Failed to create Amount Off Order discount';
+      setError(msg);
+      throw new Error(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchDiscountById = useCallback(async (discountId: string): Promise<GetAmountOffOrderByIdResponse> => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await axiosi.get<GetAmountOffOrderByIdResponse>(`/amount-off-order-discounts/${discountId}`);
+      return res.data;
+    } catch (e: any) {
+      const msg = e?.response?.data?.error || e?.message || 'Failed to fetch Amount Off Order discount';
+      setError(msg);
+      throw new Error(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const updateDiscount = useCallback(async (discountId: string, payload: CreateAmountOffOrderRequest): Promise<UpdateAmountOffOrderResponse> => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await axiosi.put<UpdateAmountOffOrderResponse>(`/amount-off-order-discounts/${discountId}`, payload);
+      if (res.data?.success) {
+        // Refetch by ID to get populated targetCustomerSegmentIds/targetCustomerIds
+        try {
+          const byIdRes = await axiosi.get<GetAmountOffOrderByIdResponse>(`/amount-off-order-discounts/${discountId}`);
+          if (byIdRes.data?.success && byIdRes.data?.data) {
+            const fullData = byIdRes.data.data;
+            setDiscounts(prev => {
+              const next = prev.map(d => d._id === discountId ? fullData : d);
+              if (!next.some(d => d._id === discountId)) return [fullData, ...next];
+              return next;
+            });
+            return { ...res.data, data: fullData };
+          }
+        } catch (_) {}
+        setDiscounts(prev => {
+          const next = prev.map(d => d._id === discountId ? res.data!.data : d);
+          if (!next.some(d => d._id === discountId)) return [res.data!.data, ...next];
+          return next;
+        });
+      }
+      return res.data;
+    } catch (e: any) {
+      const msg = e?.response?.data?.error || e?.message || 'Failed to update Amount Off Order discount';
+      setError(msg);
+      throw new Error(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const deleteDiscount = useCallback(async (discountId: string): Promise<{ success: boolean; message?: string }> => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await axiosi.delete<{ success: boolean; message?: string }>(`/amount-off-order-discounts/${discountId}`);
+      if (res.data?.success) {
+        setDiscounts(prev => prev.filter(d => d._id !== discountId));
+      }
+      return res.data ?? { success: false };
+    } catch (e: any) {
+      const msg = e?.response?.data?.error || e?.message || 'Failed to delete Amount Off Order discount';
       setError(msg);
       throw new Error(msg);
     } finally {
@@ -174,16 +297,38 @@ export const AmountOffOrderDiscountProvider: React.FC<{ children: ReactNode }> =
     }
   }, []);
 
+  const fetchOrdersByDiscountId = useCallback(async (discountId: string, opts?: { page?: number; limit?: number }): Promise<GetOrdersByAmountOffOrderDiscountResponse> => {
+    try {
+      setLoading(true);
+      setError(null);
+      const q = new URLSearchParams();
+      if (opts?.page) q.append('page', String(opts.page));
+      if (opts?.limit) q.append('limit', String(opts.limit));
+      const res = await axiosi.get<GetOrdersByAmountOffOrderDiscountResponse>(`/amount-off-order-discounts/${discountId}/orders${q.toString() ? `?${q.toString()}` : ''}`);
+      return res.data;
+    } catch (e: any) {
+      const msg = e?.response?.data?.error || e?.message || 'Failed to fetch orders for this discount';
+      setError(msg);
+      throw new Error(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const value = useMemo<AmountOffOrderContextType>(() => ({
     discounts,
     loading,
     error,
     pagination,
     createDiscount,
+    updateDiscount,
+    deleteDiscount,
+    fetchDiscountById,
     fetchDiscountsByStoreId,
+    fetchOrdersByDiscountId,
     clearError,
     setDiscounts,
-  }), [discounts, loading, error, pagination, createDiscount, fetchDiscountsByStoreId, clearError]);
+  }), [discounts, loading, error, pagination, createDiscount, updateDiscount, deleteDiscount, fetchDiscountById, fetchDiscountsByStoreId, fetchOrdersByDiscountId, clearError]);
 
   return (
     <AmountOffOrderContext.Provider value={value}>{children}</AmountOffOrderContext.Provider>

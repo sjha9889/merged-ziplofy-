@@ -33,7 +33,7 @@ const AmountOffProductsTable: React.FC<AmountOffProductsTableProps> = ({
   const navigate = useNavigate();
 
   const handleRowClick = useCallback((discountId: string) => {
-    navigate(`/discounts/${discountId}`);
+    navigate(`/discounts/amount-off-products/${discountId}`);
   }, [navigate]);
 
   const boolToYesNo = useCallback((v?: boolean) => (v ? 'Yes' : 'No'), []);

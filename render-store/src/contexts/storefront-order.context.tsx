@@ -1,7 +1,8 @@
-import { createContext, useCallback, useContext, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { axiosi } from '../config/axios.config';
 import type { StorefrontProductVariant } from './product-variant.context';
 import toast from 'react-hot-toast';
+import { useStorefrontAuth } from './storefront-auth.context';
 
 export interface CustomerAddress {
   _id: string;
@@ -86,6 +87,10 @@ interface CreateOrderPayload {
   shippingCost?: number;
   total: number;
   notes?: string;
+  freeShippingDiscountId?: string;
+  amountOffOrderDiscountId?: string;
+  amountOffProductDiscountId?: string;
+  buyXGetYDiscountId?: string;
 }
 
 interface CreateOrderResponse {
@@ -116,6 +121,18 @@ export const StorefrontOrderProvider: React.FC<{ children: React.ReactNode }> = 
   const [orders, setOrders] = useState<StorefrontOrder[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { registerLogoutCallback } = useStorefrontAuth();
+
+  const clearOrders = useCallback(() => {
+    setOrders([]);
+    setError(null);
+  }, []);
+
+  // Register clear function to be called on logout
+  useEffect(() => {
+    const unregister = registerLogoutCallback(clearOrders);
+    return unregister;
+  }, [registerLogoutCallback, clearOrders]);
 
   const createOrder = useCallback(async (payload: CreateOrderPayload): Promise<StorefrontOrder> => {
     try {
@@ -151,11 +168,6 @@ export const StorefrontOrderProvider: React.FC<{ children: React.ReactNode }> = 
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  const clearOrders = useCallback(() => {
-    setOrders([]);
-    setError(null);
   }, []);
 
   const clearError = useCallback(() => {

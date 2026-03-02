@@ -10,3 +10,11 @@ exports.amountOffOrderDiscountRouter.use(auth_middleware_1.protect);
 exports.amountOffOrderDiscountRouter.post('/', amount_off_order_discount_controller_1.createAmountOffOrderDiscount);
 // List by store
 exports.amountOffOrderDiscountRouter.get('/store/:id', amount_off_order_discount_controller_1.getAmountOffOrderDiscountsByStore);
+// Get orders where this discount was used (must be before /:id)
+exports.amountOffOrderDiscountRouter.get('/:id/orders', amount_off_order_discount_controller_1.getOrdersByAmountOffOrderDiscount);
+// Get by id (for edit)
+exports.amountOffOrderDiscountRouter.get('/:id', amount_off_order_discount_controller_1.getAmountOffOrderDiscountById);
+// Update
+exports.amountOffOrderDiscountRouter.put('/:id', amount_off_order_discount_controller_1.updateAmountOffOrderDiscount);
+// Delete
+exports.amountOffOrderDiscountRouter.delete('/:id', amount_off_order_discount_controller_1.deleteAmountOffOrderDiscount);

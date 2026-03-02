@@ -16,26 +16,28 @@ const FreeShippingSalesChannelLimitsCard: React.FC<FreeShippingSalesChannelLimit
   const renderBoolean = (v?: boolean) => (v ? 'Yes' : 'No');
 
   return (
-    <div className="bg-white border border-gray-200 p-4">
-      <h2 className="text-base font-medium mb-3 text-gray-900">Sales Channel & Limits</h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <p className="text-xs text-gray-600 mb-1">Allow on Channels</p>
-          <p className="text-sm text-gray-900">{renderBoolean(allowDiscountOnChannels)}</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-600 mb-1">Limit Total Uses</p>
-          <p className="text-sm text-gray-900">{renderBoolean(limitTotalUses)}</p>
-        </div>
-        {limitTotalUses && (
+    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+      <div className="px-5 py-4 sm:px-6 sm:py-5">
+        <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Sales channel & limits</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <p className="text-xs text-gray-600 mb-1">Total Uses Limit</p>
-            <p className="text-sm text-gray-900">{totalUsesLimit}</p>
+            <p className="text-xs font-medium text-gray-500 mb-1">Allow on channels</p>
+            <p className="text-sm text-gray-900">{renderBoolean(allowDiscountOnChannels)}</p>
           </div>
-        )}
-        <div>
-          <p className="text-xs text-gray-600 mb-1">One Use Per Customer</p>
-          <p className="text-sm text-gray-900">{renderBoolean(limitOneUsePerCustomer)}</p>
+          <div>
+            <p className="text-xs font-medium text-gray-500 mb-1">Limit total uses</p>
+            <p className="text-sm text-gray-900">{renderBoolean(limitTotalUses)}</p>
+          </div>
+          {limitTotalUses && (
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-1">Total uses limit</p>
+              <p className="text-sm text-gray-900">{totalUsesLimit}</p>
+            </div>
+          )}
+          <div>
+            <p className="text-xs font-medium text-gray-500 mb-1">One use per customer</p>
+            <p className="text-sm text-gray-900">{renderBoolean(limitOneUsePerCustomer)}</p>
+          </div>
         </div>
       </div>
     </div>

@@ -7,6 +7,8 @@ const auth_middleware_1 = require("../middlewares/auth.middleware");
 exports.productRouter = (0, express_1.Router)();
 // Public route for getting products by store ID with pagination
 exports.productRouter.get("/public/store/:storeId", product_controller_1.getProductsByStoreIdPublic);
+// Public route for getting product details by product ID
+exports.productRouter.get("/public/:productId", product_controller_1.getProductByIdPublic);
 // Protect all product routes (adjust if public create not desired)
 exports.productRouter.use(auth_middleware_1.protect);
 // Create product

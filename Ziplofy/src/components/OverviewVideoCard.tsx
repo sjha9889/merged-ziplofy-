@@ -1,4 +1,5 @@
 import React from 'react';
+import allAboutZiplofyImg from '../assets/all-about-ziplofy.png';
 
 interface OverviewVideoCardProps {
   videoUrl?: string;
@@ -20,8 +21,8 @@ const OverviewVideoCard: React.FC<OverviewVideoCardProps> = ({
         </h3>
       </div>
 
-      {/* Video Placeholder */}
-      <div className="relative w-full aspect-video bg-gray-600 rounded-lg overflow-hidden">
+      {/* Video/Image Section */}
+      <div className="relative w-full aspect-video bg-gray-100 rounded-lg overflow-hidden">
         {videoUrl ? (
           <iframe
             src={videoUrl}
@@ -32,7 +33,11 @@ const OverviewVideoCard: React.FC<OverviewVideoCardProps> = ({
             title="Overview Video"
           />
         ) : (
-          <div className="w-full h-full bg-gray-600" />
+          <img 
+            src={allAboutZiplofyImg} 
+            alt="All About Ziplofy" 
+            className="w-full h-full object-cover"
+          />
         )}
       </div>
     </div>

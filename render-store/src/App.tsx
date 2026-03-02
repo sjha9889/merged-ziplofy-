@@ -2,15 +2,19 @@ import React, { useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import { AmountOffOrderProvider } from './contexts/amount-off-order.context';
+import { AmountOffProductProvider } from './contexts/amount-off-product.context';
 import { CustomerAddressProvider } from './contexts/customer-address-storefront.context';
+import { StorefrontCountryProvider } from './contexts/storefront-country.context';
 import { StorefrontProductVariantProvider } from './contexts/product-variant.context';
 import { StorefrontProvider, useStorefront } from './contexts/store.context';
 import { StorefrontAuthProvider, useStorefrontAuth } from './contexts/storefront-auth.context';
 import { StorefrontCartProvider } from './contexts/storefront-cart.context';
 import { StorefrontCollectionsProvider } from './contexts/storefront-collections.context';
+import { BuyXGetYProvider } from './contexts/buy-x-get-y.context';
 import { FreeShippingProvider } from './contexts/storefront-free-shipping.context';
 import { StorefrontOrderProvider } from './contexts/storefront-order.context';
 import ScrollToTop from './components/ScrollToTop';
+import { ProductOffersProvider } from './contexts/product-offers.context';
 import "./index.css";
 import StorefrontApp from './pages/StorefrontApp';
 import StorefrontCollectionPage from './pages/StorefrontCollectionPage';
@@ -100,13 +104,21 @@ function App() {
           <StorefrontCartProvider>
             <StorefrontOrderProvider>
               <CustomerAddressProvider>
-                <StorefrontCollectionsProvider>
+                <StorefrontCountryProvider>
+                  <StorefrontCollectionsProvider>
                   <AmountOffOrderProvider>
-                    <FreeShippingProvider>
-                      <StorefrontEntry />
-                    </FreeShippingProvider>
+                    <AmountOffProductProvider>
+                      <BuyXGetYProvider>
+                        <FreeShippingProvider>
+                          <ProductOffersProvider>
+                            <StorefrontEntry />
+                          </ProductOffersProvider>
+                        </FreeShippingProvider>
+                      </BuyXGetYProvider>
+                    </AmountOffProductProvider>
                   </AmountOffOrderProvider>
-                </StorefrontCollectionsProvider>
+                  </StorefrontCollectionsProvider>
+                </StorefrontCountryProvider>
               </CustomerAddressProvider>
             </StorefrontOrderProvider>
           </StorefrontCartProvider>

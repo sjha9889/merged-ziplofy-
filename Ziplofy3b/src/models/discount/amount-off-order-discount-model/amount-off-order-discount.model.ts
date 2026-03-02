@@ -4,7 +4,6 @@ export type AOO_Method = 'discount-code' | 'automatic';
 export type AOO_ValueType = 'percentage' | 'fixed-amount';
 export type AOO_Eligibility = 'all-customers' | 'specific-customer-segments' | 'specific-customers';
 export type AOO_MinimumPurchase = 'no-requirements' | 'minimum-amount' | 'minimum-quantity';
-
 export interface IAmountOffOrderDiscount {
   _id: mongoose.Types.ObjectId;
   storeId: mongoose.Types.ObjectId;

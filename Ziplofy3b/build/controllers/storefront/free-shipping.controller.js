@@ -7,9 +7,23 @@ exports.validateFreeShippingDiscountCode = exports.checkEligibleFreeShippingDisc
 const mongoose_1 = __importDefault(require("mongoose"));
 const models_1 = require("../../models");
 const free_shipping_discount_model_1 = require("../../models/discount/free-shipping-discount-model/free-shipping-discount.model");
-const free_shipping_eligibility_entry_model_1 = require("../../models/discount/free-shipping-discount-model/free-shipping-eligibility-entry.model");
+const free_shipping_customer_segment_entry_model_1 = require("../../models/discount/free-shipping-discount-model/free-shipping-customer-segment-entry.model");
+const free_shipping_customer_entry_model_1 = require("../../models/discount/free-shipping-discount-model/free-shipping-customer-entry.model");
+const free_shipping_country_entry_model_1 = require("../../models/discount/free-shipping-discount-model/free-shipping-country-entry.model");
 const free_shipping_discount_usage_model_1 = require("../../models/discount/free-shipping-discount-model/free-shipping-discount-usage.model");
 const error_utils_1 = require("../../utils/error.utils");
+async function getShippingCountryIso2(addr) {
+    if (!addr)
+        return null;
+    if (addr.country && typeof addr.country === 'string' && addr.country.length === 2) {
+        return addr.country.toUpperCase();
+    }
+    if (addr.countryId && mongoose_1.default.isValidObjectId(addr.countryId)) {
+        const c = await models_1.Country.findById(addr.countryId).select('iso2').lean();
+        return c?.iso2 ?? null;
+    }
+    return null;
+}
 exports.checkEligibleFreeShippingDiscounts = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const { storeId, customerId, cartItems, shippingAddress, currentShippingRate } = req.body;
     // Validate required fields
@@ -39,11 +53,9 @@ exports.checkEligibleFreeShippingDiscounts = (0, error_utils_1.asyncErrorHandler
             isEligible = true;
         }
         else if (discount.eligibility === 'specific-customer-segments') {
-            // First, get all eligible segments for this discount
-            const eligibleSegments = await free_shipping_eligibility_entry_model_1.FreeShippingEligibilityEntry.find({
+            const eligibleSegments = await free_shipping_customer_segment_entry_model_1.FreeShippingCustomerSegmentEntry.find({
                 storeId,
                 discountId: discount._id,
-                customerSegmentId: { $exists: true, $ne: null },
             }).select('customerSegmentId');
             if (eligibleSegments.length > 0) {
                 // Get customer's segments by finding which segments contain this customer
@@ -53,8 +65,8 @@ exports.checkEligibleFreeShippingDiscounts = (0, error_utils_1.asyncErrorHandler
                 // Check if customer belongs to any eligible segment
                 const customerSegmentIds = customerSegmentEntries.map(entry => entry.segmentId.toString());
                 const eligibleSegmentIds = eligibleSegments
-                    .filter(entry => entry.customerSegmentId)
-                    .map(entry => entry.customerSegmentId.toString());
+                    .map(entry => entry.customerSegmentId?.toString())
+                    .filter(Boolean);
                 // Check if there's any overlap between customer segments and eligible segments
                 const hasMatchingSegment = customerSegmentIds.some(customerSegmentId => eligibleSegmentIds.includes(customerSegmentId));
                 if (hasMatchingSegment) {
@@ -63,8 +75,7 @@ exports.checkEligibleFreeShippingDiscounts = (0, error_utils_1.asyncErrorHandler
             }
         }
         else if (discount.eligibility === 'specific-customers') {
-            // Check if customer is in the specific customers list
-            const customerEntry = await free_shipping_eligibility_entry_model_1.FreeShippingEligibilityEntry.findOne({
+            const customerEntry = await free_shipping_customer_entry_model_1.FreeShippingCustomerEntry.findOne({
                 storeId,
                 discountId: discount._id,
                 customerId,
@@ -76,13 +87,21 @@ exports.checkEligibleFreeShippingDiscounts = (0, error_utils_1.asyncErrorHandler
         if (!isEligible)
             continue;
         // 2. COUNTRY ELIGIBILITY CHECK
-        if (discount.countrySelection === 'selected-countries' && discount.selectedCountryCodes && discount.selectedCountryCodes.length > 0) {
-            if (!shippingAddress?.country) {
-                continue; // No shipping address provided, skip
+        if (discount.countrySelection === 'selected-countries') {
+            const countryEntries = await free_shipping_country_entry_model_1.FreeShippingCountryEntry.find({ storeId, discountId: discount._id })
+                .populate('countryId', 'iso2')
+                .lean();
+            const eligibleCountryIso2s = countryEntries
+                .map((e) => e.countryId?.iso2)
+                .filter(Boolean);
+            if (eligibleCountryIso2s.length > 0) {
+                const countryIso2 = await getShippingCountryIso2(shippingAddress);
+                if (!countryIso2)
+                    continue;
+                const isCountryEligible = eligibleCountryIso2s.includes(countryIso2);
+                if (!isCountryEligible)
+                    continue;
             }
-            const isCountryEligible = discount.selectedCountryCodes.includes(shippingAddress.country);
-            if (!isCountryEligible)
-                continue;
         }
         // 3. MINIMUM PURCHASE REQUIREMENTS CHECK
         if (discount.minimumPurchase === 'minimum-amount' && discount.minimumAmount) {
@@ -123,9 +142,12 @@ exports.checkEligibleFreeShippingDiscounts = (0, error_utils_1.asyncErrorHandler
             title: discount.title,
             message: 'You are eligible for free shipping!',
             countrySelection: discount.countrySelection,
-            selectedCountryCodes: discount.selectedCountryCodes,
             excludeShippingRates: discount.excludeShippingRates,
             shippingRateLimit: discount.shippingRateLimit,
+            combinations: {
+                productDiscounts: !!discount.productDiscounts,
+                orderDiscounts: !!discount.orderDiscounts,
+            },
         });
     }
     res.status(200).json({
@@ -177,10 +199,9 @@ exports.validateFreeShippingDiscountCode = (0, error_utils_1.asyncErrorHandler)(
         isEligible = true;
     }
     else if (discount.eligibility === 'specific-customer-segments') {
-        const eligibleSegments = await free_shipping_eligibility_entry_model_1.FreeShippingEligibilityEntry.find({
+        const eligibleSegments = await free_shipping_customer_segment_entry_model_1.FreeShippingCustomerSegmentEntry.find({
             storeId,
             discountId: discount._id,
-            customerSegmentId: { $exists: true, $ne: null },
         }).select('customerSegmentId');
         if (eligibleSegments.length > 0) {
             const customerSegmentEntries = await models_1.CustomerSegmentEntry.find({
@@ -197,7 +218,7 @@ exports.validateFreeShippingDiscountCode = (0, error_utils_1.asyncErrorHandler)(
         }
     }
     else if (discount.eligibility === 'specific-customers') {
-        const customerEntry = await free_shipping_eligibility_entry_model_1.FreeShippingEligibilityEntry.findOne({
+        const customerEntry = await free_shipping_customer_entry_model_1.FreeShippingCustomerEntry.findOne({
             storeId,
             discountId: discount._id,
             customerId,
@@ -213,19 +234,26 @@ exports.validateFreeShippingDiscountCode = (0, error_utils_1.asyncErrorHandler)(
         });
     }
     // 2. COUNTRY ELIGIBILITY CHECK
-    if (discount.countrySelection === 'selected-countries' && discount.selectedCountryCodes && discount.selectedCountryCodes.length > 0) {
-        if (!shippingAddress?.country) {
-            return res.status(400).json({
-                success: false,
-                message: 'Shipping address is required for this discount',
-            });
-        }
-        const isCountryEligible = discount.selectedCountryCodes.includes(shippingAddress.country);
-        if (!isCountryEligible) {
-            return res.status(400).json({
-                success: false,
-                message: 'This discount is not available in your country',
-            });
+    if (discount.countrySelection === 'selected-countries') {
+        const countryEntries = await free_shipping_country_entry_model_1.FreeShippingCountryEntry.find({ storeId, discountId: discount._id })
+            .populate('countryId', 'iso2')
+            .lean();
+        const eligibleCountryIso2s = countryEntries.map((e) => e.countryId?.iso2).filter(Boolean);
+        if (eligibleCountryIso2s.length > 0) {
+            const countryIso2 = await getShippingCountryIso2(shippingAddress);
+            if (!countryIso2) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Shipping address with country is required for this discount',
+                });
+            }
+            const isCountryEligible = eligibleCountryIso2s.includes(countryIso2);
+            if (!isCountryEligible) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'This discount is not available in your country',
+                });
+            }
         }
     }
     // 3. MINIMUM PURCHASE REQUIREMENTS CHECK
@@ -316,9 +344,12 @@ exports.validateFreeShippingDiscountCode = (0, error_utils_1.asyncErrorHandler)(
                 title: discount.title,
                 message: 'Free shipping discount code applied!',
                 countrySelection: discount.countrySelection,
-                selectedCountryCodes: discount.selectedCountryCodes,
                 excludeShippingRates: discount.excludeShippingRates,
                 shippingRateLimit: discount.shippingRateLimit,
+                combinations: {
+                    productDiscounts: !!discount.productDiscounts,
+                    orderDiscounts: !!discount.orderDiscounts,
+                },
             },
             cartTotal,
             totalQuantity,

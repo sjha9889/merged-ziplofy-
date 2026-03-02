@@ -59,8 +59,14 @@ const DiscountsPage: React.FC = () => {
   }, [activeStoreId, tab, fetchDiscountsByStoreId, fetchBxgyByStoreId, fetchAooByStoreId, fetchFsByStoreId]);
  
   const handleCreateDiscount = useCallback(() => {
-    navigate("/discounts/select-discount-to-create");
-  }, [navigate]);
+    const routes: Record<string, string> = {
+      'amount-off-products': '/discounts/new/amount-off-products',
+      'buy-x-get-y': '/discounts/new/buy-x-get-y',
+      'amount-off-order': '/discounts/new/amount-off-order',
+      'free-shipping': '/discounts/new/free-shipping',
+    };
+    navigate(routes[tab] || '/discounts/new/amount-off-products');
+  }, [navigate, tab]);
 
   const handleTabChange = useCallback((newTab: string) => {
     setTab(newTab);
