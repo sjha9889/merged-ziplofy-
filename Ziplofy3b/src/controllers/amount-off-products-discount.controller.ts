@@ -207,11 +207,11 @@ export class AmountOffProductsDiscountController {
 
           const targetProductIds = entries
             .filter((entry: { productId?: unknown }) => entry.productId)
-            .map((entry: { productId: unknown }) => entry.productId);
+            .map((entry: { productId?: unknown }) => entry.productId);
 
           const targetCollectionIds = entries
             .filter((entry: { collectionId?: unknown }) => entry.collectionId)
-            .map((entry: { collectionId: unknown }) => entry.collectionId);
+            .map((entry: { collectionId?: unknown }) => entry.collectionId);
 
           // Get eligibility entries (customer segments and specific customers)
           const [segmentEntries, customerEntries] = await Promise.all([
@@ -292,8 +292,8 @@ export class AmountOffProductsDiscountController {
           .lean()
       ]);
 
-      const targetProductIds = entries.filter((e: { productId?: unknown }) => e.productId).map((e: { productId: unknown }) => e.productId);
-      const targetCollectionIds = entries.filter((e: { collectionId?: unknown }) => e.collectionId).map((e: { collectionId: unknown }) => e.collectionId);
+      const targetProductIds = entries.filter((e: { productId?: unknown }) => e.productId).map((e: { productId?: unknown }) => e.productId);
+      const targetCollectionIds = entries.filter((e: { collectionId?: unknown }) => e.collectionId).map((e: { collectionId?: unknown }) => e.collectionId);
       const targetCustomerSegmentIds = segmentEntries.filter((e: { customerSegmentId?: unknown }) => e.customerSegmentId).map((e: { customerSegmentId: unknown }) => e.customerSegmentId);
       const targetCustomerIds = customerEntries.filter((e: { customerId?: unknown }) => e.customerId).map((e: { customerId: unknown }) => e.customerId);
 

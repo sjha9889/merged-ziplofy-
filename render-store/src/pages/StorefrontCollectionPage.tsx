@@ -12,7 +12,8 @@ const NAVBAR_HEIGHT = 64;
 
 const StorefrontCollectionPage: React.FC = () => {
 	const navigate = useNavigate();
-	const { collectionId, urlHandle } = useParams();
+	const { collectionId, urlHandle: _urlHandle } = useParams();
+	void _urlHandle;
 	const { storeFrontMeta } = useStorefront();
 	const { collections, products, orderDiscount, fetchCollectionsByStoreId, fetchProductsInCollection, loading } = useStorefrontCollections();
 	const { createCartEntry } = useStorefrontCart();

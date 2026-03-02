@@ -48,19 +48,11 @@ const StorefrontSignupPage: React.FC = () => {
         <div className="rounded-2xl bg-white/95 p-6 shadow-2xl border border-gray-100 backdrop-blur-sm max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div className="text-center mb-5">
-            {storeFrontMeta?.logo ? (
-              <img 
-                src={storeFrontMeta.logo} 
-                alt={storeFrontMeta.name || 'Store'} 
-                className="h-10 mx-auto mb-3 object-contain"
-              />
-            ) : (
-              <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#d4af37] to-[#f0d060] flex items-center justify-center shadow-lg">
-                <span className="text-xl font-bold text-white">
-                  {storeFrontMeta?.name?.charAt(0) || 'S'}
-                </span>
-              </div>
-            )}
+            <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#d4af37] to-[#f0d060] flex items-center justify-center shadow-lg">
+              <span className="text-xl font-bold text-white">
+                {storeFrontMeta?.name?.charAt(0) || 'S'}
+              </span>
+            </div>
             <h1 className="text-xl font-bold text-gray-900">Create your account</h1>
             <p className="mt-2 text-sm text-gray-500">
               Join us and start your shopping journey
