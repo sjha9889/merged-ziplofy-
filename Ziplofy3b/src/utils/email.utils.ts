@@ -11,7 +11,7 @@ export interface SendEmailOptions {
   url?: string;
   urlType?: UrlType;
 }
-
+]
 export const sendEmail = async (options: SendEmailOptions): Promise<void> => {
   const from = process.env.EMAIL_ADDRESS?.trim();
   if (!from) {

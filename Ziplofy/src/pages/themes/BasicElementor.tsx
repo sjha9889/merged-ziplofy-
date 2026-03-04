@@ -4,7 +4,79 @@ import { useStore } from "../../contexts/store.context";
 import { useCustomThemes } from "../../contexts/custom-themes.context";
 import grapesjs from "grapesjs";
 import "grapesjs/dist/css/grapes.min.css";
+import "./CustomThemeBuilder.css"; /* Shared with Visual Elementor */
 import "./BasicElementor.css";
+
+// Strip GrapesJS canvas CSS erroneously embedded in theme HTML (causes raw CSS display)
+const stripGrapesJSCanvasCss = (html: string): string => {
+  if (!html || typeof html !== 'string') return html;
+  let h = html;
+  const firstTag = h.search(/<[a-zA-Z][a-zA-Z0-9]*[\s>]/);
+  if (firstTag > 0) {
+    const leading = h.substring(0, firstTag);
+    if (/body\s*\{/.test(leading) && /\.gjs-(?:dashed|selected|highlightable|selected-parent|plh-image)/.test(leading)) {
+      h = h.substring(firstTag);
+    }
+  }
+  h = h.replace(/<(div|pre|code|span)[^>]*>([\s\S]*?)<\/\1>/gi, (match, tag, content) => {
+    const c = (content || '').trim();
+    if (c.length > 80 && /body\s*\{/.test(c) && /\.gjs-(?:dashed|selected|highlightable|plh-image|grabbing)/.test(c)) {
+      return '';
+    }
+    return match;
+  });
+  h = h.replace(/(?:^|>)\s*(body\s*\{[\s\S]*?\.gjs-dashed[\s\S]*\}\s*)(?=\s*<)/gi, '');
+  return h;
+};
+
+// Preprocess HTML: add data-gjs-selectable, data-gjs-droppable, data-gjs-editable so EVERY element is selectable
+const preprocessHtmlForSelectability = (html: string): string => {
+  if (!html || typeof html !== 'string') return html;
+  const SKIP_TAGS = ['script', 'style', 'link', 'meta', 'head', 'title', 'path', 'svg', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon'];
+  const CONTAINER_TAGS = ['div', 'section', 'main', 'article', 'header', 'footer', 'nav', 'aside', 'form', 'ul', 'ol', 'li', 'figure', 'figcaption'];
+  const TEXT_TAGS = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'a', 'label', 'li', 'td', 'th', 'button', 'strong', 'em', 'b', 'i', 'u', 'small', 'sub', 'sup', 'blockquote', 'cite', 'img'];
+  return html.replace(/<([a-z][a-z0-9]*)(\s[^>]*)?>/gi, (match: string, tagName: string, rest: string) => {
+    const tag = (tagName || '').toLowerCase();
+    if (SKIP_TAGS.includes(tag)) return match;
+    const attrs = rest || '';
+    if (attrs.includes('data-gjs-selectable')) return match;
+    let toAdd = ` data-gjs-selectable="true"`;
+    if (CONTAINER_TAGS.includes(tag)) toAdd += ` data-gjs-droppable="*"`;
+    if (TEXT_TAGS.includes(tag) && !attrs.includes('data-gjs-editable')) toAdd += ` data-gjs-editable="true" data-gjs-type="text"`;
+    return `<${tagName}${attrs}${toAdd}>`;
+  });
+};
+
+// Preserve editing visuals without forcing a specific text color.
+// Important: do NOT set `color: inherit !important` here, otherwise
+// StyleManager changes (e.g. text color) will never show up.
+const PRESERVE_TEXT_COLOR_CSS = `
+  .gjs-selected,
+  .gjs-selected *,
+  .gjs-comp-selected,
+  .gjs-comp-selected *,
+  .gjs-editing,
+  .gjs-editing *,
+  .gjs-hovered,
+  .gjs-hovered *,
+  [contenteditable="true"],
+  [contenteditable="true"] *,
+  [data-gjs-type="text"],
+  [data-gjs-editable="true"] {
+    -webkit-text-fill-color: inherit !important;
+    caret-color: currentColor !important;
+    background-color: transparent !important;
+  }
+`;
+
+// Mount point for StyleManager - memoized so React won't clear manually-appended DOM
+const StylePanelMountPoint = React.memo(() => (
+  <div
+    id="style-panel-wrapper"
+    className="elementor-panel-card-body elementor-style-body"
+    style={{ flex: 1, overflowY: 'auto', minHeight: 200, minWidth: 280 }}
+  />
+));
 
 // Page interface for multi-page support
 interface Page {
@@ -129,6 +201,8 @@ const BasicElementor: React.FC = () => {
   const { createTheme, updateTheme } = useCustomThemes();
   const editorRef = useRef<HTMLDivElement | null>(null);
   const editorInstance = useRef<any>(null);
+  const stylePanelOpenAllowedRef = useRef<boolean>(false);
+  const selectionFromStructureClickRef = useRef<boolean>(false);
   const originalThemeCssRef = useRef<string>(""); // Store original theme CSS
   const originalStylesheetLinksRef = useRef<string[]>([]); // Store original stylesheet links
   const [loading, setLoading] = useState<boolean>(true);
@@ -230,7 +304,7 @@ const BasicElementor: React.FC = () => {
           }
           
           let pageHtml: string | null = null;
-          
+          let finalPageUrl = '';
           for (const url of tryUrls) {
             try {
               const pageRes = await fetch(url, {
@@ -239,6 +313,7 @@ const BasicElementor: React.FC = () => {
               });
               if (pageRes.ok) {
                 pageHtml = await pageRes.text();
+                finalPageUrl = url;
                 break;
               }
             } catch (e) {
@@ -296,8 +371,41 @@ const BasicElementor: React.FC = () => {
             ? (pageSpecificCss ? `${mainCss}\n\n/* Page-specific styles */\n${pageSpecificCss}` : mainCss)
             : pageSpecificCss;
           
-          // Get page body content
-          const pageBodyHtml = pageDoc.body ? pageDoc.body.innerHTML : pageHtml;
+          // Rewrite URLs in page (use page's base URL for relative paths)
+          const pageBase = finalPageUrl ? finalPageUrl.replace(/\/[^/]*$/, '/') : baseUrl;
+          const toAbsoluteUrlForPage = (url: string): string => {
+            if (!url || /^(https?:|data:|mailto:|tel:|#)/i.test(url.trim())) return url;
+            try {
+              return new URL(url, pageBase).href;
+            } catch {
+              return pageBase + url.replace(/^\.\//, '');
+            }
+          };
+          pageDoc.querySelectorAll('img[src]').forEach((el) => {
+            const src = el.getAttribute('src');
+            if (src) el.setAttribute('src', toAbsoluteUrlForPage(src));
+          });
+          pageDoc.querySelectorAll('a[href]').forEach((el) => {
+            const href = el.getAttribute('href');
+            if (href && !href.startsWith('#')) el.setAttribute('href', toAbsoluteUrlForPage(href));
+          });
+          pageDoc.querySelectorAll('[style*="url("]').forEach((el) => {
+            const style = el.getAttribute('style');
+            if (!style) return;
+            const rewritten = style.replace(/url\((['"]?)([^'")]+)\1\)/gi, (m, q, path) => {
+              const p = (path || '').trim();
+              if (/^(https?:|data:|linear-gradient|radial-gradient|conic-gradient|none|initial)/i.test(p)) return m;
+              return `url("${toAbsoluteUrlForPage(p)}")`;
+            });
+            el.setAttribute('style', rewritten);
+          });
+          
+          // Remove style/link from body, strip GrapesJS CSS, preprocess for selectability
+          pageDoc.body?.querySelectorAll('style').forEach((s) => s.remove());
+          pageDoc.body?.querySelectorAll('link[rel="stylesheet"]').forEach((s) => s.remove());
+          let pageBodyHtml = pageDoc.body ? pageDoc.body.innerHTML : pageHtml;
+          pageBodyHtml = stripGrapesJSCanvasCss(pageBodyHtml);
+          pageBodyHtml = preprocessHtmlForSelectability(pageBodyHtml);
           
           // Generate page ID and name from path
           const pageId = pagePath
@@ -504,16 +612,33 @@ const BasicElementor: React.FC = () => {
         }
       };
 
-      // Helper to convert relative URLs to absolute
+      // Helper to convert relative URLs to absolute (used for HTML and CSS)
       const toAbsoluteUrl = (url: string): string => {
-        if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('//')) {
-          return url.startsWith('//') ? 'https:' + url : url;
+        if (!url || /^(https?:|data:|mailto:|tel:|javascript:|\/\/|#)/i.test((url || '').trim())) return url || '';
+        try {
+          return new URL(url, baseUrl).href;
+        } catch {
+          return baseUrl + url.replace(/^\.\//, '');
         }
-        return baseUrl + url.replace(/^\.\//, '');
       };
 
+      // Helper to rewrite url() in CSS with correct base
+      const rewriteCssUrls = (css: string, cssBaseUrl: string): string => {
+        return css.replace(/url\((['"]?)([^'")]+)\1\)/gi, (m, _q, path) => {
+          const p = (path || '').trim();
+          if (/^(https?:|data:|linear-gradient|radial-gradient|conic-gradient|none|initial)/i.test(p)) return m;
+          try {
+            return `url("${new URL(p, cssBaseUrl).href}")`;
+          } catch {
+            return m;
+          }
+        });
+      };
+
+      // Rewrite inline CSS urls (base = page)
+      let originalCssContent = rewriteCssUrls(cssContent || '', baseUrl);
+
       // Fetch and store original CSS content from external stylesheets
-      let originalCssContent = cssContent; // Start with inline CSS
       const fetchStylesheetPromises = stylesheetLinks.map(async (cssUrl) => {
         const absoluteUrl = toAbsoluteUrl(cssUrl);
         
@@ -531,16 +656,16 @@ const BasicElementor: React.FC = () => {
           });
           if (cssResponse.ok) {
             const cssText = await cssResponse.text();
+            // Rewrite url() relative to this stylesheet's location
+            const rewritten = rewriteCssUrls(cssText, absoluteUrl);
             console.log('✓ Fetched external CSS:', absoluteUrl, cssText.length, 'chars');
-            return cssText || '';
+            return rewritten || '';
           } else {
             console.warn(`Failed to fetch CSS from ${absoluteUrl}:`, cssResponse.status);
-            // Fallback to @import if fetch fails
             return `@import url('${absoluteUrl}');`;
           }
         } catch (err) {
           console.warn(`Error fetching CSS from ${absoluteUrl}, using @import:`, err);
-          // Fallback to @import if fetch fails
           return `@import url('${absoluteUrl}');`;
         }
       });
@@ -555,17 +680,41 @@ const BasicElementor: React.FC = () => {
       originalThemeCssRef.current = originalCssContent;
       console.log('✓ Stored original theme CSS:', originalCssContent.length, 'chars');
 
-      // Remove script tags and link stylesheets (we'll inject them separately)
-      htmlContent = htmlContent.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
-      htmlContent = htmlContent.replace(/<link[^>]*rel\s*=\s*["']stylesheet["'][^>]*>/gi, '');
+      // Parse with DOMParser for proper handling and URL rewriting
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(htmlContent, 'text/html');
       
-      // Extract body content for GrapesJS (it expects body content, not full HTML)
-      const bodyMatch = htmlContent.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-      const bodyContent = bodyMatch ? bodyMatch[1] : htmlContent;
+      // Rewrite relative URLs in HTML (images, links, background images)
+      doc.querySelectorAll('img[src]').forEach((el) => {
+        const src = el.getAttribute('src');
+        if (src) el.setAttribute('src', toAbsoluteUrl(src));
+      });
+      doc.querySelectorAll('a[href]').forEach((el) => {
+        const href = el.getAttribute('href');
+        if (href && !href.startsWith('#')) el.setAttribute('href', toAbsoluteUrl(href));
+      });
+      doc.querySelectorAll('[style*="url("]').forEach((el) => {
+        const style = el.getAttribute('style');
+        if (!style) return;
+        const rewritten = style.replace(/url\((['"]?)([^'")]+)\1\)/gi, (m, q, path) => {
+          const p = (path || '').trim();
+          if (/^(https?:|data:|linear-gradient|radial-gradient|conic-gradient|none|initial)/i.test(p)) return m;
+          return `url("${toAbsoluteUrl(p)}")`;
+        });
+        el.setAttribute('style', rewritten);
+      });
       
-      // Also try to extract from HTML if no body tag
-      const htmlMatch = htmlContent.match(/<html[^>]*>([\s\S]*)<\/html>/i);
-      const contentToUse = bodyContent || (htmlMatch ? htmlMatch[1] : htmlContent);
+      // Remove scripts, style, link from body
+      doc.querySelectorAll('script').forEach((s) => s.remove());
+      doc.querySelectorAll('style').forEach((s) => s.remove());
+      doc.querySelectorAll('link[rel="stylesheet"]').forEach((s) => s.remove());
+      
+      // Get body HTML
+      let bodyHtml = doc.body ? doc.body.innerHTML : htmlContent;
+      bodyHtml = stripGrapesJSCanvasCss(bodyHtml);
+      bodyHtml = preprocessHtmlForSelectability(bodyHtml);
+      
+      const contentToUse = bodyHtml || DEFAULT_PAGE_CONTENT;
 
       // Discover and fetch additional pages
       const discoveredPages = await discoverAndFetchPages(
@@ -596,6 +745,61 @@ const BasicElementor: React.FC = () => {
       // Set HTML in editor (main page)
       editor.setComponents(contentToUse);
       
+      // CRITICAL: Expand nested HTML and configure ALL components for full selectability (every element, smallest to largest)
+      setTimeout(() => {
+        try {
+          const wrapper = editor.getWrapper();
+          if (!wrapper) return;
+          
+          const expandComponentContent = (comp: any): boolean => {
+            if (!comp) return false;
+            let changed = false;
+            const content = comp.get?.('content');
+            const children = comp.components?.();
+            const hasHtmlContent = typeof content === 'string' && /<[a-z][a-z0-9]*[\s>]/i.test(content);
+            if (hasHtmlContent && (!children || children.length === 0)) {
+              try {
+                comp.set('content', '', { silent: true });
+                const appended = comp.append?.(content);
+                if (appended?.length) changed = true;
+              } catch {}
+            }
+            (comp.components?.() || []).forEach((c: any) => { if (expandComponentContent(c)) changed = true; });
+            return changed;
+          };
+          wrapper.components?.().forEach((c: any) => expandComponentContent(c));
+          
+          const CONTAINER_TAGS = new Set(['div', 'section', 'main', 'article', 'header', 'footer', 'nav', 'aside', 'form', 'ul', 'ol', 'li', 'figure', 'figcaption']);
+          const TEXT_TAGS = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'a', 'label', 'li', 'td', 'th', 'button', 'strong', 'em', 'b', 'i', 'u', 'small', 'sub', 'sup', 'blockquote', 'cite', 'img']);
+          const configureAllNested = (comp: any) => {
+            if (!comp) return;
+            try {
+              const tagName = (comp.get?.('tagName') || '').toLowerCase();
+              const attrs = comp.getAttributes?.() || {};
+              const isDroppable = attrs['data-gjs-droppable'] === '*' || CONTAINER_TAGS.has(tagName);
+              const hasText = typeof comp.get?.('content') === 'string' && (comp.get('content') || '').trim().length > 0;
+              const isEditable = attrs['data-gjs-editable'] === 'true' || attrs['data-gjs-type'] === 'text' || TEXT_TAGS.has(tagName) || (hasText && (!comp.components?.() || comp.components().length === 0));
+              comp.set({
+                selectable: true,
+                hoverable: true,
+                draggable: true,
+                stylable: true,
+                droppable: isDroppable ? '*' : false,
+                editable: isEditable,
+              }, { silent: true });
+              (comp.components?.() || []).forEach((c: any) => configureAllNested(c));
+            } catch {}
+          };
+          wrapper.set({ droppable: true, selectable: true, editable: false, draggable: false, hoverable: true, stylable: true }, { silent: true });
+          if (!wrapper.getClasses().includes('gjs-wrapper-body')) wrapper.addClass('gjs-wrapper-body');
+          wrapper.components?.().forEach((c: any) => configureAllNested(c));
+          if (wrapper.view?.render) wrapper.view.render();
+          console.log('✓ Configured all elements for full selectability');
+        } catch (e) {
+          console.warn('Configure selectability:', e);
+        }
+      }, 100);
+      
       // Function to inject CSS into canvas
       const injectCSS = () => {
         try {
@@ -619,9 +823,16 @@ const BasicElementor: React.FC = () => {
             return false;
           }
           
-          // Remove existing theme styles
-          const existingStyles = head.querySelectorAll('#ziplofy-theme-styles, style[data-ziplofy-theme], link[data-ziplofy-theme]');
+          // Remove existing theme styles and our preserve-color style
+          const existingStyles = head.querySelectorAll('#ziplofy-theme-styles, #ziplofy-preserve-text-color, style[data-ziplofy-theme], link[data-ziplofy-theme]');
           existingStyles.forEach((style: Element) => style.remove());
+          
+          // Inject preserve-text-color CSS first (so theme can override if needed, but we override GrapesJS black)
+          const preserveEl = doc.createElement('style');
+          preserveEl.id = 'ziplofy-preserve-text-color';
+          preserveEl.setAttribute('data-ziplofy-basic-elementor', 'true');
+          preserveEl.textContent = PRESERVE_TEXT_COLOR_CSS;
+          head.appendChild(preserveEl);
           
           // Inject inline CSS from <style> tags
           if (cssContent.trim()) {
@@ -800,25 +1011,19 @@ const BasicElementor: React.FC = () => {
           }
         } catch {}
 
-        // CRITICAL: Create a static wrapper for StyleManager that exists before GrapesJS initializes
-        // This is required for appendTo to work properly
-        let stylePanelWrapper = document.getElementById('style-panel-wrapper');
-        if (!stylePanelWrapper) {
-          stylePanelWrapper = document.createElement('div');
-          stylePanelWrapper.id = 'style-panel-wrapper';
-          stylePanelWrapper.className = 'style-panel-content-wrapper';
-          stylePanelWrapper.style.display = 'none'; // Hidden until panel is shown
-          document.body.appendChild(stylePanelWrapper);
-          console.log('✓ Created style-panel-wrapper element for StyleManager');
-        }
+        // Load preset (same as Visual Elementor) - required for StyleManager to work
+        const presetWebpage = (await import('grapesjs-preset-webpage')).default;
 
-        // Initialize GrapesJS
+        // Initialize GrapesJS - use preset like Visual Elementor so StyleManager renders correctly
         const editor = grapesjs.init({
           container: editorRef.current,
           height: '100%',
           width: '100%',
           fromElement: false,
           storageManager: false,
+          avoidInlineStyle: false,
+          plugins: [presetWebpage],
+          pluginsOpts: { [presetWebpage as unknown as string]: {} },
           deviceManager: {
             devices: [
               { name: 'Desktop', width: '' },
@@ -830,41 +1035,411 @@ const BasicElementor: React.FC = () => {
             componentFirst: true,
           },
           styleManager: {
-            // CRITICAL: Set appendTo to the static wrapper - GrapesJS will render here
             appendTo: '#style-panel-wrapper',
             sectors: [
               {
+                name: 'Quick styles',
+                open: true,
+                properties: [
+                  {
+                    type: 'select',
+                    property: 'text-align',
+                    label: 'Text align',
+                    options: [
+                      { id: 'left', label: 'Left' },
+                      { id: 'center', label: 'Center' },
+                      { id: 'right', label: 'Right' },
+                      { id: 'justify', label: 'Justify' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'font-weight',
+                    label: 'Font weight',
+                    options: [
+                      { id: '300', label: 'Light' },
+                      { id: '400', label: 'Normal' },
+                      { id: '500', label: 'Medium' },
+                      { id: '600', label: 'Semi bold' },
+                      { id: '700', label: 'Bold' },
+                      { id: '800', label: 'Extra bold' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'font-size',
+                    label: 'Font size',
+                    options: [
+                      { id: '12px', label: '12px' },
+                      { id: '14px', label: '14px' },
+                      { id: '16px', label: '16px' },
+                      { id: '18px', label: '18px' },
+                      { id: '20px', label: '20px' },
+                      { id: '24px', label: '24px' },
+                      { id: '28px', label: '28px' },
+                      { id: '32px', label: '32px' },
+                      { id: '40px', label: '40px' },
+                      { id: '48px', label: '48px' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'font-style',
+                    label: 'Font style',
+                    options: [
+                      { id: 'normal', label: 'Normal' },
+                      { id: 'italic', label: 'Italic' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'text-decoration',
+                    label: 'Text decoration',
+                    options: [
+                      { id: 'none', label: 'None' },
+                      { id: 'underline', label: 'Underline' },
+                      { id: 'line-through', label: 'Line through' },
+                      { id: 'overline', label: 'Overline' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'text-transform',
+                    label: 'Text transform',
+                    options: [
+                      { id: 'none', label: 'None' },
+                      { id: 'uppercase', label: 'Uppercase' },
+                      { id: 'lowercase', label: 'Lowercase' },
+                      { id: 'capitalize', label: 'Capitalize' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'line-height',
+                    label: 'Line height',
+                    options: [
+                      { id: '1', label: '1' },
+                      { id: '1.25', label: '1.25' },
+                      { id: '1.5', label: '1.5' },
+                      { id: '1.75', label: '1.75' },
+                      { id: '2', label: '2' },
+                      { id: 'normal', label: 'Normal' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'letter-spacing',
+                    label: 'Letter spacing',
+                    options: [
+                      { id: 'normal', label: 'Normal' },
+                      { id: '-0.5px', label: 'Tight' },
+                      { id: '0.5px', label: 'Slightly wide' },
+                      { id: '1px', label: 'Wide' },
+                      { id: '2px', label: 'Wider' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'display',
+                    label: 'Display',
+                    options: [
+                      { id: 'block', label: 'Block' },
+                      { id: 'flex', label: 'Flex' },
+                      { id: 'grid', label: 'Grid' },
+                      { id: 'inline-block', label: 'Inline block' },
+                      { id: 'inline', label: 'Inline' },
+                      { id: 'inline-flex', label: 'Inline flex' },
+                      { id: 'none', label: 'None' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'flex-direction',
+                    label: 'Flex direction',
+                    options: [
+                      { id: 'row', label: 'Row' },
+                      { id: 'row-reverse', label: 'Row reverse' },
+                      { id: 'column', label: 'Column' },
+                      { id: 'column-reverse', label: 'Column reverse' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'justify-content',
+                    label: 'Justify content',
+                    options: [
+                      { id: 'flex-start', label: 'Start' },
+                      { id: 'center', label: 'Center' },
+                      { id: 'flex-end', label: 'End' },
+                      { id: 'space-between', label: 'Space between' },
+                      { id: 'space-around', label: 'Space around' },
+                      { id: 'space-evenly', label: 'Space evenly' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'align-items',
+                    label: 'Align items',
+                    options: [
+                      { id: 'flex-start', label: 'Start' },
+                      { id: 'center', label: 'Center' },
+                      { id: 'flex-end', label: 'End' },
+                      { id: 'stretch', label: 'Stretch' },
+                      { id: 'baseline', label: 'Baseline' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'gap',
+                    label: 'Gap',
+                    options: [
+                      { id: '0', label: 'None' },
+                      { id: '4px', label: '4px' },
+                      { id: '8px', label: '8px' },
+                      { id: '12px', label: '12px' },
+                      { id: '16px', label: '16px' },
+                      { id: '24px', label: '24px' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'position',
+                    label: 'Position',
+                    options: [
+                      { id: 'static', label: 'Static' },
+                      { id: 'relative', label: 'Relative' },
+                      { id: 'absolute', label: 'Absolute' },
+                      { id: 'fixed', label: 'Fixed' },
+                      { id: 'sticky', label: 'Sticky' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'width',
+                    label: 'Width',
+                    options: [
+                      { id: 'auto', label: 'Auto' },
+                      { id: '100%', label: '100%' },
+                      { id: '50%', label: '50%' },
+                      { id: '33.33%', label: '33%' },
+                      { id: '25%', label: '25%' },
+                      { id: 'fit-content', label: 'Fit content' },
+                      { id: 'max-content', label: 'Max content' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'padding',
+                    label: 'Padding',
+                    options: [
+                      { id: '0', label: 'None' },
+                      { id: '4px', label: '4px' },
+                      { id: '8px', label: '8px' },
+                      { id: '12px', label: '12px' },
+                      { id: '16px', label: '16px' },
+                      { id: '24px', label: '24px' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'margin',
+                    label: 'Margin',
+                    options: [
+                      { id: '0', label: 'None' },
+                      { id: '4px', label: '4px' },
+                      { id: '8px', label: '8px' },
+                      { id: '12px', label: '12px' },
+                      { id: '16px', label: '16px' },
+                      { id: '24px', label: '24px' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'border-radius',
+                    label: 'Rounded corners',
+                    options: [
+                      { id: '0', label: 'None' },
+                      { id: '4px', label: 'Small' },
+                      { id: '8px', label: 'Medium' },
+                      { id: '12px', label: 'Large' },
+                      { id: '16px', label: 'X-Large' },
+                      { id: '9999px', label: 'Pill' },
+                      { id: '50%', label: 'Circle' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'overflow',
+                    label: 'Overflow',
+                    options: [
+                      { id: 'visible', label: 'Visible' },
+                      { id: 'hidden', label: 'Hidden' },
+                      { id: 'scroll', label: 'Scroll' },
+                      { id: 'auto', label: 'Auto' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'opacity',
+                    label: 'Opacity',
+                    options: [
+                      { id: '1', label: '100%' },
+                      { id: '0.9', label: '90%' },
+                      { id: '0.75', label: '75%' },
+                      { id: '0.5', label: '50%' },
+                      { id: '0.25', label: '25%' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'cursor',
+                    label: 'Cursor',
+                    options: [
+                      { id: 'default', label: 'Default' },
+                      { id: 'pointer', label: 'Pointer' },
+                      { id: 'text', label: 'Text' },
+                      { id: 'not-allowed', label: 'Not allowed' },
+                      { id: 'grab', label: 'Grab' },
+                      { id: 'move', label: 'Move' },
+                      { id: 'zoom-in', label: 'Zoom in' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'visibility',
+                    label: 'Visibility',
+                    options: [
+                      { id: 'visible', label: 'Visible' },
+                      { id: 'hidden', label: 'Hidden' },
+                      { id: 'collapse', label: 'Collapse' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'vertical-align',
+                    label: 'Vertical align',
+                    options: [
+                      { id: 'baseline', label: 'Baseline' },
+                      { id: 'top', label: 'Top' },
+                      { id: 'middle', label: 'Middle' },
+                      { id: 'bottom', label: 'Bottom' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'white-space',
+                    label: 'White space',
+                    options: [
+                      { id: 'normal', label: 'Normal' },
+                      { id: 'nowrap', label: 'No wrap' },
+                      { id: 'pre', label: 'Pre' },
+                      { id: 'pre-wrap', label: 'Pre wrap' },
+                      { id: 'pre-line', label: 'Pre line' },
+                    ],
+                  },
+                ],
+              },
+              {
                 name: 'Layout',
                 open: true,
-                buildProps: ['width', 'height', 'min-width', 'min-height', 'max-width', 'max-height', 'padding', 'margin', 'display', 'position', 'top', 'right', 'bottom', 'left', 'z-index'],
+                buildProps: ['width', 'height', 'min-width', 'min-height', 'max-width', 'max-height', 'padding', 'margin', 'display', 'position', 'top', 'right', 'bottom', 'left', 'z-index', 'overflow', 'overflow-x', 'overflow-y', 'box-sizing', 'float', 'clear'],
               },
               {
                 name: 'Typography',
                 open: true,
-                buildProps: ['font-family', 'font-size', 'font-weight', 'font-style', 'text-decoration', 'text-align', 'color', 'line-height', 'letter-spacing'],
+                buildProps: ['font-family', 'font-size', 'font-weight', 'font-style', 'font-variant', 'text-decoration', 'text-align', 'text-transform', 'text-indent', 'line-height', 'letter-spacing', 'word-spacing', 'white-space', 'color', 'text-shadow', 'text-overflow', 'word-wrap'],
               },
               {
                 name: 'Background',
                 open: true,
-                buildProps: ['background-color', 'background-image', 'background-repeat', 'background-position', 'background-size'],
+                buildProps: ['background-color', 'background-image', 'background-repeat', 'background-position', 'background-size', 'background-attachment'],
               },
               {
                 name: 'Border',
                 open: true,
-                buildProps: ['border', 'border-radius', 'box-shadow'],
+                buildProps: ['border', 'border-width', 'border-style', 'border-color', 'border-radius', 'border-top', 'border-right', 'border-bottom', 'border-left', 'box-shadow', 'outline', 'outline-width', 'outline-style', 'outline-color'],
               },
               {
-                name: 'Extra',
-                open: true,
-                buildProps: ['opacity', 'cursor', 'overflow', 'transition'],
+                name: 'Flexbox',
+                open: false,
+                buildProps: ['flex-direction', 'flex-wrap', 'justify-content', 'align-items', 'align-content', 'align-self', 'flex', 'flex-grow', 'flex-shrink', 'flex-basis', 'order', 'gap', 'row-gap', 'column-gap'],
+              },
+              {
+                name: 'Grid',
+                open: false,
+                buildProps: ['grid-template-columns', 'grid-template-rows', 'gap', 'row-gap', 'column-gap', 'justify-items', 'align-items'],
+              },
+              {
+                name: 'Spacing',
+                open: false,
+                buildProps: ['margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left'],
+              },
+              {
+                name: 'Effects',
+                open: false,
+                properties: [
+                  {
+                    type: 'select',
+                    property: 'opacity',
+                    label: 'Transparency',
+                    options: [
+                      { id: '1', label: '100% — Fully visible' },
+                      { id: '0.9', label: '90%' },
+                      { id: '0.75', label: '75%' },
+                      { id: '0.5', label: '50% — Half visible' },
+                      { id: '0.25', label: '25%' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'box-shadow',
+                    label: 'Shadow',
+                    options: [
+                      { id: 'none', label: 'None' },
+                      { id: '0 1px 3px rgba(0,0,0,0.1)', label: 'Subtle' },
+                      { id: '0 4px 12px rgba(0,0,0,0.15)', label: 'Medium' },
+                      { id: '0 8px 24px rgba(0,0,0,0.2)', label: 'Strong' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'transition',
+                    label: 'Hover animation',
+                    options: [
+                      { id: 'none', label: 'None' },
+                      { id: 'all 0.15s ease', label: 'Quick' },
+                      { id: 'all 0.3s ease', label: 'Medium' },
+                      { id: 'all 0.5s ease', label: 'Slow' },
+                    ],
+                  },
+                  {
+                    type: 'select',
+                    property: 'filter',
+                    label: 'Blur',
+                    options: [
+                      { id: 'none', label: 'None' },
+                      { id: 'blur(2px)', label: 'Light' },
+                      { id: 'blur(4px)', label: 'Medium' },
+                      { id: 'blur(8px)', label: 'Heavy' },
+                    ],
+                  },
+                ],
+              },
+              {
+                name: 'List',
+                open: false,
+                buildProps: ['list-style', 'list-style-type', 'list-style-position'],
               },
             ],
-            // Ensure StyleManager shows all properties, even if component has no styles
             showComputed: true,
           },
           // Don't auto-render default panels - we'll render StyleManager manually
           panels: { defaults: [] },
-          canvas: { styles: [] },
+          canvas: {
+            styles: [
+              'data:text/css;charset=utf-8,' + encodeURIComponent(PRESERVE_TEXT_COLOR_CSS),
+            ],
+          },
         });
 
         editorInstance.current = editor;
@@ -988,6 +1563,31 @@ const BasicElementor: React.FC = () => {
           }
         }, 500);
         
+        // Prevent StyleManager from applying black/default color when component had no explicit color.
+        // Revert black only if applied within 200ms of target set (StyleManager init), not user choice.
+        const styleTargetSetAtRef = { current: 0 };
+        editor.on('style:target', () => { styleTargetSetAtRef.current = Date.now(); });
+        editor.on('style:property:change', (property: any, value: any) => {
+          try {
+            const propName = property?.get?.('property') ?? property?.getName?.();
+            if (propName !== 'color') return;
+            const isBlack = (v: string) => !v || /^(rgb\(0,\s*0,\s*0\)|black|#000|#000000|rgba\(0,\s*0,\s*0)/i.test(String(v || '').trim());
+            if (!value || !isBlack(String(value))) return;
+            const comp = editor.getSelected();
+            if (!comp) return;
+            const setAt = styleTargetSetAtRef.current;
+            const appliedWithinInit = Date.now() - setAt < 200;
+            if (appliedWithinInit) {
+              setTimeout(() => {
+                try {
+                  const current = comp.getStyle?.()?.color;
+                  if (current && isBlack(String(current))) comp.removeStyle?.('color');
+                } catch (_) {}
+              }, 0);
+            }
+          } catch (_) {}
+        });
+
         // Listen for style updates to ensure StyleManager refreshes
         editor.on('style:custom', () => {
           if (showStylePanel) {
@@ -1195,27 +1795,52 @@ const BasicElementor: React.FC = () => {
           return null;
         };
 
-        // Open style panel when component is selected
+        // Open style panel when component is selected (selection itself must
+        // NOT change the element's visual styles; only explicit edits via the
+        // Style panel should do that). Only open when user has explicitly
+        // selected (not during initial load when GrapesJS may auto-select).
         editor.on('component:selected', (component: any) => {
+          if (!stylePanelOpenAllowedRef.current) return;
+          // When user clicked structure item (not Edit), only show selection in theme; don't open style panel
+          if (selectionFromStructureClickRef.current) {
+            selectionFromStructureClickRef.current = false;
+            return;
+          }
+
+          // Immediately strip any black inline color GrapesJS might have applied on select,
+          // so the element keeps its original theme color until the user explicitly changes it.
+          try {
+            const el = component.getEl?.();
+            const color = (component.getStyle?.()?.color) ?? (el?.style?.color);
+            const isBlack =
+              color === 'rgb(0, 0, 0)' ||
+              color === 'black' ||
+              color === '#000' ||
+              color === '#000000' ||
+              (typeof color === 'string' && /^rgb\(0,\s*0,\s*0\)$/i.test(color));
+            if (isBlack) {
+              if (el?.style) el.style.removeProperty('color');
+              try { component.removeStyle?.('color'); } catch {}
+            }
+          } catch {}
+
           console.log('✓ Component selected:', component);
           
           // Find which section this component belongs to
           const sectionName = findComponentSection(component);
           const displayName = sectionName || component.getName() || component.get('tagName') || 'Selected Element';
-          
+
           // Set state to show style panel
           setSelectedSection(displayName);
           setShowStructurePanel(false);
           setShowStylePanel(true);
           
-          // Wait for React to render, then sync StyleManager
-          const syncStyleManager = () => {
-            const reactPanel = document.querySelector('.style-editor-panel');
-            const reactWrapper = reactPanel?.querySelector('#style-panel-wrapper') as HTMLElement;
-            const staticWrapper = document.getElementById('style-panel-wrapper') as HTMLElement;
+          // Wait for React to render, then sync StyleManager (wrapper is in left panel)
+          const syncStyleManager = async () => {
+            const reactWrapper = document.getElementById('style-panel-wrapper') as HTMLElement;
             
             if (!reactWrapper) {
-              console.warn('⚠️ React wrapper not found, retrying...');
+              console.warn('⚠️ style-panel-wrapper not found, retrying...');
               setTimeout(syncStyleManager, 100);
               return;
             }
@@ -1225,21 +1850,22 @@ const BasicElementor: React.FC = () => {
               return;
             }
             
-            // Ensure React panel is visible
-            if (reactPanel) {
-              (reactPanel as HTMLElement).style.display = 'flex';
-              (reactPanel as HTMLElement).style.visibility = 'visible';
-              (reactPanel as HTMLElement).style.opacity = '1';
-            }
-            
             reactWrapper.style.display = 'block';
             reactWrapper.style.visibility = 'visible';
             reactWrapper.style.opacity = '1';
             reactWrapper.style.width = '100%';
             reactWrapper.style.height = '100%';
             
-            // Update StyleManager to use React wrapper
+            // Clear StyleManager target first to prevent previous component's color
+            // from being applied to the new selection (fixes "other text turns red")
             const sm = editor.StyleManager as any;
+            if (sm?.setTarget) {
+              try { sm.setTarget(null); } catch (_) {}
+            }
+            // Brief delay so StyleManager clears internal state before setting new target
+            await new Promise(r => setTimeout(r, 0));
+
+            // Update StyleManager to use React wrapper (in left panel)
             if (sm.container) {
               sm.container.el = reactWrapper;
             } else {
@@ -1252,16 +1878,6 @@ const BasicElementor: React.FC = () => {
               sm.view.container = reactWrapper;
             }
             
-            // Move existing StyleManager content from static wrapper to React wrapper
-            if (staticWrapper) {
-              const existingContent = staticWrapper.querySelector('.gjs-sm');
-              if (existingContent && existingContent.parentElement === staticWrapper) {
-                reactWrapper.innerHTML = '';
-                reactWrapper.appendChild(existingContent);
-                console.log('✓ Moved StyleManager content to React panel');
-              }
-            }
-            
             // CRITICAL: Ensure component is selected and set as target before rendering
             editor.select(component);
             
@@ -1269,107 +1885,69 @@ const BasicElementor: React.FC = () => {
             if (sm.setTarget) {
               try {
                 sm.setTarget(component);
+                styleTargetSetAtRef.current = Date.now();
                 console.log('✓ Set StyleManager target to component');
               } catch (e) {
                 console.warn('setTarget not available, using default behavior');
               }
             }
             
-            // Clear wrapper before rendering
+            // Clear wrapper and render StyleManager (same pattern as Visual Elementor)
             reactWrapper.innerHTML = '';
-            
-            // Render StyleManager (will render to reactWrapper now)
             try {
-              sm.render();
-              console.log('✓ StyleManager.render() called');
+              const smEl = sm.render();
+              if (smEl) {
+                const el = (smEl as any).el || smEl;
+                if (el && el.nodeType === 1 && !reactWrapper.contains(el)) {
+                  reactWrapper.appendChild(el);
+                } else if (typeof smEl === 'object' && (smEl as any).nodeType === 1) {
+                  reactWrapper.appendChild(smEl as Node);
+                }
+              }
+              if (!reactWrapper.querySelector('.gjs-sm')) sm.render();
+              console.log('✓ StyleManager rendered');
             } catch (e) {
               console.error('❌ Error rendering StyleManager:', e);
-              // Try alternative render method
-              if (sm.view && sm.view.render) {
-                try {
-                  sm.view.render();
-                  if (sm.view.el && sm.view.el.parentElement !== reactWrapper) {
-                    reactWrapper.appendChild(sm.view.el);
-                  }
-                  console.log('✓ StyleManager view rendered');
-                } catch (e2) {
-                  console.error('❌ Error with alternative render:', e2);
-                }
-              }
+              try { sm.render(); } catch (_) {}
             }
             
-            // Ensure sectors are open - multiple attempts
-            const ensureSectorsOpen = (attempt = 0) => {
-              const styleManagerEl = reactWrapper.querySelector('.gjs-sm') as HTMLElement;
-              
-              // If not found, check static wrapper
-              if (!styleManagerEl && staticWrapper) {
-                const staticContent = staticWrapper.querySelector('.gjs-sm');
-                if (staticContent) {
-                  reactWrapper.innerHTML = '';
-                  reactWrapper.appendChild(staticContent);
-                  console.log('✓ Moved StyleManager from static wrapper');
-                }
-              }
-              
-              const finalEl = reactWrapper.querySelector('.gjs-sm') as HTMLElement;
-              if (finalEl) {
-                const sectors = finalEl.querySelectorAll('.gjs-sm-sector');
-                if (sectors.length > 0) {
-                  sectors.forEach((sectorEl: Element) => {
-                    const htmlSector = sectorEl as HTMLElement;
-                    htmlSector.classList.remove('gjs-sm-sector--closed');
-                    htmlSector.classList.add('gjs-sm-sector--open');
-                    
-                    const sectorContent = htmlSector.querySelector('.gjs-sm-sector-content');
-                    if (sectorContent) {
-                      (sectorContent as HTMLElement).style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; max-height: none !important;';
-                    }
-                    
-                    // Also ensure properties are visible
-                    const properties = htmlSector.querySelectorAll('.gjs-sm-properties');
-                    properties.forEach((prop: Element) => {
-                      (prop as HTMLElement).style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important;';
-                    });
-                  });
-                  console.log('✓ StyleManager ready with', sectors.length, 'sectors');
-                } else if (attempt < 3) {
-                  // Retry if no sectors found
-                  setTimeout(() => ensureSectorsOpen(attempt + 1), 100);
-                } else {
-                  console.warn('⚠️ No sectors found after multiple attempts');
-                  // Force re-render
-                  setTimeout(() => {
-                    reactWrapper.innerHTML = '';
-                    sm.render();
-                    setTimeout(() => ensureSectorsOpen(0), 200);
-                  }, 200);
-                }
-              } else if (attempt < 3) {
-                // Retry if StyleManager element not found
-                setTimeout(() => ensureSectorsOpen(attempt + 1), 100);
-              } else {
-                console.error('❌ StyleManager element not found after multiple attempts');
-              }
-            };
-            
-            // Start checking for sectors
-            setTimeout(() => ensureSectorsOpen(0), 100);
-            setTimeout(() => ensureSectorsOpen(0), 300);
-            setTimeout(() => ensureSectorsOpen(0), 500);
+            // At this point the StyleManager DOM is mounted inside #style-panel-wrapper.
+            // Our CSS in BasicElementor.css forces sectors and properties to be visible,
+            // so we intentionally avoid additional re-render / polling logic here.
           };
           
+          // Delay to ensure React has rendered the style panel
           requestAnimationFrame(() => {
-            setTimeout(syncStyleManager, 150);
+            setTimeout(syncStyleManager, 100);
+            setTimeout(syncStyleManager, 350);
           });
         });
 
-        // Close style panel when component is deselected
-        editor.on('component:deselected', () => {
-          console.log('✓ Component deselected');
-          setShowStylePanel(false);
-          setShowStructurePanel(true);
-          setSelectedSection(null);
+        // Don't close style panel on component:deselected - it fires when switching to a nested
+        // component (e.g. Header → Help Center link), causing the panel to flash and disappear.
+        // Clean up black inline color on deselect - the previous element often gets black applied
+        // when StyleManager switches targets, so we clear it immediately and again after a delay.
+        const clearBlackInlineColor = (comp: any) => {
+          if (!comp) return;
+          try {
+            const el = comp.getEl?.();
+            const color = (comp.getStyle?.()?.color) ?? (el?.style?.color);
+            const isBlack = color === 'rgb(0, 0, 0)' || color === 'black' || color === '#000' || color === '#000000' || (typeof color === 'string' && /^rgb\(0,\s*0,\s*0\)$/i.test(color));
+            if (isBlack) {
+              if (el?.style) el.style.removeProperty('color');
+              try { comp.removeStyle?.('color'); } catch {}
+            }
+            (comp.components?.() || []).forEach((c: any) => clearBlackInlineColor(c));
+          } catch {}
+        };
+        editor.on('component:deselected', (component: any) => {
+          if (component) {
+            clearBlackInlineColor(component);
+            // StyleManager may add black to the previous element when switching targets; clear again after it settles
+            setTimeout(() => clearBlackInlineColor(component), 50);
+            setTimeout(() => clearBlackInlineColor(component), 250);
+            setTimeout(() => clearBlackInlineColor(component), 500);
+          }
         });
         
         // Also listen for canvas click to ensure components can be selected
@@ -1431,6 +2009,13 @@ const BasicElementor: React.FC = () => {
         }
 
         setLoading(false);
+
+        // Don't show style panel until user selects an element or clicks Edit.
+        // Deselect any auto-selection from load, then allow style panel on future selections.
+        setTimeout(() => {
+          editor.select(null);
+          stylePanelOpenAllowedRef.current = true;
+        }, 500);
       } catch (e: any) {
         console.error('Failed to initialize editor:', e);
         setError(e?.message || "Failed to initialize editor");
@@ -1448,12 +2033,26 @@ const BasicElementor: React.FC = () => {
     };
   }, [themeId, loadThemeIntoEditor]);
 
+  // Strip GrapesJS black color from inline styles (fixes text turning black on select)
+  const stripBlackColorFromHtml = useCallback((html: string): string => {
+    if (!html || typeof html !== 'string') return html;
+    return html.replace(/\s+style\s*=\s*["']([^"']*)["']/gi, (_, styleContent) => {
+      let cleaned = styleContent
+        .replace(/\s*color\s*:\s*(?:#000000|#000|black|rgb\s*\(\s*0\s*,\s*0\s*,\s*0\s*\))\s*;?/gi, '')
+        .replace(/;\s*;/g, ';')
+        .trim()
+        .replace(/^;\s*|\s*;$/g, '');
+      return cleaned ? ` style="${cleaned}"` : '';
+    });
+  }, []);
+
   // Commit current page changes to state before switching
   const commitCurrentPage = useCallback(() => {
     const editor = editorInstance.current;
     if (!editor || typeof editor.getHtml !== 'function') return;
     
-    const currentHtml = editor.getHtml() || '';
+    const rawHtml = editor.getHtml() || '';
+    const currentHtml = stripBlackColorFromHtml(rawHtml);
     let currentCss = '';
     
     // Get CSS from editor
@@ -1472,7 +2071,7 @@ const BasicElementor: React.FC = () => {
       pagesRef.current = updated;
       return updated;
     });
-  }, [currentPageId]);
+  }, [currentPageId, stripBlackColorFromHtml]);
 
   // Switch to a different page
   const switchPage = useCallback(async (pageId: string) => {
@@ -1497,6 +2096,46 @@ const BasicElementor: React.FC = () => {
     // Load page HTML/CSS into editor
     editor.setComponents(targetPage.html);
     
+    // Configure all elements for selectability (same as initial load)
+    setTimeout(() => {
+      try {
+        const wrapper = editor.getWrapper();
+        if (!wrapper) return;
+        const expandComponentContent = (comp: any): boolean => {
+          if (!comp) return false;
+          let changed = false;
+          const content = comp.get?.('content');
+          const children = comp.components?.();
+          const hasHtmlContent = typeof content === 'string' && /<[a-z][a-z0-9]*[\s>]/i.test(content);
+          if (hasHtmlContent && (!children || children.length === 0)) {
+            try {
+              comp.set('content', '', { silent: true });
+              if (comp.append?.(content)?.length) changed = true;
+            } catch {}
+          }
+          (comp.components?.() || []).forEach((c: any) => { if (expandComponentContent(c)) changed = true; });
+          return changed;
+        };
+        wrapper.components?.().forEach((c: any) => expandComponentContent(c));
+        const CONTAINER_TAGS = new Set(['div', 'section', 'main', 'article', 'header', 'footer', 'nav', 'aside', 'form', 'ul', 'ol', 'li', 'figure', 'figcaption']);
+        const TEXT_TAGS = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'a', 'label', 'li', 'td', 'th', 'button', 'strong', 'em', 'b', 'i', 'u', 'small', 'sub', 'sup', 'blockquote', 'cite', 'img']);
+        const configureAllNested = (comp: any) => {
+          if (!comp) return;
+          try {
+            const tagName = (comp.get?.('tagName') || '').toLowerCase();
+            const attrs = comp.getAttributes?.() || {};
+            const isDroppable = attrs['data-gjs-droppable'] === '*' || CONTAINER_TAGS.has(tagName);
+            const hasText = typeof comp.get?.('content') === 'string' && (comp.get('content') || '').trim().length > 0;
+            const isEditable = attrs['data-gjs-editable'] === 'true' || attrs['data-gjs-type'] === 'text' || TEXT_TAGS.has(tagName) || (hasText && (!comp.components?.() || comp.components().length === 0));
+            comp.set({ selectable: true, hoverable: true, draggable: true, stylable: true, droppable: isDroppable ? '*' : false, editable: isEditable }, { silent: true });
+            (comp.components?.() || []).forEach((c: any) => configureAllNested(c));
+          } catch {}
+        };
+        wrapper.set({ droppable: true, selectable: true, editable: false }, { silent: true });
+        wrapper.components?.().forEach((c: any) => configureAllNested(c));
+      } catch {}
+    }, 100);
+    
     // Inject CSS
     if (targetPage.css) {
       try {
@@ -1511,6 +2150,13 @@ const BasicElementor: React.FC = () => {
               // Remove existing theme styles
               const existingStyles = head.querySelectorAll('#ziplofy-theme-styles, style[data-ziplofy-theme]');
               existingStyles.forEach((style: Element) => style.remove());
+              
+              // Re-inject preserve-text-color (persists across page switch)
+              const preserveEl = doc.createElement('style');
+              preserveEl.id = 'ziplofy-preserve-text-color';
+              preserveEl.setAttribute('data-ziplofy-basic-elementor', 'true');
+              preserveEl.textContent = PRESERVE_TEXT_COLOR_CSS;
+              head.appendChild(preserveEl);
               
               // Inject page CSS
               const styleEl = doc.createElement('style');
@@ -1541,15 +2187,15 @@ const BasicElementor: React.FC = () => {
     }));
   };
 
-  // Handle section click - select component in GrapesJS (but don't open styles panel)
+  // Handle section click - select component in GrapesJS and scroll to it (don't open styles panel)
   const handleSectionClick = (sectionName: string) => {
     const editor = editorInstance.current;
     if (!editor) return;
 
     setSelectedSection(sectionName);
-    // Don't open styles panel on click - user needs to click edit button
+    // Don't open styles panel on click - user needs to click edit button for that
 
-    // Find component using selectors and scroll to it
+    // Find component using selectors, select it in canvas, and scroll to it
     const selectors = SECTION_SELECTORS[sectionName] || [];
     const wrapper = editor.getWrapper();
     
@@ -1558,7 +2204,10 @@ const BasicElementor: React.FC = () => {
         try {
           const component = wrapper.find(selector)[0];
           if (component) {
-            // Scroll to component but don't select it yet
+            selectionFromStructureClickRef.current = true;
+            // Select component so it shows highlighted in theme preview (no style panel)
+            editor.select(component);
+            // Scroll to component
             const view = editor.Canvas.getFrameEl();
             if (view && view.contentWindow) {
               const compEl = component.getEl();
@@ -1708,143 +2357,16 @@ const BasicElementor: React.FC = () => {
     }
   }, [currentDevice]);
 
-  // Ensure StyleManager is rendered when panel opens
+  // When the style panel is open, the StyleManager rendering is driven by the
+  // `component:selected` handler above. We intentionally avoid extra polling
+  // or forced re-renders here to keep the panel stable.
   useEffect(() => {
-    if (showStylePanel) {
-      const editor = editorInstance.current;
-      if (editor && editor.StyleManager) {
-        const renderStyleManager = () => {
-          const stylePanelWrapper = document.querySelector('#style-panel-wrapper') || 
-                                   document.querySelector('.style-panel-content-wrapper');
-          if (!stylePanelWrapper) {
-            return;
-          }
-          
-          try {
-            const selectedComponent = editor.getSelected();
-            if (!selectedComponent) {
-              console.warn('No component selected, cannot render StyleManager');
-              return;
-            }
-            
-            // Find React wrapper (preferred) or fallback to static wrapper
-            const reactPanel = document.querySelector('.style-editor-panel');
-            const reactWrapper = reactPanel?.querySelector('#style-panel-wrapper') as HTMLElement;
-            const targetWrapper = reactWrapper || stylePanelWrapper;
-            
-            // Ensure wrapper is visible
-            if (reactPanel) {
-              (reactPanel as HTMLElement).style.display = 'flex';
-              (reactPanel as HTMLElement).style.visibility = 'visible';
-              (reactPanel as HTMLElement).style.opacity = '1';
-            }
-            targetWrapper.style.display = 'block';
-            targetWrapper.style.visibility = 'visible';
-            targetWrapper.style.opacity = '1';
-            targetWrapper.style.width = '100%';
-            targetWrapper.style.height = '100%';
-            
-            // Update StyleManager container
-            const sm = editor.StyleManager as any;
-            if (sm.container) {
-              sm.container.el = targetWrapper;
-            } else {
-              sm.container = { el: targetWrapper };
-            }
-            if (sm.config) {
-              sm.config.appendTo = targetWrapper;
-            }
-            if (sm.view && sm.view.container) {
-              sm.view.container = targetWrapper;
-            }
-            
-            // CRITICAL: Ensure component is selected and set as target
-            editor.select(selectedComponent);
-            
-            // Set component as StyleManager target if method exists
-            if (sm.setTarget) {
-              try {
-                sm.setTarget(selectedComponent);
-                console.log('✓ Set StyleManager target to component');
-              } catch (e) {
-                console.warn('setTarget not available, using default behavior');
-              }
-            }
-            
-            // Clear wrapper before rendering
-            targetWrapper.innerHTML = '';
-            
-            // Render StyleManager
-            try {
-              sm.render();
-              console.log('✓ StyleManager.render() called in useEffect');
-            } catch (e) {
-              console.error('❌ Error rendering StyleManager:', e);
-              // Try alternative render method
-              if (sm.view && sm.view.render) {
-                try {
-                  sm.view.render();
-                  if (sm.view.el && sm.view.el.parentElement !== targetWrapper) {
-                    targetWrapper.appendChild(sm.view.el);
-                  }
-                  console.log('✓ StyleManager view rendered');
-                } catch (e2) {
-                  console.error('❌ Error with alternative render:', e2);
-                }
-              }
-            }
-            
-            // Ensure sectors are open - multiple attempts
-            const ensureSectorsOpen = (attempt = 0) => {
-              const styleManagerEl = targetWrapper.querySelector('.gjs-sm') as HTMLElement;
-              
-              if (styleManagerEl) {
-                const sectors = styleManagerEl.querySelectorAll('.gjs-sm-sector');
-                if (sectors.length > 0) {
-                  sectors.forEach((sectorEl: Element) => {
-                    const htmlSector = sectorEl as HTMLElement;
-                    htmlSector.classList.remove('gjs-sm-sector--closed');
-                    htmlSector.classList.add('gjs-sm-sector--open');
-                    
-                    const sectorContent = htmlSector.querySelector('.gjs-sm-sector-content');
-                    if (sectorContent) {
-                      (sectorContent as HTMLElement).style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; max-height: none !important;';
-                    }
-                    
-                    // Also ensure properties are visible
-                    const properties = htmlSector.querySelectorAll('.gjs-sm-properties');
-                    properties.forEach((prop: Element) => {
-                      (prop as HTMLElement).style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important;';
-                    });
-                  });
-                  console.log('✓ StyleManager ready with', sectors.length, 'sectors');
-                } else if (attempt < 3) {
-                  setTimeout(() => ensureSectorsOpen(attempt + 1), 100);
-                }
-              } else if (attempt < 3) {
-                // Retry if StyleManager element not found
-                setTimeout(() => ensureSectorsOpen(attempt + 1), 100);
-              } else {
-                console.warn('⚠️ StyleManager element not found after multiple attempts, forcing re-render');
-                // Force re-render
-                targetWrapper.innerHTML = '';
-                sm.render();
-                setTimeout(() => ensureSectorsOpen(0), 200);
-              }
-            };
-            
-            // Start checking for sectors with multiple attempts
-            setTimeout(() => ensureSectorsOpen(0), 100);
-            setTimeout(() => ensureSectorsOpen(0), 300);
-            setTimeout(() => ensureSectorsOpen(0), 500);
-          } catch (e) {
-            console.error('Error rendering StyleManager:', e);
-          }
-        };
-        
-        // Render after a short delay to ensure DOM is ready
-        setTimeout(renderStyleManager, 100);
-      }
+    if (!showStylePanel) return;
+    const panel = document.querySelector('.style-editor-panel') as HTMLElement | null;
+    if (panel) {
+      panel.style.display = 'flex';
+      panel.style.visibility = 'visible';
+      panel.style.opacity = '1';
     }
   }, [showStylePanel]);
 
@@ -1951,7 +2473,8 @@ const BasicElementor: React.FC = () => {
   // Encode pages data for embedding in HTML
   const encodePagesData = useCallback((pagesData: Page[]): string => {
     try {
-      return JSON.stringify(pagesData)
+      const sanitized = pagesData.map(p => ({ ...p, html: stripBlackColorFromHtml(p.html || '') }));
+      return JSON.stringify(sanitized)
         .replace(/</g, '\\u003c')
         .replace(/>/g, '\\u003e')
         .replace(/&/g, '\\u0026');
@@ -1959,7 +2482,7 @@ const BasicElementor: React.FC = () => {
       console.error('Error encoding pages data:', e);
       return '[]';
     }
-  }, []);
+  }, [stripBlackColorFromHtml]);
 
   // Build multi-page HTML document (like CustomThemeBuilder)
   const buildMultiPageHtmlDocument = useCallback((pagesData: Page[], themeName: string, globalCss: string): string => {
@@ -2348,6 +2871,44 @@ const BasicElementor: React.FC = () => {
         }
       } catch (e) {
         console.warn('Failed to get CSS from canvas frame:', e);
+      }
+
+      // Method 4d: Extract styles from each component (effects panel: opacity, box-shadow, filter, transition)
+      try {
+        if (wrapper) {
+          const allComponents: any[] = [];
+          const collectComponents = (comp: any) => {
+            if (comp) {
+              allComponents.push(comp);
+              const children = comp.components ? comp.components() : [];
+              children.forEach((c: any) => collectComponents(c));
+            }
+          };
+          collectComponents(wrapper);
+
+          const componentStylesRules = allComponents
+            .map((comp) => {
+              const styles = comp.getStyle ? comp.getStyle() : null;
+              if (!styles || Object.keys(styles).length === 0) return null;
+              const compId = comp.getId && comp.getId();
+              const classes = comp.getClasses ? comp.getClasses() : [];
+              const selector = classes.length > 0 ? `.${classes.join('.')}` : compId ? `#${compId}` : null;
+              if (!selector) return null;
+              const styleString = Object.entries(styles)
+                .map(([prop, value]) => `  ${prop}: ${value};`)
+                .join('\n');
+              return `${selector} {\n${styleString}\n}`;
+            })
+            .filter(Boolean)
+            .join('\n\n');
+
+          if (componentStylesRules) {
+            cssContent += '\n\n/* Component effects (opacity, shadow, filter, transition) */\n' + componentStylesRules;
+            console.log('✅ Method 4d - Component effects styles');
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to extract component styles:', e);
       }
 
       // Method 5: Include original theme CSS (CRITICAL - this contains all the theme's original styles)
@@ -2803,6 +3364,44 @@ const BasicElementor: React.FC = () => {
         console.warn('Failed to get CSS from canvas frame:', e);
       }
 
+      // Method 5: Extract styles from each component (effects panel: opacity, box-shadow, filter, transition)
+      // GrapesJS StyleManager may store these in component.getStyle(); ensure they appear in preview
+      try {
+        if (wrapper) {
+          const allComponents: any[] = [];
+          const collectComponents = (comp: any) => {
+            if (comp) {
+              allComponents.push(comp);
+              const children = comp.components ? comp.components() : [];
+              children.forEach((c: any) => collectComponents(c));
+            }
+          };
+          collectComponents(wrapper);
+
+          const componentStylesRules = allComponents
+            .map((comp) => {
+              const styles = comp.getStyle ? comp.getStyle() : null;
+              if (!styles || Object.keys(styles).length === 0) return null;
+              const compId = comp.getId && comp.getId();
+              const classes = comp.getClasses ? comp.getClasses() : [];
+              const selector = classes.length > 0 ? `.${classes.join('.')}` : compId ? `#${compId}` : null;
+              if (!selector) return null;
+              const styleString = Object.entries(styles)
+                .map(([prop, value]) => `  ${prop}: ${value};`)
+                .join('\n');
+              return `${selector} {\n${styleString}\n}`;
+            })
+            .filter(Boolean)
+            .join('\n\n');
+
+          if (componentStylesRules) {
+            cssContent += '\n\n/* Component effects (opacity, shadow, filter, transition) */\n' + componentStylesRules;
+          }
+        }
+      } catch (e) {
+        console.warn('Failed to extract component styles:', e);
+      }
+
       // Include original theme CSS
       if (originalThemeCssRef.current && originalThemeCssRef.current.trim().length > 0) {
         const originalCssLines = originalThemeCssRef.current.split('\n');
@@ -2891,165 +3490,92 @@ const BasicElementor: React.FC = () => {
   ];
 
   return (
-    <div className="basic-elementor-container">
-      {/* Top Toolbar */}
-      <div className="basic-elementor-toolbar">
-        <div className="toolbar-left">
-          <button
-            onClick={() => navigate('/themes/all-themes')}
-            className="back-button"
-          >
-            ← Back
-          </button>
-          <div className="theme-name">{themeName || "Editing Theme"}</div>
-          {/* Page Tabs */}
-            {pages.length > 1 && (
-              <div className="page-dropdown-wrapper">
-                <select
-                  value={currentPageId}
-                  onChange={(e) => switchPage(e.target.value)}
-                  className="page-dropdown"
-                  title="Select page"
-                >
-                  {pages.map((page) => (
-                    <option key={page.id} value={page.id}>
-                      {page.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+    <div className="custom-theme-builder-root" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--builder-bg-light, #faf8fc)' }}>
+      {/* Top Bar - Same as Visual Elementor */}
+      <div className="elementor-top-bar">
+        <div className="elementor-top-bar-left">
+          <div className="elementor-top-bar-icon" onClick={() => navigate('/themes/all-themes')} title="Back to Themes">☰</div>
+          <div style={{ marginLeft: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '10px', color: 'rgba(0, 0, 0, 0.4)', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Theme:</span>
+            <span style={{ fontSize: '12px', fontWeight: 500, color: '#000' }}>{themeName || "Editing Theme"}</span>
+          </div>
+          {pages.length > 1 && (
+            <div style={{ marginLeft: '16px', paddingLeft: '16px', borderLeft: '1px solid rgba(0,0,0,0.1)' }}>
+              <select
+                value={currentPageId}
+                onChange={(e) => switchPage(e.target.value)}
+                style={{
+                  padding: '5px 28px 5px 10px',
+                  border: '1px solid rgba(0,0,0,0.1)',
+                  background: 'rgba(0,0,0,0.02)',
+                  borderRadius: '6px',
+                  color: '#000',
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  outline: 'none',
+                }}
+                title="Select page"
+              >
+                {pages.map((page) => (
+                  <option key={page.id} value={page.id}>{page.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
-        <div className="toolbar-center">
-          <div className="device-selector">
+        <div className="elementor-top-bar-center">
+          <div className="device-selector" style={{ display: 'flex', gap: 4, background: 'rgba(149, 117, 205, 0.08)', padding: 4, borderRadius: 6, border: '1px solid rgba(149, 117, 205, 0.2)' }}>
             <button
               className={`device-btn ${currentDevice === 'desktop' ? 'active' : ''}`}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const nativeEvent = e.nativeEvent;
-                if (nativeEvent && typeof (nativeEvent as any).stopImmediatePropagation === 'function') {
-                  (nativeEvent as any).stopImmediatePropagation();
-                }
-                console.log('🖥️ Desktop button clicked');
-                if (currentDevice !== 'desktop') {
-                  setCurrentDevice('desktop');
-                }
-              }}
+              onClick={() => currentDevice !== 'desktop' && setCurrentDevice('desktop')}
               title="Desktop View"
               type="button"
-              aria-label="Switch to Desktop View"
+              style={{ padding: '6px 8px', border: 'none', background: currentDevice === 'desktop' ? '#9575cd' : 'transparent', color: currentDevice === 'desktop' ? '#fff' : '#6b7280', borderRadius: 4, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="2" y="3" width="12" height="9" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                <path d="M5 12h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="3" width="12" height="9" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/><path d="M5 12h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
             </button>
             <button
               className={`device-btn ${currentDevice === 'tablet' ? 'active' : ''}`}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const nativeEvent = e.nativeEvent;
-                if (nativeEvent && typeof (nativeEvent as any).stopImmediatePropagation === 'function') {
-                  (nativeEvent as any).stopImmediatePropagation();
-                }
-                console.log('📱 Tablet button clicked');
-                if (currentDevice !== 'tablet') {
-                  setCurrentDevice('tablet');
-                }
-              }}
+              onClick={() => currentDevice !== 'tablet' && setCurrentDevice('tablet')}
               title="Tablet View"
               type="button"
-              aria-label="Switch to Tablet View"
+              style={{ padding: '6px 8px', border: 'none', background: currentDevice === 'tablet' ? '#9575cd' : 'transparent', color: currentDevice === 'tablet' ? '#fff' : '#6b7280', borderRadius: 4, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="4" y="2" width="8" height="12" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-              </svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="4" y="2" width="8" height="12" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/></svg>
             </button>
             <button
               className={`device-btn ${currentDevice === 'mobile' ? 'active' : ''}`}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const nativeEvent = e.nativeEvent;
-                if (nativeEvent && typeof (nativeEvent as any).stopImmediatePropagation === 'function') {
-                  (nativeEvent as any).stopImmediatePropagation();
-                }
-                console.log('📱 Mobile button clicked');
-                if (currentDevice !== 'mobile') {
-                  setCurrentDevice('mobile');
-                }
-              }}
+              onClick={() => currentDevice !== 'mobile' && setCurrentDevice('mobile')}
               title="Mobile View"
               type="button"
-              aria-label="Switch to Mobile View"
+              style={{ padding: '6px 8px', border: 'none', background: currentDevice === 'mobile' ? '#9575cd' : 'transparent', color: currentDevice === 'mobile' ? '#fff' : '#6b7280', borderRadius: 4, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="5" y="1" width="6" height="14" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                <circle cx="8" cy="13" r="1" fill="currentColor"/>
-              </svg>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="5" y="1" width="6" height="14" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/><circle cx="8" cy="13" r="1" fill="currentColor"/></svg>
             </button>
           </div>
         </div>
-        <div className="toolbar-right">
-          <button onClick={handleUndo} className="toolbar-btn" title="Undo">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M3 8h8M3 8l3-3M3 8l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-          <button onClick={handleRedo} className="toolbar-btn" title="Redo">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M13 8H5M13 8l-3-3M13 8l-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
-          <button 
-            onClick={previewTheme} 
-            className="preview-btn"
-            title="Preview Theme"
-          >
-            Preview
-          </button>
-          <button 
-            onClick={handleSave} 
-            className="save-btn"
-            disabled={saving}
-          >
-            {saving ? 'Saving...' : 'Save'}
-          </button>
-          <button 
-            onClick={handlePublish} 
-            className="publish-btn"
-            disabled={saving}
-          >
-            {saving 
-              ? (publishSuccess ? 'Published!' : 'Publishing...')
-              : (publishSuccess ? 'Published!' : 'Publish')}
-          </button>
+        <div className="elementor-top-bar-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button onClick={handleUndo} className="elementor-top-bar-icon" title="Undo" style={{ fontSize: 14 }} disabled={!canUndo}>↶</button>
+          <button onClick={handleRedo} className="elementor-top-bar-icon" title="Redo" style={{ fontSize: 14 }} disabled={!canRedo}>↷</button>
+          <button onClick={previewTheme} className="elementor-preview-btn" title="Preview Theme">Preview</button>
+          <button onClick={handleSave} className="elementor-preview-btn" disabled={saving} style={{ marginRight: 0 }}>{saving ? 'Saving...' : 'Save'}</button>
+          <button onClick={handlePublish} className="elementor-publish-btn" disabled={saving}>{saving ? (publishSuccess ? 'Published!' : 'Publishing...') : (publishSuccess ? 'Published!' : 'Publish')}</button>
           {publishSuccess && (
-            <div style={{ 
-              position: 'absolute', 
-              top: '100%', 
-              right: 0, 
-              marginTop: '8px', 
-              padding: '8px 16px', 
-              background: '#008060', 
-              color: 'white', 
-              borderRadius: '6px',
-              fontSize: '13px',
-              whiteSpace: 'nowrap',
-              zIndex: 1000
-            }}>
-              Theme published successfully!
-            </div>
+            <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: 8, padding: '8px 16px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', borderRadius: 8, fontSize: 13, whiteSpace: 'nowrap', zIndex: 1000, animation: 'slideDown 0.3s ease-out' }}>Theme published successfully!</div>
           )}
         </div>
       </div>
 
-      <div className="basic-elementor-content">
-        {/* Left Sidebar - Structure Panel or Style Panel */}
+      <div className="builder-main-editor" style={{ flex: 1, display: 'flex', overflow: 'hidden', background: 'var(--builder-bg-canvas, #f6f6f7)' }}>
+        {/* Left Sidebar - Same structure as Visual Elementor */}
+        <div className="builder-left-panel" style={{ width: 320, minWidth: 320 }}>
+          <div className="elementor-elements-header" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: '1px solid rgba(149, 117, 205, 0.15)' }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--builder-text)' }}>Structure</span>
+          </div>
+          <div className="elementor-left-scroll" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         {showStructurePanel && !showStylePanel && (
-          <div className="basic-elementor-sidebar">
+          <div className="basic-elementor-sidebar elementor-blocks-wrapper">
           <div className="sidebar-section">
             <div className="sidebar-title">Home page</div>
           </div>
@@ -3159,34 +3685,46 @@ const BasicElementor: React.FC = () => {
           </div>
         )}
 
-        {/* Style Editor Panel - GrapesJS StyleManager (replaces structure panel on left) */}
-        {showStylePanel && (
-          <div className="style-editor-panel">
-            <div className="style-panel-header">
-              <button 
-                className="back-to-structure-btn"
-                onClick={() => {
-                  setShowStylePanel(false);
-                  setShowStructurePanel(true);
-                  const editor = editorInstance.current;
-                  if (editor) {
-                    editor.select(null);
-                  }
-                }}
-                title="Back to Structure"
-              >
-                ← Back
-              </button>
-              <div>
-                <h3>Styles{selectedSection ? `: ${selectedSection}` : ''}</h3>
-              </div>
-            </div>
-            <div className="style-panel-content-wrapper" id="style-panel-wrapper"></div>
+        {/* Style Editor Panel - Always in DOM for GrapesJS appendTo; visibility toggled */}
+        <div
+          className="elementor-panel-card style-editor-panel"
+          data-panel-type="style"
+          style={{
+            display: showStylePanel ? 'flex' : 'none',
+            flexDirection: 'column',
+            flex: 1,
+            minHeight: 0,
+            background: 'var(--builder-bg-widgets, #fefcff)',
+          }}
+        >
+          <div className="elementor-panel-card-title" style={{ padding: '12px 16px', borderBottom: '1px solid rgba(149, 117, 205, 0.15)', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+            <button
+              onClick={() => {
+                setShowStylePanel(false);
+                setShowStructurePanel(true);
+                const editor = editorInstance.current;
+                if (editor) editor.select(null);
+              }}
+              style={{ padding: '4px 8px', border: '1px solid rgba(149, 117, 205, 0.2)', background: 'transparent', borderRadius: 6, cursor: 'pointer', fontSize: 12, color: 'var(--builder-primary)' }}
+            >
+              ← Back
+            </button>
+            <span>Styles{selectedSection ? `: ${selectedSection}` : ''}</span>
           </div>
-        )}
+          {/* Wrapper must not be re-rendered or React will clear the StyleManager DOM. Use memoized component. */}
+          <StylePanelMountPoint />
+        </div>
+          </div>
+        </div>
 
-        {/* Main Content Area */}
-        <div className="basic-elementor-preview">
+        {/* Center - Canvas - Same as Visual Elementor */}
+        <div className="builder-center-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--builder-bg-canvas, #f6f6f7)', position: 'relative' }}>
+        <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px' }}>
+          <div className="elementor-canvas-header" style={{ width: '100%', maxWidth: '1200px', marginBottom: 0 }}>
+            <div className="elementor-canvas-site-name">{themeName || 'Ziplofy Theme'}</div>
+            <div className="elementor-canvas-page-name">{pages.find(p => p.id === currentPageId)?.name || 'Home'}</div>
+          </div>
+        <div className="basic-elementor-preview" style={{ width: '100%', maxWidth: '1200px', background: '#fff', minHeight: '600px', position: 'relative', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
           {loading && (
             <div className="loading-overlay">
               <div className="loading-spinner"></div>
@@ -3201,13 +3739,13 @@ const BasicElementor: React.FC = () => {
           <div 
             ref={editorRef} 
             id="gjs-editor-container"
-            style={{ 
-              height: '100%', 
-              width: '100%',
-              minHeight: 0,
-              position: 'relative'
-            }} 
+            style={{ height: '100%', width: '100%', minHeight: 0, position: 'relative' }} 
           />
+        </div>
+        <div className="elementor-canvas-footer" style={{ width: '100%', maxWidth: '1200px', marginTop: 0 }}>
+          Copyright © {new Date().getFullYear()} {themeName || 'Ziplofy Theme'} | Powered by <a href="#" onClick={(e) => e.preventDefault()}>Ziplofy Theme Builder</a>
+        </div>
+        </div>
         </div>
       </div>
 

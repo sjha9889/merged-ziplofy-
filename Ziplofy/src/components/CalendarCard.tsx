@@ -304,7 +304,7 @@ const CalendarCard: React.FC<CalendarCardProps> = ({
                   ))}
                 </div>
                 {todayEvent.attendees > 4 && (
-                  <div className="w-8 h-8 rounded-full bg-purple-600 border-2 border-gray-50 flex items-center justify-center -ml-2">
+                  <div className="w-8 h-8 rounded-full bg-purple-400 border-2 border-gray-50 flex items-center justify-center -ml-2">
                     <span className="text-xs font-medium text-white">+{todayEvent.attendees - 4}</span>
                   </div>
                 )}
