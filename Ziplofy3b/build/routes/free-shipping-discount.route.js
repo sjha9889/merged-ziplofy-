@@ -10,3 +10,11 @@ exports.freeShippingDiscountRouter.use(auth_middleware_1.protect);
 exports.freeShippingDiscountRouter.post('/', free_shipping_discount_controller_1.createFreeShippingDiscount);
 // List by store
 exports.freeShippingDiscountRouter.get('/store/:id', free_shipping_discount_controller_1.getFreeShippingDiscountsByStore);
+// Get orders where this discount was used (must be before /:id)
+exports.freeShippingDiscountRouter.get('/:id/orders', free_shipping_discount_controller_1.getOrdersByFreeShippingDiscount);
+// Get by id (for edit)
+exports.freeShippingDiscountRouter.get('/:id', free_shipping_discount_controller_1.getFreeShippingDiscountById);
+// Update
+exports.freeShippingDiscountRouter.put('/:id', free_shipping_discount_controller_1.updateFreeShippingDiscount);
+// Delete
+exports.freeShippingDiscountRouter.delete('/:id', free_shipping_discount_controller_1.deleteFreeShippingDiscount);

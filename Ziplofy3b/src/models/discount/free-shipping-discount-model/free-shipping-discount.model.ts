@@ -14,9 +14,8 @@ export interface IFreeShippingDiscount {
   discountCode?: string; // required when method === 'discount-code'
   title?: string; // required when method === 'automatic'
 
-  // Country
+  // Country (selected countries stored in FreeShippingCountryEntry)
   countrySelection: FS_CountrySelection; // all-countries | selected-countries
-  selectedCountryCodes?: string[]; // present when selected-countries
   excludeShippingRates?: boolean; // Exclude shipping rates over a certain amount
   shippingRateLimit?: number; // Amount threshold in currency units
 
@@ -63,7 +62,6 @@ const freeShippingSchema = new Schema<IFreeShippingDiscount & Document>({
   title: { type: String, trim: true },
 
   countrySelection: { type: String, enum: ['all-countries', 'selected-countries'], required: true },
-  selectedCountryCodes: { type: [String], default: [] },
   excludeShippingRates: { type: Boolean, default: false },
   shippingRateLimit: { type: Number, min: 0 },
 
@@ -101,9 +99,7 @@ freeShippingSchema.pre('validate', function(next) {
   if (doc.method === 'automatic' && !doc.title) {
     return next(new Error('title is required when method is automatic'));
   }
-  if (doc.countrySelection === 'selected-countries' && (!doc.selectedCountryCodes || doc.selectedCountryCodes.length === 0)) {
-    return next(new Error('selectedCountryCodes are required when countrySelection is selected-countries'));
-  }
+  // selected countries are validated in controller (stored in FreeShippingCountryEntry)
   if (doc.excludeShippingRates && (doc.shippingRateLimit === undefined || doc.shippingRateLimit === null)) {
     return next(new Error('shippingRateLimit is required when excludeShippingRates is true'));
   }

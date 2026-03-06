@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { axiosi } from "../config/axios.config";
 import { safeLocalStorage } from "../types/local-storage";
 import toast from "react-hot-toast";
@@ -95,6 +95,8 @@ interface StorefrontAuthContextType {
   forgotPassword: (payload: ForgotPasswordPayload) => Promise<void>;
   resetPassword: (payload: ResetPasswordPayload) => Promise<void>;
   updateUser: (customerId: string, payload: UpdateUserPayload) => Promise<void>;
+  registerLogoutCallback: (callback: () => void) => () => void;
+  registerLoginCallback: (callback: (user: StorefrontUser) => void) => () => void;
 }
 
 const StorefrontAuthContext = createContext<StorefrontAuthContextType | undefined>(undefined);
@@ -103,6 +105,8 @@ export const StorefrontAuthProvider: React.FC<{ children: React.ReactNode }> = (
   const [user, setUser] = useState<StorefrontUser | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const logoutCallbacksRef = useRef<Set<() => void>>(new Set());
+  const loginCallbacksRef = useRef<Set<(user: StorefrontUser) => void>>(new Set());
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -115,6 +119,20 @@ export const StorefrontAuthProvider: React.FC<{ children: React.ReactNode }> = (
     }
   }, []);
 
+  const registerLogoutCallback = useCallback((callback: () => void) => {
+    logoutCallbacksRef.current.add(callback);
+    return () => {
+      logoutCallbacksRef.current.delete(callback);
+    };
+  }, []);
+
+  const registerLoginCallback = useCallback((callback: (user: StorefrontUser) => void) => {
+    loginCallbacksRef.current.add(callback);
+    return () => {
+      loginCallbacksRef.current.delete(callback);
+    };
+  }, []);
+
   const signup = useCallback(async (payload: SignupPayload): Promise<StorefrontUser> => {
     try {
       setLoading(true);
@@ -124,6 +142,8 @@ export const StorefrontAuthProvider: React.FC<{ children: React.ReactNode }> = (
       setUser(res.data.data);
       safeLocalStorage.setItem("accessToken", res.data.token);
       toast.success(`Welcome, ${res.data.data.firstName}! Account created successfully.`);
+      // Call all registered login callbacks to sync guest data
+      loginCallbacksRef.current.forEach(callback => callback(res.data.data));
       return res.data.data;
     } catch (err: unknown) {
       let errorMessage = "Signup failed";
@@ -149,6 +169,8 @@ export const StorefrontAuthProvider: React.FC<{ children: React.ReactNode }> = (
       setUser(res.data.data);
       safeLocalStorage.setItem("accessToken", res.data.token);
       toast.success(`Welcome back, ${res.data.data.firstName}!`);
+      // Call all registered login callbacks to sync guest data
+      loginCallbacksRef.current.forEach(callback => callback(res.data.data));
       return res.data.data;
     } catch (err: unknown) {
       let errorMessage = "Login failed";
@@ -169,6 +191,8 @@ export const StorefrontAuthProvider: React.FC<{ children: React.ReactNode }> = (
   const logout = useCallback(async () => {
     safeLocalStorage.removeItem("accessToken");
     setUser(null);
+    // Call all registered logout callbacks to clear other contexts
+    logoutCallbacksRef.current.forEach(callback => callback());
     toast.success("Logged out");
   }, []);
 
@@ -268,6 +292,8 @@ export const StorefrontAuthProvider: React.FC<{ children: React.ReactNode }> = (
     forgotPassword,
     resetPassword,
     updateUser,
+    registerLogoutCallback,
+    registerLoginCallback,
   };
 
   return <StorefrontAuthContext.Provider value={value}>{children}</StorefrontAuthContext.Provider>;

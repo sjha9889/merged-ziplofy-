@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.searchProductsWithVariantAndDestination = exports.searchProductsWithVariants = exports.searchProductsBasic = exports.searchProductsWithAvailability = exports.addOptionToProduct = exports.deleteVariantsFromProduct = exports.addVariantsToProduct = exports.getProductsByStoreIdPublic = exports.getProductsByStoreId = exports.createProduct = void 0;
+exports.searchProductsWithVariantAndDestination = exports.searchProductsWithVariants = exports.searchProductsBasic = exports.searchProductsWithAvailability = exports.addOptionToProduct = exports.deleteVariantsFromProduct = exports.addVariantsToProduct = exports.getProductByIdPublic = exports.getProductsByStoreIdPublic = exports.getProductsByStoreId = exports.createProduct = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const inventory_level_model_1 = require("../models/inventory-level/inventory-level.model");
 const location_model_1 = require("../models/location/location.model");
@@ -11,6 +11,8 @@ const product_variants_model_1 = require("../models/product/product-variants.mod
 const product_model_1 = require("../models/product/product.model");
 const store_model_1 = require("../models/store/store.model");
 const error_utils_1 = require("../utils/error.utils");
+const models_1 = require("../models");
+const collection_entry_model_1 = require("../models/collection-entry/collection-entry.model");
 // Create a new product
 exports.createProduct = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     // Parse and type the incoming payload; allow extra fields but prefer strong typing for known ones
@@ -243,13 +245,170 @@ exports.getProductsByStoreIdPublic = (0, error_utils_1.asyncErrorHandler)(async 
             .lean(),
         product_model_1.Product.countDocuments({ status: "active", storeId })
     ]);
+    // ===== DISCOUNT LOGIC START =====
+    const now = new Date();
+    const nowDateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    const nowTimeStr = now.toISOString().split('T')[1].substring(0, 5); // HH:mm
+    // Helper function to filter discounts by valid date range
+    const isDiscountActive = (d) => {
+        // Check start date
+        if (d.startDate && d.startDate > nowDateStr)
+            return false;
+        if (d.startDate === nowDateStr && d.startTime && d.startTime > nowTimeStr)
+            return false;
+        // Check end date
+        if (!d.setEndDate || !d.endDate)
+            return true;
+        if (d.endDate > nowDateStr)
+            return true;
+        if (d.endDate === nowDateStr && d.endTime && d.endTime >= nowTimeStr)
+            return true;
+        if (d.endDate === nowDateStr && !d.endTime)
+            return true;
+        return false;
+    };
+    // ===== AMOUNT OFF PRODUCTS DISCOUNTS =====
+    const activeProductDiscounts = await models_1.AmountOffProductsDiscount.find({
+        storeId,
+        status: 'active',
+        // Fetch both automatic and discount-code based discounts
+    }).lean();
+    const validProductDiscounts = activeProductDiscounts.filter(isDiscountActive);
+    // Get discount entries for product discounts
+    const productDiscountIds = validProductDiscounts.map((d) => d._id);
+    const productDiscountEntries = productDiscountIds.length > 0
+        ? await models_1.AmountOffProductsEntry.find({
+            storeId,
+            discountId: { $in: productDiscountIds }
+        }).lean()
+        : [];
+    // Build maps for quick lookup
+    const productDiscountById = new Map();
+    for (const d of validProductDiscounts) {
+        productDiscountById.set(String(d._id), d);
+    }
+    // Group entries by discount
+    const entriesByDiscount = new Map();
+    for (const entry of productDiscountEntries) {
+        const key = String(entry.discountId);
+        if (!entriesByDiscount.has(key))
+            entriesByDiscount.set(key, []);
+        entriesByDiscount.get(key).push(entry);
+    }
+    // Get collection-based product mappings
+    const collectionIdsInEntries = productDiscountEntries
+        .filter((e) => e.collectionId)
+        .map((e) => e.collectionId);
+    let collectionProductMap = new Map(); // collectionId -> productIds
+    if (collectionIdsInEntries.length > 0) {
+        const collectionEntries = await collection_entry_model_1.CollectionEntry.find({
+            collectionId: { $in: collectionIdsInEntries }
+        }).lean();
+        for (const ce of collectionEntries) {
+            const colKey = String(ce.collectionId);
+            if (!collectionProductMap.has(colKey))
+                collectionProductMap.set(colKey, []);
+            collectionProductMap.get(colKey).push(String(ce.productId));
+        }
+    }
+    // Build productId -> best product discount map
+    const productDiscountMap = new Map();
+    for (const discount of validProductDiscounts) {
+        const discountId = String(discount._id);
+        const entries = entriesByDiscount.get(discountId) || [];
+        // Get all product IDs this discount applies to
+        const applicableProductIds = [];
+        for (const entry of entries) {
+            if (entry.productId) {
+                applicableProductIds.push(String(entry.productId));
+            }
+            else if (entry.collectionId) {
+                const productsInCollection = collectionProductMap.get(String(entry.collectionId)) || [];
+                applicableProductIds.push(...productsInCollection);
+            }
+        }
+        // Apply discount to each applicable product (keep best discount)
+        for (const productId of applicableProductIds) {
+            const existing = productDiscountMap.get(productId);
+            const newDiscount = {
+                valueType: discount.valueType,
+                percentage: discount.percentage,
+                fixedAmount: discount.fixedAmount,
+                title: discount.title,
+                method: discount.method,
+                discountCode: discount.discountCode
+            };
+            if (!existing) {
+                productDiscountMap.set(productId, newDiscount);
+            }
+            else {
+                // Compare and keep the better discount
+                const existingValue = existing.valueType === 'percentage' ? (existing.percentage || 0) : (existing.fixedAmount || 0);
+                const newValue = newDiscount.valueType === 'percentage' ? (newDiscount.percentage || 0) : (newDiscount.fixedAmount || 0);
+                if (existing.valueType === newDiscount.valueType) {
+                    if (newValue > existingValue) {
+                        productDiscountMap.set(productId, newDiscount);
+                    }
+                }
+                else if (newDiscount.valueType === 'fixed-amount' && newValue > existingValue) {
+                    productDiscountMap.set(productId, newDiscount);
+                }
+            }
+        }
+    }
+    // ===== AMOUNT OFF ORDER DISCOUNTS =====
+    const activeOrderDiscounts = await models_1.AmountOffOrderDiscount.find({
+        storeId,
+        status: 'active',
+        method: 'automatic', // Only automatic discounts show on storefront
+    }).lean();
+    const validOrderDiscounts = activeOrderDiscounts.filter(isDiscountActive);
+    // Find the best order discount to display (store-wide offer)
+    let bestOrderDiscount = null;
+    for (const discount of validOrderDiscounts) {
+        const d = discount;
+        const newDiscount = {
+            valueType: d.valueType,
+            percentage: d.percentage,
+            fixedAmount: d.fixedAmount,
+            title: d.title,
+            minimumPurchase: d.minimumPurchase,
+            minimumAmount: d.minimumAmount,
+            minimumQuantity: d.minimumQuantity
+        };
+        if (!bestOrderDiscount) {
+            bestOrderDiscount = newDiscount;
+        }
+        else {
+            // Keep the higher value discount
+            const existingValue = bestOrderDiscount.valueType === 'percentage'
+                ? (bestOrderDiscount.percentage || 0)
+                : (bestOrderDiscount.fixedAmount || 0);
+            const newValue = newDiscount.valueType === 'percentage'
+                ? (newDiscount.percentage || 0)
+                : (newDiscount.fixedAmount || 0);
+            if (newValue > existingValue) {
+                bestOrderDiscount = newDiscount;
+            }
+        }
+    }
+    // ===== ENRICH PRODUCTS WITH DISCOUNT INFO =====
+    const enrichedProducts = products.map((product) => {
+        const productId = String(product._id);
+        const discount = productDiscountMap.get(productId);
+        return {
+            ...product,
+            productDiscount: discount || null
+        };
+    });
+    // ===== DISCOUNT LOGIC END =====
     // Calculate pagination metadata
     const totalPages = Math.ceil(total / limitNum);
     const hasNext = pageNum < totalPages;
     const hasPrev = pageNum > 1;
     res.status(200).json({
         success: true,
-        data: products,
+        data: enrichedProducts,
         pagination: {
             page: pageNum,
             limit: limitNum,
@@ -257,7 +416,51 @@ exports.getProductsByStoreIdPublic = (0, error_utils_1.asyncErrorHandler)(async 
             totalPages,
             hasNext,
             hasPrev
-        }
+        },
+        // Store-wide order discount (applies to whole order, not specific products)
+        orderDiscount: bestOrderDiscount
+    });
+});
+// Get product details by ID (public route)
+exports.getProductByIdPublic = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
+    const { productId } = req.params;
+    if (!productId || !mongoose_1.default.isValidObjectId(productId)) {
+        throw new error_utils_1.CustomError("Valid product ID is required", 400);
+    }
+    const product = await product_model_1.Product.findOne({ _id: productId, status: "active" })
+        .populate({ path: "category", select: "name" })
+        .populate({ path: "vendor", model: "Vendor", select: "name" })
+        .select({
+        title: 1,
+        description: 1,
+        price: 1,
+        compareAtPrice: 1,
+        imageUrls: 1,
+        sku: 1,
+        status: 1,
+        category: 1,
+        vendor: 1,
+        storeId: 1,
+        variants: 1,
+        createdAt: 1,
+        updatedAt: 1,
+    })
+        .lean();
+    if (!product) {
+        throw new error_utils_1.CustomError("Product not found", 404);
+    }
+    const variants = await product_variants_model_1.ProductVariant.find({ productId, depricated: false })
+        .select({
+        price: 1,
+        compareAtPrice: 1,
+        optionValues: 1,
+        sku: 1,
+        images: 1,
+    })
+        .lean();
+    res.status(200).json({
+        success: true,
+        data: { ...product, variants },
     });
 });
 // POST /products/:id/variants - add one or more variants to an existing product

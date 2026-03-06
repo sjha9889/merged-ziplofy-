@@ -35,16 +35,40 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AmountOffOrderDiscountUsage = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
-const amountOffOrderDiscountUsageSchema = new mongoose_1.Schema({
-    storeId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Store', required: true, index: true },
-    discountId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'AmountOffOrderDiscount', required: true, index: true },
-    customerId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Customer', required: true, index: true },
-    orderId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Order', default: null, index: true },
-    discountAmount: { type: Number, required: true, min: 0 },
-}, { timestamps: true, versionKey: false });
+const AmountOffOrderDiscountUsageSchema = new mongoose_1.Schema({
+    customerId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'Customer',
+        required: true,
+        index: true
+    },
+    discountId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'AmountOffOrderDiscount',
+        required: true,
+        index: true
+    },
+    storeId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'Store',
+        required: true,
+        index: true
+    },
+    orderId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'Order',
+        required: false
+    },
+    usedAt: {
+        type: Date,
+        default: Date.now,
+        required: true
+    }
+}, {
+    timestamps: true
+});
 // Compound indexes for efficient queries
-amountOffOrderDiscountUsageSchema.index({ storeId: 1, discountId: 1 });
-amountOffOrderDiscountUsageSchema.index({ storeId: 1, customerId: 1 });
-amountOffOrderDiscountUsageSchema.index({ discountId: 1, customerId: 1 });
-amountOffOrderDiscountUsageSchema.index({ storeId: 1, discountId: 1, customerId: 1 });
-exports.AmountOffOrderDiscountUsage = mongoose_1.default.models.AmountOffOrderDiscountUsage || mongoose_1.default.model('AmountOffOrderDiscountUsage', amountOffOrderDiscountUsageSchema);
+AmountOffOrderDiscountUsageSchema.index({ customerId: 1, discountId: 1 });
+AmountOffOrderDiscountUsageSchema.index({ discountId: 1, storeId: 1 });
+AmountOffOrderDiscountUsageSchema.index({ storeId: 1, usedAt: -1 });
+exports.AmountOffOrderDiscountUsage = mongoose_1.default.model('AmountOffOrderDiscountUsage', AmountOffOrderDiscountUsageSchema);

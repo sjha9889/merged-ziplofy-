@@ -1,12 +1,13 @@
-import React, { createContext, useCallback, useContext, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { axiosi } from '../config/axios.config';
+import { useStorefrontAuth } from './storefront-auth.context';
 
 // Types
 export interface CustomerAddress {
   _id: string;
   customerId: string;
-  country: string;
+  countryId: string | { _id: string; name: string; iso2: string };
   firstName: string;
   lastName: string;
   company?: string;
@@ -23,7 +24,8 @@ export interface CustomerAddress {
 
 export interface CreateCustomerAddressRequest {
   customerId: string;
-  country: string;
+  country?: string;
+  countryId?: string;
   firstName: string;
   lastName: string;
   company?: string;
@@ -38,6 +40,7 @@ export interface CreateCustomerAddressRequest {
 
 export interface UpdateCustomerAddressRequest {
   country?: string;
+  countryId?: string;
   firstName?: string;
   lastName?: string;
   company?: string;
@@ -100,6 +103,15 @@ export const CustomerAddressProvider: React.FC<{ children: ReactNode }> = ({ chi
   const [addresses, setAddresses] = useState<CustomerAddress[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { registerLogoutCallback } = useStorefrontAuth();
+
+  const clearAddresses = useCallback(() => setAddresses([]), []);
+
+  // Register clear function to be called on logout
+  useEffect(() => {
+    const unregister = registerLogoutCallback(clearAddresses);
+    return unregister;
+  }, [registerLogoutCallback, clearAddresses]);
 
   const fetchCustomerAddressesByCustomerId = useCallback(async (customerId: string): Promise<void> => {
     try {
@@ -166,7 +178,6 @@ export const CustomerAddressProvider: React.FC<{ children: ReactNode }> = ({ chi
   }, []);
 
   const clearError = useCallback(() => setError(null), []);
-  const clearAddresses = useCallback(() => setAddresses([]), []);
 
   const value: CustomerAddressContextType = {
     addresses,

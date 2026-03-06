@@ -1,6 +1,11 @@
 import { useCallback } from "react";
-import { DiscountCardData } from "../pages/SelectDiscountToCreatePage";
 import DiscountChooseCard from "./DiscountChooseCard";
+
+export interface DiscountCardData {
+    title: string;
+    desc: string;
+    route: string;
+}
 
 type PropTypes = {
     discountCardsData: DiscountCardData[];

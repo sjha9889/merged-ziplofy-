@@ -1,6 +1,7 @@
 import React from 'react';
-import { FiMenu, FiSearch, FiShoppingCart, FiUser, FiX } from 'react-icons/fi';
+import { FiLogOut, FiMenu, FiSearch, FiShoppingCart, FiUser, FiX } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useStorefront } from '../contexts/store.context';
 import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 import { useStorefrontCart } from '../contexts/storefront-cart.context';
@@ -17,12 +18,28 @@ interface StorefrontNavbarProps {
 const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ showSearch, searchValue, onSearchChange }) => {
 	const navigate = useNavigate();
 	const { storeFrontMeta } = useStorefront();
-	const { items } = useStorefrontCart();
+	const { items, guestItems, isGuest } = useStorefrontCart();
 	const { user, logout } = useStorefrontAuth();
 	const [cartOpen, setCartOpen] = React.useState(false);
 	const [menuOpen, setMenuOpen] = React.useState(false);
 	const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 	const [searchFocused, setSearchFocused] = React.useState(false);
+	const [showLogoutModal, setShowLogoutModal] = React.useState(false);
+
+	const handleLogoutClick = () => {
+		setMenuOpen(false);
+		setShowLogoutModal(true);
+	};
+
+	const confirmLogout = () => {
+		setShowLogoutModal(false);
+		logout();
+		navigate('/');
+	};
+
+	const cancelLogout = () => {
+		setShowLogoutModal(false);
+	};
 
 	React.useEffect(() => {
 		const onDocClick = () => setMenuOpen(false);
@@ -30,7 +47,17 @@ const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ showSearch, searchV
 		return () => document.removeEventListener('click', onDocClick);
 	}, [menuOpen]);
 
-	const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+	// Listen for global \"open-cart-drawer\" events so other pages (like product detail)
+	// can trigger the cart drawer to open.
+	React.useEffect(() => {
+		const handler = () => setCartOpen(true);
+		window.addEventListener('open-cart-drawer', handler);
+		return () => window.removeEventListener('open-cart-drawer', handler);
+	}, []);
+
+	// Get all cart items (both authenticated and guest)
+	const displayItems = isGuest ? guestItems : items;
+	const totalItems = displayItems.reduce((sum, item) => sum + item.quantity, 0);
 
 	return (
 		<>
@@ -143,8 +170,9 @@ const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ showSearch, searchV
 													<button
 														type="button"
 														className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
-														onClick={() => { setMenuOpen(false); logout(); }}
+														onClick={handleLogoutClick}
 													>
+														<FiLogOut className="w-4 h-4" />
 														Logout
 													</button>
 												</div>
@@ -200,6 +228,52 @@ const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ showSearch, searchV
 				</div>
 			</header>
 			<CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+
+			{/* Logout Confirmation Modal */}
+			<AnimatePresence>
+				{showLogoutModal && (
+					<motion.div
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
+						onClick={cancelLogout}
+					>
+						<motion.div
+							initial={{ opacity: 0, scale: 0.95 }}
+							animate={{ opacity: 1, scale: 1 }}
+							exit={{ opacity: 0, scale: 0.95 }}
+							transition={{ duration: 0.2 }}
+							className="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden"
+							onClick={(e) => e.stopPropagation()}
+						>
+							<div className="p-6 text-center">
+								<div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+									<FiLogOut className="w-7 h-7 text-red-600" />
+								</div>
+								<h3 className="text-lg font-semibold text-gray-900 mb-2">Logout</h3>
+								<p className="text-sm text-gray-500 mb-6">
+									Are you sure you want to logout from your account?
+								</p>
+								<div className="flex gap-3">
+									<button
+										onClick={cancelLogout}
+										className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+									>
+										Cancel
+									</button>
+									<button
+										onClick={confirmLogout}
+										className="flex-1 px-4 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+									>
+										Yes, Logout
+									</button>
+								</div>
+							</div>
+						</motion.div>
+					</motion.div>
+				)}
+			</AnimatePresence>
 		</>
 	);
 };
