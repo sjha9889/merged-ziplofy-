@@ -69,6 +69,26 @@ const PRESERVE_TEXT_COLOR_CSS = `
   }
 `;
 
+/* Editor-only: hide non-active slider slides to prevent overlapping text (slider JS doesn't run in iframe) */
+const SLIDER_FIX_CSS = `
+  .swiper-slide:not(:first-child),
+  .slick-slide:not(:first-child),
+  .carousel-item:not(:first-child):not(.active),
+  .slide:not(:first-child):not(.active),
+  .hero-slide:not(:first-child),
+  .slideshow__slide:not(:first-child),
+  .hero__slide:not(:first-child),
+  .splide__slide:not(:first-child),
+  [class*="swiper-wrapper"] > *:not(:first-child),
+  [class*="slick-track"] > *:not(:first-child),
+  [class*="swiper"] [class*="slide"]:not(:first-of-type),
+  [class*="slick"] [class*="slide"]:not(:first-of-type),
+  .owl-item:not(:first-child) {
+    display: none !important;
+    visibility: hidden !important;
+  }
+`;
+
 // Mount point for StyleManager - memoized so React won't clear manually-appended DOM
 const StylePanelMountPoint = React.memo(() => (
   <div
@@ -824,7 +844,7 @@ const BasicElementor: React.FC = () => {
           }
           
           // Remove existing theme styles and our preserve-color style
-          const existingStyles = head.querySelectorAll('#ziplofy-theme-styles, #ziplofy-preserve-text-color, style[data-ziplofy-theme], link[data-ziplofy-theme]');
+          const existingStyles = head.querySelectorAll('#ziplofy-theme-styles, #ziplofy-preserve-text-color, #ziplofy-slider-fix, style[data-ziplofy-theme], link[data-ziplofy-theme]');
           existingStyles.forEach((style: Element) => style.remove());
           
           // Inject preserve-text-color CSS first (so theme can override if needed, but we override GrapesJS black)
@@ -833,6 +853,11 @@ const BasicElementor: React.FC = () => {
           preserveEl.setAttribute('data-ziplofy-basic-elementor', 'true');
           preserveEl.textContent = PRESERVE_TEXT_COLOR_CSS;
           head.appendChild(preserveEl);
+          const sliderFixEl = doc.createElement('style');
+          sliderFixEl.id = 'ziplofy-slider-fix';
+          sliderFixEl.setAttribute('data-ziplofy-theme', 'true');
+          sliderFixEl.textContent = SLIDER_FIX_CSS;
+          head.appendChild(sliderFixEl);
           
           // Inject inline CSS from <style> tags
           if (cssContent.trim()) {
@@ -2148,7 +2173,7 @@ const BasicElementor: React.FC = () => {
             
             if (head) {
               // Remove existing theme styles
-              const existingStyles = head.querySelectorAll('#ziplofy-theme-styles, style[data-ziplofy-theme]');
+              const existingStyles = head.querySelectorAll('#ziplofy-theme-styles, #ziplofy-preserve-text-color, #ziplofy-slider-fix, style[data-ziplofy-theme]');
               existingStyles.forEach((style: Element) => style.remove());
               
               // Re-inject preserve-text-color (persists across page switch)
@@ -2157,6 +2182,11 @@ const BasicElementor: React.FC = () => {
               preserveEl.setAttribute('data-ziplofy-basic-elementor', 'true');
               preserveEl.textContent = PRESERVE_TEXT_COLOR_CSS;
               head.appendChild(preserveEl);
+              const sliderFixEl = doc.createElement('style');
+              sliderFixEl.id = 'ziplofy-slider-fix';
+              sliderFixEl.setAttribute('data-ziplofy-theme', 'true');
+              sliderFixEl.textContent = SLIDER_FIX_CSS;
+              head.appendChild(sliderFixEl);
               
               // Inject page CSS
               const styleEl = doc.createElement('style');
@@ -2784,10 +2814,13 @@ const BasicElementor: React.FC = () => {
           if (frame && frame.contentDocument) {
             const doc = frame.contentDocument;
             
-            // Extract all <style> tags (including injected ones)
+            // Extract all <style> tags (excluding editor-only: ziplofy-preserve-text-color, ziplofy-slider-fix)
             const styles = doc.querySelectorAll('style');
             const styleTagCss: string[] = [];
+            const EDITOR_ONLY_IDS = ['ziplofy-preserve-text-color', 'ziplofy-slider-fix'];
             styles.forEach((style: Element) => {
+              const id = (style as HTMLElement).id;
+              if (EDITOR_ONLY_IDS.includes(id || '')) return;
               if (style.textContent && style.textContent.trim()) {
                 styleTagCss.push(style.textContent);
               }
@@ -3307,10 +3340,13 @@ const BasicElementor: React.FC = () => {
           if (frame && frame.contentDocument) {
             const doc = frame.contentDocument;
             
-            // Extract all <style> tags
+            // Extract all <style> tags (excluding editor-only: ziplofy-preserve-text-color, ziplofy-slider-fix)
             const styles = doc.querySelectorAll('style');
             const styleTagCss: string[] = [];
+            const EDITOR_ONLY_IDS = ['ziplofy-preserve-text-color', 'ziplofy-slider-fix'];
             styles.forEach((style: Element) => {
+              const id = (style as HTMLElement).id;
+              if (EDITOR_ONLY_IDS.includes(id || '')) return;
               if (style.textContent && style.textContent.trim()) {
                 styleTagCss.push(style.textContent);
               }

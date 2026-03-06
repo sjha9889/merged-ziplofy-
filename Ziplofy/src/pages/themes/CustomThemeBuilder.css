@@ -232,6 +232,7 @@
   background: var(--builder-bg-sidebar) !important;
   position: relative !important;
   z-index: 0 !important;
+  min-height: 0 !important;
 }
 
 /* White background when style panel is visible */
@@ -385,33 +386,40 @@
 }
 
 .elementor-secondary-panel {
-  border: 1px solid rgba(0, 0, 0, 0.1) !important;
-  border-radius: 14px !important;
+  border: 1px solid var(--builder-border) !important;
+  border-radius: var(--builder-radius) !important;
   background: #ffffff !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+  box-shadow: var(--builder-shadow) !important;
   overflow: hidden !important;
+  margin: 12px 16px !important;
+  flex-shrink: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 120px !important;
 }
 
 .elementor-secondary-title {
-  padding: 14px 18px !important;
+  padding: 12px 16px !important;
   font-size: 11px !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   text-transform: uppercase !important;
-  letter-spacing: 1px !important;
-  color: rgba(0, 0, 0, 0.5) !important;
-  background: rgba(0, 0, 0, 0.02) !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  letter-spacing: 0.5px !important;
+  color: var(--builder-text-muted) !important;
+  background: var(--builder-primary-subtle) !important;
+  border-bottom: 1px solid var(--builder-border) !important;
 }
 
 .elementor-secondary-body {
-  max-height: 220px !important;
+  max-height: 320px !important;
+  min-height: 80px !important;
   overflow-y: auto !important;
   background: transparent !important;
-  padding: 0 !important;
+  padding: 12px 16px !important;
 }
 
 .elementor-style-body {
-  max-height: 320px !important;
+  max-height: 420px !important;
+  min-height: 200px !important;
 }
 
 .elementor-panel-card {
@@ -427,35 +435,52 @@
   opacity: 1 !important;
 }
 
-/* Ensure style/structure panels are hidden by default - controlled by React state */
-/* Removed !important to let React inline styles control visibility */
+/* Ensure all panels are hidden by default - only show when their active class is present */
 .elementor-panel-card[data-panel-type="style"] {
-  display: none;
+  display: none !important;
 }
 
 .elementor-panel-card[data-panel-type="structure"] {
-  display: none;
+  display: none !important;
 }
 
-/* Prevent widgets panel from peeking when structure/style/globals is active */
+.elementor-panel-card[data-panel-type="links"] {
+  display: none !important;
+}
+
+.elementor-panel-card[data-panel-type="style"].style-panel-active {
+  display: flex !important;
+}
+
+.elementor-panel-card[data-panel-type="structure"].structure-panel-active {
+  display: flex !important;
+}
+
+.elementor-panel-card[data-panel-type="links"].links-panel-active {
+  display: flex !important;
+}
+
+/* Widgets tab: blocks get flex space, fill available height */
 .elementor-left-scroll .elementor-blocks-wrapper:not(.elementor-globals-placeholder) {
-  flex: 0 0 auto !important;
-  min-height: 0 !important;
+  flex: 1 1 auto !important;
+  min-height: 200px !important;
+  max-height: none !important;
+  overflow-y: auto !important;
 }
 
-.elementor-panel-card[data-panel-type="structure"] {
+.elementor-panel-card[data-panel-type="structure"],
+.elementor-panel-card[data-panel-type="style"] {
   flex: 1 !important;
   min-height: 0 !important;
   position: relative !important;
   z-index: 2 !important;
+}
+
+.elementor-panel-card[data-panel-type="structure"] {
   background: transparent !important;
 }
 
 .elementor-panel-card[data-panel-type="style"] {
-  flex: 1 !important;
-  min-height: 0 !important;
-  position: relative !important;
-  z-index: 2 !important;
   background: #ffffff !important;
 }
 
@@ -500,25 +525,262 @@
 }
 
 .elementor-panel-card-body::-webkit-scrollbar {
-  width: 5px !important;
-  background: #ffffff !important;
+  width: 6px !important;
 }
 
 .elementor-panel-card-body::-webkit-scrollbar-track {
-  background: #ffffff !important;
+  background: var(--builder-bg-sidebar) !important;
+  border-radius: 3px !important;
 }
 
 .elementor-panel-card-body::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15) !important;
+  background: var(--builder-border-strong) !important;
   border-radius: 3px !important;
 }
 
 .elementor-panel-card-body::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25) !important;
+  background: var(--builder-primary) !important;
 }
 
 #layers-panel.elementor-panel-card-body {
   padding: 0 !important;
+}
+
+/* ========== Link & Navigation Panel - Aesthetic UI ========== */
+/* Do NOT use display:flex !important - inline style controls visibility per tab */
+.elementor-links-panel {
+  flex: 1 !important;
+  min-height: 0 !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.elementor-links-panel .elementor-panel-card-title::before {
+  content: '🔗' !important;
+  font-size: 14px !important;
+  margin-right: 6px !important;
+  opacity: 0.9 !important;
+}
+
+.elementor-links-panel .elementor-panel-card-body {
+  padding: 20px 18px !important;
+  padding-bottom: 24px !important;
+  background: linear-gradient(180deg, var(--builder-bg-light) 0%, #ffffff 24px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  min-height: 0 !important;
+  flex: 1 !important;
+  max-height: none !important;
+}
+
+.links-panel-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 20px;
+  min-height: 200px;
+  background: linear-gradient(145deg, var(--builder-primary-subtle) 0%, transparent 60%);
+  border-radius: var(--builder-radius);
+  border: 1px dashed var(--builder-border-strong);
+}
+
+.links-panel-empty-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--builder-primary-muted);
+  color: var(--builder-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 12px rgba(139, 92, 246, 0.15);
+}
+
+.links-panel-empty-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--builder-text);
+  margin: 0 0 6px 0;
+  letter-spacing: -0.01em;
+}
+
+.links-panel-empty-desc {
+  font-size: 12px;
+  color: var(--builder-text-muted);
+  margin: 0;
+  line-height: 1.45;
+  max-width: 220px;
+}
+
+.links-panel-section {
+  background: #ffffff;
+  border-radius: var(--builder-radius);
+  border: 1px solid var(--builder-border);
+  box-shadow: var(--builder-shadow);
+  padding: 18px;
+  margin-bottom: 14px;
+}
+
+.links-panel-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.links-panel-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--builder-border);
+}
+
+.links-panel-section-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: var(--builder-gradient);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.links-panel-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--builder-text);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.links-panel-section-subtitle {
+  font-size: 11px;
+  color: var(--builder-text-muted);
+  margin: 4px 0 0 0;
+  line-height: 1.4;
+}
+
+.links-panel-field {
+  margin-bottom: 14px;
+}
+
+.links-panel-field:last-of-type {
+  margin-bottom: 0;
+}
+
+.links-panel-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--builder-text-muted);
+  margin-bottom: 6px;
+}
+
+.links-panel-select,
+.links-panel-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 13px;
+  border: 1px solid var(--builder-border-strong);
+  border-radius: var(--builder-radius-sm);
+  background: #ffffff;
+  color: var(--builder-text);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: inherit;
+}
+
+.links-panel-select:focus,
+.links-panel-input:focus {
+  outline: none;
+  border-color: var(--builder-primary);
+  box-shadow: 0 0 0 3px var(--builder-primary-subtle);
+}
+
+.links-panel-select:hover,
+.links-panel-input:hover {
+  border-color: rgba(139, 92, 246, 0.35);
+}
+
+.links-panel-input::placeholder {
+  color: var(--builder-text-muted);
+  opacity: 0.7;
+}
+
+.links-panel-btn-primary {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--builder-radius-sm);
+  background: var(--builder-gradient);
+  color: #fff;
+  cursor: pointer;
+  margin-top: 16px;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.35);
+  letter-spacing: 0.02em;
+}
+
+.links-panel-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+}
+
+.links-panel-btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.links-panel-btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.links-panel-type-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.links-panel-type-tab {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--builder-border-strong);
+  border-radius: var(--builder-radius-sm);
+  background: #ffffff;
+  color: var(--builder-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.links-panel-type-tab:hover {
+  border-color: var(--builder-primary);
+  color: var(--builder-primary);
+  background: var(--builder-primary-subtle);
+}
+
+.links-panel-type-tab.active {
+  border-color: var(--builder-primary);
+  background: var(--builder-primary-subtle);
+  color: var(--builder-primary);
 }
 
 .elementor-search-widget {
@@ -1022,15 +1284,15 @@
   margin-right: auto !important;
 }
 
-/* Canvas wrapper and view - full height */
+/* Canvas wrapper and view - center frame for responsive device preview */
 .gjs-cv-canvas-wrapper,
 .gjs-cv-canvas-view {
   display: flex !important;
-  justify-content: flex-start !important;
+  justify-content: center !important;
   align-items: flex-start !important;
   width: 100% !important;
   height: 100% !important;
-  min-height: 75vh !important; /* vh ensures height when parent % fails */
+  min-height: 75vh !important;
   margin: 0 !important;
   left: auto !important;
   right: auto !important;
@@ -1038,36 +1300,24 @@
   margin-right: 0 !important;
 }
 
-/* Frame - full height so theme fills screen */
+/* Frame - desktop 100% width; tablet/mobile override via GrapesJS inline (no !important on width) */
 .gjs-frame {
   border: 1px solid var(--builder-border) !important;
   box-shadow: var(--builder-shadow) !important;
   background: #fff !important;
   border-radius: var(--builder-radius) !important;
   overflow: auto !important;
-  width: 100% !important;
-  min-width: 100% !important;
+  width: 100%;
+  min-width: 100%;
   height: 100% !important;
-  min-height: 75vh !important; /* vh bypasses GrapesJS parent height issues */
-  max-width: 100% !important;
-  margin: 0 !important;
+  min-height: 75vh !important;
+  max-width: 100%;
+  margin: 0 auto !important;
   left: auto !important;
   right: auto !important;
   position: relative !important;
   z-index: 1 !important;
-  pointer-events: auto !important; /* Required for block drag & drop target */
-}
-
-
-/* Override GrapesJS inline styles that push frame to the right on tablet/mobile */
-.gjs-frame[style*="left"],
-.gjs-frame[style*="right"],
-.gjs-frame[style*="margin-left"],
-.gjs-frame[style*="margin-right"] {
-  left: auto !important;
-  right: auto !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
+  pointer-events: auto !important;
 }
 
 /* Canvas Header */
@@ -1304,9 +1554,10 @@
   visibility: visible !important;
   opacity: 1 !important;
   background: #ffffff !important;
-  max-height: 250px !important;
+  max-height: 280px !important;
+  min-height: 60px !important;
   overflow-y: auto !important;
-  border-top: 1px solid rgba(0, 0, 0, 0.1) !important;
+  padding: 8px 0 !important;
 }
 
 .gjs-trt-trait,
@@ -1319,7 +1570,7 @@
 .gjs-trt-trait__label,
 #traits-panel .gjs-trt-trait__label,
 #traits-panel label {
-  color: rgba(0, 0, 0, 0.5) !important;
+  color: var(--builder-text-muted) !important;
   font-size: 11px !important;
   font-weight: 600 !important;
   margin-bottom: 6px !important;
@@ -1331,28 +1582,27 @@
 .gjs-trt-trait__field,
 #traits-panel .gjs-trt-trait__field {
   width: 100% !important;
-  padding: 10px 12px !important;
-  background: #f5f5f5 !important;
-  border: 1px solid #d0d0d0 !important;
-  border-radius: 6px !important;
-  color: #000 !important;
+  padding: 8px 12px !important;
+  background: var(--builder-bg-sidebar) !important;
+  border: 1px solid var(--builder-border) !important;
+  border-radius: var(--builder-radius-sm) !important;
+  color: var(--builder-text) !important;
   font-size: 13px !important;
   font-weight: 500 !important;
   transition: all 0.15s !important;
-  min-height: 40px !important;
+  min-height: 36px !important;
 }
 
 .gjs-trt-trait__field:focus,
 #traits-panel .gjs-trt-trait__field:focus {
   outline: none !important;
-  border-color: #666666 !important;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1) !important;
+  border-color: var(--builder-primary) !important;
+  box-shadow: 0 0 0 2px var(--builder-primary-muted) !important;
 }
 
 .gjs-trt-trait__field:hover,
 #traits-panel .gjs-trt-trait__field:hover {
-  background: #eeeeee !important;
-  border-color: #b0b0b0 !important;
+  border-color: var(--builder-border-strong) !important;
 }
 
 .gjs-trt-trait select.gjs-trt-trait__field,
@@ -3092,30 +3342,62 @@
   position: relative !important;
 }
 
-/* CRITICAL FIX: Ensure iframe shows all content - prevent cutoff */
+/* Frame wrapper - let GrapesJS control width for device preview (tablet=768px, mobile=375px) */
 .gjs-frame-wrapper {
   position: relative !important;
   z-index: 1 !important;
-  width: 100% !important;
   height: 100% !important;
   min-height: 75vh !important;
+  margin: 0 auto !important;
 }
 
-/* CRITICAL: gjs-cv-canvas__frames - use vh so height works (parent % fails with GrapesJS) */
+/* gjs-cv-canvas__frames - full width container, center child frame */
 .gjs-cv-canvas__frames {
   width: 100% !important;
-  min-width: 100% !important;
-  height: 100% !important;
-  min-height: 75vh !important; /* vh = viewport height, bypasses broken parent chain */
-  overflow: auto !important;
-}
-
-/* GrapesJS iframe - full height */
-.gjs-cv-canvas__frames .gjs-frame {
-  width: 100% !important;
-  min-width: 100% !important;
   height: 100% !important;
   min-height: 75vh !important;
+  overflow: auto !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: flex-start !important;
+}
+
+/* GrapesJS iframe - desktop full width; tablet/mobile override via GrapesJS inline (no !important on width) */
+.gjs-cv-canvas__frames .gjs-frame {
+  width: 100%;
+  min-width: 100%;
+  height: 100% !important;
+  min-height: 75vh !important;
+  max-width: 100%;
+}
+
+/* Desktop view: force frame to maximum width, fill entire canvas area */
+.builder-main-editor.device-desktop .gjs-frame,
+.builder-main-editor.device-desktop .gjs-frame-wrapper,
+.builder-main-editor.device-desktop .gjs-cv-canvas__frames .gjs-frame,
+.builder-main-editor.device-desktop .gjs-cv-canvas_frames .gjs-frame {
+  width: 100% !important;
+  min-width: 100% !important;
+  max-width: none !important;
+  flex: 1 1 100% !important;
+  align-self: stretch !important;
+}
+
+/* Desktop: don't center - let frame stretch to fill */
+.builder-main-editor.device-desktop .gjs-cv-canvas__frames,
+.builder-main-editor.device-desktop .gjs-cv-canvas_frames {
+  width: 100% !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+}
+
+.builder-main-editor.device-desktop .gjs-cv-canvas,
+.builder-main-editor.device-desktop .gjs-cv-canvas-wrapper,
+.builder-main-editor.device-desktop .gjs-cv-canvas-view {
+  width: 100% !important;
+  flex: 1 !important;
 }
 
 /* Ensure canvas wrapper has proper dimensions */
@@ -3136,4 +3418,17 @@
 .gjs-comp-hover {
   outline: 1px dashed var(--builder-primary) !important;
   outline-offset: 1px !important;
+}
+
+/* Component toolbar (arrow, move, plus, copy, trash) - show near selected element, make clickable, prevent clipping */
+.gjs-cv-canvas__spots {
+  overflow: visible !important;
+  pointer-events: none !important; /* Container passes through; toolbar has auto below */
+}
+.gjs-toolbar {
+  pointer-events: auto !important; /* Toolbar must be clickable (parent spots has pointer-events:none) */
+  z-index: 1000 !important;       /* Above highlighter and frame content */
+}
+.gjs-cv-canvas {
+  overflow: visible !important;   /* Don't clip toolbar when it positions above selected element */
 }
