@@ -154,7 +154,7 @@ const CustomerAccountsAuthenticationPage: React.FC = () => {
 
             <div className="flex items-center justify-between p-3 border border-gray-200">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-purple-600 flex items-center justify-center">
+                <div className="w-8 h-8 bg-purple-400 flex items-center justify-center">
                   <div
                     className={`w-4 h-4 border-2 border-white border-t-transparent border-r-transparent rounded-full ${
                       shopEnabled ? 'animate-spin' : ''

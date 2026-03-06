@@ -4,19 +4,20 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   themeId: string;
+  isCustomTheme?: boolean;
 }
 
-const ThemeEditChoiceModal: React.FC<Props> = ({ isOpen, onClose, themeId }) => {
+const ThemeEditChoiceModal: React.FC<Props> = ({ isOpen, onClose, themeId, isCustomTheme = false }) => {
   if (!isOpen) return null;
 
   const handleEditLayout = () => {
-    // Get access token from localStorage to pass to builder
     const accessToken = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
     const storeId = localStorage.getItem('storeId') || sessionStorage.getItem('storeId');
     
-    // Add type=installed to indicate this is an installed theme (not custom)
-    // This prevents the 404 error from trying custom theme endpoint first
-    let builderUrl = `/themes/builder?id=${encodeURIComponent(themeId)}&type=installed`;
+    // Custom themes: use id param (no type=installed). Installed themes: use type=installed
+    let builderUrl = isCustomTheme
+      ? `/themes/builder?id=${encodeURIComponent(themeId)}`
+      : `/themes/builder?id=${encodeURIComponent(themeId)}&type=installed`;
     if (accessToken) {
       builderUrl += `&accessToken=${encodeURIComponent(accessToken)}`;
     }
@@ -34,11 +35,13 @@ const ThemeEditChoiceModal: React.FC<Props> = ({ isOpen, onClose, themeId }) => 
   };
 
   const handleEditBasicElementor = () => {
-    // Get access token from localStorage to pass to builder
     const accessToken = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
     const storeId = localStorage.getItem('storeId') || sessionStorage.getItem('storeId');
     
-    let builderUrl = `/themes/basic-elementor?id=${encodeURIComponent(themeId)}&type=installed`;
+    // Custom themes: use id param (no type=installed). Installed themes: use type=installed
+    let builderUrl = isCustomTheme
+      ? `/themes/basic-elementor?id=${encodeURIComponent(themeId)}`
+      : `/themes/basic-elementor?id=${encodeURIComponent(themeId)}&type=installed`;
     if (accessToken) {
       builderUrl += `&accessToken=${encodeURIComponent(accessToken)}`;
     }
