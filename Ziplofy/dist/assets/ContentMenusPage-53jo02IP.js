@@ -1,1 +1,0 @@
-import{j as r}from"./index-CMwzRAe0.js";import{G as e}from"./GridBackgroundWrapper-Dt9gWd_T.js";const o=()=>r.jsx(e,{children:r.jsx("div",{children:"ContentMenusPage"})});export{o as ContentMenusPage};

@@ -1,1 +1,0 @@
-import{j as t}from"./index-CMwzRAe0.js";import r from"./SettingsPlaceholder-MMJjjvWC.js";import"./Box-cupV16E6.js";import"./DefaultPropsProvider-BiBhsdqK.js";import"./Paper-2fLe_Vba.js";const n=()=>t.jsx(r,{title:"General"});export{n as default};
