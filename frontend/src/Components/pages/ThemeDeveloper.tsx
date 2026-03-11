@@ -201,6 +201,21 @@ const ThemeDeveloper: React.FC = () => {
     }
   }, [canView]);
 
+  // Close upload modal on Escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isUploadOpen) setIsUploadOpen(false);
+    };
+    if (isUploadOpen) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = '';
+    };
+  }, [isUploadOpen]);
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -751,7 +766,7 @@ const ThemeDeveloper: React.FC = () => {
           <table className="theme-table">
             <thead>
               <tr>
-                <th style={{ width: 72 }}>Preview</th>
+                <th style={{ width: 88 }}>Preview</th>
                 <th>Theme Name</th>
                 <th>Category</th>
                 <th>Upload Date</th>
@@ -865,8 +880,14 @@ const ThemeDeveloper: React.FC = () => {
 
       {/* Upload Sidebar */}
       {isUploadOpen && (
-        <div className="themeUpload-overlay">
-          <div className="themeUpload-sidebar">
+        <div 
+          className="themeUpload-overlay"
+          onClick={() => setIsUploadOpen(false)}
+        >
+          <div 
+            className="themeUpload-sidebar"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="themeUpload-header">
               <h2>Upload Theme</h2>
               <button className="themeUpload-close" onClick={() => setIsUploadOpen(false)}>
@@ -905,7 +926,8 @@ const ThemeDeveloper: React.FC = () => {
                 value={uploadForm.description}
                 onChange={handleInputChange}
                 placeholder="Enter theme description"
-                rows={3}
+                rows={6}
+                className="themeUpload-description"
               />
 
               <label>Category *</label>

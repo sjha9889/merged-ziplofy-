@@ -332,6 +332,7 @@ const AdminApp: React.FC = () => {
             <Route path="/content/menus" element={<ContentMenusPage />} />
             <Route path="/content/metaobjects" element={<ContentMetaObjectsPage />} />
             <Route path="/online-store" element={<OnlineStorePage />} />
+            <Route path="/online-store/themes" element={<AllThemes />} />
             <Route path="/online-store/preference" element={<OnlineStorePreferencePage />} />
             <Route path="/markets" element={<MarketsPage />} />
             <Route path="/markets/new" element={<MarketsNewPage />} />

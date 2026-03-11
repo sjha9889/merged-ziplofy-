@@ -26,7 +26,7 @@ const roleSchema = new mongoose.Schema({
   isSuperAdmin: Boolean,
   createdAt: Date,
   updatedAt: Date,
-}, { versionKey: false });
+  }, { versionKey: false });
 
 const Role = mongoose.model('Role', roleSchema);
 

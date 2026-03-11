@@ -1,5 +1,4 @@
 import {
-  Download as DownloadIcon,
   Visibility as EyeIcon,
   FilterList as FilterIcon,
   GridView as GridIcon,
@@ -9,8 +8,10 @@ import {
   Delete as DeleteIcon,
   MoreVert as MoreVertIcon,
   Image as ImageIcon,
+  Add as AddIcon,
 } from "@mui/icons-material";
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useThemes } from "../../contexts/themes.context";
 import { useInstalledThemes } from "../../contexts/installed-themes.context";
 import { useStore } from "../../contexts/store.context";
@@ -454,67 +455,83 @@ const AllThemes: React.FC = () => {
       (theme.description || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const totalCount = installedThemes.length + customThemes.length + themes.length;
+  const showingCount = installedThemes.length + customThemes.length + filteredThemes.length;
+
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
-        {/* Header Section */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-gray-900">Themes</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Discover professionally designed themes to make your store stand out
-          </p>
-        </div>
-
-        {/* Controls Section */}
-        <div className="bg-white rounded-xl border border-gray-200/80 p-4 shadow-sm mb-6">
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-            <div className="relative flex-1 w-full sm:w-auto">
-              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search themes..."
-                className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+    <div className="themes-page">
+      <div className="themes-page-inner">
+        {/* Header with Stats */}
+        <div className="themes-page-header">
+          <div className="themes-page-header-main">
+            <div className="themes-page-title-block">
+              <div className="themes-page-title-accent" />
+              <div>
+                <h1 className="themes-page-title">Theme Library</h1>
+                <p className="themes-page-subtitle">
+                  Manage and customize your store themes
+                </p>
+              </div>
             </div>
-
-            <div className="flex items-center gap-3">
-              <button className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <FilterIcon fontSize="small" />
-                <span>Filter</span>
-              </button>
-
-              <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                <button
-                  className={`p-2 transition-colors ${
-                    viewMode === "grid"
-                      ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-600 hover:bg-gray-50"
-                  }`}
-                  onClick={() => setViewMode("grid")}
-                >
-                  <GridIcon fontSize="small" />
-                </button>
-                <button
-                  className={`p-2 transition-colors ${
-                    viewMode === "list"
-                      ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-600 hover:bg-gray-50"
-                  }`}
-                  onClick={() => setViewMode("list")}
-                >
-                  <ListIcon fontSize="small" />
-                </button>
+            <div className="themes-page-stats">
+              <div className="themes-stat-card">
+                <GridIcon className="themes-stat-icon" />
+                <div>
+                  <span className="themes-stat-value">{totalCount}</span>
+                  <span className="themes-stat-label">TOTAL THEMES</span>
+                </div>
+              </div>
+              <div className="themes-stat-card">
+                <FilterIcon className="themes-stat-icon" style={{ transform: 'rotate(90deg)' }} />
+                <div>
+                  <span className="themes-stat-value">{showingCount}</span>
+                  <span className="themes-stat-label">SHOWING</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
+        {/* Controls Bar */}
+        <div className="themes-controls-bar">
+          <div className="themes-search-wrap">
+            <SearchIcon className="themes-search-icon" />
+            <input
+              type="text"
+              placeholder="Search Theme"
+              className="themes-search-input"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <button className="themes-filter-btn">
+            <FilterIcon fontSize="small" />
+            <span>Filter</span>
+          </button>
+          <div className="themes-view-toggle">
+            <button
+              className={`themes-view-btn ${viewMode === "grid" ? "active" : ""}`}
+              onClick={() => setViewMode("grid")}
+            >
+              <GridIcon fontSize="small" />
+            </button>
+            <button
+              className={`themes-view-btn ${viewMode === "list" ? "active" : ""}`}
+              onClick={() => setViewMode("list")}
+            >
+              <ListIcon fontSize="small" />
+            </button>
+          </div>
+          <Link to="/themes/builder" className="themes-create-btn">
+            <AddIcon fontSize="small" />
+            <span>Create your own</span>
+          </Link>
+        </div>
+
         {/* Installed Themes - Section 1 */}
         {Array.isArray(installedThemes) && installedThemes.length > 0 && (
           <React.Fragment>
-            <h2 className="text-base font-semibold text-gray-900 mb-4">Installed themes</h2>
+            <h2 className="themes-section-title" style={{ marginBottom: 16 }}>Installed themes</h2>
           <div className={`themes-layout ${viewMode} themes-section-body`}>
             {installedThemes.map((it: any) => {
               const t = it; // The theme data is directly in it, not nested under themeId
@@ -553,20 +570,22 @@ const AllThemes: React.FC = () => {
                 <div className="theme-info">
                   <div className="theme-header-info">
                     <h3 className="theme-name">{t.name}</h3>
-                    <div className="theme-rating">
-                      <div className="stars">
-                        {[...Array(5)].map((_, i) => (
-                          <StarIcon key={i} fontSize="inherit" className="star filled" />
-                        ))}
+                    {(t as any).rating?.average > 0 && (
+                      <div className="theme-rating">
+                        <div className="stars">
+                          {[...Array(5)].map((_, i) => (
+                            <StarIcon key={i} fontSize="inherit" className="star filled" />
+                          ))}
+                        </div>
+                        <span className="rating-text">{Number((t as any).rating?.average).toFixed(1)}</span>
                       </div>
-                      <span className="rating-text">{Number((t as any).rating?.average || 0).toFixed(1)}</span>
-                    </div>
+                    )}
                   </div>
 
                   {t.description && <p className="theme-description">{t.description}</p>}
 
                   <div className="theme-meta">
-                    <span className="theme-category">{t.category}</span>
+                    {t.category && <span className="theme-category">{t.category}</span>}
                     <span className="theme-price">Free</span>
                   </div>
 
@@ -626,7 +645,7 @@ const AllThemes: React.FC = () => {
         {recentInstallations.length > 0 && (
           <React.Fragment>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-gray-900">Recently Installed</h2>
+              <h2 className="themes-section-title">Recently Installed</h2>
               <div className="flex items-center gap-3">
                 {selectionMode && (
                   <button
@@ -719,14 +738,6 @@ const AllThemes: React.FC = () => {
                   <div className="theme-info">
                     <div className="theme-header-info">
                       <h3 className="theme-name">{rt.name}</h3>
-                      <div className="theme-rating">
-                        <div className="stars">
-                          {[...Array(5)].map((_, i) => (
-                            <StarIcon key={i} fontSize="inherit" className="star filled" />
-                          ))}
-                        </div>
-                        <span className="rating-text">0.0</span>
-                      </div>
                     </div>
 
                     {rt.description && <p className="theme-description">{rt.description}</p>}
@@ -735,7 +746,6 @@ const AllThemes: React.FC = () => {
                       <span className="theme-category">{rt.category || 'Custom'}</span>
                       <span className="theme-price">Free</span>
                     </div>
-
                   </div>
                 </div>
               );
@@ -744,22 +754,15 @@ const AllThemes: React.FC = () => {
         </React.Fragment>
       )}
 
-      {/* Your Creations (Custom Themes) - Section 3 */}
-      <div className="themes-section-actions">
-        <h2 className="themes-section-title themes-section-title--inline">Your creations</h2>
-        <button
-          onClick={() => window.open('/themes/builder', '_blank', 'noopener,noreferrer')}
-          className="themes-btn-primary"
-        >
-          <span>✨</span>
-          <span>Create your Own</span>
-        </button>
+      {/* Your Creations - Section Header */}
+      <div className="themes-section-divider">
+        <h2 className="themes-section-title">Your creations</h2>
       </div>
 
         {/* Custom Themes (saved locally) */}
         {customThemes.length > 0 && (
           <React.Fragment>
-            <h2 className="text-base font-semibold text-gray-900 mb-4 mt-6">Custom Themes</h2>
+            <h2 className="themes-section-title" style={{ marginBottom: 16, marginTop: 24 }}>Custom Themes</h2>
         <>
           <div className={`themes-layout ${viewMode} themes-section-body`}>
             {customThemes.map((ct) => {
@@ -944,7 +947,7 @@ const AllThemes: React.FC = () => {
         )}
 
         {/* All Themes - Section 4 */}
-        <h2 className="text-base font-semibold text-gray-900 mb-4 mt-6">All themes</h2>
+        <h2 className="themes-section-title" style={{ marginBottom: 16, marginTop: 24 }}>All themes</h2>
       <div className={`themes-layout ${viewMode}`}>
         {themesLoading && (
           <div className="no-results"><div className="no-results-content"><h3>Loading themes...</h3></div></div>
@@ -972,30 +975,28 @@ const AllThemes: React.FC = () => {
                   <EyeIcon fontSize="small" />
                   <span>Preview</span>
                 </button>
-                <button className="overlay-btn download-btn">
-                  <DownloadIcon fontSize="small" />
-                  <span>View Details</span>
-                </button>
               </div>
             </div>
 
             <div className="theme-info">
               <div className="theme-header-info">
                 <h3 className="theme-name">{theme.name}</h3>
-                <div className="theme-rating">
-                  <div className="stars">
-                    {[...Array(5)].map((_, i) => (
-                      <StarIcon key={i} fontSize="inherit" className="star filled" />
-                    ))}
+                {(theme as any).rating?.average > 0 && (
+                  <div className="theme-rating">
+                    <div className="stars">
+                      {[...Array(5)].map((_, i) => (
+                        <StarIcon key={i} fontSize="inherit" className="star filled" />
+                      ))}
+                    </div>
+                    <span className="rating-text">{Number((theme as any).rating?.average).toFixed(1)}</span>
                   </div>
-                  <span className="rating-text">{Number((theme as any).rating?.average || 0).toFixed(1)}</span>
-                </div>
+                )}
               </div>
 
               {theme.description && <p className="theme-description">{theme.description}</p>}
 
               <div className="theme-meta">
-                <span className="theme-category">{theme.category}</span>
+                {theme.category && <span className="theme-category">{theme.category}</span>}
                 <span className="theme-price">Free</span>
               </div>
 

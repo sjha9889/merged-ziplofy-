@@ -5,25 +5,6 @@ import { useStore } from '../../contexts/store.context';
 import ElementorTutorial from '../../components/ElementorTutorial';
 import html2canvas from 'html2canvas';
 import { safeLocalStorage } from '../../types/local-storage';
-import {
-  ANIMATION_KEYFRAMES_CSS,
-  cleanupCssGradients,
-  isContentCssNotHtml,
-  preprocessHtmlForSelectability,
-  PRESERVE_TEXT_COLOR_CSS,
-  SELECTION_HIGHLIGHT_BASIC_CSS,
-  stripGrapesJSCanvasCss,
-} from './visualElementorThemeUtils';
-import { injectThemeStylesIntoFrame, scheduleThemeStyleInjection } from './visualElementorStyleInjection';
-import { runExpandAndConfigureSelectability } from './visualElementorEditorSetup';
-import { loadThemeContentIntoEditor } from './visualElementorThemeLoader';
-import {
-  syncStylePanelWithSelection,
-  setupStyleChangeHandlers,
-  onComponentDeselected as stylePanelOnDeselected,
-  onComponentSelected as stylePanelOnSelected,
-  isDefaultBlackColor,
-} from './visualElementorStylePanel';
 import './CustomThemeBuilder.css';
 
 const CustomThemeBuilder: React.FC = () => {
@@ -34,7 +15,6 @@ const CustomThemeBuilder: React.FC = () => {
   const rootContainerRef = useRef<HTMLDivElement | null>(null);
   const editorInstance = useRef<any>(null);
   const blocksRenderedRef = useRef<boolean>(false); // Track if blocks have been rendered
-  const isApplyingThemeRef = useRef<boolean>(false); // Suppress style-tab switch during theme load
   const [loading, setLoading] = useState<boolean>(true);
   const [canUndo, setCanUndo] = useState<boolean>(false);
   const [canRedo, setCanRedo] = useState<boolean>(false);
@@ -45,24 +25,17 @@ const CustomThemeBuilder: React.FC = () => {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
   const [isPublished, setIsPublished] = useState<boolean>(false);
   const [blockSearch, setBlockSearch] = useState<string>('');
-  const [widgetSearchHasResults, setWidgetSearchHasResults] = useState<boolean>(true);
   const [currentDevice, setCurrentDevice] = useState<string>('desktop');
   const [showTutorial, setShowTutorial] = useState<boolean>(false);
   const [showPreviewModal, setShowPreviewModal] = useState<boolean>(false);
   const [previewHtml, setPreviewHtml] = useState<string>('');
-  const previewBlobUrlRef = useRef<string | null>(null);
-  const [activeSidebarSection, setActiveSidebarSection] = useState<'widgets' | 'links' | 'structure' | 'style'>('widgets');
+  const [activeSidebarSection, setActiveSidebarSection] = useState<'widgets' | 'globals' | 'structure' | 'style'>('widgets');
   const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] = useState<boolean>(false);
   const [showGridOverlay, setShowGridOverlay] = useState<boolean>(false);
   const [showGlobalSearch, setShowGlobalSearch] = useState<boolean>(false);
   const [globalSearchQuery, setGlobalSearchQuery] = useState<string>('');
   const [showLinkManager, setShowLinkManager] = useState<boolean>(false);
   const [linkManagerLinks, setLinkManagerLinks] = useState<Array<{ id: string; type: string; text: string; href?: string; pageLink?: string; component: any }>>([]);
-  const [showAddLinkPanel, setShowAddLinkPanel] = useState<boolean>(false);
-  const [addLinkType, setAddLinkType] = useState<'page' | 'url'>('page');
-  const [addLinkPageId, setAddLinkPageId] = useState<string>('');
-  const [addLinkUrl, setAddLinkUrl] = useState<string>('');
-  const [linkPanelIsEditing, setLinkPanelIsEditing] = useState<boolean>(false); // true when editing existing link/button
   const [showNotes, setShowNotes] = useState<boolean>(false);
   const [notes, setNotes] = useState<Array<{ id: string; content: string; createdAt: number }>>([]);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
@@ -90,25 +63,11 @@ const CustomThemeBuilder: React.FC = () => {
     name: string;
     html: string;
     css: string;
-    /** Inline CSS from <style> tags only - used for injection when stylesheetUrls present (matches Basic Elementor) */
-    inlineCss?: string;
-    /** Absolute URLs to stylesheets - link tags (matches Basic Elementor) */
-    stylesheetUrls?: string[];
-    /** Base URL for resolving relative @import in CSS */
-    baseUrl?: string;
   }
 
+  // Blank canvas - empty droppable container, no pre-loaded section or placeholders
   const DEFAULT_PAGE_CONTENT =
-    '<section style="padding: 60px 20px; min-height: 400px; background: #ffffff; position: relative; border: 2px dashed #d1d5db; border-radius: 4px; max-width: 1200px; margin: 60px auto;">' +
-    '<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 12px; color: #6b7280; font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Arial,sans-serif;">' +
-    '<div style="display: flex; gap: 12px; align-items: center;">' +
-    '<span style="width: 40px; height: 40px; border-radius: 50%; background: #1e1e1e; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 18px;">+</span>' +
-    '<span style="width: 40px; height: 40px; border-radius: 50%; background: #1e1e1e; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 18px;">📁</span>' +
-    '<span style="width: 40px; height: 40px; border-radius: 50%; background: #93003c; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 18px;">⋮</span>' +
-    '</div>' +
-    '<div style="font-size: 13px; font-weight: 500;">Drag widget here</div>' +
-    '</div>' +
-    '</section>';
+    '<div data-gjs-droppable="*" data-gjs-selectable="true" style="min-height: 100%; min-width: 100%;"></div>';
 
   const sanitizeExternalHref = (value: string): string => {
     if (!value) return '';
@@ -386,7 +345,7 @@ const CustomThemeBuilder: React.FC = () => {
     return headers;
   };
 
-  const fetchInstalledThemeFromFiles = async (force: boolean = false): Promise<{ html: string; css?: string; inlineCss?: string; name?: string; pages?: Page[]; stylesheetUrls?: string[]; baseUrl?: string } | null> => {
+  const fetchInstalledThemeFromFiles = async (force: boolean = false): Promise<{ html: string; css?: string; name?: string; pages?: Page[] } | null> => {
     console.log('🔍 fetchInstalledThemeFromFiles called:', { shouldLoadInstalledTheme, force, id, isInstalledMode });
     
     if ((!shouldLoadInstalledTheme && !force) || !id) {
@@ -474,17 +433,6 @@ const CustomThemeBuilder: React.FC = () => {
         return null;
       }
       const rawHtml = await response.text();
-      // CRITICAL: Reject if server returned CSS instead of HTML (prevents raw CSS display)
-      const looksLikeCss = (s: string) => {
-        const t = (s || '').trim();
-        return /^(body|html|\*|\.|\#|\@|:root)\s*\{/i.test(t) ||
-          (t.includes('{') && t.includes('}') && /\.gjs-(dashed|selected|wrapper|no-select|freezed|pointer|plh-image)/i.test(t));
-      };
-      if (looksLikeCss(rawHtml)) {
-        console.error('❌ Server returned CSS instead of HTML - rejecting response');
-        setError('Theme file appears corrupted (CSS instead of HTML). Please reinstall the theme.');
-        return null;
-      }
       if (typeof DOMParser === 'undefined') {
         return { html: rawHtml || DEFAULT_PAGE_CONTENT, css: '', name: 'Installed Theme' };
       }
@@ -537,11 +485,7 @@ const CustomThemeBuilder: React.FC = () => {
       doc.querySelectorAll('[style]').forEach((node) => {
         const styleValue = node.getAttribute('style');
         if (!styleValue) return;
-        const rewritten = styleValue.replace(/url\((['"]?)(?!https?:|data:|mailto:|tel:|javascript:|\/\/|linear-gradient|radial-gradient|conic-gradient|repeating-)([^'")]+)\1\)/gi, (_match, quote = '', path) => {
-          // Skip CSS keywords that shouldn't be URLs
-          if (/^(none|initial|inherit|unset|revert|transparent)$/i.test(path.trim())) {
-            return _match;
-          }
+        const rewritten = styleValue.replace(/url\((['"]?)(?!https?:|data:|mailto:|tel:|javascript:|\/\/)([^'")]+)\1\)/gi, (_match, quote = '', path) => {
           const abs = toAbsoluteUrl(path);
           return `url(${quote}${abs}${quote})`;
         });
@@ -578,77 +522,43 @@ const CustomThemeBuilder: React.FC = () => {
         anchor.setAttribute('href', toAbsoluteUrl(href));
       });
 
-      // Extract inline CSS from <style> tags (exact copy from Basic Elementor)
-      const styleRegex = /<style[^>]*>([\s\S]*?)<\/style>/gi;
-      let inlineCssContent = '';
-      let styleMatch;
-      while ((styleMatch = styleRegex.exec(rawHtml)) !== null) {
-        inlineCssContent += styleMatch[1] + '\n';
-      }
-
-      // Extract <link rel="stylesheet"> URLs (exact copy from Basic Elementor - resolve via toAbsoluteUrl)
-      const baseUrlForCss = basePath.endsWith('/') ? basePath : `${basePath}/`;
-      const linkRegex = /<link[^>]*rel\s*=\s*["']stylesheet["'][^>]*>/gi;
-      const stylesheetLinks: string[] = [];
-      let linkMatch;
-      while ((linkMatch = linkRegex.exec(rawHtml)) !== null) {
-        const linkTag = linkMatch[0];
-        const hrefMatch = linkTag.match(/href\s*=\s*["']([^"']+)["']/i);
-        if (hrefMatch && hrefMatch[1]) {
-          let href = hrefMatch[1];
-          if (href.startsWith('./') || href.startsWith('../') || !href.startsWith('http')) {
-            if (href.startsWith('./')) {
-              href = baseUrlForCss + href.substring(2);
-            } else if (href.startsWith('../')) {
-              const parts = baseUrlForCss.split('/').filter((p: string) => p);
-              const cssParts = href.split('/').filter((p: string) => p);
-              for (const part of cssParts) {
-                if (part === '..') parts.pop();
-                else if (part !== '.') parts.push(part);
-              }
-              const joined = parts.join('/');
-              href = joined.startsWith('http') ? joined : baseUrlForCss.replace(/\/[^/]*\/?$/, '/') + joined;
-            } else {
-              href = baseUrlForCss + href;
-            }
-          }
-          stylesheetLinks.push(href.startsWith('http') ? href : toAbsoluteUrl(href));
-        }
-      }
-
-      // Helper: rewrite url() in CSS (exact copy from Basic Elementor)
-      const rewriteCssUrls = (css: string, cssBaseUrl: string): string => {
-        return css.replace(/url\((['"]?)([^'")]+)\1\)/gi, (m, _q, path) => {
-          const p = (path || '').trim();
-          if (/^(https?:|data:|linear-gradient|radial-gradient|conic-gradient|none|initial)/i.test(p)) return m;
-          try {
-            return `url("${new URL(p, cssBaseUrl).href}")`;
-          } catch {
-            return m;
-          }
-        });
-      };
-
-      // Helper: is external CDN (exact copy from Basic Elementor)
+      const extractHeadStyles = async () => {
+        const cssParts: string[] = [];
+        
+        // Helper to check if URL is external CDN (not from our API)
       const isExternalCDN = (url: string): boolean => {
         try {
           const urlObj = new URL(url);
-          const hostname = urlObj.hostname.toLowerCase();
-          return hostname.includes('googleapis.com') || hostname.includes('cdnjs.cloudflare.com') ||
-                 hostname.includes('stackpath.bootstrapcdn.com') || hostname.includes('cdn.jsdelivr.net') ||
-                 hostname.includes('unpkg.com') || hostname.includes('fonts.googleapis.com') ||
-                 hostname.includes('fonts.gstatic.com');
+            const apiBase = (import.meta.env.VITE_API_URL as string | undefined) || 
+                           `${window.location.origin}/api`;
+            const apiUrlObj = new URL(apiBase);
+            // Check if it's from a known CDN or different origin
+            const isCDN = urlObj.hostname.includes('cdnjs.cloudflare.com') ||
+                         urlObj.hostname.includes('cdn.jsdelivr.net') ||
+                         urlObj.hostname.includes('unpkg.com') ||
+                         urlObj.hostname.includes('fonts.googleapis.com') ||
+                         urlObj.hostname.includes('fonts.gstatic.com');
+            const isDifferentOrigin = urlObj.origin !== apiUrlObj.origin && 
+                                     urlObj.origin !== window.location.origin;
+            return isCDN || isDifferentOrigin;
         } catch {
           return false;
         }
       };
 
-      // Fetch external stylesheets (exact copy from Basic Elementor - for storage, NOT for style block)
-      const fetchStylesheetPromises = stylesheetLinks.map(async (cssUrl) => {
-        const absoluteUrl = toAbsoluteUrl(cssUrl);
+        // Fetch and inline external stylesheets
+        const linkPromises = Array.from(doc.querySelectorAll('link[rel="stylesheet"]')).map(async (link) => {
+          const href = link.getAttribute('href');
+          if (!href) return '';
+          const absoluteUrl = toAbsoluteUrl(href);
+          
+          // For external CDNs, use @import directly to avoid CORS issues
         if (isExternalCDN(absoluteUrl)) {
+            console.log(`Using @import for external CDN: ${absoluteUrl}`);
           return `@import url('${absoluteUrl}');`;
         }
+          
+          // For internal resources, try to fetch with credentials
         try {
           const cssResponse = await fetch(absoluteUrl, {
             credentials: 'include',
@@ -656,16 +566,30 @@ const CustomThemeBuilder: React.FC = () => {
           });
           if (cssResponse.ok) {
             const cssText = await cssResponse.text();
-            return rewriteCssUrls(cssText, absoluteUrl) || '';
-          }
-          return `@import url('${absoluteUrl}');`;
-        } catch {
+              return cssText || '';
+            } else {
+              console.warn(`Failed to fetch CSS from ${absoluteUrl}:`, cssResponse.status);
+              // Fallback to @import if fetch fails
+              return `@import url('${absoluteUrl}');`;
+            }
+          } catch (err) {
+            console.warn(`Error fetching CSS from ${absoluteUrl}, using @import:`, err);
+            // Fallback to @import if fetch fails
           return `@import url('${absoluteUrl}');`;
         }
       });
-      const fetchedCss = await Promise.all(fetchStylesheetPromises);
-      const externalCss = fetchedCss.filter((c: string) => c.trim()).join('\n\n');
-      const originalCssContent = rewriteCssUrls(inlineCssContent || '', baseUrlForCss) + (externalCss ? '\n\n' + externalCss : '');
+        
+        const fetchedCss = await Promise.all(linkPromises);
+        cssParts.push(...fetchedCss.filter(css => css.trim()));
+        
+        // Add inline styles
+        const inlineStyles = Array.from(doc.querySelectorAll('style'))
+          .map((style) => style.textContent || '')
+          .filter(style => style.trim());
+        cssParts.push(...inlineStyles);
+        
+        return cssParts.join('\n\n').trim();
+      };
 
       // CRITICAL: Extract scripts from head BEFORE processing body HTML
       // Scripts in head will be lost if we only use body.innerHTML
@@ -712,17 +636,14 @@ const CustomThemeBuilder: React.FC = () => {
         });
       }
       
-      let css = originalCssContent;
+      // Remove scripts from DOM before getting innerHTML (they'll be re-injected)
+      doc.head.querySelectorAll('script').forEach(script => script.remove());
+      if (doc.body) {
+        doc.body.querySelectorAll('script').forEach(script => script.remove());
+      }
       
-      // Remove scripts, style, link from entire document (exact copy from Basic Elementor)
-      doc.querySelectorAll('script').forEach((s) => s.remove());
-      doc.querySelectorAll('style').forEach((s) => s.remove());
-      doc.querySelectorAll('link[rel="stylesheet"]').forEach((s) => s.remove());
-      
-      // Get body HTML, then strip and preprocess (like Basic Elementor)
-      let processedHtml = doc.body ? doc.body.innerHTML : rawHtml;
-      processedHtml = stripGrapesJSCanvasCss(processedHtml);
-      processedHtml = preprocessHtmlForSelectability(processedHtml);
+      const processedHtml = doc.body ? doc.body.innerHTML : rawHtml;
+      let css = await extractHeadStyles();
       
       // Store extracted scripts for later injection
       const allScripts = [...headScripts, ...bodyScripts];
@@ -738,16 +659,10 @@ const CustomThemeBuilder: React.FC = () => {
       // CRITICAL: Rewrite relative URLs in CSS to absolute URLs
       // This ensures background images, fonts, and other resources load correctly
       if (css) {
-        css = css.replace(/url\((['"]?)(?!https?:|data:|mailto:|tel:|javascript:|\/\/|linear-gradient|radial-gradient|conic-gradient|repeating-)([^'")]+)\1\)/gi, (match, quote = '', path) => {
-          // Skip CSS keywords that shouldn't be URLs
-          if (/^(none|initial|inherit|unset|revert|transparent)$/i.test(path.trim())) {
-            return match;
-          }
+        css = css.replace(/url\((['"]?)(?!https?:|data:|mailto:|tel:|javascript:|\/\/)([^'")]+)\1\)/gi, (match, quote = '', path) => {
           const abs = toAbsoluteUrl(path);
           return `url(${quote}${abs}${quote})`;
         });
-        // CRITICAL: Clean up any corrupted gradient values that might be in the source CSS
-        css = cleanupCssGradients(css);
       }
 
       // Discover additional pages from hyperlinks (pagePaths was already collected above)
@@ -812,11 +727,7 @@ const CustomThemeBuilder: React.FC = () => {
             doc.querySelectorAll('[style*="background"]').forEach((node) => {
               const styleValue = node.getAttribute('style');
               if (!styleValue) return;
-              const rewritten = styleValue.replace(/url\((['"]?)(?!https?:|data:|mailto:|tel:|javascript:|\/\/|linear-gradient|radial-gradient|conic-gradient|repeating-)([^'")]+)\1\)/gi, (_match, quote = '', path) => {
-                // Skip CSS keywords that shouldn't be URLs
-                if (/^(none|initial|inherit|unset|revert|transparent)$/i.test(path.trim())) {
-                  return _match;
-                }
+              const rewritten = styleValue.replace(/url\((['"]?)(?!https?:|data:|mailto:|tel:|javascript:|\/\/)([^'")]+)\1\)/gi, (_match, quote = '', path) => {
                 const abs = toAbsoluteUrl(path);
                 return `url(${quote}${abs}${quote})`;
               });
@@ -904,16 +815,10 @@ const CustomThemeBuilder: React.FC = () => {
           // CRITICAL: Rewrite relative URLs in CSS to absolute URLs
           // This ensures background images, fonts, and other resources load correctly
           if (pageSpecificCss) {
-            pageSpecificCss = pageSpecificCss.replace(/url\((['"]?)(?!https?:|data:|mailto:|tel:|javascript:|\/\/|linear-gradient|radial-gradient|conic-gradient|repeating-)([^'")]+)\1\)/gi, (match, quote = '', path) => {
-              // Skip CSS keywords that shouldn't be URLs
-              if (/^(none|initial|inherit|unset|revert|transparent)$/i.test(path.trim())) {
-                return match;
-              }
+            pageSpecificCss = pageSpecificCss.replace(/url\((['"]?)(?!https?:|data:|mailto:|tel:|javascript:|\/\/)([^'")]+)\1\)/gi, (match, quote = '', path) => {
               const abs = toAbsoluteUrl(path);
               return `url(${quote}${abs}${quote})`;
             });
-            // CRITICAL: Clean up any corrupted gradient values in page-specific CSS
-            pageSpecificCss = cleanupCssGradients(pageSpecificCss);
           }
           
           // Combine main CSS with page-specific CSS
@@ -922,15 +827,8 @@ const CustomThemeBuilder: React.FC = () => {
             ? (pageSpecificCss ? `${css}\n\n/* Page-specific styles */\n${pageSpecificCss}` : css)
             : pageSpecificCss;
           
-          // Remove scripts, style, link from document (exact copy from Basic Elementor)
-          pageDoc.querySelectorAll('script').forEach((s) => s.remove());
-          pageDoc.querySelectorAll('style').forEach((s) => s.remove());
-          pageDoc.querySelectorAll('link[rel="stylesheet"]').forEach((s) => s.remove());
-          
-          // Get body HTML, strip and preprocess (like Basic Elementor)
-          let pageBodyHtml = pageDoc.body ? pageDoc.body.innerHTML : pageHtml;
-          pageBodyHtml = stripGrapesJSCanvasCss(pageBodyHtml);
-          pageBodyHtml = preprocessHtmlForSelectability(pageBodyHtml);
+          // Get page body content (after URL rewriting)
+          const pageBodyHtml = pageDoc.body ? pageDoc.body.innerHTML : pageHtml;
           
           // Generate page ID and name from path
           const pageId = pagePath
@@ -952,16 +850,11 @@ const CustomThemeBuilder: React.FC = () => {
             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
             .join(' ');
           
-          // CRITICAL: Final cleanup of combined page CSS to ensure no corrupted gradients
-          const cleanedPageCss = cleanupCssGradients(combinedPageCss || '');
-          
-          const pageBaseUrl = finalUrl ? finalUrl.substring(0, finalUrl.lastIndexOf('/') + 1) : basePath;
           return {
             id: pageId,
             name: formattedName,
             html: pageBodyHtml || DEFAULT_PAGE_CONTENT,
-            css: cleanedPageCss,
-            baseUrl: pageBaseUrl,
+            css: combinedPageCss || '',
           };
         } catch (e) {
           console.error(`Error fetching page ${pagePath}:`, e);
@@ -982,27 +875,11 @@ const CustomThemeBuilder: React.FC = () => {
       
       console.log(`✅ Successfully discovered and fetched ${discoveredPages.length} additional pages`);
 
-      // CRITICAL: Final cleanup of CSS before returning result
-      // This ensures any remaining corrupted gradient values are fixed
-      const cleanedCss = cleanupCssGradients(css || '');
-
-      const resultHtml = htmlWithScriptsMarker || processedHtml || DEFAULT_PAGE_CONTENT;
-      // CRITICAL: Reject if parsed HTML is actually CSS (prevents raw CSS display)
-      if (looksLikeCss(resultHtml)) {
-        console.error('❌ Parsed theme HTML appears to be CSS - rejecting');
-        setError('Theme content appears corrupted. Please reinstall the theme.');
-        return null;
-      }
-
-      const resultBaseUrl = basePath.endsWith('/') ? basePath : `${basePath}/`;
       const result = {
-        html: resultHtml,
-        css: cleanedCss,
-        inlineCss: inlineCssContent || undefined,
+        html: htmlWithScriptsMarker || processedHtml || DEFAULT_PAGE_CONTENT,
+        css,
         name: doc.title || 'Installed Theme',
         pages: discoveredPages.length > 0 ? discoveredPages : undefined,
-        stylesheetUrls: stylesheetLinks.length > 0 ? stylesheetLinks : undefined,
-        baseUrl: resultBaseUrl,
       };
 
       console.log('Successfully fetched installed theme:', {
@@ -1026,8 +903,6 @@ const CustomThemeBuilder: React.FC = () => {
     { id: 'page-1', name: 'Home', html: DEFAULT_PAGE_CONTENT, css: '' }
   ]);
   const [currentPageId, setCurrentPageId] = useState<string>('page-1');
-  const currentPageIdRef = useRef<string>('page-1');
-  currentPageIdRef.current = currentPageId;
   const [showPageManager, setShowPageManager] = useState<boolean>(false);
   const LOCAL_STORAGE_PAGES_KEY = useMemo(() => (id ? `ziplofy.builder.pages.${id}` : null), [id]);
   const tabIdRef = useRef(`tab-${Math.random().toString(36).slice(2)}`);
@@ -1677,9 +1552,7 @@ const CustomThemeBuilder: React.FC = () => {
             .map(([prop, value]) => `  ${prop}: ${value};`)
             .join('\n');
           
-          let wrapperCssRule = `.gjs-wrapper-body {\n${styleEntries}\n}`;
-          // CRITICAL: Clean up any corrupted gradients in wrapper styles
-          wrapperCssRule = cleanupCssGradients(wrapperCssRule);
+          const wrapperCssRule = `.gjs-wrapper-body {\n${styleEntries}\n}`;
           
           // Check if this CSS is already in currentCss
           if (!currentCss.includes('.gjs-wrapper-body') && !currentCss.includes('background-image')) {
@@ -1736,14 +1609,6 @@ const CustomThemeBuilder: React.FC = () => {
         console.warn('Failed to extract component styles:', e);
       }
     }
-    
-    // Prepend animation keyframes so they're included in saved theme
-    if (currentCss && currentCss.trim().length > 0) {
-      currentCss = ANIMATION_KEYFRAMES_CSS + '\n\n' + currentCss;
-    }
-    
-    // CRITICAL: Clean up any corrupted gradient values in the CSS
-    currentCss = cleanupCssGradients(currentCss);
 
     // DEBUG: Log CSS retrieval with background image detection
     const hasBackgroundImage = currentCss.includes('background-image') || currentCss.includes('background:');
@@ -1773,24 +1638,22 @@ const CustomThemeBuilder: React.FC = () => {
       }
     }
     
-    // CRITICAL: Merge theme base CSS with editor CSS - theme styles must persist, editor overrides
+    // CRITICAL: Ensure CSS is preserved even if empty (use existing page CSS as fallback)
     const pagesSnapshot = pages.map((page) => {
       if (page.id === currentPageId) {
-        const themeCss = [page.css, page.inlineCss].filter(Boolean).join('\n\n').trim();
-        const finalCss = themeCss && currentCss && currentCss.trim().length > 0
-          ? themeCss + '\n\n/* Editor overrides */\n' + currentCss.trim()
-          : (currentCss && currentCss.trim().length > 0 ? currentCss : themeCss || '');
+        // For current page, use extracted CSS or fall back to existing CSS
+        const finalCss = currentCss && currentCss.trim().length > 0 
+          ? currentCss 
+          : (page.css || '');
         
         return { 
           ...page, 
           html: currentHtml || DEFAULT_PAGE_CONTENT, 
-          css: cleanupCssGradients(finalCss) 
+          css: finalCss 
         };
       }
-      return {
-        ...page,
-        css: cleanupCssGradients(page.css || '')
-      };
+      // For other pages, preserve their existing CSS
+      return page;
     });
     
     const currentPageInSnapshot = pagesSnapshot.find(p => p.id === currentPageId);
@@ -1804,61 +1667,14 @@ const CustomThemeBuilder: React.FC = () => {
     return { pagesSnapshot, currentHtml, currentCss };
   }, [pages, currentPageId]);
 
-  const applyPageToEditor = useCallback((htmlContent: string, cssContent?: string, stylesheetUrls?: string[], baseUrl?: string, inlineCssForStyleBlock?: string) => {
+  const applyPageToEditor = useCallback((htmlContent: string, cssContent?: string) => {
     const editor = editorInstance.current;
     if (!editor) {
-      // Editor not ready yet (e.g. restore from storage runs before init) - skip silently
+      console.error('Cannot apply page: Editor instance is null');
+      setError('Editor not initialized. Please refresh the page.');
+      setLoading(false);
       return;
     }
-    
-    // CRITICAL FIX: Detect corrupted data where CSS was saved as HTML
-    const looksLikeCss = (content: string): boolean => {
-      if (!content || typeof content !== 'string') return false;
-      const trimmed = content.trim();
-      
-      // Pattern 1: Content starts with CSS rules
-      const cssPatterns = [
-        /^body\s*\{/i, /^\*\s*\{/i, /^[\.\#][a-zA-Z_-]+\s*\{/,
-        /^@media/i, /^@keyframes/i, /^@import/i, /^html\s*\{/i, /^:root\s*\{/i,
-      ];
-      if (cssPatterns.some(pattern => pattern.test(trimmed))) return true;
-      
-      // Pattern 2: HTML wrapper with CSS content inside (corrupted)
-      // e.g., <body class="...">body { background: #fff } ...</body>
-      const bodyMatch = trimmed.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-      if (bodyMatch) {
-        const inner = bodyMatch[1].trim();
-        // If inner content starts with CSS-like pattern and contains { } but no HTML tags
-        if (/^[a-z*.\#\[\:@]/i.test(inner) && 
-            inner.includes('{') && inner.includes('}') && 
-            !/<[a-z][a-z0-9]*[\s>]/i.test(inner.substring(0, 200))) {
-          return true;
-        }
-      }
-      
-      // Pattern 3: Body wrapper with no real HTML structure, but has CSS
-      const hasProperStructure = /<(div|section|header|footer|nav|main|article|aside)[^>]*>/i.test(trimmed);
-      if (/^<body[^>]*>[\s\S]*<\/body>$/i.test(trimmed) && !hasProperStructure && trimmed.includes('{')) {
-        return true;
-      }
-      
-      return false;
-    };
-    
-    // If HTML content looks like CSS, it's corrupted - use default, no redirect (single load, no glitches)
-    if (looksLikeCss(htmlContent)) {
-      console.error('❌ CORRUPTED DATA DETECTED: HTML content appears to be CSS!');
-      try {
-        const key = id ? `ziplofy.builder.pages.${id}` : null;
-        if (key) localStorage.removeItem(key);
-      } catch (e) { /* ignore */ }
-      htmlContent = DEFAULT_PAGE_CONTENT;
-      cssContent = '';
-    }
-    
-    // Suppress component:selected from switching to style tab during theme load
-    isApplyingThemeRef.current = true;
-    setTimeout(() => { isApplyingThemeRef.current = false; }, 2000);
     
     // Get theme ID for proper path resolution
     const themeId = searchParams.get('id') || searchParams.get('themeId');
@@ -1932,34 +1748,56 @@ const CustomThemeBuilder: React.FC = () => {
     let htmlWithoutScripts = htmlContent ? htmlContent.replace(/<script[\s\S]*?<\/script>/gi, '') : '';
     // Also remove the scripts comment marker
     htmlWithoutScripts = htmlWithoutScripts.replace(/<!-- ZIPLOFY_SCRIPTS_DATA:\[.*?\] -->/g, '');
-    // CRITICAL: Strip any remaining <style> and <link rel="stylesheet"> - prevents raw CSS display in canvas
-    htmlWithoutScripts = htmlWithoutScripts.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '').replace(/<link[^>]*rel\s*=\s*["']stylesheet["'][^>]*\/?>/gi, '');
-    // CRITICAL: Remove GrapesJS canvas CSS erroneously embedded (from corrupted save)
-    htmlWithoutScripts = stripGrapesJSCanvasCss(htmlWithoutScripts);
     
-    if (isContentCssNotHtml(htmlWithoutScripts)) {
-      console.error('❌ BLOCKED: Content is CSS not HTML - clearing corrupted cache and using default');
-      try {
-        const key = id ? `ziplofy.builder.pages.${id}` : null;
-        if (key) localStorage.removeItem(key);
-      } catch {}
-      htmlWithoutScripts = DEFAULT_PAGE_CONTENT;
-      cssContent = '';
-    }
+    // Set HTML content (without scripts)
+    editor.setComponents(htmlWithoutScripts || DEFAULT_PAGE_CONTENT);
     
-    // Load theme content: strip, preprocess, setComponents, expand+configure, inject styles (from-scratch visual elementor logic)
-    loadThemeContentIntoEditor(editor, {
-      html: htmlWithoutScripts || DEFAULT_PAGE_CONTENT,
-      css: cssContent || '',
-      inlineCssForStyleBlock,
-      stylesheetUrls: stylesheetUrls || [],
-      baseUrl: baseUrl || '',
-      defaultContent: DEFAULT_PAGE_CONTENT,
-    });
+    // CRITICAL FIX: Ensure wrapper is droppable after setting components
     setTimeout(() => {
-      try {
-        const wrapper = editor.getWrapper();
-        if (!wrapper) return;
+      const wrapper = editor.getWrapper();
+      if (wrapper) {
+        console.log('🔧 Configuring wrapper for page...');
+        
+        // Make wrapper droppable and interactive
+        wrapper.set({ 
+          droppable: true,
+          selectable: true,
+          editable: false,
+          draggable: false,
+          hoverable: true,
+          stylable: true,
+          // CRITICAL: Accept all component types
+          traits: []
+        }, { silent: true });
+        
+        // Ensure wrapper has the class for CSS
+        const classes = wrapper.getClasses();
+        if (!classes.includes('gjs-wrapper-body')) {
+          wrapper.addClass('gjs-wrapper-body');
+        }
+        
+        // Ensure wrapper view is updated
+        if (wrapper.view) {
+          wrapper.view.render?.();
+        }
+        
+        // Ensure ALL child components are also interactive
+        const allComponents = wrapper.components();
+        if (allComponents && allComponents.length > 0) {
+          allComponents.forEach((comp: any) => {
+            if (comp) {
+              try {
+                comp.set({
+                  selectable: true,
+                  hoverable: true,
+                  draggable: true,
+                  stylable: true
+                }, { silent: true });
+      } catch {}
+            }
+          });
+        }
+        
         // Force canvas to refresh and accept drops
         if (editor.Canvas) {
           const canvasEl = editor.Canvas.getElement();
@@ -1969,7 +1807,6 @@ const CustomThemeBuilder: React.FC = () => {
           
           const frameEl = editor.Canvas.getFrameEl();
           if (frameEl && frameEl.contentWindow) {
-            const frameDoc = frameEl.contentDocument;
             const frameBody = frameEl.contentWindow.document.body;
             if (frameBody) {
               frameBody.style.pointerEvents = 'auto';
@@ -1977,8 +1814,7 @@ const CustomThemeBuilder: React.FC = () => {
           }
         }
         
-        const compCount = wrapper.components?.()?.length || 0;
-        console.log('✓ Wrapper configured as droppable. Wrapper has', compCount, 'components');
+        console.log('✓ Wrapper configured as droppable. Wrapper has', allComponents?.length || 0, 'components');
         
         // Verify wrapper can accept drops
         const canAcceptDrop = wrapper.get('droppable');
@@ -1992,18 +1828,10 @@ const CustomThemeBuilder: React.FC = () => {
         
         // Set up periodic check to ensure wrapper stays droppable
         const checkInterval = setInterval(() => {
-          if (!editor || typeof editor.getWrapper !== 'function') {
-            clearInterval(checkInterval);
-            return;
-          }
-          try {
             const currentWrapper = editor.getWrapper();
             if (currentWrapper && !currentWrapper.get('droppable')) {
               console.warn('⚠️ Wrapper became non-droppable, restoring...');
               currentWrapper.set('droppable', '*');
-            }
-          } catch {
-            clearInterval(checkInterval);
           }
         }, 2000);
         
@@ -2041,7 +1869,7 @@ const CustomThemeBuilder: React.FC = () => {
               
               if (editor.BlockManager && typeof editor.BlockManager.render === 'function') {
                 editor.BlockManager.render();
-                blocksRenderedRef.current = true;
+          blocksRenderedRef.current = true;
                 
                 // Ensure blocks are visible after render
                 setTimeout(() => {
@@ -2074,27 +1902,112 @@ const CustomThemeBuilder: React.FC = () => {
             }
           }
         }, 300);
-      } catch (e) {
-        console.warn('Configure selectability:', e);
+      } else {
+        console.error('❌ No wrapper found after setComponents!');
       }
-    }, 100);
+    }, 150);
     
-    // Apply theme styles + selection override via centralized injection (always run so selection override is applied)
-    const hasCss = (cssContent && typeof cssContent === 'string' && cssContent.trim()) || (stylesheetUrls && stylesheetUrls.length > 0);
-    if (hasCss) cssContent = cleanupCssGradients(cssContent);
-    scheduleThemeStyleInjection(editor, {
-      styleBlockContent: (stylesheetUrls?.length && inlineCssForStyleBlock) ? inlineCssForStyleBlock : (cssContent || ''),
-      stylesheetUrls: stylesheetUrls || [],
-      baseUrl: baseUrl || '',
-    });
-    
-    // MATCH BASIC ELEMENTOR: Do NOT inject scripts. Basic removes scripts and never re-injects them.
-    // Script injection caused redeclaration errors (nsEmailInput, PRODUCTS) and DOM manipulation that broke the canvas.
-    if (false && scriptTags.length > 0) {
-      console.log(`📜 Injecting ${scriptTags.length} scripts into iframe`);
+    // Apply CSS
+    if (cssContent && typeof cssContent === 'string' && cssContent.trim()) {
+      console.log('🎨 Applying CSS to editor:', {
+        cssLength: cssContent.length,
+        cssPreview: cssContent.substring(0, 200)
+      });
       
-      // Flag to prevent duplicate script injection
-      let scriptsInjected = false;
+      try {
+        // CRITICAL: Don't clear CSS completely - just update it
+        // Clearing all CSS can cause styles to disappear
+        // Instead, we'll inject new CSS and let it override old styles
+        
+        // Method 1: Try using editor.setStyle (GrapesJS method)
+        if (typeof editor.setStyle === 'function') {
+          try {
+          editor.setStyle(cssContent);
+            console.log('✅ CSS applied via editor.setStyle');
+      } catch (e) {
+            console.warn('Failed to apply CSS via editor.setStyle:', e);
+          }
+        }
+        
+        // Method 2: Also add via CssComposer to ensure it's stored
+        if (editor.CssComposer) {
+          try {
+            // Add CSS rules from the content
+            // Parse CSS and add rules (simplified - just add as a single rule for now)
+            const cssRule = editor.CssComposer.add({
+              selectors: ['body', '.gjs-wrapper-body'],
+              style: {}
+            });
+            // Note: CssComposer.add might not work directly with CSS strings
+            // So we rely on setStyle and iframe injection
+          } catch (e) {
+            // Ignore - we'll use iframe injection
+          }
+        }
+        
+        // Method 3: Inject CSS directly into canvas iframe (most reliable - ALWAYS do this)
+        // Use multiple timeouts to ensure iframe is ready
+        [100, 300, 500].forEach((delay) => {
+        setTimeout(() => {
+          try {
+            const canvas = editor.Canvas;
+            if (canvas) {
+              const frame = canvas.getFrameEl();
+              if (frame && frame.contentDocument) {
+                const doc = frame.contentDocument;
+                const head = doc.head || doc.getElementsByTagName('head')[0];
+                if (head) {
+                    // Remove ALL existing theme styles (clear old CSS)
+                    const existingStyles = head.querySelectorAll('#ziplofy-theme-styles, style[data-ziplofy-theme]');
+                    existingStyles.forEach((style: Element) => style.remove());
+                  
+                  // Add new style element
+                  const styleEl = doc.createElement('style');
+                  styleEl.id = 'ziplofy-theme-styles';
+                    styleEl.setAttribute('data-ziplofy-theme', 'true');
+                  styleEl.textContent = cssContent;
+                  head.appendChild(styleEl);
+                    console.log(`✅ CSS injected directly into canvas iframe (attempt at ${delay}ms):`, {
+                      cssLength: cssContent.length,
+                      styleElementExists: !!head.querySelector('#ziplofy-theme-styles')
+                    });
+                  
+                  // Also add link tags for @import statements (for better browser support)
+                  const importMatches = cssContent.matchAll(/@import\s+url\(['"]?([^'")]+)['"]?\)/gi);
+                  for (const match of importMatches) {
+                    const importUrl = match[1];
+                    // Check if link already exists
+                    const existingLink = Array.from(head.querySelectorAll('link[rel="stylesheet"]'))
+                      .find((link: any) => link.href === importUrl);
+                    if (!existingLink && importUrl) {
+                      const linkEl = doc.createElement('link');
+                      linkEl.rel = 'stylesheet';
+                      linkEl.href = importUrl;
+                      linkEl.crossOrigin = 'anonymous'; // Don't send credentials for external resources
+                      head.appendChild(linkEl);
+                    }
+                  }
+                }
+              }
+            }
+          } catch (iframeErr) {
+              if (delay === 500) {
+                // Only log error on final attempt
+            console.warn('Failed to inject CSS into iframe:', iframeErr);
+          }
+            }
+          }, delay);
+        });
+      } catch (err) {
+        console.error('Failed to apply CSS to editor:', err);
+      }
+    } else {
+      console.log('No CSS content to apply');
+    }
+    
+    // CRITICAL: Inject JavaScript scripts into iframe (scripts are stripped by GrapesJS)
+    if (scriptTags.length > 0) {
+      console.log(`📜 Injecting ${scriptTags.length} scripts into iframe`);
       
       // Helper function to resolve relative script paths
       const resolveScriptPath = (src: string): string => {
@@ -2135,14 +2048,8 @@ const CustomThemeBuilder: React.FC = () => {
       };
       
       // Use multiple timeouts to ensure iframe is ready and DOM is loaded
-      // But only inject scripts ONCE when iframe is ready
       [200, 500, 1000].forEach((delay) => {
         setTimeout(() => {
-          // Skip if scripts already injected
-          if (scriptsInjected) {
-            return;
-          }
-          
           try {
             const canvas = editor.Canvas;
             if (canvas) {
@@ -2158,18 +2065,6 @@ const CustomThemeBuilder: React.FC = () => {
                   }
                   return;
                 }
-                
-                // Check if scripts were already injected (by checking for marker)
-                if (doc.querySelector('script[data-ziplofy-scripts-injected]')) {
-                  scriptsInjected = true;
-                  return;
-                }
-                // Claim injection slot immediately to prevent 200/500/1000ms timeouts from all running
-                const claimMarker = doc.createElement('script');
-                claimMarker.setAttribute('data-ziplofy-scripts-injected', 'true');
-                claimMarker.textContent = '/* marker */';
-                head.appendChild(claimMarker);
-                scriptsInjected = true;
 
                 // Ensure base tag exists for relative path resolution
                 let baseTag = head.querySelector('base[data-ziplofy-theme-base]');
@@ -2455,14 +2350,13 @@ const CustomThemeBuilder: React.FC = () => {
               
               // Determine if component should be editable
               // Make ALL text-containing elements editable for easier editing
-              const textTags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'a', 'label', 'li', 'td', 'th', 'button', 'strong', 'em', 'b', 'i', 'u', 'small', 'sub', 'sup', 'blockquote', 'cite'];
+              const textTags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'a', 'label', 'li', 'td', 'th', 'button', 'strong', 'em', 'b', 'i', 'u', 'small', 'sub', 'sup'];
               const isTextElement = textTags.includes(tagName);
-              const childComps = comp.components?.();
               const hasTextContent = comp.get('content') && typeof comp.get('content') === 'string' && comp.get('content').trim().length > 0;
               const shouldBeEditable = attrs['data-gjs-editable'] === 'true' || 
                                        compType === 'text' || 
                                        isTextElement ||
-                                       (hasTextContent && (!childComps || childComps.length === 0));
+                                       (hasTextContent && !comp.components().length);
               
               // Set all interactive properties - make everything editable and stylable
               comp.set({ 
@@ -2488,8 +2382,9 @@ const CustomThemeBuilder: React.FC = () => {
               }
               
               // Recursively set properties for all children
-              if (childComps && childComps.length > 0) {
-                childComps.forEach((child: any) => setAllInteractive(child));
+              const children = comp.components?.();
+              if (children && children.length > 0) {
+                children.forEach((child: any) => setAllInteractive(child));
               }
             }
           };
@@ -2509,8 +2404,7 @@ const CustomThemeBuilder: React.FC = () => {
                   }
                 });
                 layersPanel.innerHTML = '';
-                const lmEl = editor.LayerManager.render();
-                if (lmEl) layersPanel.appendChild(lmEl);
+                editor.LayerManager.render();
               }
             }
           }, 100);
@@ -2530,14 +2424,11 @@ const CustomThemeBuilder: React.FC = () => {
     [500, 1000, 1500].forEach((delay) => {
       setTimeout(() => {
         try {
-          // Keep widgets tab active during block restoration - prevents style tab showing widgets content
-          setActiveSidebarSection('widgets');
-          
           const blocksPanel = document.getElementById('blocks-panel');
-          const wrapper = document.querySelector('.elementor-blocks-wrapper:not(.elementor-globals-placeholder)') as HTMLElement;
+          const wrapper = document.querySelector('.elementor-blocks-wrapper') as HTMLElement;
           
           if (blocksPanel && editor.BlockManager) {
-            // Ensure wrapper is visible FIRST (only when we're on widgets tab - we just set it above)
+            // Ensure wrapper is visible FIRST
             if (wrapper) {
               wrapper.style.setProperty('display', 'block', 'important');
               wrapper.style.setProperty('visibility', 'visible', 'important');
@@ -2695,7 +2586,7 @@ const CustomThemeBuilder: React.FC = () => {
     setCurrentPageId(pageId);
     
     // Apply target page to editor
-    applyPageToEditor(targetPage?.html || DEFAULT_PAGE_CONTENT, targetPage?.css || '', targetPage?.stylesheetUrls, targetPage?.baseUrl, targetPage?.inlineCss);
+    applyPageToEditor(targetPage?.html || DEFAULT_PAGE_CONTENT, targetPage?.css || '');
     
     console.log(`📄 Switched to page: ${targetPage?.name || pageId}`, {
       totalPages: mergedPages.length,
@@ -2722,7 +2613,7 @@ const CustomThemeBuilder: React.FC = () => {
     const nextPages = [...pagesSnapshot, newPage];
     setPages(nextPages);
     setCurrentPageId(newPageId);
-    applyPageToEditor(newPage.html, newPage.css || '', newPage.stylesheetUrls, newPage.baseUrl, newPage.inlineCss);
+    applyPageToEditor(newPage.html, newPage.css || '');
     
     // Additional check after applying page
     setTimeout(() => {
@@ -2754,7 +2645,7 @@ const CustomThemeBuilder: React.FC = () => {
     const nextCurrentPage = filtered[0];
     if (nextCurrentPage) {
       setCurrentPageId(nextCurrentPage.id);
-      applyPageToEditor(nextCurrentPage.html, nextCurrentPage.css || '', nextCurrentPage.stylesheetUrls, nextCurrentPage.baseUrl, nextCurrentPage.inlineCss);
+      applyPageToEditor(nextCurrentPage.html, nextCurrentPage.css || '');
     }
   }, [pages.length, getPagesSnapshotWithCurrent, applyPageToEditor]);
 
@@ -2888,17 +2779,24 @@ ${linkStylesheetTag}  <style>
     html, body {
       width: 100%;
       min-height: 100%;
+      height: auto !important;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       line-height: 1.6;
       color: #333;
       background: #ffffff;
     }
+    html {
+      overflow-y: scroll !important;
+      overflow-x: hidden !important;
+    }
     body {
-      overflow-x: hidden;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
     }
     .preview-page {
       width: 100%;
       min-height: 100vh;
+      padding-bottom: 40px;
     }
     .preview-page[hidden] {
       display: none !important;
@@ -3201,75 +3099,11 @@ ${linkStylesheetTag}  <style>
       persistedInitialLoadRef.current = true;
       return;
     }
-    
-    // Skip localStorage if forceReload flag is set
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('forceReload')) {
-      console.log('🔄 forceReload flag detected - skipping localStorage restoration');
-      // Clear the flag from URL without reload
-      urlParams.delete('forceReload');
-      const newUrl = `${window.location.pathname}?${urlParams.toString()}`;
-      window.history.replaceState({}, '', newUrl);
-      persistedInitialLoadRef.current = true;
-      return;
-    }
-    
-    // Helper to detect if content looks like CSS instead of HTML (corrupted data)
-    const isCorruptedHtml = (content: string): boolean => {
-      if (!content || typeof content !== 'string') return false;
-      const trimmed = content.trim();
-      
-      // Pattern 1: Content starts with CSS rules (no HTML wrapper)
-      const cssPatterns = [
-        /^body\s*\{/i,
-        /^\*\s*\{/i,
-        /^[\.\#][a-zA-Z_-]+\s*\{/,
-        /^@media/i,
-        /^@keyframes/i,
-        /^html\s*\{/i,
-        /^:root\s*\{/i,
-      ];
-      const startsWithCss = cssPatterns.some(pattern => pattern.test(trimmed));
-      if (startsWithCss) return true;
-      
-      // Pattern 2: HTML wrapper but content inside is CSS (corrupted)
-      // e.g., <body class="...">body { background-color: #fff } ...</body>
-      const bodyContentMatch = trimmed.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-      if (bodyContentMatch) {
-        const bodyContent = bodyContentMatch[1].trim();
-        // Check if body content looks like CSS rules (not HTML elements)
-        const contentLooksCss = /^[a-z*.\#\[\:@]/i.test(bodyContent) && 
-          bodyContent.includes('{') && 
-          bodyContent.includes('}') &&
-          !/<[a-z][a-z0-9]*[\s>]/i.test(bodyContent.substring(0, 200));
-        if (contentLooksCss) return true;
-      }
-      
-      // Pattern 3: Very short content with no real HTML structure
-      // Valid theme HTML should have multiple nested elements
-      const hasProperHtmlStructure = /<(div|section|header|footer|nav|main|article|aside)[^>]*>/i.test(trimmed);
-      const onlyBodyTag = /^<body[^>]*>[\s\S]*<\/body>$/i.test(trimmed) && !hasProperHtmlStructure;
-      if (onlyBodyTag && trimmed.includes('{') && trimmed.includes('}')) return true;
-      
-      return false;
-    };
-    
     try {
       const stored = localStorage.getItem(LOCAL_STORAGE_PAGES_KEY);
       if (stored) {
         const payload = JSON.parse(stored);
         if (payload && Array.isArray(payload.pages) && payload.pages.length > 0) {
-          // CRITICAL: Validate that the data isn't corrupted
-          const firstPageHtml = payload.pages[0]?.html || '';
-          if (isCorruptedHtml(firstPageHtml)) {
-            console.error('❌ CORRUPTED localStorage detected! HTML contains CSS data. Clearing...');
-            console.log('Corrupted content preview:', firstPageHtml.substring(0, 200));
-            localStorage.removeItem(LOCAL_STORAGE_PAGES_KEY);
-            // Don't set restoredFromLocalRef - let server data load
-            persistedInitialLoadRef.current = true;
-            return;
-          }
-          
           restoredFromLocalRef.current = true;
           lastSyncedAtRef.current = payload.updatedAt || Date.now();
           skipPersistRef.current = true;
@@ -3281,18 +3115,13 @@ ${linkStylesheetTag}  <style>
             setCurrentPageId(nextPageId);
             const targetPage = nextPages.find((p) => p.id === nextPageId);
             if (targetPage) {
-              applyPageToEditor(targetPage.html || DEFAULT_PAGE_CONTENT, targetPage.css || '', targetPage.stylesheetUrls, targetPage.baseUrl, targetPage.inlineCss);
+              applyPageToEditor(targetPage.html || DEFAULT_PAGE_CONTENT, targetPage.css || '');
             }
           }
         }
       }
     } catch (err) {
       console.warn('Failed to restore builder state from storage:', err);
-      // Clear potentially corrupted data
-      try {
-        localStorage.removeItem(LOCAL_STORAGE_PAGES_KEY);
-        console.log('Cleared localStorage due to parse error');
-      } catch (e) {}
     } finally {
       if (!persistedInitialLoadRef.current) {
         persistedInitialLoadRef.current = true;
@@ -3302,25 +3131,6 @@ ${linkStylesheetTag}  <style>
 
   useEffect(() => {
     if (!LOCAL_STORAGE_PAGES_KEY) return;
-    
-    // Helper to detect corrupted HTML (CSS saved as HTML)
-    const isCorruptedHtml = (content: string): boolean => {
-      if (!content || typeof content !== 'string') return false;
-      const trimmed = content.trim();
-      // Pattern 1: Starts with CSS
-      const cssPatterns = [/^body\s*\{/i, /^\*\s*\{/i, /^[\.\#][a-zA-Z_-]+\s*\{/, /^@media/i, /^@keyframes/i, /^html\s*\{/i, /^:root\s*\{/i];
-      if (cssPatterns.some(p => p.test(trimmed))) return true;
-      // Pattern 2: Body wrapper with CSS content inside
-      const bodyMatch = trimmed.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-      if (bodyMatch) {
-        const inner = bodyMatch[1].trim();
-        if (/^[a-z*.\#\[\:@]/i.test(inner) && inner.includes('{') && inner.includes('}') && !/<[a-z][a-z0-9]*[\s>]/i.test(inner.substring(0, 200))) return true;
-      }
-      // Pattern 3: Body tag with CSS but no real HTML structure
-      if (/^<body[^>]*>[\s\S]*<\/body>$/i.test(trimmed) && !/<(div|section|header|footer|nav|main|article|aside)[^>]*>/i.test(trimmed) && trimmed.includes('{')) return true;
-      return false;
-    };
-    
     const handleStorage = (event: StorageEvent) => {
       if (event.key !== LOCAL_STORAGE_PAGES_KEY || !event.newValue) return;
       try {
@@ -3328,14 +3138,6 @@ ${linkStylesheetTag}  <style>
         if (!payload || payload.source === tabIdRef.current) return;
         if (!Array.isArray(payload.pages) || payload.pages.length === 0) return;
         if (payload.updatedAt && payload.updatedAt <= lastSyncedAtRef.current) return;
-        
-        // Validate data isn't corrupted
-        const firstPageHtml = payload.pages[0]?.html || '';
-        if (isCorruptedHtml(firstPageHtml)) {
-          console.error('❌ Ignoring corrupted storage sync event');
-          return;
-        }
-        
         lastSyncedAtRef.current = payload.updatedAt || Date.now();
         skipPersistRef.current = true;
         const nextPages: Page[] = payload.pages;
@@ -3346,7 +3148,7 @@ ${linkStylesheetTag}  <style>
           setCurrentPageId(nextPageId);
           const targetPage = nextPages.find((p) => p.id === nextPageId);
           if (targetPage) {
-            applyPageToEditor(targetPage.html || DEFAULT_PAGE_CONTENT, targetPage.css || '', targetPage.stylesheetUrls, targetPage.baseUrl, targetPage.inlineCss);
+            applyPageToEditor(targetPage.html || DEFAULT_PAGE_CONTENT, targetPage.css || '');
           }
         }
       } catch (err) {
@@ -3417,38 +3219,8 @@ ${linkStylesheetTag}  <style>
       skipPersistRef.current = false;
       return;
     }
-    // CRITICAL: Never persist for installed themes - prevents corrupted cache
-    if (shouldLoadInstalledTheme) return;
-    
-    // Helper to detect corrupted HTML (CSS saved as HTML)
-    const isCorruptedHtml = (content: string): boolean => {
-      if (!content || typeof content !== 'string') return false;
-      const trimmed = content.trim();
-      // Pattern 1: Starts with CSS
-      const cssPatterns = [/^body\s*\{/i, /^\*\s*\{/i, /^[\.\#][a-zA-Z_-]+\s*\{/, /^@media/i, /^@keyframes/i, /^html\s*\{/i, /^:root\s*\{/i];
-      if (cssPatterns.some(p => p.test(trimmed))) return true;
-      // Pattern 2: Body wrapper with CSS content inside
-      const bodyMatch = trimmed.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-      if (bodyMatch) {
-        const inner = bodyMatch[1].trim();
-        if (/^[a-z*.\#\[\:@]/i.test(inner) && inner.includes('{') && inner.includes('}') && !/<[a-z][a-z0-9]*[\s>]/i.test(inner.substring(0, 200))) return true;
-      }
-      // Pattern 3: Body tag with CSS but no real HTML structure
-      if (/^<body[^>]*>[\s\S]*<\/body>$/i.test(trimmed) && !/<(div|section|header|footer|nav|main|article|aside)[^>]*>/i.test(trimmed) && trimmed.includes('{')) return true;
-      return false;
-    };
-    
     try {
       const { pagesSnapshot } = getPagesSnapshotWithCurrent();
-      
-      // CRITICAL: Don't save corrupted data
-      const firstPageHtml = pagesSnapshot[0]?.html || '';
-      if (isCorruptedHtml(firstPageHtml)) {
-        console.error('❌ REFUSING to save corrupted data to localStorage!');
-        console.log('Corrupted HTML preview:', firstPageHtml.substring(0, 200));
-        return;
-      }
-      
       const payload = {
         pages: pagesSnapshot,
         currentPageId,
@@ -3486,7 +3258,7 @@ ${linkStylesheetTag}  <style>
       console.warn('Failed to persist builder state:', err);
       }
     }
-  }, [pages, currentPageId, getPagesSnapshotWithCurrent, LOCAL_STORAGE_PAGES_KEY, shouldLoadInstalledTheme]);
+  }, [pages, currentPageId, getPagesSnapshotWithCurrent, LOCAL_STORAGE_PAGES_KEY]);
 
   const initialPageParam = useMemo(() => searchParams.get('page'), [searchParams]);
 
@@ -3523,8 +3295,7 @@ ${linkStylesheetTag}  <style>
       if (response.data.success && response.data.data) {
         const themeData = response.data.data;
         const storedHtml: string = themeData.html || '';
-        // CRITICAL: Clean up any corrupted gradient values in stored CSS
-        const storedCss: string = cleanupCssGradients(themeData.css || '');
+        const storedCss: string = themeData.css || '';
 
         const parsedPages = parsePagesFromStoredHtml(storedHtml);
         if (parsedPages && parsedPages.length > 0) {
@@ -3574,10 +3345,7 @@ ${linkStylesheetTag}  <style>
                 });
                 applyPageToEditor(
                   parsedPages[0].html || DEFAULT_PAGE_CONTENT, 
-                  parsedPages[0].css || '',
-                  parsedPages[0].stylesheetUrls,
-                  parsedPages[0].baseUrl,
-                  parsedPages[0].inlineCss
+                  parsedPages[0].css || ''
                 );
               }
             }, 100);
@@ -3702,28 +3470,6 @@ ${linkStylesheetTag}  <style>
         const presetWebpage = (await import('grapesjs-preset-webpage')).default;
         console.log('✅ GrapesJS preset-webpage loaded');
 
-        // Plugin: make ALL component types selectable by default (for theme elements - text, links, buttons, etc.)
-        const selectableThemePlugin = (editorInstance: any) => {
-          try {
-            const dm = editorInstance.DomComponents;
-            if (!dm) return;
-            const types = dm.getTypes?.() || {};
-            const typeIds = Array.isArray(types) ? types : Object.keys(types);
-            typeIds.forEach((typeId: string) => {
-              try {
-                const type = dm.getType?.(typeId);
-                if (type?.model?.defaults) {
-                  const def = type.model.defaults as Record<string, unknown>;
-                  def.selectable = true;
-                  def.hoverable = true;
-                  def.draggable = true;
-                  def.stylable = true;
-                }
-              } catch {}
-            });
-          } catch {}
-        };
-
         console.log('🚀 Initializing GrapesJS editor...', {
           container: editorRef.current,
           hasContainer: !!editorRef.current,
@@ -3734,57 +3480,16 @@ ${linkStylesheetTag}  <style>
         const editor = grapesjs.init({
           container: editorRef.current as HTMLElement,
           fromElement: false,
-          height: '100%',
+          height: 'calc(100vh - 60px)',
           width: '100%',
           noticeOnUnload: false,
-          avoidInlineStyle: false, // Use inline styles so Style panel changes apply immediately to elements
-          commands: {
-            defaults: [
-              {
-                id: 'close-sm',
-                run() {
-                  // No-op: keep style panel open
-                  const stylePanel = document.getElementById('style-panel');
-                  if (stylePanel) {
-                    stylePanel.style.display = 'block';
-                    stylePanel.style.visibility = 'visible';
-                    stylePanel.style.opacity = '1';
-                  }
-                },
-                stop() {},
-              },
-              {
-                id: 'open-sm',
-                run(ed: any) {
-                  // Ensure StyleManager is rendered and visible
-                  const stylePanel = document.getElementById('style-panel');
-                  if (stylePanel && ed.StyleManager) {
-                    stylePanel.style.display = 'block';
-                    stylePanel.style.visibility = 'visible';
-                    stylePanel.style.opacity = '1';
-                    
-                    // Re-render StyleManager to the panel
-                    try {
-                      const smEl = ed.StyleManager.render();
-                      if (smEl && !stylePanel.contains(smEl)) {
-                        stylePanel.innerHTML = '';
-                        stylePanel.appendChild(smEl);
-                      }
-                    } catch (e) {
-                      console.warn('StyleManager render error:', e);
-                    }
-                  }
-                },
-                stop() {},
-              },
-            ],
-          },
-          plugins: [presetWebpage, selectableThemePlugin],
+          avoidInlineStyle: true, // CRITICAL: Force CSS rules instead of inline styles
+          plugins: [presetWebpage],
           pluginsOpts: {
-            [presetWebpage as unknown as string]: {},
+            // Disable preset blocks to prevent duplicates - we add all blocks ourselves
+            [presetWebpage as unknown as string]: { blocks: [] },
           },
           deviceManager: {
-            default: 'desktop',
             devices: [
               { id: 'desktop', name: 'Desktop', width: '' },
               { id: 'tablet', name: 'Tablet', width: '768px' },
@@ -3795,8 +3500,11 @@ ${linkStylesheetTag}  <style>
           selectorManager: { 
             componentFirst: true,
             escapeName: (name: string) => {
+              // Force class-based selectors by escaping IDs
               return name;
             },
+            // Ensure components get proper selectors for CSS rules
+            appendTo: '#style-panel'
           },
           styleManager: {
             appendTo: '#style-panel',
@@ -3807,17 +3515,64 @@ ${linkStylesheetTag}  <style>
                 buildProps: [
                   'width', 'height', 'min-width', 'min-height', 'max-width', 'max-height',
                   'padding', 'margin', 'display', 'position', 'top', 'right', 'bottom', 'left', 'z-index',
-                  'overflow', 'overflow-x', 'overflow-y', 'float', 'clear', 'vertical-align', 'box-sizing'
+                  { type: 'select', property: 'overflow', label: 'Overflow', options: [
+                    { id: 'visible', label: 'Visible' }, { id: 'hidden', label: 'Hidden' }, { id: 'scroll', label: 'Scroll' }, { id: 'auto', label: 'Auto' },
+                  ]},
+                  { type: 'select', property: 'overflow-x', label: 'Overflow X', options: [
+                    { id: 'visible', label: 'Visible' }, { id: 'hidden', label: 'Hidden' }, { id: 'scroll', label: 'Scroll' }, { id: 'auto', label: 'Auto' },
+                  ]},
+                  { type: 'select', property: 'overflow-y', label: 'Overflow Y', options: [
+                    { id: 'visible', label: 'Visible' }, { id: 'hidden', label: 'Hidden' }, { id: 'scroll', label: 'Scroll' }, { id: 'auto', label: 'Auto' },
+                  ]},
+                  { type: 'select', property: 'float', label: 'Float', options: [
+                    { id: 'none', label: 'None' }, { id: 'left', label: 'Left' }, { id: 'right', label: 'Right' },
+                  ]},
+                  { type: 'select', property: 'clear', label: 'Clear', options: [
+                    { id: 'none', label: 'None' }, { id: 'left', label: 'Left' }, { id: 'right', label: 'Right' }, { id: 'both', label: 'Both' },
+                  ]},
+                  { type: 'select', property: 'vertical-align', label: 'Vertical align', options: [
+                    { id: 'baseline', label: 'Baseline' }, { id: 'top', label: 'Top' }, { id: 'middle', label: 'Middle' }, { id: 'bottom', label: 'Bottom' },
+                    { id: 'text-top', label: 'Text top' }, { id: 'text-bottom', label: 'Text bottom' }, { id: 'sub', label: 'Sub' }, { id: 'super', label: 'Super' },
+                  ]},
+                  { type: 'select', property: 'box-sizing', label: 'Box sizing', options: [
+                    { id: 'content-box', label: 'Content box' }, { id: 'border-box', label: 'Border box' },
+                  ]},
                 ],
               },
               {
                 name: 'Typography',
                 open: true,
                 buildProps: [
-                  'font-family', 'font-size', 'font-weight', 'font-style', 'font-variant',
-                  'text-decoration', 'text-align', 'text-transform', 'text-indent',
-                  'line-height', 'letter-spacing', 'word-spacing', 'white-space',
-                  'color', 'text-shadow', 'text-overflow', 'word-wrap', 'word-break'
+                  { type: 'select', property: 'font-family', label: 'Font family', options: [
+                    { id: 'inherit', label: 'Inherit' }, { id: 'Arial, Helvetica, sans-serif', label: 'Arial' }, { id: 'Georgia, serif', label: 'Georgia' },
+                    { id: '"Times New Roman", Times, serif', label: 'Times New Roman' }, { id: '"Courier New", monospace', label: 'Courier New' },
+                    { id: 'Verdana, sans-serif', label: 'Verdana' }, { id: 'system-ui, sans-serif', label: 'System' }, { id: 'sans-serif', label: 'Sans-serif' },
+                    { id: 'serif', label: 'Serif' }, { id: 'monospace', label: 'Monospace' }, { id: 'cursive', label: 'Cursive' }, { id: 'fantasy', label: 'Fantasy' },
+                  ]},
+                  'font-size', 'font-weight', 'font-style', 'font-variant',
+                  { type: 'select', property: 'text-decoration', label: 'Text decoration', options: [
+                    { id: 'none', label: 'None' }, { id: 'underline', label: 'Underline' }, { id: 'overline', label: 'Overline' }, { id: 'line-through', label: 'Line through' },
+                  ]},
+                  { type: 'select', property: 'text-align', label: 'Text align', options: [
+                    { id: 'left', label: 'Left' }, { id: 'center', label: 'Center' }, { id: 'right', label: 'Right' }, { id: 'justify', label: 'Justify' },
+                  ]},
+                  { type: 'select', property: 'text-transform', label: 'Text transform', options: [
+                    { id: 'none', label: 'None' }, { id: 'capitalize', label: 'Capitalize' }, { id: 'uppercase', label: 'Uppercase' }, { id: 'lowercase', label: 'Lowercase' },
+                  ]},
+                  'text-indent', 'line-height', 'letter-spacing', 'word-spacing',
+                  { type: 'select', property: 'white-space', label: 'White space', options: [
+                    { id: 'normal', label: 'Normal' }, { id: 'nowrap', label: 'No wrap' }, { id: 'pre', label: 'Pre' }, { id: 'pre-wrap', label: 'Pre wrap' }, { id: 'pre-line', label: 'Pre line' },
+                  ]},
+                  'color', 'text-shadow',
+                  { type: 'select', property: 'text-overflow', label: 'Text overflow', options: [
+                    { id: 'clip', label: 'Clip' }, { id: 'ellipsis', label: 'Ellipsis' },
+                  ]},
+                  { type: 'select', property: 'word-wrap', label: 'Word wrap', options: [
+                    { id: 'normal', label: 'Normal' }, { id: 'break-word', label: 'Break word' },
+                  ]},
+                  { type: 'select', property: 'word-break', label: 'Word break', options: [
+                    { id: 'normal', label: 'Normal' }, { id: 'break-all', label: 'Break all' }, { id: 'keep-all', label: 'Keep all' },
+                  ]},
                 ],
               },
               {
@@ -3839,7 +3594,7 @@ ${linkStylesheetTag}  <style>
                   'border-top-style', 'border-right-style', 'border-bottom-style', 'border-left-style',
                   'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color',
                   'border-top-left-radius', 'border-top-right-radius', 'border-bottom-right-radius', 'border-bottom-left-radius',
-                  'outline', 'outline-width', 'outline-style', 'outline-color', 'outline-offset'
+                  'box-shadow', 'outline', 'outline-width', 'outline-style', 'outline-color', 'outline-offset'
                 ],
               },
               {
@@ -3907,179 +3662,22 @@ ${linkStylesheetTag}  <style>
               {
                 name: 'Cursor',
                 open: false,
-                properties: [
-                  {
-                    type: 'select',
-                    property: 'cursor',
-                    label: 'Cursor',
-                    default: 'default',
-                    options: [
-                      { id: 'default', label: 'Default' },
-                      { id: 'pointer', label: 'Pointer' },
-                      { id: 'move', label: 'Move' },
-                      { id: 'text', label: 'Text' },
-                      { id: 'wait', label: 'Wait' },
-                      { id: 'help', label: 'Help' },
-                      { id: 'grab', label: 'Grab' },
-                      { id: 'grabbing', label: 'Grabbing' },
-                      { id: 'not-allowed', label: 'Not Allowed' },
-                      { id: 'no-drop', label: 'No Drop' },
-                      { id: 'crosshair', label: 'Crosshair' },
-                      { id: 'progress', label: 'Progress' },
-                      { id: 'none', label: 'None' },
-                    ],
-                  },
-                  {
-                    type: 'select',
-                    property: 'pointer-events',
-                    label: 'Pointer Events',
-                    default: 'auto',
-                    options: [
-                      { id: 'auto', label: 'Auto' },
-                      { id: 'none', label: 'None' },
-                      { id: 'visiblePainted', label: 'Visible Painted' },
-                      { id: 'visibleFill', label: 'Visible Fill' },
-                      { id: 'visibleStroke', label: 'Visible Stroke' },
-                      { id: 'visible', label: 'Visible' },
-                      { id: 'painted', label: 'Painted' },
-                      { id: 'fill', label: 'Fill' },
-                      { id: 'stroke', label: 'Stroke' },
-                      { id: 'all', label: 'All' },
-                    ],
-                  },
-                  {
-                    type: 'select',
-                    property: 'user-select',
-                    label: 'User Select',
-                    default: 'auto',
-                    options: [
-                      { id: 'auto', label: 'Auto' },
-                      { id: 'none', label: 'None' },
-                      { id: 'text', label: 'Text' },
-                      { id: 'all', label: 'All' },
-                      { id: 'contain', label: 'Contain' },
-                    ],
-                  },
-                  {
-                    type: 'select',
-                    property: 'touch-action',
-                    label: 'Touch Action',
-                    default: 'auto',
-                    options: [
-                      { id: 'auto', label: 'Auto' },
-                      { id: 'none', label: 'None' },
-                      { id: 'pan-x', label: 'Pan X' },
-                      { id: 'pan-y', label: 'Pan Y' },
-                      { id: 'manipulation', label: 'Manipulation' },
-                      { id: 'pinch-zoom', label: 'Pinch Zoom' },
-                    ],
-                  },
+                buildProps: [
+                  'cursor', 'pointer-events', 'user-select', 'touch-action'
                 ],
               },
               {
                 name: 'Animation',
                 open: false,
-                properties: [
-                  {
-                    type: 'select',
-                    property: 'animation-name',
-                    label: 'Animation Name',
-                    default: 'none',
-                    options: [
-                      { id: 'none', label: 'None' },
-                      { id: 'fadeIn', label: 'Fade In' },
-                      { id: 'fadeOut', label: 'Fade Out' },
-                      { id: 'slideInUp', label: 'Slide In Up' },
-                      { id: 'slideInDown', label: 'Slide In Down' },
-                      { id: 'slideOutUp', label: 'Slide Out Up' },
-                      { id: 'slideOutDown', label: 'Slide Out Down' },
-                      { id: 'bounce', label: 'Bounce' },
-                      { id: 'pulse', label: 'Pulse' },
-                      { id: 'spin', label: 'Spin' },
-                      { id: 'zoomIn', label: 'Zoom In' },
-                      { id: 'zoomOut', label: 'Zoom Out' },
-                    ],
-                  },
-                  {
-                    type: 'select',
-                    property: 'animation-timing-function',
-                    label: 'Timing',
-                    default: 'ease',
-                    options: [
-                      { id: 'ease', label: 'Ease' },
-                      { id: 'ease-in', label: 'Ease In' },
-                      { id: 'ease-out', label: 'Ease Out' },
-                      { id: 'ease-in-out', label: 'Ease In Out' },
-                      { id: 'linear', label: 'Linear' },
-                      { id: 'step-start', label: 'Step Start' },
-                      { id: 'step-end', label: 'Step End' },
-                    ],
-                  },
-                  {
-                    type: 'select',
-                    property: 'animation-direction',
-                    label: 'Direction',
-                    default: 'normal',
-                    options: [
-                      { id: 'normal', label: 'Normal' },
-                      { id: 'reverse', label: 'Reverse' },
-                      { id: 'alternate', label: 'Alternate' },
-                      { id: 'alternate-reverse', label: 'Alternate Reverse' },
-                    ],
-                  },
-                  {
-                    type: 'select',
-                    property: 'animation-fill-mode',
-                    label: 'Fill Mode',
-                    default: 'none',
-                    options: [
-                      { id: 'none', label: 'None' },
-                      { id: 'forwards', label: 'Forwards' },
-                      { id: 'backwards', label: 'Backwards' },
-                      { id: 'both', label: 'Both' },
-                    ],
-                  },
-                  {
-                    type: 'select',
-                    property: 'animation-iteration-count',
-                    label: 'Iterations',
-                    default: '1',
-                    options: [
-                      { id: '1', label: '1' },
-                      { id: '2', label: '2' },
-                      { id: '3', label: '3' },
-                      { id: 'infinite', label: 'Infinite' },
-                    ],
-                  },
-                  {
-                    type: 'select',
-                    property: 'animation-play-state',
-                    label: 'Play State',
-                    default: 'running',
-                    options: [
-                      { id: 'running', label: 'Running' },
-                      { id: 'paused', label: 'Paused' },
-                    ],
-                  },
-                  { type: 'number', property: 'animation-duration', label: 'Duration (s)', units: ['s', 'ms'], default: '1s', min: 0 },
-                  { type: 'number', property: 'animation-delay', label: 'Delay (s)', units: ['s', 'ms'], default: '0s', min: 0 },
+                buildProps: [
+                  'animation', 'animation-name', 'animation-duration', 'animation-timing-function',
+                  'animation-delay', 'animation-iteration-count', 'animation-direction', 'animation-fill-mode', 'animation-play-state'
                 ],
               },
             ],
           },
-          canvas: {
-            allowExternalDrop: true,
-            // Match Basic Elementor: blue selection outline, pointer-events for easy selection
-            styles: [
-              'data:text/css;charset=utf-8,' + encodeURIComponent(ANIMATION_KEYFRAMES_CSS),
-              'data:text/css;charset=utf-8,' + encodeURIComponent(PRESERVE_TEXT_COLOR_CSS),
-              'data:text/css;charset=utf-8,' + encodeURIComponent(SELECTION_HIGHLIGHT_BASIC_CSS),
-            ],
-          },
-          blockManager: { 
-            appendTo: '#blocks-panel',
-            appendOnClick: true, // Click block to add to canvas (reliable when drag-to-iframe fails)
-          },
+          canvas: { styles: [] },
+          blockManager: { appendTo: '#blocks-panel' },
           layerManager: { appendTo: '#layers-panel' },
           traitManager: {
             appendTo: '#traits-panel',
@@ -4092,89 +3690,6 @@ ${linkStylesheetTag}  <style>
           hasComponents: !!editor.Components,
           hasBlockManager: !!editor.BlockManager
         });
-        
-        // DEBUG: Expose editor and test function on window for debugging
-        (window as any).gjsEditor = editor;
-        (window as any).applyStyle = (property: string, value: string) => {
-          const selected = editor.getSelected();
-          if (!selected) {
-            console.log('❌ No component selected');
-            return null;
-          }
-          
-          // Apply to model
-          selected.addStyle({ [property]: value });
-          
-          // Apply to DOM
-          const el = selected.getEl?.() || selected.view?.el;
-          if (el) {
-            (el as HTMLElement).style.setProperty(property, value, 'important');
-            console.log(`✓ Applied ${property}: ${value} to`, el.tagName);
-          }
-          
-          editor.refresh();
-          return { styles: selected.getStyle(), el };
-        };
-        
-        // DEBUG: Function to sync styles from StyleManager
-        (window as any).syncStyles = () => {
-          const selected = editor.getSelected();
-          if (!selected) {
-            console.log('❌ No component selected');
-            return;
-          }
-          
-          const sm = editor.StyleManager as any;
-          if (!sm) {
-            console.log('❌ No StyleManager');
-            return;
-          }
-          
-          console.log('🔄 Syncing styles from StyleManager...');
-          const sectors = sm.getSectors?.() || [];
-          let applied = 0;
-          
-          sectors.forEach((sector: any) => {
-            const sectorName = sector.getName?.() || sector.get?.('name') || 'unknown';
-            console.log(`📂 Sector: ${sectorName}`);
-            
-            const props = sector.getProperties?.() || [];
-            props.forEach((prop: any) => {
-              try {
-                const propName = prop.getName?.() || prop.get?.('property');
-                const value = prop.getFullValue?.() || prop.getValue?.() || prop.get?.('value');
-                console.log(`  - ${propName}: ${value}`);
-                
-                if (propName && value && value !== '') {
-                  selected.addStyle({ [propName]: value });
-                  const el = selected.getEl?.();
-                  if (el) {
-                    (el as HTMLElement).style.setProperty(propName, String(value), 'important');
-                    applied++;
-                  }
-                }
-              } catch (e) {
-                console.warn('Error reading property:', e);
-              }
-            });
-          });
-          
-          console.log(`✅ Applied ${applied} styles`);
-          editor.refresh();
-        };
-        
-        // DEBUG: Show all GrapesJS style events
-        (window as any).debugStyleEvents = () => {
-          console.log('🐛 Enabling style event debugging...');
-          ['style:change', 'style:update', 'style:property:update', 'style:target', 'component:styleUpdate', 'component:style:update'].forEach(evt => {
-            editor.on(evt, (...args: any[]) => {
-              console.log(`📝 Event: ${evt}`, args);
-            });
-          });
-          console.log('✅ Style event debugging enabled. Try changing a style in the panel.');
-        };
-        
-        console.log('💡 Debug: Use applyStyle("width", "300px"), syncStyles(), or debugStyleEvents() to test');
 
         // Setup Undo/Redo functionality
         const updateUndoRedoState = () => {
@@ -4189,8 +3704,6 @@ ${linkStylesheetTag}  <style>
         editor.on('update', updateUndoRedoState);
         editor.on('component:update', updateUndoRedoState);
         editor.on('style:update', updateUndoRedoState);
-
-        // Style updates are handled in a single consolidated handler below (see applyStylesToSelectedComponents)
 
         // Update progress bars when percentage text changes
         editor.on('component:update', (component: any) => {
@@ -4379,76 +3892,11 @@ ${linkStylesheetTag}  <style>
         // This is critical when editing existing themes
         // Use a flag to prevent multiple executions
         let loadHandlerExecuted = false;
-        // Re-inject theme styles when canvas frame loads - matches BasicElementor canvas:frame:load behavior
-        // CRITICAL: Run runExpandAndConfigureSelectability on EVERY frame load (theme/page switch)
-        // Element selection: GrapesJS native selection (no custom click handler - same as BasicElementor)
-        editor.on('canvas:frame:load', () => {
-          try {
-            runExpandAndConfigureSelectability(editor);
-            const targetPage = pagesRef.current.find(p => p.id === currentPageIdRef.current) || pagesRef.current[0];
-            const urls = targetPage?.stylesheetUrls || [];
-            const base = targetPage?.baseUrl || '';
-            const styleBlockContent = (urls.length && targetPage?.inlineCss) ? targetPage.inlineCss : (targetPage?.css || '');
-            if (injectThemeStylesIntoFrame(editor, { styleBlockContent, stylesheetUrls: urls, baseUrl: base })) {
-              console.log('✅ CSS re-injected on canvas:frame:load');
-            }
-            // Re-apply desktop full width when frame loads (GrapesJS may have overwritten it)
-            const device = editor.getDevice?.();
-            if (device === 'desktop') {
-              const applyDesktop = () => {
-                const frame = editor.Canvas?.getFrameEl?.();
-                const frameModel = (editor.Canvas as any)?.getFrame?.();
-                if (frameModel && typeof frameModel.set === 'function') frameModel.set({ width: '100%', height: '' });
-                if (frame) {
-                  (frame as HTMLElement).style.setProperty('width', '100%', 'important');
-                  (frame as HTMLElement).style.setProperty('min-width', '100%', 'important');
-                  (frame as HTMLElement).style.setProperty('flex', '1', 'important');
-                }
-                document.querySelectorAll('.gjs-frame-wrapper').forEach((w) => {
-                  (w as HTMLElement).style.setProperty('width', '100%', 'important');
-                  (w as HTMLElement).style.setProperty('min-width', '100%', 'important');
-                  (w as HTMLElement).style.setProperty('flex', '1', 'important');
-                });
-                const framesSel = '.gjs-cv-canvas__frames, .gjs-cv-canvas_frames, [class*="cv-canvas"][class*="frames"]';
-                document.querySelectorAll(framesSel).forEach((f) => {
-                  (f as HTMLElement).style.setProperty('width', '100%', 'important');
-                  (f as HTMLElement).style.setProperty('min-width', '100%', 'important');
-                  (f as HTMLElement).style.setProperty('flex', '1', 'important');
-                  (f as HTMLElement).style.setProperty('justify-content', 'flex-start', 'important');
-                  (f as HTMLElement).style.setProperty('align-items', 'stretch', 'important');
-                });
-              };
-              applyDesktop();
-              setTimeout(applyDesktop, 50);
-              setTimeout(applyDesktop, 150);
-            }
-          } catch (e) {
-            console.warn('canvas:frame:load:', e);
-          }
-        });
-
         editor.on('load', () => {
           if (loadHandlerExecuted || destroyed) return; // Prevent multiple executions
           loadHandlerExecuted = true;
           
           console.log('✅ Editor loaded - ensuring widgets panel is visible');
-          
-          // CRITICAL: Ensure StyleManager is properly rendered to the style-panel
-          try {
-            const stylePanel = document.getElementById('style-panel');
-            const sm = editor.StyleManager;
-            if (stylePanel && sm) {
-              // Clear any existing content and re-render StyleManager
-              const smEl = sm.render();
-              if (smEl) {
-                stylePanel.innerHTML = '';
-                stylePanel.appendChild(smEl);
-                console.log('✅ StyleManager rendered to style-panel');
-              }
-            }
-          } catch (e) {
-            console.warn('StyleManager render error:', e);
-          }
           
           // Use requestAnimationFrame to defer state updates and prevent reload loops
           requestAnimationFrame(() => {
@@ -4918,10 +4366,12 @@ ${linkStylesheetTag}  <style>
           }
         });
 
-        // Style Manager: GrapesJS renders via appendTo on init; we only ensure visibility
+        // Optimized Style Manager initialization - use requestAnimationFrame for smooth rendering
         requestAnimationFrame(() => {
           if (destroyed || !editor.StyleManager) return;
+          
           try {
+              // Ensure right panel is visible
             const rightPanel = rootContainerRef.current?.querySelector('.builder-right-panel') as HTMLElement;
             if (rightPanel) {
               rightPanel.style.display = 'flex';
@@ -4930,13 +4380,60 @@ ${linkStylesheetTag}  <style>
               rightPanel.style.width = '300px';
               rightPanel.style.flexShrink = '0';
             }
+              
+            // Select wrapper for initial render
             const wrapper = editor.getWrapper();
             if (wrapper) {
               editor.select(wrapper);
               wrapper.set({ stylable: true });
               editor.runCommand('open-sm');
             }
-            ensureStylePanelVisible();
+              
+              const stylePanel = document.getElementById('style-panel');
+            if (!stylePanel || typeof editor.StyleManager.render !== 'function') return;
+            
+            // Set basic styles once
+                stylePanel.style.display = 'block';
+                stylePanel.style.visibility = 'visible';
+                stylePanel.style.opacity = '1';
+                stylePanel.style.width = '100%';
+                stylePanel.style.height = '100%';
+                stylePanel.style.minHeight = '300px';
+                stylePanel.style.background = '#1e1e1e';
+                
+            // Render Style Manager
+            // CRITICAL: Only render if style tab is active
+            if (activeSidebarSection === 'style') {
+                stylePanel.innerHTML = '';
+                editor.StyleManager.render();
+            }
+                
+            // Optimize sector expansion - use requestAnimationFrame and batch DOM updates
+            requestAnimationFrame(() => {
+                  const sectors = stylePanel.querySelectorAll('.gjs-sm-sector');
+                  
+              // Batch DOM updates for better performance
+              const fragment = document.createDocumentFragment();
+              const updates: (() => void)[] = [];
+              
+                  sectors.forEach((sector: any) => {
+                if (!sector) return;
+                
+                // Prepare updates
+                updates.push(() => {
+                      sector.classList.remove('gjs-sm-sector--closed');
+                      sector.classList.add('gjs-sm-sector--open');
+                      
+                      const sectorContent = sector.querySelector('.gjs-sm-sector-content');
+                      if (sectorContent) {
+                    (sectorContent as HTMLElement).style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; max-height: none !important;';
+                  }
+                });
+              });
+              
+              // Apply all updates in a single batch
+              updates.forEach(update => update());
+            });
           } catch (e) {
             console.warn('Error initializing Style Manager:', e);
           }
@@ -5303,10 +4800,8 @@ ${linkStylesheetTag}  <style>
         } as any);
 
         // Listen for product card block drag stop - intercept and add multiple cards
-        // GrapesJS passes (component, block)
-        editor.on('block:drag:stop', (_component: any, block: any) => {
-          const blk = block ?? _component;
-          if (blk && blk.get && blk.get('id') === 'product-card') {
+        editor.on('block:drag:stop', (block: any) => {
+          if (block && block.get && block.get('id') === 'product-card') {
             // Wait a bit for the default block to be added, then remove it
             setTimeout(() => {
               const selected = editor.getSelected();
@@ -5769,11 +5264,10 @@ ${linkStylesheetTag}  <style>
                     console.log(`📁 Grouped blocks into ${Object.keys(blocksByCategory).length} categories:`, Object.keys(blocksByCategory));
                     
                     // Create category sections
-                    Object.entries(blocksByCategory).forEach(([category, blocks], idx) => {
+                    Object.entries(blocksByCategory).forEach(([category, blocks]) => {
                       const categoryDiv = document.createElement('div');
                       categoryDiv.className = 'gjs-block-category';
-                      categoryDiv.setAttribute('data-open', idx === 0 ? 'true' : 'false');
-                      if (idx !== 0) categoryDiv.classList.add('collapsed');
+                      categoryDiv.setAttribute('data-open', 'true');
                       
                       const categoryTitle = document.createElement('div');
                       categoryTitle.className = 'gjs-block-category-title';
@@ -5789,8 +5283,7 @@ ${linkStylesheetTag}  <style>
                       
                       const categoryBlocks = document.createElement('div');
                       categoryBlocks.className = 'gjs-block-category-blocks';
-                      const isFirstCategory = idx === 0;
-                      categoryBlocks.style.setProperty('display', isFirstCategory ? 'grid' : 'none', 'important');
+                      categoryBlocks.style.setProperty('display', 'grid', 'important');
                       categoryBlocks.style.setProperty('grid-template-columns', 'repeat(2, 1fr)', 'important');
                       categoryBlocks.style.setProperty('gap', '10px', 'important');
                       categoryBlocks.style.setProperty('padding', '12px', 'important');
@@ -5889,9 +5382,9 @@ ${linkStylesheetTag}  <style>
           try {
             const wrapper = editor.getWrapper();
             if (wrapper) {
-              // Configure wrapper properties - droppable: '*' required for block drag & drop
+              // Configure wrapper properties
               wrapper.set({ 
-                droppable: '*', 
+                droppable: true, 
                 selectable: true,
                 editable: false,
                 draggable: false,
@@ -5987,8 +5480,7 @@ ${linkStylesheetTag}  <style>
                             if (response.data.success && response.data.data) {
                               const themeData = response.data.data;
                               const storedHtml: string = themeData.html || '';
-                              // CRITICAL: Clean up any corrupted gradient values in stored CSS
-                              const storedCss: string = cleanupCssGradients(themeData.css || '');
+                              const storedCss: string = themeData.css || '';
                               const parsedPages = parsePagesFromStoredHtml(storedHtml);
                               if (parsedPages && parsedPages.length > 0) {
                                 setPages(parsedPages);
@@ -6032,61 +5524,16 @@ ${linkStylesheetTag}  <style>
                         if (!customTheme404) {
                           console.log('Loading installed theme...', { themeId: themeId, shouldLoadInstalledTheme });
                         }
-                        let fallbackTheme = await fetchInstalledThemeFromFiles(customTheme404);
-                        // Fallback: Basic Elementor-style direct fetch if main fetch failed (e.g. validation rejected)
-                        if (!fallbackTheme && shouldLoadInstalledTheme) {
-                          console.log('🔄 Trying Basic Elementor-style direct fetch...');
-                          const ownerId = resolvedStoreId || extractUserIdFromToken();
-                          if (ownerId) {
-                            const apiBase = (import.meta.env.VITE_API_URL as string | undefined) || `${window.location.origin}/api`;
-                            const url = `${apiBase}/themes/installed/${ownerId}/${themeId}/unzippedTheme/index.html?v=${Date.now()}`;
-                            try {
-                              const res = await fetch(url, { credentials: 'include', headers: buildAuthHeaders() });
-                              if (res.ok) {
-                                const raw = await res.text();
-                                const bodyMatch = raw.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-                                const bodyContent = bodyMatch ? bodyMatch[1] : raw;
-                                const isCss = /^(body|html|\*|\.|\#|\@|:root)\s*\{/i.test((bodyContent || '').trim()) ||
-                                  (bodyContent.includes('{') && bodyContent.includes('}') && /\.gjs-(dashed|selected|wrapper)/i.test(bodyContent));
-                                if (!isCss && bodyContent && bodyContent.length > 100) {
-                                  const baseUrlFallback = url.substring(0, url.lastIndexOf('/') + 1);
-                                  let simpleCss = '';
-                                  const styleRegex = /<style[^>]*>([\s\S]*?)<\/style>/gi;
-                                  let m;
-                                  while ((m = styleRegex.exec(raw)) !== null) simpleCss += m[1] + '\n';
-                                  const linkTags = (raw.match(/<link[^>]+>/gi) || []).filter(t => /rel\s*=\s*["']stylesheet["']/i.test(t));
-                                  const styleUrls: string[] = [];
-                                  for (const tag of linkTags) {
-                                    const hrefMatch = tag.match(/href\s*=\s*["']([^"']+)["']/i);
-                                    let href = hrefMatch ? hrefMatch[1] : '';
-                                    if (href && !href.startsWith('http')) href = new URL(href, baseUrlFallback).href;
-                                    if (!href) continue;
-                                    styleUrls.push(href);
-                                    try {
-                                      const cssRes = await fetch(href, { credentials: 'include', headers: buildAuthHeaders() });
-                                      if (cssRes.ok) simpleCss += '\n' + (await cssRes.text());
-                                    } catch {}
-                                  }
-                                  fallbackTheme = { html: bodyContent, css: simpleCss, name: 'Installed Theme', stylesheetUrls: styleUrls, baseUrl: baseUrlFallback };
-                                  console.log('✓ Basic-style fetch succeeded');
-                                }
-                              }
-                            } catch (e) {
-                              console.warn('Basic-style fetch failed:', e);
-                            }
-                          }
-                        }
+                        const fallbackTheme = await fetchInstalledThemeFromFiles(customTheme404);
                         if (fallbackTheme) {
                           console.log('✓ Installed theme loaded successfully:', fallbackTheme.name);
                           
-                          // Create main page (index.html) - include stylesheetUrls for proper CSS loading (like BasicElementor)
+                          // Create main page (index.html)
                           const mainPage: Page = {
                             id: 'page-1',
                             name: fallbackTheme.name || 'Home',
                             html: fallbackTheme.html || DEFAULT_PAGE_CONTENT,
                             css: fallbackTheme.css || '',
-                            stylesheetUrls: fallbackTheme.stylesheetUrls,
-                            baseUrl: fallbackTheme.baseUrl,
                           };
                           
                           // Combine main page with discovered pages
@@ -6140,87 +5587,16 @@ ${linkStylesheetTag}  <style>
                     cssLength: existing?.css?.length,
                     themeId: themeId,
                     isInstalledMode,
-                    shouldLoadInstalledTheme,
-                    htmlPreview: existing?.html?.substring(0, 300)
+                    shouldLoadInstalledTheme
                   });
                   
-                  // CRITICAL: Validate that HTML is actually HTML, not CSS
-                  const validateHtmlContent = (content: string): boolean => {
-                    if (!content) return false;
-                    const trimmed = content.trim();
-                    // Must contain actual HTML elements
-                    const hasHtmlElements = /<(div|section|header|footer|nav|main|body|html|head)[^>]*>/i.test(trimmed);
-                    // Should not start with CSS patterns
-                    const startsWithCss = /^(body|html|\*|\.|\#|\@|:root)\s*\{/i.test(trimmed);
-                    // Check if content inside body tags is CSS (corrupted)
-                    const bodyMatch = trimmed.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
-                    if (bodyMatch) {
-                      const inner = bodyMatch[1].trim();
-                      const innerIsCss = /^[a-z*.\#\[\:@]/i.test(inner) && inner.includes('{') && inner.includes('}') && !/<[a-z]/i.test(inner.substring(0, 100));
-                      if (innerIsCss) return false;
-                    }
-                    return hasHtmlElements && !startsWithCss;
-                  };
-                  
-                  let htmlToApply = existing?.html;
-                  let cssToApply = existing?.css || '';
-                  let stylesheetUrlsToApply = existing?.stylesheetUrls;
-                  let baseUrlToApply = existing?.baseUrl;
-                  let inlineCssToApply = existing?.inlineCss;
-                  
-                  // If HTML is corrupted (contains CSS), force reload from installed files
-                  if (htmlToApply && !validateHtmlContent(htmlToApply)) {
-                    console.error('❌ CORRUPTED HTML DETECTED! HTML contains CSS content. Force reloading from installed files...');
-                    console.log('Corrupted content:', htmlToApply.substring(0, 300));
-                    
-                    // Clear ALL localStorage
-                    Object.keys(localStorage).forEach(key => {
-                      if (key.includes('ziplofy') || key.includes('builder')) {
-                        localStorage.removeItem(key);
-                      }
-                    });
-                    
-                    // Force fetch fresh from installed files
-                    const freshTheme = await fetchInstalledThemeFromFiles(true);
-                    if (freshTheme && validateHtmlContent(freshTheme.html)) {
-                      console.log('✅ Fresh theme loaded successfully');
-                      htmlToApply = freshTheme.html;
-                      cssToApply = freshTheme.css || '';
-                      stylesheetUrlsToApply = freshTheme.stylesheetUrls;
-                      baseUrlToApply = freshTheme.baseUrl;
-                      
-                      // Update pages with fresh data
-                      inlineCssToApply = freshTheme.inlineCss;
-                      const freshMainPage: Page = {
-                        id: 'page-1',
-                        name: freshTheme.name || 'Home',
-                        html: freshTheme.html || DEFAULT_PAGE_CONTENT,
-                        css: freshTheme.css || '',
-                        inlineCss: freshTheme.inlineCss,
-                        stylesheetUrls: freshTheme.stylesheetUrls,
-                        baseUrl: freshTheme.baseUrl,
-                      };
-                      const freshPages = freshTheme.pages && freshTheme.pages.length > 0
-                        ? [freshMainPage, ...freshTheme.pages]
-                        : [freshMainPage];
-                      setPages(freshPages);
-                      pagesRef.current = freshPages;
-                    } else {
-                      console.error('❌ Fresh theme also invalid, using default content');
-                      htmlToApply = DEFAULT_PAGE_CONTENT;
-                      cssToApply = '';
-                      stylesheetUrlsToApply = undefined;
-                      baseUrlToApply = undefined;
-                    }
-                  }
-                  
                   try {
-                    if (htmlToApply && validateHtmlContent(htmlToApply)) {
-                      console.log('✅ Applying valid theme HTML to editor');
-                      applyPageToEditor(htmlToApply, cssToApply, stylesheetUrlsToApply, baseUrlToApply, inlineCssToApply);
+                    if (existing?.html) {
+                      console.log('✅ Applying existing theme HTML to editor');
+                      applyPageToEditor(existing.html, existing.css || '');
                     } else {
-                      console.warn('⚠️ No valid theme HTML found, using default content');
-                      applyPageToEditor(DEFAULT_PAGE_CONTENT, cssToApply, stylesheetUrlsToApply, baseUrlToApply, inlineCssToApply);
+                      console.warn('⚠️ No existing theme found, using default content');
+                      applyPageToEditor(DEFAULT_PAGE_CONTENT, existing?.css || '');
                     }
                     console.log('✅ Theme content applied to editor successfully');
                   } catch (applyError: any) {
@@ -6379,10 +5755,14 @@ ${linkStylesheetTag}  <style>
                     setHasUnsavedChanges(true);
                   }
                   
-                  // CRITICAL: Always clear loading state after successful load
+                  // CRITICAL: Delay loading=false so panels (blocks, style, structure) finish rendering
                   if (!destroyed) {
-                    setLoading(false);
-                    if (loadTimeout) clearTimeout(loadTimeout);
+                    setTimeout(() => {
+                      if (!destroyed) {
+                        setLoading(false);
+                        if (loadTimeout) clearTimeout(loadTimeout);
+                      }
+                    }, 500);
                   }
                 } catch (err: any) {
                   console.error('Error in editor load handler:', err);
@@ -6400,9 +5780,7 @@ ${linkStylesheetTag}  <style>
                   }
                 } finally {
                   if (loadTimeout) clearTimeout(loadTimeout);
-                  if (!destroyed) {
-                    setLoading(false);
-                  }
+                  /* setLoading handled in try (delayed) or catch */
                 }
               })();
             }
@@ -6418,30 +5796,10 @@ ${linkStylesheetTag}  <style>
 
         // Track when components are added to detect successful drops
         let lastComponentCount = 0;
-        // Track element under cursor during block drag - used for footer/correct drop target
-        let lastBlockDragOverEl: Element | null = null;
-        let blockDragOverCleanup: (() => void) | null = null;
 
         // Debug drag operations
         editor.on('block:drag:start', (block: any) => {
-          isDraggingBlock = true;
-          lastDraggingBlock = block; // Store for fallback when block:drag:stop has null block
-          lastBlockDragOverEl = null;
-          // Clean up previous listener
-          if (blockDragOverCleanup) {
-            blockDragOverCleanup();
-            blockDragOverCleanup = null;
-          }
-          const frame = editor.Canvas?.getFrameEl();
-          const doc = frame?.contentDocument;
-          if (doc) {
-            const onDragOver = (ev: DragEvent) => {
-              const t = ev.target as Element;
-              if (t && t.nodeType === 1) lastBlockDragOverEl = t;
-            };
-            doc.addEventListener('dragover', onDragOver, true);
-            blockDragOverCleanup = () => doc.removeEventListener('dragover', onDragOver, true);
-          }
+          isDraggingBlock = true; // Set flag to prevent processing during drag
           console.log('🎯 Block drag started:', block?.get?.('label') || 'unknown');
           const wrapper = editor.getWrapper();
           if (wrapper) {
@@ -6470,18 +5828,12 @@ ${linkStylesheetTag}  <style>
         });
 
         // Handle block drag and drop - ensure components are added
-        // NOTE: GrapesJS passes (component, block) - component is null when drop fails/cancelled
-        editor.on('block:drag:stop', (droppedComponent: any, block: any) => {
-          const blockLabel = block?.get?.('label') || 'unknown';
-          console.log('🎯 Block drag stopped:', blockLabel, '| Dropped component:', !!droppedComponent);
+        editor.on('block:drag:stop', (block: any) => {
+          console.log('🎯 Block drag stopped:', block?.get?.('label') || 'unknown');
           
           // Process any pending components that were added during drag
           setTimeout(() => {
             isDraggingBlock = false;
-            if (blockDragOverCleanup) {
-              blockDragOverCleanup();
-              blockDragOverCleanup = null;
-            }
             
             // Process pending components if any
             if (pendingComponents.size > 0) {
@@ -6515,102 +5867,75 @@ ${linkStylesheetTag}  <style>
             }
           }, 300);
           try {
-            // GrapesJS passes (component, block) - component is null when drop fails
-            // Fallback: use lastDraggingBlock from drag:start, or first param if block-like
-            const blockToAdd = block ?? lastDraggingBlock ?? (droppedComponent?.get?.('content') && droppedComponent?.get?.('label') ? droppedComponent : null);
-            lastDraggingBlock = null; // Clear after use
-            if (!blockToAdd?.get) return;
+            if (!block) return;
             
-            // If GrapesJS already added the component, skip manual add (components don't have get('label'))
-            if (droppedComponent && !droppedComponent.get?.('label')) return;
-            
-            // Wait a moment then manually add - GrapesJS missed the drop (e.g. canvas iframe not receiving)
+            // Wait a moment to see if component was added
             setTimeout(() => {
               try {
                 const wrapper = editor.getWrapper();
-                if (!wrapper) {
-                  console.warn('block:drag:stop fallback: no wrapper');
-                  return;
-                }
+                if (!wrapper) return;
                 
-                const content = blockToAdd.get('content');
-                if (!content) {
-                  console.warn('block:drag:stop fallback: no content for block', blockToAdd.get?.('id'));
-                  return;
-                }
+                const components = wrapper.components();
+                const currentCount = components ? components.length : 0;
                 
-                // If wrapper is empty, ensure we have a drop zone first (fixes blank canvas)
-                const children = wrapper.components?.();
-                if (!children || children.length === 0) {
-                  const dropZoneHtml = '<section style="padding: 60px 20px; min-height: 400px; background: #ffffff; position: relative; border: 2px dashed #d1d5db; border-radius: 4px; max-width: 1200px; margin: 60px auto;" data-gjs-droppable="*" data-gjs-selectable="true"></section>';
-                  try {
-                    wrapper.append(dropZoneHtml);
-                  } catch (_) {}
-                }
-                
-                // Find drop target: use element under cursor during drag (footer, etc.) so widgets land where user dropped
-                let target: any = wrapper;
-                const currentChildren = wrapper.components?.();
-                if (currentChildren && currentChildren.length > 0) {
-                  const frame = editor.Canvas?.getFrameEl();
-                  const frameDoc = frame?.contentDocument;
-                  const findDroppableForEl = (el: Element | null): any => {
-                    if (!el || !frameDoc) return null;
-                    let node: Node | null = el;
-                    while (node && node !== frameDoc.body) {
-                      if (node.nodeType === 1) {
-                        const e = node as Element;
-                        const comp = editor.Components?.getComponent?.(e) ?? (e as any).__gjsv?.model;
-                        if (comp) {
-                          let p: any = comp;
-                          while (p && p.get?.('type') !== 'wrapper') {
-                            if (p.get?.('droppable')) return p;
-                            try { p = typeof p.getParent === 'function' ? p.getParent() : null; } catch { break; }
-                          }
+                // Always manually add to ensure it appears - GrapesJS sometimes misses drops
+                if (block.get) {
+                  const content = block.get('content');
+                  if (content) {
+                    // Add directly to wrapper
+                    const added = wrapper.append(content);
+                    if (added) {
+                      const comp = Array.isArray(added) ? added[0] : added;
+                      if (comp) {
+                        // Ensure it's visible and selectable
+                        comp.set({ 
+                          selectable: true, 
+                          hoverable: true,
+                          draggable: true 
+                        });
+                        
+                        // Force visibility
+                        const el = comp.getEl?.();
+                        if (el) {
+                          (el.style as any).display = '';
+                          (el.style as any).visibility = 'visible';
+                          (el.style as any).opacity = '1';
                         }
+                        
+                        // Select and show
+                        setTimeout(() => {
+                          editor.select(comp);
+                          editor.runCommand('open-sm');
+                          
+                          // Force layer manager update ONLY if structure tab is active
+                          if (editor.LayerManager && activeSidebarSection === 'structure') {
+                            const layersPanel = document.getElementById('layers-panel');
+                            if (layersPanel) {
+                              // Remove layer content from wrong locations
+                              const allLayerContent = document.querySelectorAll('.gjs-layers, .gjs-layer-item, .gjs-layer-item-title');
+                              allLayerContent.forEach((el: any) => {
+                                const parent = el.closest('#layers-panel');
+                                if (!parent) {
+                                  el.remove();
+                                }
+                              });
+                              layersPanel.innerHTML = '';
+                              editor.LayerManager.render();
+                            }
+                          }
+                        }, 50);
+                        
+                        // Update count
+                        const newComps = wrapper.components();
+                        lastComponentCount = newComps ? newComps.length : 0;
                       }
-                      node = node.parentNode;
                     }
-                    return null;
-                  };
-                  const dropTarget = lastBlockDragOverEl ? findDroppableForEl(lastBlockDragOverEl) : null;
-                  if (dropTarget) {
-                    target = dropTarget;
-                  } else {
-                    const droppableChild = currentChildren.find((c: any) => c.get?.('droppable'));
-                    if (droppableChild) target = droppableChild;
                   }
-                }
-                if (blockDragOverCleanup) {
-                  blockDragOverCleanup();
-                  blockDragOverCleanup = null;
-                }
-                
-                const added = target.append(content);
-                const comps = Array.isArray(added) ? added : (added ? [added] : []);
-                const comp = comps[0];
-                
-                if (comp) {
-                  comp.set({ selectable: true, hoverable: true, draggable: true, stylable: true });
-                  const el = comp.getEl?.();
-                  if (el) {
-                    (el.style as any).display = '';
-                    (el.style as any).visibility = 'visible';
-                    (el.style as any).opacity = '1';
-                  }
-                  try { runExpandAndConfigureSelectability(editor); } catch {}
-                  editor.select(comp);
-                  lastComponentCount = wrapper.components?.()?.length || 0;
-                  editor.refresh();
-                  editor.render();
-                  console.log('✅ block:drag:stop fallback: added component', blockToAdd.get?.('label'));
-                } else {
-                  console.warn('block:drag:stop fallback: append returned no component');
                 }
               } catch (err) {
                 console.error('Error in block:drag:stop:', err);
               }
-            }, 80);
+            }, 100);
           } catch (err) {
             console.error('Error in block:drag:stop handler:', err);
           }
@@ -6638,12 +5963,24 @@ ${linkStylesheetTag}  <style>
             pendingComponents.add(component);
             
             componentAddTimeout = setTimeout(() => {
+              // Process all pending components at once
               const componentsToProcess = Array.from(pendingComponents);
               pendingComponents.clear();
-              if (componentsToProcess.length === 0) return;
               
-            // CRITICAL: Expand nested HTML (e.g. navbar nav/links) so children become selectable
-            try { runExpandAndConfigureSelectability(editor); } catch {}
+              // Find the root component (component without parent or parent is wrapper)
+              const rootComponent = componentsToProcess.find((comp: any) => {
+                try {
+                  const parent = comp.getParent();
+                  return !parent || parent.get('type') === 'wrapper';
+                } catch {
+                  return true; // If we can't check parent, assume it's root
+                }
+              }) || componentsToProcess[0];
+              
+              if (!rootComponent) return;
+              
+              // Process only the root component to avoid performance issues with nested elements
+              const component = rootComponent;
               
             // Disable undo tracking during component initialization to prevent errors
             const um = editor.UndoManager;
@@ -6660,28 +5997,31 @@ ${linkStylesheetTag}  <style>
               lastComponentCount = comps ? comps.length : 0;
             }
             
-            // Batch configure ALL nested components - match configureAllNested (same as Basic Elementor)
-            const CONTAINER_TAGS_FOR_DROP = new Set(['div', 'section', 'main', 'article', 'header', 'footer', 'nav', 'aside', 'form', 'ul', 'ol', 'li', 'figure', 'figcaption']);
-            const TEXT_TAGS_FOR_EDIT = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'a', 'label', 'li', 'td', 'th', 'button', 'strong', 'em', 'b', 'i', 'u', 'small', 'sub', 'sup', 'blockquote', 'cite', 'img']);
+            // Check component attributes
+            const attrs = component.getAttributes?.() || {};
+            const tagName = component.get?.('tagName')?.toLowerCase?.() || '';
+            const isDroppable = attrs['data-gjs-droppable'] === '*' || tagName === 'form';
+            
+            // OPTIMIZATION: Batch configure all nested components at once
             const configureComponent = (comp: any) => {
               try {
                 const compAttrs = comp.getAttributes?.() || {};
                 const compTagName = comp.get?.('tagName')?.toLowerCase?.() || '';
-                const compIsDroppable = compAttrs['data-gjs-droppable'] === '*' || CONTAINER_TAGS_FOR_DROP.has(compTagName);
-                const hasTextContent = typeof comp.get?.('content') === 'string' && (comp.get('content') || '').trim().length > 0;
-                const isEditable = compAttrs['data-gjs-editable'] === 'true' || compAttrs['data-gjs-type'] === 'text' ||
-                  TEXT_TAGS_FOR_EDIT.has(compTagName) || (hasTextContent && (!comp.components?.() || comp.components().length === 0));
+                const compIsDroppable = compAttrs['data-gjs-droppable'] === '*' || compTagName === 'form';
+                
+                // Check if component should be selectable based on data-gjs-selectable attribute
+                const shouldBeSelectable = compAttrs['data-gjs-selectable'] !== 'false';
                 
                 comp.set({ 
-                  selectable: true,
+              selectable: shouldBeSelectable, 
                   hoverable: true,
                   draggable: true,
                   stylable: true,
-                  droppable: compIsDroppable ? '*' : false,
-                  editable: isEditable
+                  droppable: compIsDroppable
                 }, { silent: true });
-                if (isEditable) {
-                  comp.set({ type: 'text' }, { silent: true });
+                
+                if (compAttrs['data-gjs-editable'] === 'true' || compAttrs['data-gjs-type'] === 'text') {
+                  comp.set({ editable: true, type: 'text' }, { silent: true });
                 }
                 
                 // CRITICAL: Ensure component has a CSS class for style rules (required when avoidInlineStyle is true)
@@ -6702,20 +6042,23 @@ ${linkStylesheetTag}  <style>
               } catch {}
             };
             
-            // Configure ALL wrapper children and their nested (matches Basic Elementor - every element selectable)
+            // Configure root component
+            configureComponent(component);
+            
+            // OPTIMIZATION: Configure nested components in batch (but don't select them)
             const configureNested = (comp: any) => {
               try {
-                configureComponent(comp);
-                const children = comp.components?.();
+                const children = comp.components();
                 if (children && children.length > 0) {
-                  children.forEach((child: any) => configureNested(child));
+                  children.forEach((child: any) => {
+                    configureComponent(child);
+                    configureNested(child); // Recursively configure nested children
+                  });
                 }
               } catch {}
             };
-            if (wrapper) {
-              const roots = wrapper.components?.() || [];
-              roots.forEach((root: any) => configureNested(root));
-            }
+            
+            configureNested(component);
             
             // Re-enable undo tracking
             if (um) {
@@ -6724,12 +6067,9 @@ ${linkStylesheetTag}  <style>
               } catch {}
             }
             
-            // For single block add (not theme load): select the added component
-            const component = componentsToProcess.length <= 5
-              ? componentsToProcess[componentsToProcess.length - 1]
-              : null;
-            const el = component?.getEl?.();
-            if (el && el.style) {
+            // Ensure component is visible in the DOM
+            const el = component.getEl?.();
+            if (el) {
               (el.style as any).display = '';
               (el.style as any).visibility = 'visible';
               (el.style as any).opacity = '1';
@@ -6744,11 +6084,7 @@ ${linkStylesheetTag}  <style>
             requestAnimationFrame(() => {
               try {
                 if (component && component.cid && !isDraggingBlock) {
-                  // Mark as just-added so component:selected won't auto-open style panel
-                  lastAddedComponentCid = component.cid;
-                  lastAddedComponentTime = Date.now();
-                  setTimeout(() => { lastAddedComponentCid = null; }, 500);
-                  // Only select - do NOT open style panel on drag-drop
+                  // Only select if not dragging
                 editor.select(component);
                 
                 // Scroll to component if possible
@@ -6757,6 +6093,12 @@ ${linkStylesheetTag}  <style>
                     editor.Canvas.scrollTo(el);
                   } catch {}
                 }
+                
+                  // Open style panel and use debounced update
+                  try {
+                editor.runCommand('open-sm');
+                    debouncedStyleUpdate(component, 100);
+                  } catch {}
                 }
                 
                 // Force layer manager update ONLY if structure tab is active
@@ -6774,16 +6116,14 @@ ${linkStylesheetTag}  <style>
                           }
                         });
                         layersPanel.innerHTML = '';
-                        const lmEl = editor.LayerManager.render();
-                        if (lmEl) layersPanel.appendChild(lmEl);
+                        editor.LayerManager.render();
                         // Force update again after a moment
                         setTimeout(() => {
                           if (editor.LayerManager && activeSidebarSection === 'structure') {
                             const retryPanel = document.getElementById('layers-panel');
                             if (retryPanel) {
                               retryPanel.innerHTML = '';
-                              const retryLm = editor.LayerManager.render();
-                              if (retryLm) retryPanel.appendChild(retryLm);
+                              editor.LayerManager.render();
                             }
                           }
                         }, 200);
@@ -6853,66 +6193,147 @@ ${linkStylesheetTag}  <style>
         // ============================================
         // PERFORMANCE OPTIMIZATION: Debounce and Cache
         // ============================================
+        let styleManagerRenderTimeout: any = null;
         let lastSelectedComponentId: string | null = null;
         let isSelectingComponent = false; // Flag to prevent selection loops
         let isDraggingBlock = false; // Flag to prevent processing during drag
-        let lastDraggingBlock: any = null; // Store block at drag start for fallback when stop has null block
         let componentAddTimeout: ReturnType<typeof setTimeout> | null = null;
         let pendingComponents: Set<any> = new Set(); // Batch component additions
         let cachedStylePanel: HTMLElement | null = null;
-        let lastAddedComponentCid: string | null = null; // Track component just added via drag-drop
-        let lastAddedComponentTime = 0;
         
-        // Track if we've attached style panel listeners
-        let stylePanelListenersAttached = false;
-        
-        // CORE: Apply styles from component model to DOM
-        const applyComponentStylesToDOM = (component: any) => {
-          if (!component) return;
-          try {
-            const el = component.getEl?.() || component.view?.el;
-            if (!el) return;
+        // Debounced style panel update - prevents multiple rapid renders
+        const debouncedStyleUpdate = (component: any, delay = 150) => {
+          if (styleManagerRenderTimeout) {
+            clearTimeout(styleManagerRenderTimeout);
+          }
+          
+          styleManagerRenderTimeout = setTimeout(() => {
+            if (!component || !editor.StyleManager) return;
             
-            const styles = component.getStyle() || {};
-            Object.entries(styles).forEach(([prop, val]) => {
-              if (val && String(val).trim()) {
-                (el as HTMLElement).style.setProperty(prop, String(val), 'important');
-              }
-            });
-          } catch (_) {}
-        };
-        
-        // Apply style directly to component and DOM
-        const applyStyleToComponent = (property: string, value: string) => {
-          try {
-            const selected = editor.getSelected();
-            if (!selected || !property) return;
+            // Get current activeSidebarSection from DOM or state (more reliable)
+            const styleTabButton = document.querySelector('.elementor-primary-tab-icon[title="Style"]');
+            const isStyleTabActive = styleTabButton?.classList.contains('active') || activeSidebarSection === 'style';
             
-            console.log(`🎨 Applying: ${property} = ${value}`);
-            
-            // Update component model
-            selected.addStyle({ [property]: value });
-            
-            // Apply to DOM element
-            const el = selected.getEl?.() || selected.view?.el;
-            if (el) {
-              (el as HTMLElement).style.setProperty(property, value, 'important');
-              console.log(`✅ Style applied: ${property} = ${value}`);
+            if (!isStyleTabActive) {
+              console.log('Style tab not active, skipping StyleManager render');
+              return;
             }
             
-            // Update view
-            if (selected.view?.updateStyle) selected.view.updateStyle();
-            editor.refresh();
+            // Skip if same component is already selected
+            const componentId = component.cid || component.getId?.();
+            if (componentId === lastSelectedComponentId && cachedStylePanel?.innerHTML.trim() !== '') {
+              console.log('Same component already rendered, skipping');
+              return;
+            }
+            lastSelectedComponentId = componentId;
+            
+            // Cache style panel reference
+            if (!cachedStylePanel) {
+              cachedStylePanel = document.getElementById('style-panel');
+            }
+            
+            if (!cachedStylePanel) {
+              console.warn('Style panel element not found');
+              return;
+            }
+            
+            // CRITICAL: Ensure style panel card is visible before checking
+            const stylePanelCard = cachedStylePanel.closest('.elementor-panel-card[data-panel-type="style"]') as HTMLElement;
+            if (!stylePanelCard) {
+              console.warn('Style panel not in correct container, attempting to fix...');
+              // Try to find and show the style panel card
+              const styleCard = document.querySelector('.elementor-panel-card[data-panel-type="style"]') as HTMLElement;
+              if (styleCard) {
+                styleCard.style.display = 'flex';
+                styleCard.style.visibility = 'visible';
+                styleCard.style.opacity = '1';
+              } else {
+                console.error('Style panel card not found in DOM');
+                return;
+              }
+            } else {
+              // Ensure panel card is visible
+              stylePanelCard.style.display = 'flex';
+              stylePanelCard.style.visibility = 'visible';
+              stylePanelCard.style.opacity = '1';
+            }
+            
+            // Ensure style panel itself is visible
+            cachedStylePanel.style.display = 'block';
+            cachedStylePanel.style.visibility = 'visible';
+            cachedStylePanel.style.opacity = '1';
+            cachedStylePanel.style.width = '100%';
+            cachedStylePanel.style.height = '100%';
+            cachedStylePanel.style.minHeight = '300px';
+            
+            // CRITICAL: Ensure wrapper has class for CSS-based styling
+            const isWrapper = component === editor.getWrapper();
+            if (isWrapper) {
+              const classes = component.getClasses();
+              if (!classes.includes('gjs-wrapper-body')) {
+                component.addClass('gjs-wrapper-body');
+                console.log('✓ Added gjs-wrapper-body class to wrapper');
+              }
+            }
+            
+            // Use requestAnimationFrame for smoother updates
+            requestAnimationFrame(() => {
+              // Final check - ensure style tab is still active
+              const finalCheck = document.querySelector('.elementor-primary-tab-icon[title="Style"]')?.classList.contains('active') || activeSidebarSection === 'style';
+              if (!finalCheck) {
+                console.log('Style tab no longer active, aborting render');
+                return;
+              }
+              
+              try {
+                console.log('🎨 Rendering StyleManager for component:', componentId);
+                
+                // Ensure component is selected
+                editor.select(component);
+                
+                // Set target first
+                if ((editor.StyleManager as any).setTarget) {
+                  (editor.StyleManager as any).setTarget(component);
+                }
+                  
+                // Clear and render Style Manager
+                cachedStylePanel!.innerHTML = '';
+                editor.StyleManager.render();
+                
+                console.log('✓ StyleManager.render() called');
+                
+                // Force Style Manager to update its target again after render
+                if ((editor.StyleManager as any).setTarget) {
+                  (editor.StyleManager as any).setTarget(component);
+                }
+                
+                // Ensure sectors are open and visible
+                setTimeout(() => {
+                  if (!destroyed && component && editor.StyleManager) {
+                    const sectors = cachedStylePanel!.querySelectorAll('.gjs-sm-sector');
+                    sectors.forEach((sector: Element) => {
+                      const htmlSector = sector as HTMLElement;
+                      htmlSector.classList.remove('gjs-sm-sector--closed');
+                      htmlSector.classList.add('gjs-sm-sector--open');
+                      
+                      const sectorContent = htmlSector.querySelector('.gjs-sm-sector-content');
+                      if (sectorContent) {
+                        (sectorContent as HTMLElement).style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; max-height: none !important;';
+                      }
+                    });
+                    
+                    console.log('✓ StyleManager sectors opened:', sectors.length);
+                    
+                    // Re-render once more to ensure all properties are displayed
+                    editor.StyleManager.render();
+                  }
+                }, 100);
           } catch (e) {
-            console.warn('Apply style error:', e);
-          }
+                console.error('❌ Error rendering Style Manager:', e);
+              }
+            });
+          }, delay);
         };
-        
-        // Sync style panel with selected component (from-scratch: select element → show styles → edit CSS)
-        const ensureStylePanelVisible = () => syncStylePanelWithSelection(editor);
-
-        // Apply style changes from panel to selected component (from-scratch)
-        setupStyleChangeHandlers(editor, () => { if (!saving) setHasUnsavedChanges(true); });
 
         // Auto-open style panel when component is selected
         // Navigation traits for buttons and links are added dynamically when components are selected
@@ -6940,18 +6361,16 @@ ${linkStylesheetTag}  <style>
         // Handle Alt+Click to select parent component
         editor.on('component:selected', (component: any) => {
           try {
-            // Strip black inline color GrapesJS/StyleManager may apply on select (from-scratch style panel)
-            stylePanelOnSelected(component);
             // Prevent selection loops - if we're already processing a selection, skip
             if (isSelectingComponent) {
               return;
             }
             
             // OPTIMIZATION: If Alt key is pressed, select parent instead
-            if (altKeyPressed && component && typeof component.getParent === 'function') {
+            if (altKeyPressed && component) {
               try {
                 const parent = component.getParent();
-                if (parent && parent.get?.('type') !== 'wrapper') {
+                if (parent && parent.get('type') !== 'wrapper') {
                   // Select parent component
                   isSelectingComponent = true;
                   requestAnimationFrame(() => {
@@ -6971,8 +6390,8 @@ ${linkStylesheetTag}  <style>
             const componentId = component?.cid || component?.getId?.() || null;
             if (componentId === lastSelectedComponentId) {
               // Same component, just ensure styles panel is visible
-              if (activeSidebarSection === 'style') {
-                ensureStylePanelVisible();
+              if (activeSidebarSection === 'style' && editor.StyleManager) {
+                debouncedStyleUpdate(component, 50);
               }
               return;
             }
@@ -7008,22 +6427,6 @@ ${linkStylesheetTag}  <style>
               // For buttons and links, add navigation traits if not already present
               // Check both tagName and view element to catch buttons inside divs
               const tagName = component?.get('tagName')?.toLowerCase();
-              
-              // CRITICAL: If user clicked text INSIDE a button/link, select the button/link instead
-              // Otherwise we show text traits and never get link editing UI
-              let p: any = component?.getParent?.();
-              while (p && p.get?.('type') !== 'wrapper') {
-                const pTag = (p.get?.('tagName') || '').toLowerCase();
-                if (pTag === 'button' || pTag === 'a') {
-                  requestAnimationFrame(() => {
-                    isSelectingComponent = true;
-                    editor.select(p);
-                    setTimeout(() => { isSelectingComponent = false; }, 100);
-                  });
-                  return;
-                }
-                p = p.getParent?.();
-              }
               
               // Safely get view element - check if it's actually a DOM element
               let viewEl: HTMLElement | null = null;
@@ -7096,36 +6499,6 @@ ${linkStylesheetTag}  <style>
               }
               
               const currentPages = pagesRef.current;
-              
-              // Show/hide Add Link panel + sync Link & Navigation section state
-              if (isButton || isLink) {
-                setShowAddLinkPanel(false);
-                setLinkPanelIsEditing(true);
-                setActiveSidebarSection('links');
-                // Sync form from component for Edit Link UI
-                const existingAttrs = component.getAttributes?.() || {};
-                const existingPageLink = existingAttrs['data-page-link'] || component.get?.('pageLink') || '';
-                const existingHref = (existingAttrs.href || component.get?.('href') || '').trim();
-                if (existingPageLink) {
-                  setAddLinkType('page');
-                  setAddLinkPageId(String(existingPageLink).replace(/^#/, '').trim());
-                  setAddLinkUrl('');
-                } else if (existingHref && existingHref !== '#') {
-                  setAddLinkType('url');
-                  setAddLinkPageId('');
-                  setAddLinkUrl(existingHref.startsWith('#') ? '' : existingHref);
-                } else {
-                  setAddLinkType('page');
-                  setAddLinkPageId('');
-                  setAddLinkUrl('');
-                }
-              } else {
-                setShowAddLinkPanel(true);
-                setLinkPanelIsEditing(false);
-                setAddLinkType('page');
-                setAddLinkPageId('');
-                setAddLinkUrl('');
-              }
               
               // Check if component is an image or contains an image
               let isImage = actualTagName === 'img' || tagName === 'img';
@@ -7288,11 +6661,6 @@ ${linkStylesheetTag}  <style>
                 if (activeSidebarSection !== 'widgets') {
                   setActiveSidebarSection('widgets');
                 }
-                // Scroll Link & Navigation panel into view so link editing UI is visible
-                setTimeout(() => {
-                  const linksPanel = document.querySelector('.elementor-links-panel') as HTMLElement;
-                  if (linksPanel) linksPanel.scrollIntoView?.({ behavior: 'smooth', block: 'nearest' });
-                }, 100);
                 
                 const existingTraits = component.get('traits') || [];
                 const hasLinkType = existingTraits.some((t: any) => {
@@ -7494,11 +6862,9 @@ ${linkStylesheetTag}  <style>
                       component.removeAttributes('href');
                     }
                     
-                    // Force component update (guard: avoid triggering undo with invalid target)
-                    if (component && typeof component.get === 'function') {
+                    // Force component update
                       component.trigger('change');
                       editor.trigger('component:update', component);
-                    }
                   };
                   
                   // Store updateAttributes function on component for access in event handlers
@@ -7607,26 +6973,10 @@ ${linkStylesheetTag}  <style>
               }
             }
             
-            // CRITICAL: Always tell StyleManager to target the selected component
-            // This ensures styles are applied to the correct component regardless of active tab
-            try {
-              const sm = editor.StyleManager as any;
-              if (sm && component) {
-                if (typeof sm.select === 'function') {
-                  sm.select(component);
-                } else if (typeof sm.setTarget === 'function') {
-                  sm.setTarget(component);
-                }
-                console.log('✅ StyleManager target set to:', component.get('tagName') || component.get('type'));
-              }
-            } catch (e) {
-              console.warn('StyleManager target error:', e);
-            }
-            
             // Style panel updates (only if style tab is active)
             if (activeSidebarSection === 'style') {
               // Use debounced update for performance
-              ensureStylePanelVisible();
+              debouncedStyleUpdate(component);
             }
               
             // Always render traits panel when component is selected
@@ -7710,14 +7060,9 @@ ${linkStylesheetTag}  <style>
             }
             
             if (component) {
-              // Ensure component is editable for text elements
+              // Ensure component is editable if it has the attribute
               const attrs = component.getAttributes?.() || {};
-              const tagName = (component.get?.('tagName') || '').toLowerCase();
-              const textTags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'a', 'label', 'li', 'td', 'th', 'button', 'strong', 'em', 'b', 'i', 'u', 'small', 'sub', 'sup', 'blockquote', 'cite'];
-              const hasTextContent = typeof component.get?.('content') === 'string' && (component.get('content') || '').trim().length > 0;
-              const shouldBeEditable = attrs['data-gjs-editable'] === 'true' || attrs['data-gjs-type'] === 'text' ||
-                textTags.includes(tagName) || (hasTextContent && (!component.components?.() || component.components().length === 0));
-              if (shouldBeEditable) {
+              if (attrs['data-gjs-editable'] === 'true' || attrs['data-gjs-type'] === 'text') {
                 component.set({ editable: true }, { silent: true });
               }
               
@@ -7736,21 +7081,7 @@ ${linkStylesheetTag}  <style>
                 return;
               }
               
-              // Only open style panel when user explicitly selects (clicks) - NOT when selection comes from drag-drop
-              const componentCid = component?.cid || null;
-              const isFromRecentAdd = componentCid && componentCid === lastAddedComponentCid && (Date.now() - lastAddedComponentTime) < 600;
-              if (isFromRecentAdd) {
-                isSelectingComponent = false;
-                return; // Skip - user just dropped, wait for explicit click to open style panel
-              }
-              
-              // Skip switching to style during theme load - prevents style tab showing widgets content
-              if (isApplyingThemeRef.current) {
-                isSelectingComponent = false;
-                return;
-              }
-              
-              // Ensure style tab is active when component is selected (user clicked it)
+              // Ensure style tab is active when component is selected
               if (activeSidebarSection !== 'style') {
                 setActiveSidebarSection('style');
               }
@@ -7778,23 +7109,8 @@ ${linkStylesheetTag}  <style>
                 // Command might not exist, that's okay
               }
               
-              // Open style manager
-              try {
-                editor.runCommand('open-sm');
-              } catch (_) {}
-              
-              ensureStylePanelVisible();
-              
-              // For links and buttons, re-sync style panel after delay (fixes Services/Login not showing style options)
-              const tag = component?.get?.('tagName')?.toLowerCase?.();
-              if (tag === 'a' || tag === 'button') {
-                setTimeout(() => {
-                  if (editor.getSelected()?.cid === component.cid) {
-                    setActiveSidebarSection('style');
-                    syncStylePanelWithSelection(editor);
-                  }
-                }, 100);
-              }
+              // OPTIMIZED: Single render call with debouncing
+              debouncedStyleUpdate(component, 50);
               
               // Reset selection flag after a short delay
                 setTimeout(() => {
@@ -7807,23 +7123,10 @@ ${linkStylesheetTag}  <style>
           }
         });
         
-        // Handle component deselection - clear black color StyleManager may have applied (from-scratch style panel)
-        editor.on('component:deselected', (component: any) => {
+        // Handle component deselection - ensure Style Manager stays visible
+        editor.on('component:deselected', () => {
+          // Clear cached component ID when deselected
           lastSelectedComponentId = null;
-          setShowAddLinkPanel(false);
-          setLinkPanelIsEditing(false);
-          setAddLinkType('page');
-          setAddLinkPageId('');
-          setAddLinkUrl('');
-          stylePanelOnDeselected(component);
-        });
-        
-        // Handle component:toggled event - GrapesJS uses this to update StyleManager
-        editor.on('component:toggled', (component: any) => {
-          try {
-            if (!component) return;
-            component.set({ stylable: true }, { silent: true });
-          } catch (_) {}
         });
 
         // Ensure style changes are applied - listen to style property changes
@@ -7847,169 +7150,131 @@ ${linkStylesheetTag}  <style>
           }
         });
         
-        // Style panel: Just ensure component is stylable (don't apply all styles automatically)
-        const applyStyleToSelected = () => {
+        editor.on('style:property:update', (property: any, value: any, component: any) => {
+          if (!saving) {
+            setHasUnsavedChanges(true);
+          }
           try {
-            const selected = editor.getSelected();
-            if (!selected) return;
-            
+            const selected = component || editor.getSelected();
+            if (selected) {
+              // Ensure component is stylable
             selected.set({ stylable: true }, { silent: true });
-            // NOTE: Don't call applyComponentStylesToDOM here - it overrides theme CSS
-            // Styles are applied individually via style:property:update
-            
-            if (selected.view?.updateStyle) selected.view.updateStyle();
-          } catch (_) {}
-        };
-        
-        const scheduleStyleApply = () => requestAnimationFrame(applyStyleToSelected);
-        
-        // Main style property update handler - GrapesJS passes {property: PropertyModel, value: string, ...}
-        // CRITICAL: Block default black color – preserve theme color until user explicitly changes it
-        editor.on('style:property:update', (eventData: any) => {
-          if (!saving) setHasUnsavedChanges(true);
-          try {
-            let propName: string | undefined;
-            let propValue: string | undefined;
-            if (typeof eventData === 'object' && eventData) {
-              const propModel = eventData.property;
-              if (propModel) {
-                propName = propModel.get?.('property') || propModel.getName?.();
-                if (typeof propName !== 'string') propName = propModel.attributes?.property;
+              
+              // CRITICAL: Special handling for wrapper/body element
+              const isWrapper = selected === editor.getWrapper();
+              if (isWrapper) {
+                // Ensure wrapper has the class
+                const classes = selected.getClasses();
+                if (!classes.includes('gjs-wrapper-body')) {
+                  selected.addClass('gjs-wrapper-body');
+                }
+                
+                // For wrapper, ALWAYS use CSS rules, not inline styles
+                if (property && value !== undefined && editor.CssComposer) {
+                  const rule = editor.CssComposer.getRule('.gjs-wrapper-body') || 
+                              editor.CssComposer.add('.gjs-wrapper-body');
+                  
+                  if (rule) {
+                    const currentStyles = rule.get('style') || {};
+                    currentStyles[property] = value;
+                    rule.set('style', currentStyles);
+                    
+                    console.log(`✓ Wrapper ${property} set via CSS rule:`, value);
+                  }
+                }
+              } else {
+                // For other components, ensure styles are properly applied
+                if (property && value !== undefined) {
+                  // Use addStyle method which works with avoidInlineStyle
+                  if (typeof selected.addStyle === 'function') {
+                selected.addStyle(property, value);
+                  } else {
+                    // Fallback: set style directly
+                    const currentStyles = selected.getStyle() || {};
+                    currentStyles[property] = value;
+                    selected.setStyle(currentStyles);
+                  }
+                  
+                  // CRITICAL: Ensure component has a selector/class for CSS rules
+                  // Since avoidInlineStyle is true, we need to use CSS rules
+                  if (editor.CssComposer) {
+                    // Get or create a selector for this component
+                    const componentId = selected.cid || selected.getId?.();
+                    if (componentId) {
+                      // Ensure component has a class for CSS targeting
+                      const classes = selected.getClasses();
+                      let componentClass = classes.find((c: string) => c && !c.startsWith('gjs-'));
+                      
+                      if (!componentClass) {
+                        // Generate a class name based on component type and ID
+                        const tagName = selected.get('tagName')?.toLowerCase() || 'div';
+                        componentClass = `gjs-comp-${componentId}`;
+                        selected.addClass(componentClass);
+                      }
+                      
+                      // Get or create CSS rule for this component
+                      const selector = `.${componentClass}`;
+                      let rule = editor.CssComposer.getRule(selector);
+                      
+                      if (!rule) {
+                        rule = editor.CssComposer.add(selector);
+                      }
+                      
+                      if (rule) {
+                        const ruleStyles = rule.get('style') || {};
+                        ruleStyles[property] = value;
+                        rule.set('style', ruleStyles);
+                      }
+                    }
+                  }
+                }
               }
-              propValue = eventData.value ?? propModel?.getFullValue?.() ?? propModel?.getValue?.();
-            }
-            const comp = editor.getSelected();
-            if (!comp || typeof propName !== 'string' || !propName || propValue === undefined) return;
-            // Block default black color – do not apply; remove inline color so theme color persists
-            if (propName === 'color' && isDefaultBlackColor(String(propValue))) {
-              try {
-                comp.removeStyle?.('color');
-                const el = comp.getEl?.() || comp.view?.el;
-                if (el?.style) (el as HTMLElement).style.removeProperty('color');
-                if (comp.view?.updateStyle) comp.view.updateStyle();
-                stylePanelOnSelected(comp);
-              } catch {}
-              return;
-            }
-            const isWrapperComp = comp === editor.getWrapper();
-            const um = editor.UndoManager;
-            if (isWrapperComp && um) try { um.stop(); } catch {}
-            try {
-              comp.set({ stylable: true }, { silent: true });
-              comp.addStyle({ [propName]: propValue });
-              const el = comp.getEl?.() || comp.view?.el;
-              if (el) {
-                const cssProp = propName.replace(/([A-Z])/g, '-$1').toLowerCase();
-                (el as HTMLElement).style.setProperty(cssProp, String(propValue), 'important');
-              }
-              if (comp.view?.updateStyle) comp.view.updateStyle();
-              editor.refresh();
-            } finally {
-              if (isWrapperComp && um) try { um.start(); } catch {}
-            }
-          } catch (e) {
-            console.warn('style:property:update error:', e);
-          }
-        });
-        
-        // Listen to all style-related events
-        editor.on('style:change', (...args: any[]) => {
-          console.log('📝 style:change', args);
-          scheduleStyleApply();
-        });
-        editor.on('style:update', (...args: any[]) => {
-          console.log('📝 style:update', args);
-          scheduleStyleApply();
-        });
-        
-        // CRITICAL: Listen to component style changes directly – block default black color
-        editor.on('component:style:update', (component: any, property: string, value: string) => {
-          try {
-            if (!component || !property) return;
-            if (property === 'color' && isDefaultBlackColor(String(value))) {
-              const el = component.getEl?.() || component.view?.el;
-              if (el?.style) (el as HTMLElement).style.removeProperty('color');
-              return;
-            }
-            const el = component.getEl?.() || component.view?.el;
-            if (el) (el as HTMLElement).style.setProperty(property, String(value), 'important');
-          } catch (_) {}
-        });
-        
-        // Track when style target was set (for color revert logic - match Basic Elementor)
-        const styleTargetSetAtRef = { current: 0 };
-        editor.on('style:target', (target: any) => {
-          styleTargetSetAtRef.current = Date.now();
-          if (target) {
-            const comp = target.getComponent?.() || target;
-            if (comp) {
-              comp.set({ stylable: true }, { silent: true });
-            }
-          }
-        });
-        // Prevent StyleManager from applying black/default color when component had no explicit color (match Basic Elementor)
-        editor.on('style:property:change', (property: any, value: any) => {
-          try {
-            const propName = property?.get?.('property') ?? property?.getName?.();
-            if (propName !== 'color') return;
-            const isBlack = (v: string) => !v || /^(rgb\(0,\s*0,\s*0\)|black|#000|#000000|rgba\(0,\s*0,\s*0)/i.test(String(v || '').trim());
-            if (!value || !isBlack(String(value))) return;
-            const comp = editor.getSelected();
-            if (!comp) return;
-            const setAt = styleTargetSetAtRef.current;
-            const appliedWithinInit = Date.now() - setAt < 200;
-            if (appliedWithinInit) {
-              setTimeout(() => {
+              
+              // Force component to update its view and canvas
+              requestAnimationFrame(() => {
                 try {
-                  const current = comp.getStyle?.()?.color;
-                  if (current && isBlack(String(current))) comp.removeStyle?.('color');
-                } catch (_) {}
-              }, 0);
-            }
-          } catch (_) {}
-        });
-        
-        // CRITICAL: Setup direct StyleManager property change listeners
-        // Block default black color – preserve theme color until user explicitly changes it
-        try {
-          const sm = editor.StyleManager;
-          if (sm) {
-            sm.getSectors?.()?.forEach?.((sector: any) => {
-              const props = sector.getProperties?.() || [];
-              props.forEach((prop: any) => {
-                if (prop && prop.on) {
-                  prop.on('change:value', () => {
-                    let propName = prop.get?.('property') || prop.getName?.();
-                    if (typeof propName !== 'string') propName = prop.attributes?.property;
-                    const propValue = prop.getFullValue?.() || prop.getValue?.() || prop.get?.('value');
-
-                    const selected = editor.getSelected();
-                    if (!selected || typeof propName !== 'string' || !propName || propValue === undefined) return;
-                    // Block default black color – do not apply; remove so theme color persists
-                    if (propName === 'color' && isDefaultBlackColor(String(propValue))) {
-                      try {
-                        selected.removeStyle?.('color');
-                        const el = selected.getEl?.() || selected.view?.el;
-                        if (el?.style) (el as HTMLElement).style.removeProperty('color');
-                        if (selected.view?.updateStyle) selected.view.updateStyle();
-                        stylePanelOnSelected(selected);
-                      } catch {}
-                      return;
-                    }
-                    selected.addStyle({ [propName]: propValue });
-                    const el = selected.getEl?.() || selected.view?.el;
-                    if (el?.style?.setProperty) {
-                      const cssProp = propName.replace(/([A-Z])/g, '-$1').toLowerCase();
-                      (el as HTMLElement).style.setProperty(cssProp, String(propValue), 'important');
-                    }
-                  });
+              const el = selected.getEl?.();
+              if (el) {
+                    // Update component view
+                if (selected.view?.updateStyle) {
+                  selected.view.updateStyle();
+                }
+                    // Trigger component style change
+                selected.trigger('change:style');
+                    // Force canvas refresh to show changes
+                editor.refresh();
+                    // Also trigger component update
+                    selected.trigger('component:update');
+              }
+                } catch (e) {
+                  console.warn('Error updating component view:', e);
                 }
               });
-            });
+            }
+          } catch (e) {
+            console.warn('Style property update error:', e);
+          }
+        });
+
+        // Also listen for style changes
+        editor.on('style:change', (style: any, component: any) => {
+          try {
+            const selected = component || editor.getSelected();
+            if (selected) {
+              // Ensure component is stylable
+              selected.set({ stylable: true });
+              
+              // Ensure styles are applied
+              selected.view?.updateStyle?.();
+              // Trigger component update
+              selected.trigger('change:style');
+              // Force canvas refresh
+              editor.refresh();
           }
         } catch (e) {
-          console.warn('StyleManager listener setup error:', e);
+            console.warn('Style change error:', e);
         }
+        });
 
         // Listen for component style updates
         editor.on('component:styleUpdate', (component: any) => {
@@ -8023,31 +7288,29 @@ ${linkStylesheetTag}  <style>
               // CRITICAL FIX: Ensure wrapper/body styles are saved as CSS rules, not inline
               const isWrapper = component === editor.getWrapper();
               if (isWrapper) {
-                // Stop undo during wrapper style sync - avoids GrapesJS UndoManager bug (undefined.get)
-                const um = editor.UndoManager;
-                if (um) try { um.stop(); } catch {}
-                try {
                   // Force wrapper to use CSS class for styling
-                  const classes = component.getClasses?.() || [];
+                const classes = component.getClasses();
                   if (!classes.includes('gjs-wrapper-body')) {
-                    component.addClass?.('gjs-wrapper-body');
+                  component.addClass('gjs-wrapper-body');
                   }
+                
                   // Get wrapper styles and ensure they're in CSS rules
-                  const styles = component.getStyle?.();
+                const styles = component.getStyle();
                   if (styles && Object.keys(styles).length > 0 && editor.CssComposer) {
+                  // Find or create CSS rule for wrapper
                     const existingRule = editor.CssComposer.getRule('.gjs-wrapper-body');
-                    if (existingRule && typeof existingRule.set === 'function') {
+                  if (existingRule) {
+                    // Update existing rule
                       existingRule.set('style', styles);
                     } else {
+                    // Create new rule
                       const newRule = editor.CssComposer.add('.gjs-wrapper-body');
-                      if (newRule && typeof newRule.set === 'function') {
+                    if (newRule) {
                         newRule.set('style', styles);
                       }
                     }
+                  
                     console.log('✓ Wrapper styles saved as CSS rule:', styles);
-                  }
-                } finally {
-                  if (um) try { um.start(); } catch {}
                 }
               }
               
@@ -8096,12 +7359,108 @@ ${linkStylesheetTag}  <style>
           }
         });
 
-        // Style panel: GrapesJS StyleManager renders once via appendTo, updates on component:toggled
+        // Helper function to safely render Style Manager without duplicates
+        // OPTIMIZED: Uses caching and reduced DOM manipulation
+        let safeRenderTimeout: any = null;
+        let lastRenderTime = 0;
+        const MIN_RENDER_INTERVAL = 50; // Reduced from 200ms to 50ms for faster updates
+        
+        const safeRenderStyleManager = (forceRender = false) => {
+          try {
+            // Only render if style tab is active
+            if (activeSidebarSection !== 'style') return;
+            
+            // Throttle renders with requestAnimationFrame for better performance
+            const now = Date.now();
+            if (!forceRender && now - lastRenderTime < MIN_RENDER_INTERVAL) {
+              // Use requestAnimationFrame instead of setTimeout for smoother updates
+              if (safeRenderTimeout) cancelAnimationFrame(safeRenderTimeout as any);
+              safeRenderTimeout = requestAnimationFrame(() => safeRenderStyleManager(true)) as any;
+              return;
+            }
+            lastRenderTime = now;
+            if (safeRenderTimeout) {
+              cancelAnimationFrame(safeRenderTimeout as any);
+              safeRenderTimeout = null;
+            }
+
+            // Use cached panel reference
+            if (!cachedStylePanel) {
+              cachedStylePanel = document.getElementById('style-panel');
+            }
+            
+            if (!cachedStylePanel || !editor.StyleManager) return;
+            
+            const stylePanel = cachedStylePanel;
+            
+            // Quick check - if sectors exist and not forcing, skip render (CSS handles styling)
+            const existingSectors = stylePanel.querySelectorAll('.gjs-sm-sector');
+            if (existingSectors.length > 0 && existingSectors.length <= 13 && !forceRender) {
+              return; // Already rendered correctly
+            }
+            
+            // Only re-render if forced or duplicates detected
+            if (existingSectors.length > 13) {
+              stylePanel.innerHTML = '';
+            }
+            
+            // Check if needs render
+            const needsRender = forceRender || existingSectors.length === 0 || existingSectors.length > 13;
+            if (!needsRender) return;
+            
+            // Render Style Manager efficiently
+            if (typeof editor.StyleManager.render === 'function') {
+              // Get target
+              const selected = editor.getSelected();
+                const target = selected || editor.getWrapper();
+              
+              // Set target and render
+                      if (target) {
+                try {
+                  target.set({ stylable: true }, { silent: true });
+                      
+                      // CRITICAL: Ensure component has a CSS class for style rules
+                      if (editor.CssComposer && target !== editor.getWrapper()) {
+                        const compId = target.cid || target.getId?.();
+                        if (compId) {
+                          const compClasses = target.getClasses();
+                          let compClass = compClasses.find((c: string) => c && !c.startsWith('gjs-'));
+                          
+                          if (!compClass) {
+                            compClass = `gjs-comp-${compId}`;
+                            target.addClass(compClass);
+                          }
+                        }
+                      }
+                      
+                      if ((editor.StyleManager as any).setTarget) {
+                          (editor.StyleManager as any).setTarget(target);
+                        }
+                } catch {}
+              }
+              
+              // Always render to ensure Style Manager is up to date
+              // This is critical for style properties to work correctly
+              // CRITICAL: Only render if style tab is active
+              if (activeSidebarSection === 'style') {
+                  stylePanel.innerHTML = '';
+                  editor.StyleManager.render();
+              }
+                  
+              // Set target again after render to ensure it's properly bound
+              if (target && (editor.StyleManager as any).setTarget) {
+                      (editor.StyleManager as any).setTarget(target);
+                    }
+            }
+          } catch (e) {
+            console.warn('Error rendering Style Manager:', e);
+          }
+        };
 
         // Ensure components maintain their editable state
         editor.on('component:update', (component: any) => {
           try {
-            if (!component || typeof component.get !== 'function') return;
+            if (!component) return;
             const attrs = component.getAttributes?.() || {};
             if (attrs['data-gjs-editable'] === 'true' || attrs['data-gjs-type'] === 'text') {
               component.set({ editable: true, selectable: true }, { silent: true });
@@ -8118,19 +7477,39 @@ ${linkStylesheetTag}  <style>
             if (selected && property && value !== undefined) {
               selected.set({ stylable: true }, { silent: true });
               
-              // Apply style using addStyle (takes an object)
+              // Apply style using addStyle
               if (typeof selected.addStyle === 'function') {
-                selected.addStyle({ [property]: value });
+                selected.addStyle(property, value);
               } else {
                 const currentStyles = selected.getStyle() || {};
                 currentStyles[property] = value;
                 selected.setStyle(currentStyles);
               }
               
-              // Apply directly to DOM element
-              const el = selected.getEl?.() || selected.view?.el;
-              if (el) {
-                (el as HTMLElement).style.setProperty(property, String(value), 'important');
+              // Ensure component has a class for CSS rules (when avoidInlineStyle is true)
+              if (editor.CssComposer) {
+                const componentId = selected.cid || selected.getId?.();
+                if (componentId) {
+                  const classes = selected.getClasses();
+                  let componentClass = classes.find((c: string) => c && !c.startsWith('gjs-'));
+                  
+                  if (!componentClass) {
+                    componentClass = `gjs-comp-${componentId}`;
+                    selected.addClass(componentClass);
+                  }
+                  
+                  const selector = `.${componentClass}`;
+                  let rule = editor.CssComposer.getRule(selector);
+                  if (!rule) {
+                    rule = editor.CssComposer.add(selector);
+                  }
+                  
+                  if (rule) {
+                    const ruleStyles = rule.get('style') || {};
+                    ruleStyles[property] = value;
+                    rule.set('style', ruleStyles);
+                  }
+                }
               }
               
               // Force update
@@ -8252,13 +7631,35 @@ ${linkStylesheetTag}  <style>
                       centerPanel.style.pointerEvents = 'auto';
                     }
                     
+                    // Force Style Manager to render in fullscreen
                     const stylePanel = rootContainerRef.current?.querySelector('#style-panel') as HTMLElement;
-                    if (stylePanel) {
+                    if (stylePanel && editor.StyleManager) {
                       stylePanel.style.display = 'block';
                       stylePanel.style.visibility = 'visible';
                       stylePanel.style.opacity = '1';
                       stylePanel.style.background = '#ffffff';
                       stylePanel.style.minHeight = '200px';
+                      
+                      const existingSectors = stylePanel.querySelectorAll('.gjs-sm-sector');
+                      if (existingSectors.length === 0 || existingSectors.length < 13) {
+                        // Not rendered or incomplete - force render
+                        // CRITICAL: Only render if style tab is active
+                        if (activeSidebarSection === 'style' && typeof editor.StyleManager.render === 'function') {
+                          editor.StyleManager.render();
+                        }
+                      }
+                      
+                      // Ensure all sectors are visible
+                      setTimeout(() => {
+                        const sectors = stylePanel.querySelectorAll('.gjs-sm-sector');
+                        sectors.forEach((sector: any) => {
+                          if (sector) {
+                            sector.style.display = 'block';
+                            sector.style.visibility = 'visible';
+                            sector.style.opacity = '1';
+                          }
+                        });
+                      }, 100);
                     }
                     
                     // Ensure device switcher is visible
@@ -8294,145 +7695,58 @@ ${linkStylesheetTag}  <style>
         // Also check on editor load
         editor.on('load', () => {
           setTimeout(checkFullscreen, 100);
-          // Force desktop on load, then sync state
+          // Set initial device
           try {
-            editor.setDevice('desktop');
             const initialDevice = editor.getDevice();
             if (initialDevice) {
               setCurrentDevice(initialDevice);
             }
-            // Ensure desktop frame is full width (fixes narrow preview on initial load)
-            const applyDesktopWidth = () => {
-              const frameModel = (editor.Canvas as any)?.getFrame?.();
-              if (frameModel && typeof frameModel.set === 'function') {
-                frameModel.set({ width: '100%', height: '' });
-              }
-              const frame = editor.Canvas?.getFrameEl?.();
-              if (frame) {
-                (frame as HTMLElement).style.setProperty('width', '100%', 'important');
-                (frame as HTMLElement).style.setProperty('min-width', '100%', 'important');
-                (frame as HTMLElement).style.removeProperty('max-width');
-              }
-              document.querySelectorAll('.gjs-frame-wrapper').forEach((w) => {
-                (w as HTMLElement).style.setProperty('width', '100%', 'important');
-                (w as HTMLElement).style.setProperty('min-width', '100%', 'important');
-              });
-              const framesSel = '.gjs-cv-canvas__frames, .gjs-cv-canvas_frames, [class*="cv-canvas"][class*="frames"]';
-              document.querySelectorAll(framesSel).forEach((f) => {
-                (f as HTMLElement).style.setProperty('width', '100%', 'important');
-                (f as HTMLElement).style.setProperty('min-width', '100%', 'important');
-                (f as HTMLElement).style.setProperty('flex', '1', 'important');
-                (f as HTMLElement).style.setProperty('justify-content', 'flex-start', 'important');
-                (f as HTMLElement).style.setProperty('align-items', 'stretch', 'important');
-              });
-              const canvas = document.querySelector('.gjs-cv-canvas') as HTMLElement;
-              if (canvas) {
-                canvas.style.setProperty('width', '100%', 'important');
-                canvas.style.setProperty('flex', '1', 'important');
-              }
-            };
-            applyDesktopWidth();
-            setTimeout(applyDesktopWidth, 100);
-            setTimeout(applyDesktopWidth, 300);
-            setTimeout(applyDesktopWidth, 800);
-            // Set desktop device width to canvas width so GrapesJS uses full width
-            const setDesktopDeviceWidth = () => {
-              try {
-                const container = document.querySelector('.builder-center-panel') || document.querySelector('.gjs-cv-canvas');
-                const w = container?.clientWidth || 1200;
-                if (w > 0) {
-                  const desktopDev = editor.DeviceManager?.get?.('desktop');
-                  if (desktopDev && typeof desktopDev.set === 'function') {
-                    desktopDev.set({ width: `${w}px` });
-                    (editor.Canvas?.getModel?.() as any)?.updateDevice?.();
-                  }
-                }
-              } catch {}
-            };
-            setTimeout(setDesktopDeviceWidth, 100);
-            setTimeout(setDesktopDeviceWidth, 500);
           } catch {}
         });
         
-        // Reusable: force frames/frame-wrapper to 100% when GrapesJS overwrites with px
-        const forceDesktopFramesWidth = () => {
-          const sel = '.gjs-cv-canvas__frames, .gjs-cv-canvas_frames, [class*="cv-canvas"][class*="frames"]';
-          document.querySelectorAll(sel).forEach((el) => {
-            const e = el as HTMLElement;
-            const w = e.style.getPropertyValue('width');
-            if (w && w !== '100%' && !String(w).includes('100%')) {
-              e.style.setProperty('width', '100%', 'important');
-              e.style.setProperty('min-width', '100%', 'important');
-              e.style.setProperty('flex', '1', 'important');
-            }
-          });
-        };
-        // Listen for device changes - force desktop frame to full width
+        // Listen for device changes
         editor.on('change:device', () => {
           try {
-            const device = editor.getDevice?.() || editor.DeviceManager?.getSelected?.()?.get?.('id');
+            const device = editor.getDevice();
             if (device) {
               setCurrentDevice(device);
-            }
-            if (device === 'desktop' || device === 'Desktop') {
-              forceDesktopFramesWidth();
-              // Update desktop device width to container so GrapesJS uses full width
-              try {
-                const container = document.querySelector('.builder-center-panel') || document.querySelector('.gjs-cv-canvas');
-                const w = container?.clientWidth || 1200;
-                if (w > 0) {
-                  const desktopDev = editor.DeviceManager?.get?.('desktop');
-                  if (desktopDev && typeof desktopDev.set === 'function') {
-                    desktopDev.set({ width: `${w}px` });
-                    (editor.Canvas?.getModel?.() as any)?.updateDevice?.();
-                  }
-                }
-              } catch {}
-              const forceDesktopWidth = () => {
-                const frame = editor.Canvas?.getFrameEl?.();
-                const frameModel = (editor.Canvas as any)?.getFrame?.();
-                if (frameModel && typeof frameModel.set === 'function') {
-                  frameModel.set({ width: '100%', height: '' });
-                }
-                if (frame) {
-                  const el = frame as HTMLElement;
-                  el.style.setProperty('width', '100%', 'important');
-                  el.style.setProperty('min-width', '100%', 'important');
-                  el.style.removeProperty('max-width');
-                }
-                document.querySelectorAll('.gjs-frame-wrapper').forEach((w) => {
-                  (w as HTMLElement).style.setProperty('width', '100%', 'important');
-                  (w as HTMLElement).style.setProperty('min-width', '100%', 'important');
-                });
-                const framesContainer = document.querySelector('.gjs-cv-canvas__frames') as HTMLElement;
-                const canvasEl = document.querySelector('.gjs-cv-canvas') as HTMLElement;
-                if (framesContainer) {
-                  framesContainer.style.setProperty('width', '100%', 'important');
-                  framesContainer.style.setProperty('flex', '1', 'important');
-                  framesContainer.style.setProperty('justify-content', 'flex-start', 'important');
-                  framesContainer.style.setProperty('align-items', 'stretch', 'important');
-                }
-                if (canvasEl) {
-                  canvasEl.style.setProperty('width', '100%', 'important');
-                  canvasEl.style.setProperty('flex', '1', 'important');
-                }
-              };
-              forceDesktopWidth();
-              setTimeout(forceDesktopWidth, 50);
-              setTimeout(forceDesktopWidth, 200);
             }
             renderDeviceSwitcher();
           } catch {}
         });
         
+        // Listen for fullscreen toggle to force Style Manager render
         editor.on('run:fullscreen', () => {
           setTimeout(() => {
+            try {
             const stylePanel = document.getElementById('style-panel');
-            if (stylePanel) {
+              if (stylePanel && editor.StyleManager) {
+                // Force visibility
               stylePanel.style.display = 'block';
               stylePanel.style.visibility = 'visible';
               stylePanel.style.opacity = '1';
-              stylePanel.style.background = '#ffffff';
+                stylePanel.style.background = '#1e1e1e';
+                
+                // Force render Style Manager
+                // CRITICAL: Only render if style tab is active
+                if (activeSidebarSection === 'style' && typeof editor.StyleManager.render === 'function') {
+                  editor.StyleManager.render();
+                }
+                
+                // Ensure all sectors are visible
+                setTimeout(() => {
+                  const sectors = stylePanel.querySelectorAll('.gjs-sm-sector');
+                  sectors.forEach((sector: any) => {
+                    if (sector) {
+                      sector.style.display = 'block';
+                      sector.style.visibility = 'visible';
+                      sector.style.opacity = '1';
+                    }
+                  });
+                }, 100);
+              }
+            } catch (e) {
+              console.warn('Error rendering Style Manager on fullscreen:', e);
             }
           }, 200);
         });
@@ -8505,11 +7819,10 @@ ${linkStylesheetTag}  <style>
               const wrapperEl = wrapper as HTMLElement;
               const computedStyle = window.getComputedStyle(wrapperEl);
               
-              // Force visibility with !important to override React styles - pointer-events required for drag & drop
+              // Force visibility with !important to override React styles
               wrapperEl.style.setProperty('display', 'block', 'important');
               wrapperEl.style.setProperty('visibility', 'visible', 'important');
               wrapperEl.style.setProperty('opacity', '1', 'important');
-              wrapperEl.style.setProperty('pointer-events', 'auto', 'important');
               
               // Verify it's actually visible
               const afterStyle = window.getComputedStyle(wrapperEl);
@@ -8525,20 +7838,9 @@ ${linkStylesheetTag}  <style>
             blocksPanel.style.setProperty('visibility', 'visible', 'important');
             blocksPanel.style.setProperty('opacity', '1', 'important');
             blocksPanel.style.setProperty('min-height', '200px', 'important');
-            blocksPanel.style.setProperty('pointer-events', 'auto', 'important');
 
-            // Only clear when blocks are missing - clearing destroys GrapesJS drag handlers
-            const existingBlocksCount = blocksPanel.querySelectorAll('.gjs-block').length;
-            const hasBlocksContainer = !!blocksPanel.querySelector('.gjs-blocks-c');
-            const needsClear = existingBlocksCount === 0 || !hasBlocksContainer;
-            if (needsClear) {
-              const bmContainer = editor.BlockManager.getContainer?.();
-              if (bmContainer && blocksPanel.contains(bmContainer)) {
-                bmContainer.innerHTML = '';
-              } else {
+            // Clear any existing content to prevent duplicates
                 blocksPanel.innerHTML = '';
-              }
-            }
             
             // Remove any duplicate blocks-panel elements
             const allPanels = document.querySelectorAll('#blocks-panel');
@@ -8571,11 +7873,6 @@ ${linkStylesheetTag}  <style>
               const registeredArray = Array.isArray(allRegisteredBlocks) ? allRegisteredBlocks : [];
               console.log(`🔄 renderBlocks: Attempting to render ${registeredArray.length} registered blocks...`);
               
-              // Re-append BlockManager view if it was detached (e.g. after innerHTML clear)
-              const bmContainer = editor.BlockManager.getContainer?.();
-              if (bmContainer && !blocksPanel.contains(bmContainer)) {
-                blocksPanel.appendChild(bmContainer);
-              }
               const renderResult = editor.BlockManager.render();
               console.log('✅ BlockManager.render() called successfully');
             blocksRenderedRef.current = true; // Mark as rendered
@@ -8598,10 +7895,25 @@ ${linkStylesheetTag}  <style>
             setTimeout(() => {
               const blocksPanel = document.getElementById('blocks-panel');
               if (blocksPanel) {
-                // CRITICAL: Verify blocks were actually rendered
+                // Remove TOP duplicate categories only (keep BOTTOM working set)
+                const categoryElements = blocksPanel.querySelectorAll('.gjs-block-category');
+                const categoryByName = new Map<string, { el: Element; blockCount: number }[]>();
+                categoryElements.forEach((cat: Element) => {
+                  const titleEl = cat.querySelector('.gjs-title') || cat.querySelector('.gjs-block-category-title');
+                  const label = (titleEl?.textContent || '').trim() || 'Uncategorized';
+                  const blocksContainer = cat.querySelector('.gjs-blocks-c') || cat.querySelector('.gjs-block-category-blocks');
+                  const blockCount = blocksContainer ? blocksContainer.querySelectorAll('.gjs-block').length : 0;
+                  if (!categoryByName.has(label)) categoryByName.set(label, []);
+                  categoryByName.get(label)!.push({ el: cat, blockCount });
+                });
+                categoryByName.forEach((entries) => {
+                  if (entries.length <= 1) return;
+                  // Remove TOP (first) occurrence only - keep BOTTOM (working) section
+                  entries[0].el.remove();
+                });
+
                 const allBlocks = blocksPanel.querySelectorAll('.gjs-block');
                 const categoryBlocks = blocksPanel.querySelectorAll('.gjs-block-category-blocks');
-                const categoryElements = blocksPanel.querySelectorAll('.gjs-block-category');
                 
                 console.log(`📊 After render: ${allBlocks.length} blocks, ${categoryBlocks.length} category containers, ${categoryElements.length} categories`);
                 
@@ -8640,7 +7952,6 @@ ${linkStylesheetTag}  <style>
                     block.style.setProperty('opacity', '1', 'important');
                     block.style.setProperty('pointer-events', 'auto', 'important');
                     block.style.setProperty('cursor', 'grab', 'important');
-                    block.setAttribute?.('title', 'Drag to canvas, or double-click to add');
                     block.style.setProperty('position', 'relative', 'important');
                     block.style.setProperty('z-index', '1', 'important');
                     // CRITICAL: Ensure blocks fit in grid
@@ -8655,36 +7966,43 @@ ${linkStylesheetTag}  <style>
                 const finalBlocks = blocksPanel.querySelectorAll('.gjs-block');
                 console.log(`✅ Final blocks count: ${finalBlocks.length} blocks rendered and visible`);
                 
-                // Remove duplicate categories (keep first occurrence of each)
-                const categories = Array.from(blocksPanel.querySelectorAll('.gjs-block-category'));
-                const seenNames = new Set<string>();
-                const toRemove: Element[] = [];
+                // Ensure categories are properly set up
+                const categories = blocksPanel.querySelectorAll('.gjs-block-category');
                 categories.forEach((cat: any) => {
-                  const name = (cat.querySelector('.gjs-block-category-title')?.textContent || cat.querySelector('.gjs-title')?.textContent || '').trim().toUpperCase();
-                  if (name && seenNames.has(name)) {
-                    toRemove.push(cat);
-                    return;
-                  }
-                  if (name) seenNames.add(name);
-                });
-                toRemove.forEach(el => el.remove());
-
-                // Ensure categories are visible (dropdown toggle handled by document-level delegation)
-                const remainingCategories = blocksPanel.querySelectorAll('.gjs-block-category');
-                remainingCategories.forEach((cat: any, idx: number) => {
                   cat.style.position = 'relative';
                   cat.style.zIndex = '1';
                   cat.style.display = 'block';
                   cat.style.visibility = 'visible';
-                  // Collapse all except first for GrapesJS-rendered categories
-                  if (idx > 0) {
+                  
+                  // Make category titles clickable to toggle expand/collapse
+                  const categoryTitle = cat.querySelector('.gjs-title') || cat.querySelector('.gjs-block-category-title');
+                  if (categoryTitle && !categoryTitle.hasAttribute('data-toggle-bound')) {
+                    categoryTitle.setAttribute('data-toggle-bound', 'true');
+                    categoryTitle.addEventListener('click', (e: Event) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      
+                      const isOpen = cat.getAttribute('data-open') !== 'false';
+                      const categoryBlocks = cat.querySelector('.gjs-block-category-blocks');
+                      
+                      if (isOpen) {
+                        // Collapse
                     cat.setAttribute('data-open', 'false');
-                    cat.classList.remove('gjs-open');
-                    cat.classList.add('collapsed');
-                    const categoryBlocks = cat.querySelector('.gjs-block-category-blocks') || cat.querySelector('.gjs-blocks-c');
                     if (categoryBlocks) {
-                      (categoryBlocks as HTMLElement).style.setProperty('display', 'none', 'important');
-                    }
+                          (categoryBlocks as HTMLElement).style.display = 'none';
+                        }
+                      } else {
+                        // Expand
+                        cat.setAttribute('data-open', 'true');
+                        if (categoryBlocks) {
+                          (categoryBlocks as HTMLElement).style.display = 'grid';
+                          // Re-enforce grid layout
+                          (categoryBlocks as HTMLElement).style.setProperty('display', 'grid', 'important');
+                          (categoryBlocks as HTMLElement).style.setProperty('grid-template-columns', 'repeat(2, 1fr)', 'important');
+                          (categoryBlocks as HTMLElement).style.setProperty('gap', '10px', 'important');
+                        }
+                      }
+                    });
                   }
                 });
 
@@ -8775,17 +8093,43 @@ ${linkStylesheetTag}  <style>
                   targetComponent = wrapper;
                 }
                 
-                // Open style manager (GrapesJS handles target via component:toggled)
+                // Open style manager
                 editor.runCommand('open-sm');
-                ensureStylePanelVisible();
+                
+                // Force Style Manager to render with target
+                const stylePanel = document.getElementById('style-panel');
+                if (stylePanel && editor.StyleManager && targetComponent) {
+                  // Clear panel
+                  stylePanel.innerHTML = '';
+                  
+                  // Set target explicitly
+                  if ((editor.StyleManager as any).setTarget) {
+                    (editor.StyleManager as any).setTarget(targetComponent);
+                  }
+                  
+                  // Render
+                  // CRITICAL: Only render if style tab is active
+                  if (activeSidebarSection === 'style' && typeof editor.StyleManager.render === 'function') {
+                    editor.StyleManager.render();
+                  }
+                  
+                  // Force visibility
+                  stylePanel.style.display = 'block';
+                  stylePanel.style.visibility = 'visible';
+                  stylePanel.style.opacity = '1';
+                  stylePanel.style.background = '#1e1e1e';
+                  stylePanel.style.minHeight = '300px';
+                }
               }
             } catch (e) {
               console.warn('Error selecting component on load:', e);
             }
           }, 250);
           
-          // Ensure style panel is visible on load
-          setTimeout(() => ensureStylePanelVisible(), 500);
+          // Ensure Style Manager is rendered on load - single optimized call
+          setTimeout(() => {
+            safeRenderStyleManager(true);
+          }, 500);
         });
 
         // Blocks will be rendered on 'load' event
@@ -9031,213 +8375,94 @@ ${linkStylesheetTag}  <style>
     }
   }, [editorRef.current]);
 
-  // Filter blocks by search - search by label, block id, and category
-  const runBlockSearchFilter = useCallback(() => {
+  // Filter blocks by search - only if blocks exist
+  useEffect(() => {
     const container = document.getElementById('blocks-panel');
     if (!container) return;
 
     const blocks = container.querySelectorAll('.gjs-block');
+    // Don't run filter if no blocks exist yet
+    if (blocks.length === 0) return;
+
     const term = blockSearch.trim().toLowerCase();
     const categories = container.querySelectorAll('.gjs-block-category');
 
-    // Get block label: prefer .gjs-block-label (canonical), then BlockManager, then textContent
-    const getBlockLabel = (blockEl: Element): string => {
-      const labelEl = blockEl.querySelector?.('.gjs-block-label');
-      if (labelEl?.textContent?.trim()) return labelEl.textContent.trim();
-      const blockId = blockEl.getAttribute?.('data-gjs-type') || '';
-      if (!blockId) return '';
-      try {
-        const bm = editorInstance.current?.BlockManager;
-        if (bm?.get) {
-          const block = bm.get(blockId);
-          if (block) {
-            const label = typeof (block as any).getLabel === 'function'
-              ? (block as any).getLabel()
-              : (block.get ? block.get('label') : (block as any).label);
-            return (label || blockId).toString();
-          }
-        }
-      } catch (_) {}
-      return (blockEl.textContent || '').trim();
-    };
-
     blocks.forEach((block: any) => {
-      const modelLabel = getBlockLabel(block);
-      const blockId = (block.getAttribute?.('data-gjs-type') || '').replace(/-/g, ' ');
-      const categoryEl = block.closest?.('.gjs-block-category');
-      const categoryTitle = categoryEl?.querySelector?.('.gjs-block-category-title, .gjs-title');
-      const categoryName = (categoryTitle?.textContent || '').trim();
-      const searchableText = [modelLabel, blockId, categoryName].filter(Boolean).join(' ').toLowerCase();
-
-      const shouldShow = !term || searchableText.includes(term);
+      const text = (block.textContent || '').toLowerCase();
+      const shouldShow = !term || text.includes(term);
+      // Use grid item display instead of flex to maintain grid layout
       block.style.display = shouldShow ? 'flex' : 'none';
       block.style.visibility = shouldShow ? 'visible' : 'hidden';
+      // Ensure block stays within grid constraints
       if (shouldShow) {
         block.style.width = '100%';
         block.style.maxWidth = '100%';
         block.style.minWidth = '0';
-        block.style.pointerEvents = 'auto';
-        block.style.cursor = 'grab';
-        block.setAttribute?.('title', 'Drag to canvas, or double-click to add');
       }
     });
 
-    let anyCategoryVisible = false;
     categories.forEach((cat: any) => {
-      const visibleBlocks = cat.querySelectorAll('.gjs-block');
-      const hasVisible = Array.from(visibleBlocks).some((b: Element) => {
-        const style = (b as HTMLElement).style;
-        return style.display !== 'none' && style.visibility !== 'hidden';
-      });
-      if (hasVisible) anyCategoryVisible = true;
+      const hasVisible = !!cat.querySelector('.gjs-block[style*="display: flex"]');
       cat.style.display = hasVisible ? 'block' : 'none';
     });
-    setWidgetSearchHasResults(blocks.length === 0 || !term || anyCategoryVisible);
   }, [blockSearch]);
 
-  useEffect(() => {
-    runBlockSearchFilter();
-  }, [runBlockSearchFilter]);
-
-  // Re-run search when blocks are added to the panel (e.g. after async render)
-  useEffect(() => {
-    const container = document.getElementById('blocks-panel');
-    if (!container || activeSidebarSection !== 'widgets') return;
-
-    const runFilter = () => runBlockSearchFilter();
-    const observer = new MutationObserver(() => {
-      if (container.querySelectorAll('.gjs-block').length > 0) {
-        runFilter();
-      }
-    });
-    observer.observe(container, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, [activeSidebarSection, blockSearch, runBlockSearchFilter]);
-
-  // Remove duplicate block categories and ensure single render
+  // Make category dropdowns functional
   useEffect(() => {
     const blocksPanel = document.getElementById('blocks-panel');
     if (!blocksPanel) return;
 
-    const removeDuplicates = () => {
-      const categories = Array.from(blocksPanel.querySelectorAll('.gjs-block-category'));
-      const seenNames = new Set<string>();
-      const toRemove: Element[] = [];
+    const setupCategoryToggles = () => {
+      // Remove TOP duplicate categories (keep BOTTOM working set)
+      const allCats = blocksPanel.querySelectorAll('.gjs-block-category');
+      const byName = new Map<string, Element[]>();
+      allCats.forEach((cat: Element) => {
+        const titleEl = cat.querySelector('.gjs-title') || cat.querySelector('.gjs-block-category-title');
+        const label = (titleEl?.textContent || '').trim() || 'Uncategorized';
+        if (!byName.has(label)) byName.set(label, []);
+        byName.get(label)!.push(cat);
+      });
+      byName.forEach((entries) => {
+        if (entries.length > 1) entries[0].remove();
+      });
+
+      const categories = blocksPanel.querySelectorAll('.gjs-block-category');
       categories.forEach((cat: Element) => {
-        const titleEl = cat.querySelector('.gjs-block-category-title') || cat.querySelector('.gjs-title');
-        const name = (titleEl?.textContent || '').trim().toUpperCase();
-        if (name && seenNames.has(name)) {
-          toRemove.push(cat);
-        } else if (name) {
-          seenNames.add(name);
+        const catEl = cat as HTMLElement;
+        if (!catEl.hasAttribute('data-open')) {
+          catEl.setAttribute('data-open', 'true');
+        }
+        const categoryTitle = cat.querySelector('.gjs-title') || cat.querySelector('.gjs-block-category-title');
+        if (categoryTitle && !categoryTitle.hasAttribute('data-toggle-bound')) {
+          categoryTitle.setAttribute('data-toggle-bound', 'true');
+          categoryTitle.addEventListener('click', (e: Event) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const isOpen = catEl.getAttribute('data-open') !== 'false';
+            catEl.setAttribute('data-open', isOpen ? 'false' : 'true');
+          });
         }
       });
-      toRemove.forEach(el => el.remove());
     };
 
-    removeDuplicates();
-    const observer = new MutationObserver(() => removeDuplicates());
-    observer.observe(blocksPanel, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, [activeSidebarSection]);
+    // Setup initial toggles
+    setupCategoryToggles();
 
-  // Make category dropdowns functional - use document-level delegation for both GrapesJS and manual render
-  useEffect(() => {
-    const handleCategoryToggle = (e: Event) => {
-      const target = e.target as HTMLElement;
-      const blocksPanel = document.getElementById('blocks-panel');
-      if (!blocksPanel || !blocksPanel.contains(target)) return;
-      if (target.closest('.gjs-block')) return;
+    // Watch for new categories being added
+    const observer = new MutationObserver(() => {
+      observerFireCount++;
+      setupCategoryToggles();
+    });
 
-      // Header: .gjs-block-category-title (manual) or .gjs-title (GrapesJS) - includes clicks on .gjs-caret-icon inside
-      const header = target.closest('.gjs-block-category-title') || target.closest('.gjs-title');
-      if (!header) return;
+    observer.observe(blocksPanel, {
+      childList: true,
+      subtree: true
+    });
 
-      const cat = header.closest('.gjs-block-category');
-      if (!cat || !blocksPanel.contains(cat)) return;
-
-      e.preventDefault();
-      e.stopPropagation();
-
-      const categoryBlocks = cat.querySelector('.gjs-block-category-blocks') || cat.querySelector('.gjs-blocks-c');
-      const isOpen = cat.getAttribute('data-open') !== 'false' || cat.classList.contains('gjs-open');
-
-      if (isOpen) {
-        cat.setAttribute('data-open', 'false');
-        cat.classList.remove('gjs-open');
-        cat.classList.add('collapsed');
-        if (categoryBlocks) {
-          (categoryBlocks as HTMLElement).style.setProperty('display', 'none', 'important');
-        }
-      } else {
-        cat.setAttribute('data-open', 'true');
-        cat.classList.add('gjs-open');
-        cat.classList.remove('collapsed');
-        if (categoryBlocks) {
-          (categoryBlocks as HTMLElement).style.setProperty('display', 'grid', 'important');
-          (categoryBlocks as HTMLElement).style.setProperty('grid-template-columns', 'repeat(2, 1fr)', 'important');
-          (categoryBlocks as HTMLElement).style.setProperty('gap', '10px', 'important');
-        }
-      }
-    };
-
-    document.addEventListener('click', handleCategoryToggle, true);
     return () => {
-      document.removeEventListener('click', handleCategoryToggle, true);
+      observer.disconnect();
     };
-  }, []);
-
-  // Double-click block to add to canvas (fallback when drag doesn't work)
-  useEffect(() => {
-    const handleBlockDblClick = (e: Event) => {
-      const target = (e.target as Element).closest?.('.gjs-block');
-      if (!target) return;
-      const blocksPanel = document.getElementById('blocks-panel');
-      if (!blocksPanel?.contains(target)) return;
-      const editor = editorInstance.current;
-      if (!editor?.BlockManager) return;
-      // GrapesJS default blocks use data-id; manual render uses data-gjs-type; fallback: match by label
-      let blockId = target.getAttribute?.('data-id') || target.getAttribute?.('data-gjs-type');
-      let block = blockId ? editor.BlockManager.get?.(blockId) : null;
-      if (!block?.get) {
-        const labelEl = target.querySelector?.('.gjs-block-label');
-        const label = (labelEl?.textContent || target.textContent || '').trim();
-        if (label) {
-          const all = editor.BlockManager.getAll?.() || [];
-          block = all.find((b: any) => (b.get?.('label') || '').trim() === label);
-        }
-      }
-      if (!block?.get) return;
-      const wrapper = editor.getWrapper();
-      if (!wrapper) return;
-      const content = block.get('content');
-      if (!content) return;
-      e.preventDefault();
-      e.stopPropagation();
-      try {
-        // Add to first droppable child (section) or wrapper
-        let target = wrapper;
-        const children = wrapper.components?.();
-        if (children?.length > 0) {
-          const droppable = children.find((c: any) => c.get?.('droppable'));
-          if (droppable) target = droppable;
-        }
-        const added = target.append(content);
-        if (added) {
-          const comp = Array.isArray(added) ? added[0] : added;
-          if (comp) {
-            comp.set({ selectable: true, hoverable: true, draggable: true });
-            editor.select(comp);
-            editor.refresh();
-          }
-        }
-      } catch (err) {
-        console.warn('Double-click add block failed:', err);
-      }
-    };
-    document.addEventListener('dblclick', handleBlockDblClick, true);
-    return () => document.removeEventListener('dblclick', handleBlockDblClick, true);
-  }, []);
+  }, [activeSidebarSection]);
 
   // Generate default theme thumbnail
   const generateDefaultThumbnail = useCallback((themeName: string): Promise<Blob> => {
@@ -9541,7 +8766,7 @@ ${linkStylesheetTag}  <style>
         const currentPage = pagesRef.current.find(p => p.id === currentPageId);
         if (currentPage && editorInstance.current) {
           console.log('🔄 Refreshing editor with saved state after save...');
-          applyPageToEditor(currentPage.html || DEFAULT_PAGE_CONTENT, currentPage.css || '', currentPage.stylesheetUrls, currentPage.baseUrl, currentPage.inlineCss);
+          applyPageToEditor(currentPage.html || DEFAULT_PAGE_CONTENT, currentPage.css || '');
         }
       }, 200);
 
@@ -9586,9 +8811,6 @@ ${linkStylesheetTag}  <style>
         alert('Editor not ready');
         return;
       }
-
-      // CRITICAL: Commit current page first so we capture all unsaved edits
-      commitCurrentPage();
 
       // CRITICAL: Force editor to refresh/update before getting HTML/CSS
       // This ensures all pending changes are processed
@@ -9736,30 +8958,18 @@ ${linkStylesheetTag}  <style>
         }
       }
       
-      // Build snapshot using ref (committed above) and current editor state
-      // CRITICAL: Merge theme base CSS with editor CSS - theme styles must persist, editor overrides
+      // Build snapshot using ref (which is always up-to-date) and current editor state
       const pagesFromRef = pagesRef.current || pages;
-      let pagesSnapshot = pagesFromRef.length > 0
-        ? pagesFromRef.map((page) => {
+      const pagesSnapshot = pagesFromRef.map((page) => {
             if (page.id === currentPageId) {
-              const themeCss = [page.css, page.inlineCss].filter(Boolean).join('\n\n').trim();
-              const mergedCss = themeCss && currentCss
-                ? themeCss + '\n\n/* Editor overrides */\n' + currentCss.trim()
-                : (currentCss || themeCss || '');
               return { 
                 ...page, 
-                html: currentHtml || page.html || DEFAULT_PAGE_CONTENT, 
-                css: mergedCss
+            html: currentHtml || DEFAULT_PAGE_CONTENT, 
+            css: currentCss || (page.css || '')
               };
             }
             return page;
-          })
-        : [{ 
-            id: currentPageId || 'page-1', 
-            name: name || 'Page 1', 
-            html: currentHtml || DEFAULT_PAGE_CONTENT, 
-            css: currentCss || '' 
-          }];
+      });
       
       console.log('🎬 Preview - Using latest editor state:', {
         currentPageId,
@@ -9773,9 +8983,6 @@ ${linkStylesheetTag}  <style>
         .map((page) => page.css || '')
         .filter(Boolean)
         .join('\n\n');
-      
-      // CRITICAL: Clean up any corrupted gradient values in the combined CSS
-      combinedCss = cleanupCssGradients(combinedCss);
 
       // DEBUG: Log CSS information
       const hasBackgroundImage = combinedCss.includes('background-image') || combinedCss.includes('background:');
@@ -9832,13 +9039,9 @@ ${linkStylesheetTag}  <style>
       if (canvasFrame && canvasFrame.contentWindow) {
         const frameLocation = canvasFrame.contentWindow.location;
         combinedCss = combinedCss.replace(
-          /url\((['"]?)(?!data:|http|linear-gradient|radial-gradient|conic-gradient|repeating-)([^'")]+)(['"]?)\)/gi,
+          /url\((['"]?)(?!data:)(?!http)([^'")]+)(['"]?)\)/gi,
           (match, quote1, url, quote2) => {
             try {
-              // Skip CSS keywords that shouldn't be URLs
-              if (/^(none|initial|inherit|unset|revert|transparent)$/i.test(url.trim())) {
-                return match;
-              }
               // Convert relative URLs to absolute
               const absoluteUrl = new URL(url, frameLocation.href).href;
               console.log('Converting relative URL:', { original: url, absolute: absoluteUrl });
@@ -9868,17 +9071,25 @@ ${linkStylesheetTag}  <style>
         htmlPreview: fullHtml.substring(0, 500)
       });
 
-      // Use blob URL instead of srcDoc - more reliable for dynamic HTML, avoids sandbox/srcdoc quirks
-      if (previewBlobUrlRef.current) {
-        URL.revokeObjectURL(previewBlobUrlRef.current);
-        previewBlobUrlRef.current = null;
-      }
-      const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
-      const blobUrl = URL.createObjectURL(blob);
-      previewBlobUrlRef.current = blobUrl;
-      
-      setPreviewHtml(fullHtml); // Keep for key/fallback
+      // Use iframe modal with srcdoc instead of blob URL for better reliability
+      // srcdoc embeds HTML directly and works even after reloads
+      // CRITICAL: Clear previewHtml first to force re-render, then set new content
+      setPreviewHtml('');
+        setTimeout(() => {
+        setPreviewHtml(fullHtml);
       setShowPreviewModal(true);
+        
+        // CRITICAL: Also update iframe directly after a short delay to ensure content is set
+        setTimeout(() => {
+          const iframe = document.getElementById('theme-preview-iframe') as HTMLIFrameElement;
+          if (iframe && iframe.contentDocument && fullHtml) {
+            iframe.contentDocument.open();
+            iframe.contentDocument.write(fullHtml);
+            iframe.contentDocument.close();
+            console.log('✅ Forced iframe content update');
+          }
+        }, 100);
+      }, 50);
       
       // CRITICAL: Commit changes after preview to ensure they're saved to state
       // This ensures that if user makes changes and previews, those changes are persisted
@@ -9887,7 +9098,7 @@ ${linkStylesheetTag}  <style>
       console.error('Preview error:', e);
       alert('Failed to preview theme');
     }
-  }, [buildMultiPageHtmlDocument, name, commitCurrentPage, currentPageId, getPagesSnapshotWithCurrent, pagesRef, pages]);
+  }, [buildMultiPageHtmlDocument, name, commitCurrentPage, currentPageId, pagesRef]);
 
   // Auto-save current page when switching
   useEffect(() => {
@@ -9900,157 +9111,52 @@ ${linkStylesheetTag}  <style>
     }
   }, [currentPageId]); // Remove commitCurrentPage from deps to prevent loops
 
-  // Sync device switcher with GrapesJS - apply device change and refresh canvas for responsive preview
+  // Render StyleManager when switching to style tab
   useEffect(() => {
+    if (activeSidebarSection === 'style' && editorInstance.current) {
     const editor = editorInstance.current;
-    if (!editor) return;
-    const applyDesktopFrameWidth = () => {
-      const device = editor.getDevice?.() || editor.DeviceManager?.getSelected?.()?.get?.('id');
-      if (device !== 'desktop') return;
-      // Fix .gjs-cv-canvas__frames when GrapesJS overwrites with narrow px (e.g. 116px)
-      const sel = '.gjs-cv-canvas__frames, .gjs-cv-canvas_frames, [class*="cv-canvas"][class*="frames"]';
-      document.querySelectorAll(sel).forEach((el) => {
-        const e = el as HTMLElement;
-        e.style.setProperty('width', '100%', 'important');
-        e.style.setProperty('min-width', '100%', 'important');
-        e.style.setProperty('flex', '1', 'important');
-      });
-      const frame = editor.Canvas?.getFrameEl?.();
-      const frameModel = (editor.Canvas as any)?.getFrame?.();
-      if (frameModel && typeof frameModel.set === 'function') {
-        frameModel.set({ width: '100%', height: '' });
-      }
-      if (frame) {
-        const el = frame as HTMLElement;
-        el.style.setProperty('width', '100%', 'important');
-        el.style.setProperty('min-width', '100%', 'important');
-        el.style.setProperty('flex', '1', 'important');
-        el.style.removeProperty('max-width');
-      }
-      document.querySelectorAll('.gjs-frame-wrapper').forEach((w) => {
-        const h = w as HTMLElement;
-        h.style.setProperty('width', '100%', 'important');
-        h.style.setProperty('min-width', '100%', 'important');
-        h.style.setProperty('flex', '1', 'important');
-      });
-      const frames = document.querySelector('.gjs-cv-canvas__frames') as HTMLElement;
-      const canvas = document.querySelector('.gjs-cv-canvas') as HTMLElement;
-      if (frames) {
-        frames.style.setProperty('width', '100%', 'important');
-        frames.style.setProperty('flex', '1', 'important');
-        frames.style.setProperty('justify-content', 'flex-start', 'important');
-        frames.style.setProperty('align-items', 'stretch', 'important');
-      }
-      if (canvas) {
-        canvas.style.setProperty('width', '100%', 'important');
-        canvas.style.setProperty('flex', '1', 'important');
-      }
-    };
-    try {
-      const dm = editor.DeviceManager;
-      if (dm?.select) {
-        dm.select(currentDevice);
-      } else if (typeof editor.setDevice === 'function') {
-        editor.setDevice(currentDevice);
-      }
-      editor.refresh?.();
-      if (currentDevice === 'desktop') {
-        // Set desktop device width to canvas container width so GrapesJS uses correct dimensions
-        const updateDesktopDeviceWidth = () => {
-          try {
-            const container = document.querySelector('.builder-center-panel') || document.querySelector('.gjs-cv-canvas');
-            const w = container?.clientWidth || document.querySelector('.gjs-editor-cont')?.clientWidth || 1200;
-            if (w > 0) {
-              const desktopDev = editor.DeviceManager?.get?.('desktop');
-              if (desktopDev && typeof desktopDev.set === 'function') {
-                desktopDev.set({ width: `${w}px` });
-                (editor.Canvas?.getModel?.() as any)?.updateDevice?.();
-              }
-            }
-          } catch {}
-        };
-        updateDesktopDeviceWidth();
-        setTimeout(updateDesktopDeviceWidth, 200);
-        applyDesktopFrameWidth();
-        const t1 = setTimeout(applyDesktopFrameWidth, 100);
-        const t2 = setTimeout(applyDesktopFrameWidth, 300);
-        const t3 = setTimeout(applyDesktopFrameWidth, 600);
-        const t4 = setTimeout(applyDesktopFrameWidth, 1200);
-        const t5 = setTimeout(applyDesktopFrameWidth, 2500);
-        // Continuously override GrapesJS for 4s - it may overwrite our styles
-        const interval = setInterval(() => {
-          const dev = editor.getDevice?.() || editor.DeviceManager?.getSelected?.()?.get?.('id');
-          if (dev !== 'desktop') { clearInterval(interval); return; }
-          applyDesktopFrameWidth();
-        }, 150);
-        const tStop = setTimeout(() => clearInterval(interval), 4000);
-        const canvasHost = document.querySelector('.builder-center-panel') || document.querySelector('.gjs-editor-wrapper');
-        const ro = canvasHost && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => {
-          const dev = editor.getDevice?.() || editor.DeviceManager?.getSelected?.()?.get?.('id');
-          if (dev === 'desktop') {
-            updateDesktopDeviceWidth();
-            applyDesktopFrameWidth();
-          }
-        }) : null;
-        if (ro && canvasHost) ro.observe(canvasHost as Element);
-        // MutationObserver: GrapesJS overwrites frames div width with narrow px (e.g. 116px) - force 100% when on desktop
-        let mo: MutationObserver | null = null;
-        const tMo = setTimeout(() => {
-          const sel = '.gjs-cv-canvas__frames, .gjs-cv-canvas_frames, [class*="cv-canvas"][class*="frames"]';
-          const el = document.querySelector(sel) as HTMLElement;
-          if (!el || typeof MutationObserver === 'undefined') return;
-          mo = new MutationObserver(() => {
-            const dev = editor.getDevice?.() || editor.DeviceManager?.getSelected?.()?.get?.('id');
-            if (dev !== 'desktop') return;
-            requestAnimationFrame(() => {
-              const e = document.querySelector(sel) as HTMLElement;
-              if (e) {
-                const w = e.style.getPropertyValue('width');
-                if (w && w !== '100%' && !String(w).includes('100%')) {
-                  e.style.setProperty('width', '100%', 'important');
-                  e.style.setProperty('min-width', '100%', 'important');
-                  e.style.setProperty('flex', '1', 'important');
-                }
-              }
-            });
-          });
-          mo.observe(el, { attributes: true, attributeFilter: ['style'] });
-        }, 100);
-        return () => {
-          clearInterval(interval);
-          clearTimeout(tStop);
-          clearTimeout(t1);
-          clearTimeout(t2);
-          clearTimeout(t3);
-          clearTimeout(t4);
-          clearTimeout(t5);
-          clearTimeout(tMo);
-          ro?.disconnect();
-          mo?.disconnect();
-        };
-      }
-      const canvasEl = document.querySelector('.gjs-cv-canvas') as HTMLElement;
-      if (canvasEl) {
-        canvasEl.style.setProperty('justify-content', 'center', 'important');
-        canvasEl.style.setProperty('align-items', 'flex-start', 'important');
-      }
+      const selected = editor.getSelected();
+      
+      if (selected && editor.StyleManager) {
+        // Small delay to ensure DOM is updated
+        setTimeout(() => {
+          const stylePanel = document.getElementById('style-panel');
+          const stylePanelCard = document.querySelector('.elementor-panel-card[data-panel-type="style"]') as HTMLElement;
+          
+          if (stylePanel && stylePanelCard) {
+            // Ensure panel is visible
+            stylePanelCard.style.display = 'flex';
+            stylePanelCard.style.visibility = 'visible';
+            stylePanelCard.style.opacity = '1';
+            
+            stylePanel.style.display = 'block';
+            stylePanel.style.visibility = 'visible';
+            stylePanel.style.opacity = '1';
+            
+            try {
+              // Render StyleManager for selected component
+              stylePanel.innerHTML = '';
+              editor.StyleManager.render();
+              
+              // Ensure sectors are open
+              setTimeout(() => {
+                const sectors = stylePanel.querySelectorAll('.gjs-sm-sector');
+                sectors.forEach((sector: Element) => {
+                  const htmlSector = sector as HTMLElement;
+                  htmlSector.classList.remove('gjs-sm-sector--closed');
+                  htmlSector.classList.add('gjs-sm-sector--open');
+                  
+                  const sectorContent = htmlSector.querySelector('.gjs-sm-sector-content');
+                  if (sectorContent) {
+                    (sectorContent as HTMLElement).style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; max-height: none !important;';
+                  }
+                });
+              }, 100);
     } catch (e) {
-      console.warn('Device sync error:', e);
-    }
-  }, [currentDevice]);
-
-  // Ensure style panel visibility when switching to style tab (GrapesJS updates content automatically)
-  useEffect(() => {
-    if (activeSidebarSection === 'style') {
-      const panel = document.getElementById('style-panel');
-      const card = document.querySelector('.elementor-panel-card[data-panel-type="style"]') as HTMLElement;
-      if (panel && card) {
-        card.style.display = 'flex';
-        card.style.visibility = 'visible';
-        card.style.opacity = '1';
-        panel.style.display = 'block';
-        panel.style.visibility = 'visible';
-        panel.style.opacity = '1';
+              console.error('Error rendering StyleManager on tab switch:', e);
+            }
+          }
+        }, 150);
       }
     }
   }, [activeSidebarSection]);
@@ -10107,7 +9213,27 @@ ${linkStylesheetTag}  <style>
     }
   }, []);
 
-  // applyBlockSearch delegates to runBlockSearchFilter (defined above)
+  // Apply search filtering to GrapesJS blocks rendered in the sidebar
+  const applyBlockSearch = useCallback(() => {
+    const panel = document.getElementById('blocks-panel');
+    if (!panel) return;
+    const blocks = panel.querySelectorAll('.gjs-block');
+    // Don't run filter if no blocks exist yet
+    if (blocks.length === 0) return;
+    
+    const search = (blockSearch || '').toLowerCase();
+    blocks.forEach((block) => {
+      const text = (block.textContent || '').toLowerCase();
+      const matches = !search || text.includes(search);
+      (block as HTMLElement).style.display = matches ? 'flex' : 'none';
+      (block as HTMLElement).style.visibility = matches ? 'visible' : 'hidden';
+    });
+  }, [blockSearch]);
+
+  // Only apply search when blockSearch changes, not on every mutation
+  useEffect(() => {
+    applyBlockSearch();
+  }, [applyBlockSearch]);
 
   // CRITICAL: Ensure widgets are visible when editing a custom theme
   // This runs when the component mounts or when id changes (editing existing theme)
@@ -10264,7 +9390,7 @@ ${linkStylesheetTag}  <style>
               }
               
               console.log(`Rendered ${finalBlocks.length} blocks in widgets tab`);
-              runBlockSearchFilter();
+              applyBlockSearch();
             }, 100);
           }, 200);
         } else {
@@ -10299,14 +9425,14 @@ ${linkStylesheetTag}  <style>
             (blocksContainer as HTMLElement).style.opacity = '1';
           }
           
-          runBlockSearchFilter();
+          applyBlockSearch();
         }
       };
 
       // Try to render blocks immediately
       forceRenderBlocks();
     }
-  }, [activeSidebarSection, runBlockSearchFilter]);
+  }, [activeSidebarSection, applyBlockSearch]);
 
   // Protection: Ensure wrapper stays visible and blocks don't disappear
   useEffect(() => {
@@ -10315,22 +9441,20 @@ ${linkStylesheetTag}  <style>
       const wrapper = document.querySelector('.elementor-blocks-wrapper') as HTMLElement;
       if (!panel || !wrapper) return;
 
-      // Force wrapper visibility immediately - pointer-events required for drag & drop
+      // Force wrapper visibility immediately
       wrapper.style.setProperty('display', 'block', 'important');
       wrapper.style.setProperty('visibility', 'visible', 'important');
       wrapper.style.setProperty('opacity', '1', 'important');
-      wrapper.style.setProperty('pointer-events', 'auto', 'important');
 
       // Watch for wrapper being hidden
       const wrapperObserver = new MutationObserver(() => {
         if (activeSidebarSection === 'widgets') {
           const computedStyle = window.getComputedStyle(wrapper);
-          if (computedStyle.display === 'none' || computedStyle.visibility === 'hidden' || computedStyle.opacity === '0' || computedStyle.pointerEvents === 'none') {
-            console.warn('Wrapper was hidden or pointer-events disabled! Restoring...');
+          if (computedStyle.display === 'none' || computedStyle.visibility === 'hidden' || computedStyle.opacity === '0') {
+            console.warn('Wrapper was hidden! Restoring visibility...');
             wrapper.style.setProperty('display', 'block', 'important');
             wrapper.style.setProperty('visibility', 'visible', 'important');
             wrapper.style.setProperty('opacity', '1', 'important');
-            wrapper.style.setProperty('pointer-events', 'auto', 'important');
           }
         }
       });
@@ -10497,63 +9621,180 @@ ${linkStylesheetTag}  <style>
     }
   }, [activeSidebarSection]);
 
-  // Style tab: ensure visibility, delegate sector toggle, keep inputs editable
+  // Ensure Style Manager is rendered ONLY when style tab is active
   useEffect(() => {
-    if (activeSidebarSection !== 'style') return;
-
-    const handleSectorToggle = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const title = target.closest('.gjs-sm-sector-title, .gjs-sm-title, [data-sector-title]');
-      if (!title) return;
-      const sectorEl = title.closest('.gjs-sm-sector');
-      if (!sectorEl) return;
-      const editor = editorInstance.current;
-      if (!editor?.StyleManager) return;
-      const idMatch = sectorEl.className.match(/gjs-sm-sector__([^\s]+)/);
-      const sectorId = idMatch ? idMatch[1] : null;
-      if (sectorId) {
-        const sector = editor.StyleManager.getSector(sectorId);
-        if (sector) {
-          e.stopPropagation();
-          e.preventDefault();
-          sector.setOpen(!sector.isOpen());
+    if (activeSidebarSection === 'style') {
+      // Function to render style manager with fresh editor reference
+      const renderStyleManager = () => {
+        const currentEditor = editorInstance.current;
+        if (!currentEditor?.StyleManager) {
+          console.warn('StyleManager not available yet, retrying...');
+          setTimeout(renderStyleManager, 200);
+          return;
         }
-      }
-    };
-
+        
+        const stylePanel = document.getElementById('style-panel');
+        if (!stylePanel) {
+          console.warn('style-panel not found, retrying...');
+          setTimeout(renderStyleManager, 200);
+          return;
+        }
+        
+        // CRITICAL: Remove style manager content from any other locations
+        const allStyleContent = document.querySelectorAll('.gjs-sm-sector, .gjs-sm-property, .gjs-sm-properties');
+        allStyleContent.forEach((el: any) => {
+          const parent = el.closest('#style-panel');
+          if (!parent) {
+            el.remove(); // Remove style elements not in the correct panel
+          }
+        });
+        
+        // Ensure we have a selected component
+        let targetComponent = currentEditor.getSelected();
+        if (!targetComponent) {
+          const wrapper = currentEditor.getWrapper();
+          if (wrapper) {
+            currentEditor.select(wrapper);
+            wrapper.set({ stylable: true });
+            targetComponent = wrapper;
+          }
+        } else {
+          targetComponent.set({ stylable: true });
+        }
+        
+        // Clear and render only in the correct panel
+        stylePanel.innerHTML = '';
+        if (targetComponent && (currentEditor.StyleManager as any).setTarget) {
+          (currentEditor.StyleManager as any).setTarget(targetComponent);
+        }
+        
+        // IMPORTANT: StyleManager.render() returns an element, we need to append it
+        const smElement = currentEditor.StyleManager.render();
+        if (smElement) {
+          stylePanel.appendChild(smElement);
+        }
+        
+        // Ensure sectors are visible after render
+        setTimeout(() => {
+          const sectors = stylePanel.querySelectorAll('.gjs-sm-sector');
+          console.log(`Style Manager rendered with ${sectors.length} sectors`);
+          
+          if (sectors.length === 0) {
+            // No sectors, retry
+            console.warn('No sectors found after render, retrying...');
+            setTimeout(renderStyleManager, 300);
+            return;
+          }
+          
+          sectors.forEach((sector: any) => {
+        if (sector) {
+              sector.style.display = 'block';
+              sector.style.visibility = 'visible';
+              sector.style.opacity = '1';
+              sector.style.background = '#ffffff';
+              
+              // Ensure sector content is visible
+              const sectorContent = sector.querySelector('.gjs-sm-sector-content');
+              if (sectorContent) {
+                (sectorContent as HTMLElement).style.display = 'block';
+                (sectorContent as HTMLElement).style.visibility = 'visible';
+                (sectorContent as HTMLElement).style.opacity = '1';
+              }
+            }
+          });
+          
+          // Ensure properties are visible and editable
+          const properties = stylePanel.querySelectorAll('.gjs-sm-property');
+          properties.forEach((prop: any) => {
+            if (prop) {
+              prop.style.display = 'block';
+              prop.style.visibility = 'visible';
+              prop.style.opacity = '1';
+              
+              // Ensure inputs are editable
+              const inputs = prop.querySelectorAll('input, select, textarea');
+              inputs.forEach((input: any) => {
+                if (input) {
+                  input.style.pointerEvents = 'auto';
+                  input.style.cursor = input.tagName === 'SELECT' ? 'pointer' : 'text';
+                  input.style.position = 'relative';
+                  input.style.zIndex = '10';
+                }
+              });
+            }
+          });
+        }, 200);
+      };
+      
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        try {
     const stylePanel = document.getElementById('style-panel');
-    if (stylePanel) {
-      stylePanel.addEventListener('click', handleSectorToggle, true);
+          if (!stylePanel) {
+            console.warn('style-panel not found, starting render loop...');
+            renderStyleManager();
+            return;
+          }
+
+          // Ensure panel is visible (use white background to match Elementor)
       stylePanel.style.setProperty('display', 'block', 'important');
       stylePanel.style.setProperty('visibility', 'visible', 'important');
       stylePanel.style.setProperty('opacity', '1', 'important');
       stylePanel.style.setProperty('background', '#ffffff', 'important');
       stylePanel.style.setProperty('min-height', '200px', 'important');
       stylePanel.style.setProperty('width', '100%', 'important');
+          stylePanel.style.setProperty('height', 'auto', 'important');
+          stylePanel.style.setProperty('position', 'relative', 'important');
+          stylePanel.style.setProperty('z-index', '1', 'important');
+
+          // Ensure parent panel card is visible
       const panelCard = stylePanel.closest('.elementor-panel-card');
       if (panelCard) {
         (panelCard as HTMLElement).style.setProperty('display', 'flex', 'important');
         (panelCard as HTMLElement).style.setProperty('visibility', 'visible', 'important');
         (panelCard as HTMLElement).style.setProperty('opacity', '1', 'important');
       }
-    }
 
+          // Also ensure the parent scroll container is visible
+          const scrollContainer = stylePanel.closest('.elementor-left-scroll');
+          if (scrollContainer) {
+            (scrollContainer as HTMLElement).style.setProperty('display', 'flex', 'important');
+            (scrollContainer as HTMLElement).style.setProperty('visibility', 'visible', 'important');
+            (scrollContainer as HTMLElement).style.setProperty('opacity', '1', 'important');
+          }
+          
+          // Start the render loop
+          renderStyleManager();
+        } catch (err) {
+          console.warn('Error rendering Style Manager:', err);
+        }
+      }, 100);
+      
+      // Periodic check to ensure inputs stay editable while style tab is active
     const ensureInputsEditable = setInterval(() => {
-      const panel = document.getElementById('style-panel');
-      if (!panel) return;
-      panel.querySelectorAll('input, select, textarea').forEach((input: any) => {
+        if (activeSidebarSection !== 'style') {
+          clearInterval(ensureInputsEditable);
+          return;
+        }
+        
+        const stylePanel = document.getElementById('style-panel');
+        if (!stylePanel) return;
+        
+        const inputs = stylePanel.querySelectorAll('input, select, textarea');
+        inputs.forEach((input: any) => {
         if (input && !input.disabled) {
           input.style.pointerEvents = 'auto';
           input.style.cursor = input.tagName === 'SELECT' ? 'pointer' : 'text';
+            input.style.position = 'relative';
+            input.style.zIndex = '10';
         }
       });
     }, 1000);
 
-    return () => {
-      clearInterval(ensureInputsEditable);
-      const panel = document.getElementById('style-panel');
-      if (panel) panel.removeEventListener('click', handleSectorToggle, true);
-    };
+      // Cleanup interval when component unmounts or tab changes
+      return () => clearInterval(ensureInputsEditable);
+    }
+    // Note: Panel visibility is now managed by unified useEffect above
   }, [activeSidebarSection]);
 
   // Function to enrich layer items with element information
@@ -10569,8 +9810,20 @@ ${linkStylesheetTag}  <style>
         
         item.dataset.enriched = 'true';
         
-        // Get component from layer item (GrapesJS stores component.viewLayer.el)
-        const component = getComponentFromLayerItem(editor, item);
+        // Get component from layer item
+        let component = null;
+        if (editor.LayerManager) {
+          const views = editor.LayerManager.views || [];
+          for (const view of views) {
+            if (view.el === item || item.contains(view.el)) {
+              component = view.model;
+              break;
+            }
+          }
+          if (!component && editor.LayerManager.getComponentFromView) {
+            component = editor.LayerManager.getComponentFromView(item);
+          }
+        }
         
         if (component) {
           try {
@@ -10580,10 +9833,10 @@ ${linkStylesheetTag}  <style>
             const componentType = component.get('type') || tagName.toLowerCase();
             const childCount = component.components ? component.components().length : 0;
             
-            // Get depth level (guard: wrapper/body may not have getParent)
+            // Get depth level
             let depth = 0;
-            let parent = typeof component.getParent === 'function' ? component.getParent() : null;
-            while (parent && typeof parent.getParent === 'function') {
+            let parent = component.getParent();
+            while (parent) {
               depth++;
               parent = parent.getParent();
             }
@@ -10664,57 +9917,115 @@ ${linkStylesheetTag}  <style>
     }
   };
 
-  // Helper: find component by layer item DOM element (GrapesJS stores model.viewLayer.el)
-  const getComponentFromLayerItem = (editor: any, item: HTMLElement): any => {
-    const findInTree = (comp: any): any => {
-      if (!comp) return null;
-      const viewLayer = comp.viewLayer;
-      if (viewLayer && viewLayer.el) {
-        const el = viewLayer.el;
-        if (el === item || el.contains(item) || item.contains(el)) return comp;
-      }
-      const children = comp.components?.();
-      if (children) {
-        for (const c of children) {
-          const found = findInTree(c);
-          if (found) return found;
-        }
-      }
-      return null;
-    };
-    const wrapper = editor.getWrapper?.();
-    if (wrapper) return findInTree(wrapper);
-    return null;
-  };
-
   // Function to attach click handlers to layer items for selection
   const attachLayerSelectionHandlers = (editor: any, layersPanel: HTMLElement) => {
     try {
       // First enrich layer items with information
       enrichLayerItems(editor, layersPanel);
       
-      // Use event delegation on the panel - no stopPropagation so GrapesJS's handler can run
-      if (layersPanel.dataset.layerDelegationAttached === 'true') return;
-      layersPanel.dataset.layerDelegationAttached = 'true';
+      // Find all layer items (both .gjs-lm-layer and .gjs-lm-item)
+      const layerItems = layersPanel.querySelectorAll('.gjs-lm-layer, .gjs-lm-item');
       
-      layersPanel.addEventListener('click', (e: MouseEvent) => {
-        const target = e.target as HTMLElement;
-        if (target.classList.contains('gjs-lm-caret') || target.closest('.gjs-lm-caret')) return;
-        if (target.closest('[data-toggle-visible]')) return;
-        
-        const layerItem = target.closest('.gjs-lm-item') as HTMLElement;
-        if (!layerItem) return;
-        
-        try {
-          const component = getComponentFromLayerItem(editor, layerItem);
-          if (component && component.get?.('type') !== 'wrapper') {
-            editor.select(component);
-            setActiveSidebarSection('style');
-            setTimeout(() => editor.runCommand('open-sm'), 100);
-          }
-        } catch (err) {
-          console.warn('Error selecting from layer:', err);
+      layerItems.forEach((item: any) => {
+        // Skip if already has handler attached
+        if (item.dataset.selectionHandlerAttached === 'true') {
+          return;
         }
+        
+        // Mark as having handler attached
+        item.dataset.selectionHandlerAttached = 'true';
+        
+        // Add click handler to the title/label area (not the caret)
+        const titleElement = item.querySelector('.gjs-lm-title') || item;
+        
+        titleElement.addEventListener('click', (e: MouseEvent) => {
+          // Don't prevent default if clicking on expand/collapse caret
+        const target = e.target as HTMLElement;
+          if (target.classList.contains('gjs-lm-caret') || target.closest('.gjs-lm-caret')) {
+            return; // Let GrapesJS handle expand/collapse
+          }
+          
+          e.stopPropagation();
+          
+          try {
+            // Get component from layer item using GrapesJS LayerManager API
+            let component = null;
+            
+            // Method 1: Try to get component from LayerManager's view
+            if (editor.LayerManager) {
+              // Try to get the view from the item
+              const views = editor.LayerManager.views || [];
+              for (const view of views) {
+                if (view.el === item || item.contains(view.el)) {
+                  component = view.model;
+                  break;
+                }
+              }
+              
+              // Alternative: Try getComponentFromView if available
+              if (!component && editor.LayerManager.getComponentFromView) {
+                component = editor.LayerManager.getComponentFromView(item);
+              }
+            }
+            
+            // Method 2: Use GrapesJS's built-in click handling, then enhance
+            // GrapesJS should already select the component, so we just need to switch tabs
+            // But let's also try to get the component directly
+            if (!component) {
+              // Try to find component by matching the layer item structure
+              const allComponents = editor.getComponents();
+              const findComponentByLayerItem = (components: any, layerItem: HTMLElement): any => {
+                const layerText = layerItem.textContent?.trim() || '';
+                for (const comp of components.models || components) {
+                  try {
+                    const compEl = comp.getEl?.();
+                    if (compEl) {
+                      const compType = comp.get('type') || '';
+                      const compTag = comp.get('tagName') || '';
+                      const tagMatch = layerText.toLowerCase().includes(compTag.toLowerCase());
+                      const typeMatch = layerText.toLowerCase().includes(compType.toLowerCase());
+                      
+                      if (tagMatch || typeMatch) {
+                        return comp;
+                      }
+                    }
+                    // Check children
+                    if (comp.components) {
+                      const found = findComponentByLayerItem(comp.components(), layerItem);
+                      if (found) return found;
+                    }
+                  } catch (e) {
+                    // Continue
+                  }
+                }
+                return null;
+              };
+              component = findComponentByLayerItem(allComponents, item);
+            }
+            
+            // If we found a component, select it and show styles
+            if (component) {
+            editor.select(component);
+              // Switch to style tab to show style panel
+            setActiveSidebarSection('style');
+              // Open style manager
+              setTimeout(() => {
+                editor.runCommand('open-sm');
+              }, 100);
+            } else {
+              // Even if we can't find component, switch to style tab
+              // GrapesJS's built-in handler should have selected it
+              setActiveSidebarSection('style');
+              setTimeout(() => {
+                editor.runCommand('open-sm');
+              }, 100);
+            }
+          } catch (error) {
+            console.warn('Error selecting component from layer:', error);
+            // Still switch to style tab even on error
+            setActiveSidebarSection('style');
+          }
+        });
       });
       
       // Track if selection is coming from layer panel
@@ -10903,23 +10214,6 @@ ${linkStylesheetTag}  <style>
           }
         }
       }
-      
-      // CRITICAL: When structure/style/globals is active, force-hide widgets panel to prevent peeking
-      const widgetsWrapperEl = document.querySelector('.elementor-blocks-wrapper:not(.elementor-globals-placeholder)');
-      if (widgetsWrapperEl) {
-        if (activeSidebarSection !== 'widgets') {
-          (widgetsWrapperEl as HTMLElement).style.setProperty('display', 'none', 'important');
-          (widgetsWrapperEl as HTMLElement).style.setProperty('visibility', 'hidden', 'important');
-          (widgetsWrapperEl as HTMLElement).style.setProperty('opacity', '0', 'important');
-          (widgetsWrapperEl as HTMLElement).style.setProperty('pointer-events', 'none', 'important');
-        } else {
-          // CRITICAL: Restore pointer-events when switching back to widgets - required for drag & drop
-          (widgetsWrapperEl as HTMLElement).style.setProperty('display', 'block', 'important');
-          (widgetsWrapperEl as HTMLElement).style.setProperty('visibility', 'visible', 'important');
-          (widgetsWrapperEl as HTMLElement).style.setProperty('opacity', '1', 'important');
-          (widgetsWrapperEl as HTMLElement).style.setProperty('pointer-events', 'auto', 'important');
-        }
-      }
 
       // CRITICAL: Ensure style content is ONLY in style panel, never in structure panel
       if (activeSidebarSection === 'structure') {
@@ -11004,7 +10298,7 @@ ${linkStylesheetTag}  <style>
   }, [activeSidebarSection]);
 
   return (
-    <div ref={rootContainerRef} className="custom-theme-builder-root" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#fff' }}>
+    <div ref={rootContainerRef} className="custom-theme-builder-root" style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#ffffff' }}>
       {/* Success Message Toast */}
       {publishSuccess && (
         <div
@@ -11014,11 +10308,11 @@ ${linkStylesheetTag}  <style>
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 10000,
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            background: 'linear-gradient(135deg, #7E60E0 0%, #6b4fc9 100%)',
             color: '#fff',
             padding: '14px 28px',
             borderRadius: '8px',
-            boxShadow: '0 4px 20px rgba(16, 185, 129, 0.4)',
+            boxShadow: '0 4px 20px rgba(126, 96, 224, 0.4)',
             display: 'flex',
             alignItems: 'center',
             gap: '10px',
@@ -11046,7 +10340,7 @@ ${linkStylesheetTag}  <style>
           }}>
             <span style={{ 
               fontSize: '10px', 
-              color: 'rgba(0, 0, 0, 0.4)',
+              color: 'rgba(26, 26, 26, 0.6)',
               fontWeight: 600,
               letterSpacing: '0.5px',
               textTransform: 'uppercase'
@@ -11061,12 +10355,13 @@ ${linkStylesheetTag}  <style>
                 setHasUnsavedChanges(true);
               }}
               placeholder="Theme Name"
+              className="elementor-theme-name-input"
               style={{
-                background: 'rgba(0, 0, 0, 0.02)',
+                background: 'rgba(0, 0, 0, 0.06)',
                 border: '1px solid rgba(0, 0, 0, 0.1)',
                 borderRadius: '6px',
                 padding: '5px 12px',
-                color: '#000',
+                color: '#1a1a1a',
                 fontSize: '12px',
                 fontWeight: 500,
                 minWidth: '140px',
@@ -11080,16 +10375,157 @@ ${linkStylesheetTag}  <style>
                 textOverflow: 'ellipsis'
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = 'var(--builder-primary)';
-                e.target.style.background = 'var(--builder-primary-subtle)';
-                e.target.style.boxShadow = '0 0 0 3px var(--builder-primary-muted)';
+                e.target.style.borderColor = '#7E60E0';
+                e.target.style.background = 'rgba(126, 96, 224, 0.15)';
+                e.target.style.boxShadow = '0 0 0 2px rgba(126, 96, 224, 0.25)';
               }}
               onBlur={(e) => {
                 e.target.style.borderColor = 'rgba(0, 0, 0, 0.1)';
-                e.target.style.background = 'rgba(0, 0, 0, 0.02)';
+                e.target.style.background = 'rgba(0, 0, 0, 0.06)';
                 e.target.style.boxShadow = 'none';
               }}
             />
+          </div>
+          
+          {/* Undo/Redo Buttons */}
+          <button
+            onClick={() => {
+              const editor = editorInstance.current;
+              if (editor && editor.UndoManager) {
+                editor.UndoManager.undo();
+              }
+            }}
+            disabled={!canUndo}
+            title="Undo (Ctrl+Z)"
+            style={{
+              background: canUndo ? 'rgba(0, 0, 0, 0.06)' : 'rgba(0, 0, 0, 0.03)',
+              border: '1px solid rgba(0, 0, 0, 0.1)',
+              borderRadius: '6px',
+              padding: '5px 10px',
+              color: canUndo ? '#1a1a1a' : 'rgba(26, 26, 26, 0.4)',
+              cursor: canUndo ? 'pointer' : 'not-allowed',
+              fontSize: '11px',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              transition: 'all 0.2s ease',
+              opacity: canUndo ? 1 : 0.5,
+              marginLeft: '6px',
+            }}
+            onMouseEnter={(e) => {
+              if (canUndo) {
+                e.currentTarget.style.background = 'rgba(126, 96, 224, 0.12)';
+                e.currentTarget.style.borderColor = 'rgba(126, 96, 224, 0.3)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (canUndo) {
+                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.06)';
+                e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.1)';
+              }
+            }}
+          >
+            ↶ Undo
+          </button>
+          <button
+            onClick={() => {
+              const editor = editorInstance.current;
+              if (editor && editor.UndoManager) {
+                editor.UndoManager.redo();
+              }
+            }}
+            disabled={!canRedo}
+            title="Redo (Ctrl+Shift+Z)"
+            style={{
+              background: canRedo ? 'rgba(0, 0, 0, 0.06)' : 'rgba(0, 0, 0, 0.03)',
+              border: '1px solid rgba(0, 0, 0, 0.1)',
+              borderRadius: '6px',
+              padding: '5px 10px',
+              color: canRedo ? '#1a1a1a' : 'rgba(26, 26, 26, 0.4)',
+              cursor: canRedo ? 'pointer' : 'not-allowed',
+              fontSize: '11px',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+              transition: 'all 0.2s ease',
+              opacity: canRedo ? 1 : 0.5,
+              marginLeft: '5px',
+            }}
+            onMouseEnter={(e) => {
+              if (canRedo) {
+                e.currentTarget.style.background = 'rgba(126, 96, 224, 0.12)';
+                e.currentTarget.style.borderColor = 'rgba(126, 96, 224, 0.3)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (canRedo) {
+                e.currentTarget.style.background = 'rgba(0, 0, 0, 0.06)';
+                e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.1)';
+              }
+            }}
+          >
+            ↷ Redo
+          </button>
+          
+          <div 
+            className="elementor-top-bar-icon" 
+            title="Add Widget"
+            onClick={() => {
+              setActiveSidebarSection('widgets');
+              setIsLeftSidebarCollapsed(false);
+            }}
+            style={{ cursor: 'pointer' }}
+          >
+            +
+          </div>
+          <div 
+            className="elementor-top-bar-icon" 
+            title="Toggle Grid Overlay"
+            onClick={() => {
+              setShowGridOverlay(!showGridOverlay);
+              const editor = editorInstance.current;
+              if (editor) {
+                const canvas = editor.Canvas;
+                if (canvas) {
+                  const frame = canvas.getFrameEl();
+                  if (frame && frame.contentDocument) {
+                    const body = frame.contentDocument.body;
+                    if (body) {
+                      if (!showGridOverlay) {
+                        // Add grid overlay
+                        const gridOverlay = frame.contentDocument.createElement('div');
+                        gridOverlay.id = 'ziplofy-grid-overlay';
+                        gridOverlay.style.cssText = `
+                          position: fixed;
+                          top: 0;
+                          left: 0;
+                          width: 100%;
+                          height: 100%;
+                          background-image: 
+                            linear-gradient(rgba(0, 0, 0, 0.1) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(0, 0, 0, 0.1) 1px, transparent 1px);
+                          background-size: 20px 20px;
+                          pointer-events: none;
+                          z-index: 9999;
+                        `;
+                        body.appendChild(gridOverlay);
+                      } else {
+                        // Remove grid overlay
+                        const existing = frame.contentDocument.getElementById('ziplofy-grid-overlay');
+                        if (existing) {
+                          existing.remove();
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }}
+            style={{ cursor: 'pointer', opacity: showGridOverlay ? 1 : 0.6 }}
+          >
+            ⊞
           </div>
         </div>
         <div className="elementor-top-bar-center">
@@ -11098,10 +10534,10 @@ ${linkStylesheetTag}  <style>
               onClick={() => setShowPageManager(!showPageManager)}
               style={{
                 padding: '6px 14px',
-                background: 'rgba(149, 117, 205, 0.08)',
-                border: '1px solid rgba(149, 117, 205, 0.2)',
+                background: 'rgba(126, 96, 224, 0.12)',
+                border: '1px solid rgba(126, 96, 224, 0.3)',
                 borderRadius: '6px',
-                color: '#9575cd',
+                color: '#1a1a1a',
                 cursor: 'pointer',
                 fontSize: 11,
                 fontWeight: 500,
@@ -11118,12 +10554,12 @@ ${linkStylesheetTag}  <style>
                 textOverflow: 'ellipsis',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(149, 117, 205, 0.15)';
-                e.currentTarget.style.borderColor = '#9575cd';
+                e.currentTarget.style.background = 'rgba(126, 96, 224, 0.25)';
+                e.currentTarget.style.borderColor = '#FBBF24';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(149, 117, 205, 0.08)';
-                e.currentTarget.style.borderColor = 'rgba(149, 117, 205, 0.2)';
+                e.currentTarget.style.background = 'rgba(126, 96, 224, 0.15)';
+                e.currentTarget.style.borderColor = 'rgba(126, 96, 224, 0.4)';
               }}
             >
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '300px' }}>{pages.find(p => p.id === currentPageId)?.name || 'Home'}</span>
@@ -11135,25 +10571,24 @@ ${linkStylesheetTag}  <style>
                 top: '100%',
                 left: 0,
                 marginTop: 6,
-                background: 'linear-gradient(145deg, #1a1a22 0%, #141418 100%)',
-                border: '1px solid rgba(149, 117, 205, 0.2)',
+                background: '#ffffff',
+                border: '1px solid rgba(126, 96, 224, 0.25)',
                 borderRadius: 8,
                 minWidth: 240,
                 maxHeight: 400,
                 overflowY: 'auto',
                 zIndex: 99999,
-                boxShadow: '0 12px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05), 0 0 20px rgba(149, 117, 205, 0.15)',
-                backdropFilter: 'blur(10px)',
+                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.06)',
               }}>
                 <div style={{ 
                   padding: '10px 12px', 
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.08)', 
-                  fontSize: 9, 
-                  color: 'rgba(149, 117, 205, 0.8)', 
+                  borderBottom: '1px solid rgba(0, 0, 0, 0.08)', 
+                  fontSize: 10, 
+                  color: '#6b4fc9', 
                   fontWeight: 700,
                   letterSpacing: '0.5px',
                   textTransform: 'uppercase',
-                  background: 'rgba(149, 117, 205, 0.05)'
+                  background: 'rgba(126, 96, 224, 0.06)'
                 }}>
                   PAGES ({pages.length})
                 </div>
@@ -11162,18 +10597,18 @@ ${linkStylesheetTag}  <style>
                     key={page.id}
                     style={{
                       padding: '12px 16px',
-                      borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                      borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      background: page.id === currentPageId ? 'rgba(149, 117, 205, 0.12)' : 'transparent',
+                      background: page.id === currentPageId ? 'rgba(126, 96, 224, 0.1)' : 'transparent',
                       transition: 'all 0.2s ease',
                       position: 'relative',
                     }}
                     onMouseEnter={(e) => {
                       if (page.id !== currentPageId) {
-                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                        e.currentTarget.style.background = 'rgba(126, 96, 224, 0.05)';
                       }
                     }}
                     onMouseLeave={(e) => {
@@ -11193,7 +10628,7 @@ ${linkStylesheetTag}  <style>
                         top: 0,
                         bottom: 0,
                         width: '3px',
-                        background: 'linear-gradient(180deg, #9575cd 0%, #7e57c2 100%)',
+                        background: 'linear-gradient(180deg, #7E60E0 0%, #6b4fc9 100%)',
                         borderRadius: '0 2px 2px 0'
                       }}></div>
                     )}
@@ -11210,17 +10645,17 @@ ${linkStylesheetTag}  <style>
                         style={{
                           background: 'transparent',
                           border: 'none',
-                          color: page.id === currentPageId ? '#9575cd' : '#fff',
+                          color: page.id === currentPageId ? '#1a1a2e' : '#1a1a1a',
                           fontSize: 13,
                           padding: '4px 6px',
                           flex: 1,
                           outline: 'none',
-                          fontWeight: page.id === currentPageId ? 600 : 400,
+                          fontWeight: page.id === currentPageId ? 600 : 500,
                           borderRadius: '4px',
                         }}
                         onFocus={(e) => {
-                          e.target.style.background = 'rgba(255, 255, 255, 0.05)';
-                          e.target.style.border = '1px solid rgba(149, 117, 205, 0.2)';
+                          e.target.style.background = 'rgba(126, 96, 224, 0.06)';
+                          e.target.style.border = '1px solid rgba(126, 96, 224, 0.35)';
                           e.target.style.padding = '3px 5px';
                         }}
                         onBlur={(e) => {
@@ -11230,7 +10665,7 @@ ${linkStylesheetTag}  <style>
                         }}
                       />
                       {page.id === currentPageId && (
-                        <span style={{ fontSize: 8, color: '#9575cd', fontWeight: 700 }}>●</span>
+                        <span style={{ fontSize: 8, color: '#7E60E0', fontWeight: 700 }}>●</span>
                       )}
                     </div>
                     {pages.length > 1 && (
@@ -11275,20 +10710,22 @@ ${linkStylesheetTag}  <style>
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 8,
-                    color: '#9575cd',
+                    color: '#7E60E0',
                     fontSize: 13,
                     fontWeight: 600,
-                    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                    background: 'rgba(149, 117, 205, 0.05)',
+                    borderTop: '1px solid rgba(0, 0, 0, 0.06)',
+                    background: 'rgba(126, 96, 224, 0.05)',
                     transition: 'all 0.2s ease',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(149, 117, 205, 0.12)';
-                    e.currentTarget.style.color = '#00e5d1';
+                    e.currentTarget.style.background = 'rgba(126, 96, 224, 0.1)';
+                    e.currentTarget.style.color = '#6b4fc9';
+                    e.currentTarget.style.borderColor = 'rgba(126, 96, 224, 0.2)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(149, 117, 205, 0.05)';
-                    e.currentTarget.style.color = '#9575cd';
+                    e.currentTarget.style.background = 'rgba(126, 96, 224, 0.05)';
+                    e.currentTarget.style.color = '#7E60E0';
+                    e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.06)';
                   }}
                 >
                   <span style={{ fontSize: 16, fontWeight: 400 }}>+</span>
@@ -11297,131 +10734,206 @@ ${linkStylesheetTag}  <style>
               </div>
             )}
           </div>
-          
-          {/* Responsive Device Switcher - Desktop, Tablet, Mobile */}
-          <div className="elementor-device-switcher" style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 2, 
-            padding: '4px 6px', 
-            background: 'var(--builder-primary-subtle)', 
-            borderRadius: 'var(--builder-radius-sm)', 
-            border: '1px solid var(--builder-border)',
-            marginLeft: 20
-          }}>
-            {[
-              { id: 'desktop', label: 'Desktop', icon: '🖥️', title: 'Desktop view' },
-              { id: 'tablet', label: 'Tablet', icon: '📱', title: 'Tablet view (768px)' },
-              { id: 'mobile', label: 'Mobile', icon: '📲', title: 'Mobile view (375px)' },
-            ].map((d) => (
+          <div className="elementor-device-switcher">
               <button
-                key={d.id}
+              className={`elementor-device-btn ${currentDevice === 'desktop' ? 'active' : ''}`}
                 onClick={() => {
-                  editorInstance.current?.setDevice?.(d.id);
-                  setCurrentDevice(d.id);
-                }}
-                title={d.title}
-                className={`elementor-device-btn ${currentDevice === d.id ? 'active' : ''}`}
-                style={{
-                  padding: '6px 12px',
-                  border: 'none',
-                  background: currentDevice === d.id ? 'var(--builder-gradient)' : 'transparent',
-                  color: currentDevice === d.id ? '#fff' : 'var(--builder-text-muted)',
-                  cursor: 'pointer',
-                  borderRadius: 6,
-                  fontSize: 12,
-                  fontWeight: currentDevice === d.id ? 600 : 500,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  transition: 'all 0.2s ease',
-                  boxShadow: currentDevice === d.id ? '0 2px 8px rgba(139, 92, 246, 0.35)' : 'none',
-                }}
-                onMouseEnter={(e) => {
-                  if (currentDevice !== d.id) {
-                    e.currentTarget.style.background = 'var(--builder-primary-subtle)';
-                    e.currentTarget.style.color = 'var(--builder-primary)';
+                try {
+                  const editor = editorInstance.current;
+                  if (editor && editor.setDevice) {
+                    editor.setDevice('desktop');
+                    setCurrentDevice('desktop');
+                    // Ensure canvas is properly centered
+                    setTimeout(() => {
+                      const canvasEl = document.querySelector('.gjs-cv-canvas') as HTMLElement;
+                      const frameEl = document.querySelector('.gjs-frame') as HTMLElement;
+                      if (canvasEl) {
+                        canvasEl.style.setProperty('display', 'flex', 'important');
+                        canvasEl.style.setProperty('justify-content', 'center', 'important');
+                        canvasEl.style.setProperty('align-items', 'flex-start', 'important');
+                        canvasEl.style.setProperty('width', '100%', 'important');
+                        canvasEl.style.setProperty('margin', '0', 'important');
+                        canvasEl.style.setProperty('padding', '24px', 'important');
+                      }
+                      if (frameEl) {
+                        frameEl.style.setProperty('min-width', '1200px', 'important');
+                        frameEl.style.setProperty('max-width', '1200px', 'important');
+                        frameEl.style.setProperty('width', '1200px', 'important');
+                        frameEl.style.setProperty('margin', '0 auto', 'important');
+                      }
+                    }, 100);
                   }
-                }}
-                onMouseLeave={(e) => {
-                  if (currentDevice !== d.id) {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = 'var(--builder-text-muted)';
-                  }
-                }}
-              >
-                <span style={{ fontSize: 14 }}>{d.icon}</span>
-                <span className="elementor-device-label" style={{ fontSize: 11 }}>{d.label}</span>
+                } catch (e) {
+                  console.error('Error switching to desktop:', e);
+                }
+              }}
+              title="Desktop"
+            >
+              💻
               </button>
-            ))}
+          <button
+              className={`elementor-device-btn ${currentDevice === 'tablet' ? 'active' : ''}`}
+              onClick={() => {
+                try {
+                  const editor = editorInstance.current;
+                  if (editor && editor.setDevice) {
+                    editor.setDevice('tablet');
+                    setCurrentDevice('tablet');
+                    // Ensure canvas is properly centered
+                    setTimeout(() => {
+                      const canvasEl = document.querySelector('.gjs-cv-canvas') as HTMLElement;
+                      const frameEl = document.querySelector('.gjs-frame') as HTMLElement;
+                      if (canvasEl) {
+                        canvasEl.style.setProperty('display', 'flex', 'important');
+                        canvasEl.style.setProperty('justify-content', 'center', 'important');
+                        canvasEl.style.setProperty('align-items', 'flex-start', 'important');
+                        canvasEl.style.setProperty('width', '100%', 'important');
+                        canvasEl.style.setProperty('margin', '0', 'important');
+                        canvasEl.style.setProperty('padding', '24px', 'important');
+                      }
+                      if (frameEl) {
+                        frameEl.style.setProperty('min-width', '768px', 'important');
+                        frameEl.style.setProperty('max-width', '768px', 'important');
+                        frameEl.style.setProperty('width', '768px', 'important');
+                        frameEl.style.setProperty('margin', '0 auto', 'important');
+                      }
+                    }, 100);
+                  }
+                } catch (e) {
+                  console.error('Error switching to tablet:', e);
+                }
+              }}
+              title="Tablet"
+            >
+              📱
+          </button>
+          <button
+              className={`elementor-device-btn ${currentDevice === 'mobile' ? 'active' : ''}`}
+              onClick={() => {
+                try {
+                  const editor = editorInstance.current;
+                  if (editor && editor.setDevice) {
+                    editor.setDevice('mobile');
+                    setCurrentDevice('mobile');
+                    // Ensure canvas is properly centered
+                    setTimeout(() => {
+                      const canvasEl = document.querySelector('.gjs-cv-canvas') as HTMLElement;
+                      const frameEl = document.querySelector('.gjs-frame') as HTMLElement;
+                      if (canvasEl) {
+                        canvasEl.style.setProperty('display', 'flex', 'important');
+                        canvasEl.style.setProperty('justify-content', 'center', 'important');
+                        canvasEl.style.setProperty('align-items', 'flex-start', 'important');
+                        canvasEl.style.setProperty('width', '100%', 'important');
+                        canvasEl.style.setProperty('margin', '0', 'important');
+                        canvasEl.style.setProperty('padding', '24px', 'important');
+                      }
+                      if (frameEl) {
+                        frameEl.style.setProperty('min-width', '375px', 'important');
+                        frameEl.style.setProperty('max-width', '375px', 'important');
+                        frameEl.style.setProperty('width', '375px', 'important');
+                        frameEl.style.setProperty('margin', '0 auto', 'important');
+                      }
+                    }, 100);
+                  }
+                } catch (e) {
+                  console.error('Error switching to mobile:', e);
+                }
+              }}
+              title="Mobile"
+            >
+              📱
+          </button>
           </div>
         </div>
-        <div className="elementor-top-bar-right" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {/* Undo */}
-          <button
-            onClick={() => editorInstance.current?.UndoManager?.undo()}
-            disabled={!canUndo}
-            title="Undo (Ctrl+Z)"
-            style={{
-              width: 32,
-              height: 32,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: canUndo ? 'rgba(149, 117, 205, 0.08)' : 'rgba(0, 0, 0, 0.04)',
-              border: '1px solid rgba(149, 117, 205, 0.2)',
-              borderRadius: 6,
-              color: canUndo ? '#9575cd' : 'rgba(0, 0, 0, 0.3)',
-              cursor: canUndo ? 'pointer' : 'not-allowed',
-              fontSize: 14,
-              transition: 'all 0.2s ease',
+        <div className="elementor-top-bar-right">
+          <div 
+            className="elementor-top-bar-icon" 
+            onClick={() => {
+              setShowNotes(true);
             }}
-          >
-            ↶
-          </button>
-          {/* Redo */}
-          <button
-            onClick={() => editorInstance.current?.UndoManager?.redo()}
-            disabled={!canRedo}
-            title="Redo (Ctrl+Shift+Z)"
-            style={{
-              width: 32,
-              height: 32,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: canRedo ? 'rgba(149, 117, 205, 0.08)' : 'rgba(0, 0, 0, 0.04)',
-              border: '1px solid rgba(149, 117, 205, 0.2)',
-              borderRadius: 6,
-              color: canRedo ? '#9575cd' : 'rgba(0, 0, 0, 0.3)',
-              cursor: canRedo ? 'pointer' : 'not-allowed',
-              fontSize: 14,
-              transition: 'all 0.2s ease',
-            }}
-          >
-            ↷
-          </button>
-          {/* Notes */}
-          <button
-            onClick={() => setShowNotes(!showNotes)}
-            title="Notes"
-            style={{
-              width: 32,
-              height: 32,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: showNotes ? 'rgba(149, 117, 205, 0.15)' : 'rgba(149, 117, 205, 0.08)',
-              border: '1px solid rgba(149, 117, 205, 0.2)',
-              borderRadius: 6,
-              color: showNotes ? '#9575cd' : '#7e57c2',
-              cursor: 'pointer',
-              fontSize: 14,
-              transition: 'all 0.2s ease',
-            }}
+            title="Notes & Changes"
+            style={{ cursor: 'pointer' }}
           >
             📋
-          </button>
+          </div>
+          <div 
+            className="elementor-top-bar-icon" 
+            title="Link Manager"
+            onClick={() => {
+              const editor = editorInstance.current;
+              if (editor) {
+                const wrapper = editor.getWrapper();
+                if (wrapper) {
+                  // Find all links and buttons recursively
+                  const findAllLinks = (comp: any): any[] => {
+                    const links: any[] = [];
+                    if (!comp) return links;
+                    
+                    try {
+                      const tagName = comp.get?.('tagName')?.toLowerCase?.() || '';
+                      const type = comp.get?.('type') || '';
+                      const el = comp.getEl?.();
+                      
+                      // Check if this component is a link or button
+                      const isLink = tagName === 'a' || type === 'link';
+                      const isButton = tagName === 'button' || type === 'button' || type === 'button-outline' || type === 'button-text';
+                      
+                      // Also check by element if available
+                      let isLinkOrButton = isLink || isButton;
+                      if (el && !isLinkOrButton) {
+                        const nodeName = el.nodeName?.toLowerCase();
+                        isLinkOrButton = nodeName === 'a' || nodeName === 'button';
+                      }
+                      
+                      if (isLinkOrButton) {
+                        const attrs = comp.getAttributes?.() || {};
+                        const href = attrs.href || comp.get?.('href') || el?.getAttribute?.('href') || '';
+                        const pageLink = attrs['data-page-link'] || comp.get?.('data-page-link') || el?.getAttribute?.('data-page-link') || '';
+                        const text = el?.textContent?.trim() || el?.innerText?.trim() || comp.get?.('content') || 'Untitled';
+                        
+                        links.push({
+                          id: comp.cid || comp.getId?.() || Date.now().toString() + Math.random(),
+                          type: isLink ? 'link' : 'button',
+                          text: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
+                          href: href,
+                          pageLink: pageLink,
+                          component: comp
+                        });
+                      }
+                      
+                      // Recursively check children
+                      const children = comp.components?.();
+                      if (children) {
+                        if (typeof children.forEach === 'function') {
+                          children.forEach((child: any) => {
+                            links.push(...findAllLinks(child));
+                          });
+                        } else if (Array.isArray(children)) {
+                          children.forEach((child: any) => {
+                            links.push(...findAllLinks(child));
+                          });
+                        }
+                      }
+                    } catch (e) {
+                      console.warn('Error finding links in component:', e);
+                    }
+                    
+                    return links;
+                  };
+                  
+                  const allLinks = findAllLinks(wrapper);
+                  console.log('Link Manager: Found', allLinks.length, 'links/buttons');
+                  setLinkManagerLinks(allLinks);
+                  setShowLinkManager(true);
+                }
+              } else {
+                setShowLinkManager(true);
+              }
+            }}
+            style={{ cursor: 'pointer' }}
+          >
+            🔗
+          </div>
           <button
             className="elementor-preview-btn"
             onClick={previewTheme}
@@ -11442,14 +10954,61 @@ ${linkStylesheetTag}  <style>
       </div>
 
       {/* Main Editor */}
-      <div className={`builder-main-editor ${currentDevice === 'desktop' ? 'device-desktop' : ''}`} style={{ flex: 1, display: 'flex', overflow: 'hidden', background: 'var(--builder-bg-canvas)', minHeight: 0 }}>
+      <div className="builder-main-editor" style={{ flex: 1, display: 'flex', overflow: 'hidden', background: '#f5f5f7', position: 'relative' }}>
+        {/* Full-screen loading overlay - covers entire editor until fully loaded */}
+        {loading && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 10000,
+              background: '#f1f3f5',
+              pointerEvents: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '20px',
+            }}
+          >
+            <div
+              style={{
+                width: '48px',
+                height: '48px',
+                border: '4px solid #e5e7eb',
+                borderTop: '4px solid #7E60E0',
+                borderRadius: '50%',
+                animation: 'elementor-loading-spin 0.8s linear infinite',
+              }}
+            />
+            <div style={{ fontSize: '15px', fontWeight: 600, color: '#374151' }}>
+              Loading Elementor Editor...
+            </div>
+            <div style={{ fontSize: '13px', color: '#6b7280' }}>
+              Preparing widgets, structure & style panels
+            </div>
+            <style>{`
+              @keyframes elementor-loading-spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+              }
+            `}</style>
+          </div>
+        )}
         {/* Left - Elementor Panels */}
         <div 
-          className={`builder-left-panel ${isLeftSidebarCollapsed ? 'collapsed' : ''} ${activeSidebarSection === 'style' ? 'style-tab-active' : ''} ${activeSidebarSection === 'widgets' ? 'widgets-tab-active' : ''}`}
+          className={`builder-left-panel ${isLeftSidebarCollapsed ? 'collapsed' : ''}`}
         >
-          <div className="elementor-elements-header" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: '1px solid var(--builder-border)', background: '#fff' }}>
+          <div className="elementor-elements-header" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px' }}>
             {!isLeftSidebarCollapsed && (
-              <span style={{ fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--builder-text)' }}>
+              <span style={{ 
+                fontSize: '13px', 
+                fontWeight: 700, 
+                textTransform: 'uppercase', 
+                letterSpacing: '1px', 
+                color: '#fff',
+                textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)'
+              }}>
                 Elements
               </span>
             )}
@@ -11465,30 +11024,36 @@ ${linkStylesheetTag}  <style>
                 right: isLeftSidebarCollapsed ? 'auto' : '12px',
                 top: isLeftSidebarCollapsed ? 'auto' : '50%',
                 transform: isLeftSidebarCollapsed ? 'none' : 'translateY(-50%)',
-                background: 'var(--builder-primary-subtle)',
-                border: '1px solid var(--builder-border)',
-                borderRadius: '6px',
-                width: '32px',
-                height: '32px',
+                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.08) 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '8px',
+                width: '36px',
+                height: '36px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                color: 'var(--builder-text-muted)',
-                transition: 'all 0.2s ease',
-                fontSize: '14px',
+                color: 'rgba(255, 255, 255, 0.9)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                fontSize: '16px',
                 zIndex: 10,
                 margin: isLeftSidebarCollapsed ? '0 auto' : '0',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'var(--builder-primary-muted)';
-                e.currentTarget.style.color = 'var(--builder-primary)';
-                e.currentTarget.style.borderColor = 'var(--builder-primary)';
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(126, 96, 224, 0.3) 0%, rgba(126, 96, 224, 0.2) 100%)';
+                e.currentTarget.style.color = '#7E60E0';
+                e.currentTarget.style.boxShadow = '0 4px 16px rgba(0, 210, 190, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
+                e.currentTarget.style.borderColor = 'rgba(126, 96, 224, 0.4)';
+                e.currentTarget.style.transform = isLeftSidebarCollapsed ? 'scale(1.1)' : 'translateY(-50%) scale(1.1)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--builder-primary-subtle)';
-                e.currentTarget.style.color = 'var(--builder-text-muted)';
-                e.currentTarget.style.borderColor = 'var(--builder-border)';
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.08) 100%)';
+                e.currentTarget.style.color = 'rgba(255, 255, 255, 0.9)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.transform = isLeftSidebarCollapsed ? 'scale(1)' : 'translateY(-50%) scale(1)';
               }}
               title={isLeftSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
             >
@@ -11504,10 +11069,10 @@ ${linkStylesheetTag}  <style>
               Widgets
             </button>
             <button
-              className={`elementor-primary-tab ${activeSidebarSection === 'links' ? 'active' : ''}`}
-              onClick={() => setActiveSidebarSection('links')}
+              className={`elementor-primary-tab ${activeSidebarSection === 'globals' ? 'active' : ''}`}
+              onClick={() => setActiveSidebarSection('globals')}
             >
-              Link &amp; Navigation
+              Globals
             </button>
             <button
               className={`elementor-primary-tab ${activeSidebarSection === 'structure' ? 'active' : ''}`}
@@ -11538,8 +11103,8 @@ ${linkStylesheetTag}  <style>
                   height: '36px',
                   borderRadius: '8px',
                   border: 'none',
-                  background: activeSidebarSection === 'widgets' ? 'rgba(149, 117, 205, 0.2)' : 'transparent',
-                  color: activeSidebarSection === 'widgets' ? '#9575cd' : '#6b7280',
+                  background: activeSidebarSection === 'widgets' ? 'rgba(126, 96, 224, 0.15)' : '#F0F0F0',
+                  color: activeSidebarSection === 'widgets' ? '#7E60E0' : '#495157',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -11549,33 +11114,33 @@ ${linkStylesheetTag}  <style>
                 }}
                 onMouseEnter={(e) => {
                   if (activeSidebarSection !== 'widgets') {
-                    e.currentTarget.style.background = 'rgba(149, 117, 205, 0.08)';
-                    e.currentTarget.style.color = '#9575cd';
+                    e.currentTarget.style.background = 'rgba(126, 96, 224, 0.1)';
+                    e.currentTarget.style.color = '#7E60E0';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (activeSidebarSection !== 'widgets') {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#6b7280';
+                    e.currentTarget.style.background = '#F0F0F0';
+                    e.currentTarget.style.color = '#495157';
                   }
                 }}
               >
                 📦
               </button>
               <button
-                className={`elementor-primary-tab-icon ${activeSidebarSection === 'links' ? 'active' : ''}`}
+                className={`elementor-primary-tab-icon ${activeSidebarSection === 'globals' ? 'active' : ''}`}
                 onClick={() => {
                   setIsLeftSidebarCollapsed(false);
-                  setActiveSidebarSection('links');
+                  setActiveSidebarSection('globals');
                 }}
-                title="Link &amp; Navigation"
+                title="Globals"
                 style={{
                   width: '36px',
                   height: '36px',
                   borderRadius: '8px',
                   border: 'none',
-                  background: activeSidebarSection === 'links' ? 'rgba(149, 117, 205, 0.2)' : 'transparent',
-                  color: activeSidebarSection === 'links' ? '#9575cd' : '#6b7280',
+                  background: activeSidebarSection === 'globals' ? 'rgba(126, 96, 224, 0.15)' : '#F0F0F0',
+                  color: activeSidebarSection === 'globals' ? '#7E60E0' : '#495157',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -11584,19 +11149,19 @@ ${linkStylesheetTag}  <style>
                   transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
-                  if (activeSidebarSection !== 'links') {
-                    e.currentTarget.style.background = 'rgba(149, 117, 205, 0.08)';
-                    e.currentTarget.style.color = '#9575cd';
+                  if (activeSidebarSection !== 'globals') {
+                    e.currentTarget.style.background = 'rgba(126, 96, 224, 0.1)';
+                    e.currentTarget.style.color = '#7E60E0';
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (activeSidebarSection !== 'links') {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#6b7280';
+                  if (activeSidebarSection !== 'globals') {
+                    e.currentTarget.style.background = '#F0F0F0';
+                    e.currentTarget.style.color = '#495157';
                   }
                 }}
               >
-                🔗
+                🌐
               </button>
               <button
                 className={`elementor-primary-tab-icon ${activeSidebarSection === 'structure' ? 'active' : ''}`}
@@ -11610,8 +11175,8 @@ ${linkStylesheetTag}  <style>
                   height: '36px',
                   borderRadius: '8px',
                   border: 'none',
-                  background: activeSidebarSection === 'structure' ? 'rgba(149, 117, 205, 0.2)' : 'transparent',
-                  color: activeSidebarSection === 'structure' ? '#9575cd' : '#6b7280',
+                  background: activeSidebarSection === 'structure' ? 'rgba(126, 96, 224, 0.15)' : '#F0F0F0',
+                  color: activeSidebarSection === 'structure' ? '#7E60E0' : '#495157',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -11621,14 +11186,14 @@ ${linkStylesheetTag}  <style>
                 }}
                 onMouseEnter={(e) => {
                   if (activeSidebarSection !== 'structure') {
-                    e.currentTarget.style.background = 'rgba(149, 117, 205, 0.08)';
-                    e.currentTarget.style.color = '#9575cd';
+                    e.currentTarget.style.background = 'rgba(126, 96, 224, 0.1)';
+                    e.currentTarget.style.color = '#7E60E0';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (activeSidebarSection !== 'structure') {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#6b7280';
+                    e.currentTarget.style.background = '#F0F0F0';
+                    e.currentTarget.style.color = '#495157';
                   }
                 }}
               >
@@ -11646,8 +11211,8 @@ ${linkStylesheetTag}  <style>
                   height: '36px',
                   borderRadius: '8px',
                   border: 'none',
-                  background: activeSidebarSection === 'style' ? 'rgba(149, 117, 205, 0.2)' : 'transparent',
-                  color: activeSidebarSection === 'style' ? '#9575cd' : '#6b7280',
+                  background: activeSidebarSection === 'style' ? 'rgba(126, 96, 224, 0.15)' : '#F0F0F0',
+                  color: activeSidebarSection === 'style' ? '#7E60E0' : '#495157',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -11657,14 +11222,14 @@ ${linkStylesheetTag}  <style>
                 }}
                 onMouseEnter={(e) => {
                   if (activeSidebarSection !== 'style') {
-                    e.currentTarget.style.background = 'rgba(149, 117, 205, 0.08)';
-                    e.currentTarget.style.color = '#9575cd';
+                    e.currentTarget.style.background = 'rgba(126, 96, 224, 0.1)';
+                    e.currentTarget.style.color = '#7E60E0';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (activeSidebarSection !== 'style') {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#6b7280';
+                    e.currentTarget.style.background = '#F0F0F0';
+                    e.currentTarget.style.color = '#495157';
                   }
                 }}
               >
@@ -11673,39 +11238,14 @@ ${linkStylesheetTag}  <style>
             </div>
           )}
 
-          {!isLeftSidebarCollapsed && activeSidebarSection === 'widgets' && (
-            <div className={`elementor-search-widget${blockSearch.trim() ? ' has-value' : ''}`}>
-              <span
-                className="elementor-search-icon"
-                onClick={() => document.getElementById('widget-search-input')?.focus()}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && document.getElementById('widget-search-input')?.focus()}
-                aria-label="Focus search"
-              >
-                🔍
-              </span>
+          {!isLeftSidebarCollapsed && (activeSidebarSection === 'widgets' || activeSidebarSection === 'globals') && (
+            <div className="elementor-search-widget">
+              <span className="elementor-search-icon">🔍</span>
               <input
-                id="widget-search-input"
-                type="text"
                 value={blockSearch}
                 onChange={(e) => setBlockSearch(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Escape') setBlockSearch(''); }}
-                placeholder="Search widgets (e.g. heading, button, section...)"
-                aria-label="Search widgets"
-                autoComplete="off"
+                placeholder="Search Widget..."
               />
-              {blockSearch.trim() && (
-                <button
-                  type="button"
-                  className="elementor-search-clear"
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setBlockSearch(''); }}
-                  aria-label="Clear search"
-                  title="Clear search"
-                >
-                  ✕
-                </button>
-              )}
             </div>
           )}
 
@@ -11720,24 +11260,14 @@ ${linkStylesheetTag}  <style>
                 }}
                 aria-hidden={activeSidebarSection !== 'widgets'}
                 ref={(el) => {
-                  if (!el) return;
-                  // CRITICAL: Always sync visibility with active tab - clear !important overrides when hiding
-                  if (activeSidebarSection === 'widgets') {
+                  // Force visibility when widgets tab is active, even if React tries to hide it
+                  if (el && activeSidebarSection === 'widgets') {
                     el.style.setProperty('display', 'block', 'important');
                     el.style.setProperty('visibility', 'visible', 'important');
                     el.style.setProperty('opacity', '1', 'important');
-                  } else {
-                    el.style.setProperty('display', 'none', 'important');
-                    el.style.setProperty('visibility', 'hidden', 'important');
-                    el.style.setProperty('opacity', '0', 'important');
                   }
                 }}
               >
-                {blockSearch.trim() && !widgetSearchHasResults && (
-                  <div className="elementor-search-no-results">
-                    No widgets match &quot;{blockSearch}&quot;
-                  </div>
-                )}
                 <div 
                   id="blocks-panel" 
                   style={{ 
@@ -11749,223 +11279,21 @@ ${linkStylesheetTag}  <style>
                 />
               </div>
 
-            {/* Hidden traits panel - GrapesJS needs a target; we use Link & Navigation for links instead */}
-            <div id="traits-panel" className="elementor-secondary-body" style={{ display: 'none', position: 'absolute', left: '-9999px', visibility: 'hidden' }} />
+            {/* traits-panel kept hidden for GrapesJS TraitManager - Settings UI removed per user request */}
+            <div id="traits-panel" style={{ display: 'none', position: 'absolute', left: -9999, overflow: 'hidden' }} />
 
             <div
-              className={`elementor-panel-card elementor-links-panel ${activeSidebarSection === 'links' ? 'links-panel-active' : ''}`}
-              data-panel-type="links"
-              aria-hidden={activeSidebarSection !== 'links'}
+              className="elementor-blocks-wrapper elementor-globals-placeholder"
+              style={{ display: activeSidebarSection === 'globals' ? 'block' : 'none' }}
+              aria-hidden={activeSidebarSection !== 'globals'}
             >
-              <div className="elementor-panel-card-title">Link &amp; Navigation</div>
-              <div className="elementor-panel-card-body">
-                {!showAddLinkPanel && !linkPanelIsEditing && (
-                  <div className="links-panel-empty">
-                    <div className="links-panel-empty-icon" aria-hidden>🔗</div>
-                    <p className="links-panel-empty-title">No link selected</p>
-                    <p className="links-panel-empty-desc">Select a link, button, or any element to add or edit its link destination.</p>
-                  </div>
-                )}
-                {linkPanelIsEditing && (
-                  <div className="links-panel-section">
-                    <div className="links-panel-section-header">
-                      <div className="links-panel-section-icon" aria-hidden>✏️</div>
-                      <div>
-                        <h3 className="links-panel-section-title">Edit Link</h3>
-                        <p className="links-panel-section-subtitle">Change where this link or button goes</p>
-                      </div>
-                    </div>
-                    <div className="links-panel-type-tabs">
-                      <button
-                        type="button"
-                        className={`links-panel-type-tab ${addLinkType === 'page' ? 'active' : ''}`}
-                        onClick={() => setAddLinkType('page')}
-                      >
-                        <span aria-hidden>📄</span> Page
-                      </button>
-                      <button
-                        type="button"
-                        className={`links-panel-type-tab ${addLinkType === 'url' ? 'active' : ''}`}
-                        onClick={() => setAddLinkType('url')}
-                      >
-                        <span aria-hidden>🌐</span> URL
-                      </button>
-                    </div>
-                    {addLinkType === 'page' && (
-                      <div className="links-panel-field">
-                        <label className="links-panel-label" htmlFor="links-edit-page">Destination page</label>
-                        <select
-                          id="links-edit-page"
-                          className="links-panel-select"
-                          value={addLinkPageId}
-                          onChange={(e) => setAddLinkPageId(e.target.value)}
-                        >
-                          <option value="">— Select page —</option>
-                          {pages.map((p) => (
-                            <option key={p.id} value={p.id}>{p.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                    {addLinkType === 'url' && (
-                      <div className="links-panel-field">
-                        <label className="links-panel-label" htmlFor="links-edit-url">External URL</label>
-                        <input
-                          id="links-edit-url"
-                          type="text"
-                          className="links-panel-input"
-                          value={addLinkUrl}
-                          onChange={(e) => setAddLinkUrl(e.target.value)}
-                          placeholder="https://example.com"
-                        />
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      className="links-panel-btn-primary"
-                      onClick={() => {
-                        const editor = editorInstance.current;
-                        if (!editor) return;
-                        const selected = editor.getSelected();
-                        if (!selected || !linkPanelIsEditing) return;
-                        const href = addLinkType === 'page'
-                          ? (addLinkPageId ? `#${addLinkPageId.replace(/^#/, '').trim()}` : '#')
-                          : (addLinkUrl ? (addLinkUrl.trim().toLowerCase().startsWith('http') ? addLinkUrl.trim() : `https://${addLinkUrl.trim()}`) : '#');
-                        try {
-                          const finalHref = href || '#';
-                          if (addLinkType === 'page' && addLinkPageId) {
-                            const pageId = addLinkPageId.replace(/^#/, '').trim();
-                            selected.addAttributes({ 'data-page-link': pageId, href: finalHref });
-                            selected.set?.('pageLink', pageId);
-                            selected.set?.('href', finalHref);
-                          } else {
-                            selected.removeAttributes?.('data-page-link');
-                            selected.addAttributes?.({ href: finalHref });
-                            selected.set?.('pageLink', '');
-                            selected.set?.('href', finalHref);
-                          }
-                          const view = selected.getView?.();
-                          if (view?.el) {
-                            if (addLinkType === 'page' && addLinkPageId) {
-                              view.el.setAttribute('data-page-link', addLinkPageId.replace(/^#/, '').trim());
-                            } else {
-                              view.el.removeAttribute('data-page-link');
-                            }
-                            view.el.setAttribute('href', finalHref);
-                          }
-                          setHasUnsavedChanges(true);
-                        } catch (err) {
-                          console.warn('Failed to update link:', err);
-                        }
-                      }}
-                    >
-                      Update Link
-                    </button>
-                  </div>
-                )}
-                {showAddLinkPanel && (
-                  <div className="links-panel-section">
-                    <div className="links-panel-section-header">
-                      <div className="links-panel-section-icon" aria-hidden>➕</div>
-                      <div>
-                        <h3 className="links-panel-section-title">Add Link</h3>
-                        <p className="links-panel-section-subtitle">Wrap the selected element in a link</p>
-                      </div>
-                    </div>
-                    <div className="links-panel-type-tabs">
-                      <button
-                        type="button"
-                        className={`links-panel-type-tab ${addLinkType === 'page' ? 'active' : ''}`}
-                        onClick={() => setAddLinkType('page')}
-                      >
-                        <span aria-hidden>📄</span> Page
-                      </button>
-                      <button
-                        type="button"
-                        className={`links-panel-type-tab ${addLinkType === 'url' ? 'active' : ''}`}
-                        onClick={() => setAddLinkType('url')}
-                      >
-                        <span aria-hidden>🌐</span> URL
-                      </button>
-                    </div>
-                    {addLinkType === 'page' && (
-                      <div className="links-panel-field">
-                        <label className="links-panel-label" htmlFor="links-add-page">Destination page</label>
-                        <select
-                          id="links-add-page"
-                          className="links-panel-select"
-                          value={addLinkPageId}
-                          onChange={(e) => setAddLinkPageId(e.target.value)}
-                        >
-                          <option value="">— Select page —</option>
-                          {pages.map((p) => (
-                            <option key={p.id} value={p.id}>{p.name}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                    {addLinkType === 'url' && (
-                      <div className="links-panel-field">
-                        <label className="links-panel-label" htmlFor="links-add-url">External URL</label>
-                        <input
-                          id="links-add-url"
-                          type="text"
-                          className="links-panel-input"
-                          value={addLinkUrl}
-                          onChange={(e) => setAddLinkUrl(e.target.value)}
-                          placeholder="https://example.com"
-                        />
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      className="links-panel-btn-primary"
-                      disabled={(addLinkType === 'page' && !addLinkPageId) || (addLinkType === 'url' && !addLinkUrl.trim())}
-                      onClick={() => {
-                        const editor = editorInstance.current;
-                        if (!editor) return;
-                        const selected = editor.getSelected();
-                        if (!selected) return;
-                        const parent = selected.parent();
-                        if (!parent) return;
-                        const href = addLinkType === 'page'
-                          ? (addLinkPageId ? `#${addLinkPageId.replace(/^#/, '').trim()}` : '#')
-                          : (addLinkUrl ? (addLinkUrl.trim().toLowerCase().startsWith('http') ? addLinkUrl.trim() : `https://${addLinkUrl.trim()}`) : '#');
-                        if (addLinkType === 'page' && !addLinkPageId) return;
-                        if (addLinkType === 'url' && !addLinkUrl.trim()) return;
-                        try {
-                          const index = parent.components().indexOf(selected);
-                          const clone = selected.clone();
-                          const attrs: Record<string, string> = { href };
-                          if (addLinkType === 'page' && addLinkPageId) {
-                            attrs['data-page-link'] = addLinkPageId.replace(/^#/, '').trim();
-                          }
-                          const linkComp = parent.components().add({
-                            tagName: 'a',
-                            attributes: attrs,
-                            components: [clone],
-                          }, { at: index });
-                          selected.remove();
-                          editor.select(linkComp);
-                          setAddLinkPageId('');
-                          setAddLinkUrl('');
-                          setShowAddLinkPanel(false);
-                          setHasUnsavedChanges(true);
-                        } catch (err) {
-                          console.warn('Failed to add link:', err);
-                        }
-                      }}
-                    >
-                      Add Link
-                    </button>
-                  </div>
-                )}
-              </div>
+              Globals coming soon
             </div>
 
             <div
-              className={`elementor-panel-card ${activeSidebarSection === 'structure' ? 'structure-panel-active' : ''}`}
+              className="elementor-panel-card"
               data-panel-type="structure"
+              style={{ display: activeSidebarSection === 'structure' ? 'flex' : 'none' }}
               aria-hidden={activeSidebarSection !== 'structure'}
             >
               <div className="elementor-panel-card-title">Structure</div>
@@ -11977,8 +11305,9 @@ ${linkStylesheetTag}  <style>
             </div>
 
             <div
-              className={`elementor-panel-card ${activeSidebarSection === 'style' ? 'style-panel-active' : ''}`}
+              className="elementor-panel-card"
               data-panel-type="style"
+              style={{ display: activeSidebarSection === 'style' ? 'flex' : 'none' }}
               aria-hidden={activeSidebarSection !== 'style'}
             >
               <div className="elementor-panel-card-title">Style</div>
@@ -11993,25 +11322,24 @@ ${linkStylesheetTag}  <style>
 
         </div>
 
-        {/* Center - Canvas - Full screen height */}
-        <div className="builder-center-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--builder-bg-canvas)', position: 'relative', minHeight: 0 }}>
-          {/* Canvas Wrapper - Full height */}
-          <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column', width: '100%', padding: '12px', minHeight: 0 }}>
+        {/* Center - Canvas - WordPress Elementor Style */}
+        <div className="builder-center-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f5f5f7', position: 'relative' }}>
+          {/* Canvas Wrapper with Header and Footer */}
+          <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px' }}>
             {/* Canvas Header */}
-            <div className="elementor-canvas-header" style={{ width: '100%', marginBottom: 0, flexShrink: 0 }}>
+            <div className="elementor-canvas-header" style={{ width: '100%', maxWidth: '1200px', marginBottom: 0 }}>
               <div className="elementor-canvas-site-name">{name || 'Ziplofy Theme'}</div>
               <div className="elementor-canvas-page-name">{pages.find(p => p.id === currentPageId)?.name || 'Home'}</div>
             </div>
             
-            {/* Canvas Content - Full screen height */}
+            {/* Canvas Content */}
             <div style={{ 
               width: '100%', 
-              flex: 1,
+              maxWidth: '1200px', 
               background: '#fff', 
-              minHeight: 'calc(100vh - 180px)',
-              height: '100%',
+              minHeight: '600px',
               position: 'relative',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             }}>
               {loading && (
                 <div style={{
@@ -12058,11 +11386,11 @@ ${linkStylesheetTag}  <style>
                   {error}
                 </div>
               )}
-              <div ref={editorRef} style={{ width: '100%', height: '100%', minHeight: 'calc(100vh - 200px)' }} />
+              <div ref={editorRef} style={{ minHeight: '600px' }} />
             </div>
             
             {/* Canvas Footer */}
-            <div className="elementor-canvas-footer" style={{ width: '100%', marginTop: 0 }}>
+            <div className="elementor-canvas-footer" style={{ width: '100%', maxWidth: '1200px', marginTop: 0 }}>
               Copyright © {new Date().getFullYear()} {name || 'Ziplofy Theme'} | Powered by{' '}
               <a href="#" onClick={(e) => e.preventDefault()}>Ziplofy Theme Builder</a>
             </div>
@@ -12127,7 +11455,7 @@ ${linkStylesheetTag}  <style>
                   transition: 'all 0.2s ease',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(149, 117, 205, 0.08)';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'transparent';
@@ -12246,12 +11574,12 @@ ${linkStylesheetTag}  <style>
                 color: 'rgba(255, 255, 255, 0.6)', 
                 marginBottom: '12px', 
                 padding: '10px', 
-                background: 'rgba(149, 117, 205, 0.1)', 
+                background: 'rgba(126, 96, 224, 0.15)', 
                 borderRadius: '6px', 
-                border: '1px solid rgba(149, 117, 205, 0.2)',
+                border: '1px solid rgba(126, 96, 224, 0.2)',
                 lineHeight: '1.5'
               }}>
-                <strong style={{ color: '#9575cd' }}>💡 How to use:</strong> Click any link/button below to select it in the editor. The Link &amp; Navigation panel will open automatically where you can edit the link destination (Page or URL).
+                <strong style={{ color: '#7E60E0' }}>💡 How to use:</strong> Click any link/button below to select it in the editor. The Widgets panel will open automatically where you can edit the link settings (Link Type, Page, or URL).
               </div>
             )}
             {linkManagerLinks.length === 0 ? (
@@ -12284,11 +11612,145 @@ ${linkStylesheetTag}  <style>
                         // Ensure sidebar is expanded
                         setIsLeftSidebarCollapsed(false);
                         
-                        // Switch to Link & Navigation tab
-                        setActiveSidebarSection('links');
+                        // Switch to widgets tab to show link settings
+                        setActiveSidebarSection('widgets');
+                        
+                        // Use requestAnimationFrame and multiple timeouts to ensure everything is visible
+                        requestAnimationFrame(() => {
+                          setTimeout(() => {
+                            // Ensure secondary panel (traits) is visible
+                            const secondaryPanel = document.querySelector('.elementor-secondary-panel') as HTMLElement;
+                            if (secondaryPanel) {
+                              secondaryPanel.style.setProperty('display', 'block', 'important');
+                              secondaryPanel.style.setProperty('visibility', 'visible', 'important');
+                              secondaryPanel.style.setProperty('opacity', '1', 'important');
+                            }
                             
-                        // Select the component - component:selected will sync the Link panel form
+                            // Select the component - this will trigger component:selected event
                         editor.select(link.component);
+                            
+                            // Wait for component:selected handler to run, then ensure traits are rendered
+                            setTimeout(() => {
+                              // First, manually ensure traits are added if they don't exist
+                              const tagName = link.component?.get('tagName')?.toLowerCase();
+                              const isButton = tagName === 'button';
+                              const isLink = tagName === 'a';
+                              
+                              if (isButton || isLink) {
+                                const existingTraits = link.component.get('traits') || [];
+                                const hasLinkType = existingTraits.some((t: any) => {
+                                  return (typeof t === 'object' && t.name === 'linkType') || t === 'linkType';
+                                });
+                                
+                                if (!hasLinkType) {
+                                  // Add navigation traits manually
+                                  const currentPages = pagesRef.current || [];
+                                  const navigationTraits = [
+                                    {
+                                      type: 'select',
+                                      name: 'linkType',
+                                      label: isButton ? 'Button Action' : 'Link Type',
+                                      options: isButton ? [
+                                        { id: 'none', value: 'none', name: 'No Action' },
+                                        { id: 'page', value: 'page', name: 'Navigate to Page' },
+                                        { id: 'url', value: 'url', name: 'Open URL' },
+                                      ] : [
+                                        { id: 'page', value: 'page', name: 'Link to Page' },
+                                        { id: 'url', value: 'url', name: 'External URL' },
+                                      ],
+                                      changeProp: true,
+                                    },
+                                    {
+                                      type: 'select',
+                                      name: 'pageLink',
+                                      label: 'Select Page',
+                                      options: [
+                                        { id: '', value: '', name: '-- Select Page --' },
+                                        ...currentPages.map((p) => ({ id: p.id, value: p.id, name: p.name }))
+                                      ],
+                                      changeProp: true,
+                                    },
+                                    {
+                                      type: 'text',
+                                      name: 'href',
+                                      label: 'URL',
+                                      placeholder: 'https://example.com or #page-1',
+                                      changeProp: true,
+                                    },
+                                  ];
+                                  
+                                  const filteredTraits = existingTraits.filter((t: any) => {
+                                    if (typeof t === 'string') {
+                                      return t !== 'id' && t !== 'title' && t !== 'linkType' && t !== 'pageLink';
+                                    }
+                                    return t.name !== 'id' && t.name !== 'title' && t.name !== 'linkType' && t.name !== 'pageLink' && t.name !== 'href';
+                                  });
+                                  
+                                  link.component.set('traits', [...filteredTraits, ...navigationTraits]);
+                                }
+                              }
+                              
+                              // Now ensure traits panel is visible and rendered
+                              const traitsPanel = document.getElementById('traits-panel');
+                              if (traitsPanel) {
+                                traitsPanel.style.setProperty('display', 'block', 'important');
+                                traitsPanel.style.setProperty('visibility', 'visible', 'important');
+                                traitsPanel.style.setProperty('opacity', '1', 'important');
+                                
+                                // Force re-render of traits
+                                if (editor.TraitManager) {
+                                  try {
+                                    // Re-select to trigger full trait rendering
+                                    editor.select(link.component);
+                                    
+                                    // Wait a bit for the selection to process
+                                    setTimeout(() => {
+                                      // Render traits
+                                      if (typeof editor.TraitManager.render === 'function') {
+                                        const traitsEl = editor.TraitManager.render();
+                                        if (traitsEl && traitsPanel) {
+                                          // Clear and append new traits
+                                          traitsPanel.innerHTML = '';
+                                          if (traitsEl.nodeType === 1) {
+                                            traitsPanel.appendChild(traitsEl);
+                                          } else if (typeof traitsEl === 'string') {
+                                            traitsPanel.innerHTML = traitsEl;
+                                          }
+                                        }
+                                      }
+                                      
+                                      // Force update trait visibility
+                                      setTimeout(() => {
+                                        const linkType = link.component.get?.('linkType');
+                                        if (linkType !== undefined) {
+                                          const allTraits = traitsPanel.querySelectorAll('.gjs-trt-trait');
+                                          allTraits.forEach((traitEl) => {
+                                            const label = traitEl.querySelector('label, .gjs-trt-trait__label');
+                                            if (label) {
+                                              const labelText = label.textContent || '';
+                                              if (labelText.includes('Select Page')) {
+                                                (traitEl as HTMLElement).style.display = linkType === 'page' ? 'block' : 'none';
+                                              } else if (labelText.includes('URL') && !labelText.includes('Select')) {
+                                                (traitEl as HTMLElement).style.display = linkType === 'url' ? 'block' : 'none';
+                                              }
+                                            }
+                                          });
+                                        }
+                                      }, 100);
+                                    }, 100);
+                                  } catch (e) {
+                                    console.warn('Error rendering traits:', e);
+                                  }
+                                }
+                              }
+                              
+                              // Scroll to structure panel
+                              if (structurePanel) {
+                                structurePanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                              }
+                            }, 300);
+                          }, 150);
+                        });
                       }
                     }}
                     style={{
@@ -12300,8 +11762,8 @@ ${linkStylesheetTag}  <style>
                       transition: 'all 0.2s ease',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(149, 117, 205, 0.08)';
-                      e.currentTarget.style.borderColor = 'rgba(149, 117, 205, 0.2)';
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                      e.currentTarget.style.borderColor = 'rgba(126, 96, 224, 0.4)';
                       e.currentTarget.style.transform = 'translateX(4px)';
                     }}
                     onMouseLeave={(e) => {
@@ -12316,8 +11778,8 @@ ${linkStylesheetTag}  <style>
                           fontSize: '12px', 
                           padding: '2px 8px', 
                           borderRadius: '4px',
-                          background: link.type === 'link' ? 'rgba(149, 117, 205, 0.15)' : 'rgba(255, 193, 7, 0.15)',
-                          color: link.type === 'link' ? '#9575cd' : '#ffc107',
+                          background: link.type === 'link' ? 'rgba(126, 96, 224, 0.2)' : 'rgba(255, 193, 7, 0.15)',
+                          color: link.type === 'link' ? '#7E60E0' : '#ffc107',
                           fontWeight: 600,
                           flexShrink: 0
                         }}>
@@ -12339,7 +11801,7 @@ ${linkStylesheetTag}  <style>
                     </div>
                     <div style={{ 
                       fontSize: '10px', 
-                      color: 'rgba(149, 117, 205, 0.8)', 
+                      color: 'rgba(0, 210, 190, 0.8)', 
                       marginTop: '6px',
                       fontWeight: 500,
                       display: 'flex',
@@ -12358,7 +11820,7 @@ ${linkStylesheetTag}  <style>
         </div>
       )}
       
-      {/* Notes Card */}
+      {/* Notes & Changes Card */}
       {showNotes && (
         <div
           style={{
@@ -12366,30 +11828,30 @@ ${linkStylesheetTag}  <style>
             top: '80px',
             right: '20px',
             zIndex: 100000,
-            width: '420px',
+            width: '400px',
             maxWidth: 'calc(100vw - 40px)',
             maxHeight: 'calc(100vh - 100px)',
             background: '#ffffff',
-            border: '1px solid rgba(149, 117, 205, 0.15)',
+            border: '1px solid rgba(0, 0, 0, 0.2)',
             borderRadius: '16px',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(149, 117, 205, 0.08)',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.1)',
             display: 'flex',
             flexDirection: 'column',
             animation: 'slideInRight 0.3s ease-out',
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div style={{ padding: '16px', borderBottom: '1px solid rgba(149, 117, 205, 0.1)' }}>
+            <div style={{ padding: '16px', borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-              <h3 style={{ margin: 0, color: '#1e1e1e', fontSize: '16px', fontWeight: 600 }}>📋 Notes</h3>
+                <h3 style={{ margin: 0, color: '#000', fontSize: '16px', fontWeight: 600 }}>📋 Notes & Changes</h3>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <button
                   onClick={createNewNote}
                   title="Create New Note"
                     style={{
-                      background: 'rgba(149, 117, 205, 0.12)',
-                      border: '1px solid rgba(149, 117, 205, 0.2)',
-                      color: '#9575cd',
+                      background: 'rgba(126, 96, 224, 0.2)',
+                      border: '1px solid rgba(126, 96, 224, 0.4)',
+                      color: '#7E60E0',
                       fontSize: '18px',
                       cursor: 'pointer',
                       padding: '4px 10px',
@@ -12400,6 +11862,14 @@ ${linkStylesheetTag}  <style>
                       justifyContent: 'center',
                       borderRadius: '6px',
                       transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(126, 96, 224, 0.3)';
+                      e.currentTarget.style.borderColor = '#7E60E0';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(126, 96, 224, 0.2)';
+                      e.currentTarget.style.borderColor = 'rgba(126, 96, 224, 0.4)';
                     }}
                 >
                   +
@@ -12413,14 +11883,13 @@ ${linkStylesheetTag}  <style>
                     }
                     setShowNotes(false);
                   }}
-                  title="Close"
                   style={{
                     background: 'transparent',
                     border: 'none',
-                    color: '#6b7280',
+                      color: '#fff',
                     fontSize: '20px',
                     cursor: 'pointer',
-                    padding: 0,
+                      padding: '0',
                     width: '28px',
                     height: '28px',
                     display: 'flex',
@@ -12429,18 +11898,32 @@ ${linkStylesheetTag}  <style>
                     borderRadius: '6px',
                     transition: 'all 0.2s ease',
                   }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                  }}
                 >
                   ×
                 </button>
               </div>
             </div>
+              <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)' }}>
+                {notes.length} {notes.length === 1 ? 'note' : 'notes'}
           </div>
-          <div style={{ padding: '12px', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', minHeight: 0 }}>
+            </div>
+            <div style={{ padding: '12px', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {notes.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px 20px', color: '#9ca3af', fontSize: '13px' }}>
-                  <div style={{ fontSize: '36px', marginBottom: '12px' }}>📝</div>
-                  <div style={{ fontWeight: 500 }}>No notes yet</div>
-                  <div style={{ fontSize: '11px', marginTop: '8px', color: '#d1d5db' }}>
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: '40px 20px', 
+                  color: 'rgba(255, 255, 255, 0.4)',
+                  fontSize: '13px'
+                }}>
+                  <div style={{ fontSize: '32px', marginBottom: '12px' }}>📝</div>
+                  <div>No notes yet</div>
+                  <div style={{ fontSize: '11px', marginTop: '8px', color: 'rgba(255, 255, 255, 0.3)' }}>
                     Click the + button to create your first note
                   </div>
                 </div>
@@ -12449,15 +11932,15 @@ ${linkStylesheetTag}  <style>
                   <div
                     key={note.id}
                     style={{
-                      background: editingNoteId === note.id ? 'rgba(149, 117, 205, 0.08)' : 'rgba(0, 0, 0, 0.02)',
-                      border: editingNoteId === note.id ? '1px solid rgba(149, 117, 205, 0.2)' : '1px solid rgba(0, 0, 0, 0.08)',
+                      background: editingNoteId === note.id ? 'rgba(126, 96, 224, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                      border: editingNoteId === note.id ? '1px solid rgba(126, 96, 224, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)',
                       borderRadius: '8px',
                       padding: '12px',
                       transition: 'all 0.2s ease',
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                      <div style={{ fontSize: '10px', color: '#9ca3af' }}>
+                      <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.4)' }}>
                         {new Date(note.createdAt).toLocaleDateString()} {new Date(note.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                       <button
@@ -12473,12 +11956,12 @@ ${linkStylesheetTag}  <style>
                           transition: 'all 0.2s ease',
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
-                          e.currentTarget.style.color = '#dc2626';
+                          e.currentTarget.style.background = 'rgba(220, 38, 38, 0.15)';
+                          e.currentTarget.style.color = '#ef4444';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = 'transparent';
-                          e.currentTarget.style.color = 'rgba(239, 68, 68, 0.6)';
+                          e.currentTarget.style.color = 'rgba(220, 38, 38, 0.6)';
                         }}
                         title="Delete note"
                       >
@@ -12503,10 +11986,10 @@ ${linkStylesheetTag}  <style>
                           minHeight: '100px',
                           maxHeight: '200px',
                           padding: '8px',
-                          background: '#ffffff',
-                          border: '1px solid rgba(149, 117, 205, 0.2)',
+                          background: 'rgba(255, 255, 255, 0.05)',
+                          border: '1px solid rgba(255, 255, 255, 0.2)',
                           borderRadius: '6px',
-                          color: '#374151',
+                          color: '#fff',
                           fontSize: '13px',
                           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                           lineHeight: '1.5',
@@ -12527,7 +12010,7 @@ ${linkStylesheetTag}  <style>
                       <div
                         onClick={() => setEditingNoteId(note.id)}
                         style={{
-                          color: '#374151',
+                          color: '#fff',
                           fontSize: '13px',
                           lineHeight: '1.6',
                           cursor: 'text',
@@ -12539,13 +12022,13 @@ ${linkStylesheetTag}  <style>
                           transition: 'background 0.2s ease',
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = 'rgba(149, 117, 205, 0.04)';
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = 'transparent';
                         }}
                       >
-                        {note.content || <span style={{ color: '#9ca3af', fontStyle: 'italic' }}>Click to edit...</span>}
+                        {note.content || <span style={{ color: 'rgba(255, 255, 255, 0.3)', fontStyle: 'italic' }}>Click to edit...</span>}
                       </div>
                     )}
                   </div>
@@ -12587,8 +12070,8 @@ ${linkStylesheetTag}  <style>
               </h2>
               <span
                 style={{
-                  background: 'rgba(149, 117, 205, 0.2)',
-                  color: '#9575cd',
+                  background: 'rgba(126, 96, 224, 0.2)',
+                  color: '#7E60E0',
                   padding: '4px 12px',
                   borderRadius: '4px',
                   fontSize: '12px',
@@ -12622,19 +12105,13 @@ ${linkStylesheetTag}  <style>
                   e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(149, 117, 205, 0.08)';
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
                 }}
               >
                 🔄 Reload
               </button>
               <button
-                onClick={() => {
-                  if (previewBlobUrlRef.current) {
-                    URL.revokeObjectURL(previewBlobUrlRef.current);
-                    previewBlobUrlRef.current = null;
-                  }
-                  setShowPreviewModal(false);
-                }}
+                onClick={() => setShowPreviewModal(false)}
                 style={{
                   background: 'rgba(220, 38, 38, 0.2)',
                   border: '1px solid rgba(220, 38, 38, 0.3)',
@@ -12658,12 +12135,12 @@ ${linkStylesheetTag}  <style>
             </div>
           </div>
           
-          {/* Preview Content - use blob URL for reliable loading (srcDoc can cause blank content) */}
-          <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+          {/* Preview Content */}
+          <div style={{ flex: 1, position: 'relative', overflow: 'auto', minHeight: 0 }}>
             <iframe
               id="theme-preview-iframe"
-              key={previewBlobUrlRef.current || 'preview'}
-              src={previewBlobUrlRef.current || 'about:blank'}
+              key={`preview-${Date.now()}-${previewHtml.length}`}
+              srcDoc={previewHtml}
               style={{
                 width: '100%',
                 height: '100%',
@@ -12671,7 +12148,17 @@ ${linkStylesheetTag}  <style>
                 background: '#fff',
               }}
               title="Theme Preview"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation"
+              onLoad={(e) => {
+                // CRITICAL: Force update iframe content when it loads
+                // This ensures the latest HTML is always displayed
+                const iframe = e.currentTarget;
+                if (iframe && iframe.contentDocument && previewHtml) {
+                  iframe.contentDocument.open();
+                  iframe.contentDocument.write(previewHtml);
+                  iframe.contentDocument.close();
+                }
+              }}
             />
           </div>
         </div>

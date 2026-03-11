@@ -1,4 +1,5 @@
 import React from "react";
+import "./ThemeEditChoiceModal.css";
 
 interface Props {
   isOpen: boolean;
@@ -54,38 +55,26 @@ const ThemeEditChoiceModal: React.FC<Props> = ({ isOpen, onClose, themeId, isCus
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 9999 }}>
-      <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)' }} />
-      <div style={{
-        position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
-        background: '#fff', color: '#000', width: 420, borderRadius: 8, boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
-      }}>
-        <div style={{ padding: 16, borderBottom: '1px solid #e5e7eb', fontWeight: 700 }}>Edit Theme</div>
-        <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <button onClick={handleEditLayout} style={{
-            padding: '12px 14px', borderRadius: 8, border: '1px solid #d1d5da', background: '#fff',
-            cursor: 'pointer', textAlign: 'left', fontWeight: 600
-          }}>
+    <div className="theme-edit-modal-overlay">
+      <div className="theme-edit-modal-backdrop" onClick={onClose} />
+      <div className="theme-edit-modal-container">
+        <div className="theme-edit-modal-header">Edit Theme</div>
+        <div className="theme-edit-modal-body">
+          <button onClick={handleEditLayout} className="theme-edit-option-btn option-visual">
             Edit Layout (Visual)
-            <div style={{ fontSize: 12, color: '#6b7280', fontWeight: 400 }}>Open Elementor-style visual builder to modify layout and components</div>
+            <span className="option-desc">Open Elementor-style visual builder to modify layout and components</span>
           </button>
-          <button onClick={handleEditBasicElementor} style={{
-            padding: '12px 14px', borderRadius: 8, border: '1px solid #d1d5da', background: '#fff',
-            cursor: 'pointer', textAlign: 'left', fontWeight: 600
-          }}>
+          <button onClick={handleEditBasicElementor} className="theme-edit-option-btn option-elementor">
             Edit with Basic Elementor
-            <div style={{ fontSize: 12, color: '#6b7280', fontWeight: 400 }}>Open basic Elementor editor</div>
+            <span className="option-desc">Open basic Elementor editor</span>
           </button>
-          <button onClick={handleEditCode} style={{
-            padding: '12px 14px', borderRadius: 8, border: '1px solid #d1d5da', background: '#fff',
-            cursor: 'pointer', textAlign: 'left', fontWeight: 600
-          }}>
+          <button onClick={handleEditCode} className="theme-edit-option-btn option-code">
             Edit Code (Advanced)
-            <div style={{ fontSize: 12, color: '#6b7280', fontWeight: 400 }}>Open code editor (Monaco) to edit HTML/CSS/JS</div>
+            <span className="option-desc">Open code editor (Monaco) to edit HTML/CSS/JS</span>
           </button>
         </div>
-        <div style={{ padding: 12, borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end' }}>
-          <button onClick={onClose} style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #d1d5da', background: '#fff', cursor: 'pointer' }}>Close</button>
+        <div className="theme-edit-modal-footer">
+          <button onClick={onClose} className="theme-edit-close-btn">Close</button>
         </div>
       </div>
     </div>

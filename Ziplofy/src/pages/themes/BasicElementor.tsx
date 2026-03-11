@@ -6,6 +6,7 @@ import grapesjs from "grapesjs";
 import "grapesjs/dist/css/grapes.min.css";
 import "./CustomThemeBuilder.css"; /* Shared with Visual Elementor */
 import "./BasicElementor.css";
+import { applyResponsiveView, scheduleDesktopRetries } from "./elementorResponsiveness";
 
 // Strip GrapesJS canvas CSS erroneously embedded in theme HTML (causes raw CSS display)
 const stripGrapesJSCanvasCss = (html: string): string => {
@@ -781,8 +782,14 @@ const BasicElementor: React.FC = () => {
               try {
                 comp.set('content', '', { silent: true });
                 const appended = comp.append?.(content);
-                if (appended?.length) changed = true;
-              } catch {}
+                if (appended?.length) {
+                  changed = true;
+                } else {
+                  comp.set('content', content, { silent: true });
+                }
+              } catch {
+                comp.set('content', content, { silent: true });
+              }
             }
             (comp.components?.() || []).forEach((c: any) => { if (expandComponentContent(c)) changed = true; });
             return changed;
@@ -859,14 +866,15 @@ const BasicElementor: React.FC = () => {
           sliderFixEl.textContent = SLIDER_FIX_CSS;
           head.appendChild(sliderFixEl);
           
-          // Inject inline CSS from <style> tags
-          if (cssContent.trim()) {
+          // Inject full combined CSS (inline + external) so theme loads completely
+          const fullCss = (originalCssContent || cssContent || '').trim();
+          if (fullCss) {
             const styleEl = doc.createElement('style');
             styleEl.id = 'ziplofy-theme-styles';
             styleEl.setAttribute('data-ziplofy-theme', 'true');
-            styleEl.textContent = cssContent;
+            styleEl.textContent = fullCss;
             head.appendChild(styleEl);
-            console.log('✓ Injected inline CSS');
+            console.log('✓ Injected theme CSS (combined:', fullCss.length, 'chars)');
           }
           
           // Inject external stylesheets
@@ -886,7 +894,7 @@ const BasicElementor: React.FC = () => {
           });
           
           // Handle @import statements in CSS
-          if (cssContent) {
+          if (fullCss) {
             const importMatches = cssContent.matchAll(/@import\s+(?:url\()?['"]?([^'")]+)['"]?\)?/gi);
             for (const match of importMatches) {
               let importUrl = match[1];
@@ -945,10 +953,11 @@ const BasicElementor: React.FC = () => {
           setTimeout(tryInject, 200);
         } else {
           console.error('Failed to inject CSS after multiple retries');
-          // Fallback: use editor.setStyle for inline CSS only
-          if (cssContent.trim()) {
+          // Fallback: use editor.setStyle with full combined CSS
+          const fallbackCss = (originalCssContent || cssContent || '').trim();
+          if (fallbackCss) {
             try {
-              editor.setStyle(cssContent);
+              editor.setStyle(fallbackCss);
               console.log('✓ Applied CSS via editor.setStyle fallback');
             } catch (styleErr) {
               console.error('Failed to set CSS via editor.setStyle:', styleErr);
@@ -1050,10 +1059,11 @@ const BasicElementor: React.FC = () => {
           plugins: [presetWebpage],
           pluginsOpts: { [presetWebpage as unknown as string]: {} },
           deviceManager: {
+            default: 'Desktop',
             devices: [
-              { name: 'Desktop', width: '' },
-              { name: 'Tablet', width: '768px', widthMedia: '992px' },
-              { name: 'Mobile', width: '320px', widthMedia: '768px' },
+              { id: 'Desktop', name: 'Desktop', width: '1280px' },
+              { id: 'Tablet', name: 'Tablet', width: '768px', widthMedia: '992px' },
+              { id: 'Mobile', name: 'Mobile', width: '375px', widthMedia: '768px' },
             ],
           },
           selectorManager: { 
@@ -1469,7 +1479,7 @@ const BasicElementor: React.FC = () => {
 
         editorInstance.current = editor;
 
-        // Set initial device after editor is ready
+        // Set initial device and unified responsive view
         setTimeout(() => {
           if (editor && editor.setDevice) {
             const deviceNameMap: Record<string, string> = {
@@ -1479,70 +1489,18 @@ const BasicElementor: React.FC = () => {
             };
             const capitalizedDevice = deviceNameMap[currentDevice] || currentDevice;
             editor.setDevice(capitalizedDevice);
-            console.log('✓ Initial device set:', capitalizedDevice);
-            
-            // Ensure canvas is centered after initial device set
-            setTimeout(() => {
-              const canvas = editor.Canvas;
-              if (canvas) {
-                const canvasEl = (canvas as any).getCanvasEl ? (canvas as any).getCanvasEl() : document.querySelector('.gjs-cv-canvas');
-                const frame = canvas.getFrameEl();
-                if (canvasEl) {
-                  (canvasEl as HTMLElement).style.cssText = `
-                    display: flex !important;
-                    justify-content: center !important;
-                    align-items: flex-start !important;
-                    width: 100% !important;
-                    height: 100% !important;
-                    margin: 0 !important;
-                    padding: 24px !important;
-                    left: auto !important;
-                    right: auto !important;
-                  `;
-                }
-                if (frame) {
-                  frame.style.cssText = `
-                    margin: 0 auto !important;
-                    display: block !important;
-                    left: auto !important;
-                    right: auto !important;
-                  `;
-                }
-              }
-            }, 200);
+            applyResponsiveView(editor, currentDevice);
+            setTimeout(() => applyResponsiveView(editor, currentDevice), 100);
+            setTimeout(() => applyResponsiveView(editor, currentDevice), 300);
           }
         }, 100);
         
-        // Listen for GrapesJS device change events to ensure centering
+        // Listen for GrapesJS device change - apply unified responsive view
         editor.on('change:device', () => {
           setTimeout(() => {
-            const canvas = editor.Canvas;
-            if (canvas) {
-              const canvasEl = (canvas as any).getCanvasEl ? (canvas as any).getCanvasEl() : document.querySelector('.gjs-cv-canvas');
-              const frame = canvas.getFrameEl();
-              if (canvasEl) {
-                (canvasEl as HTMLElement).style.cssText = `
-                  display: flex !important;
-                  justify-content: center !important;
-                  align-items: flex-start !important;
-                  width: 100% !important;
-                  height: 100% !important;
-                  margin: 0 !important;
-                  padding: 24px !important;
-                  left: auto !important;
-                  right: auto !important;
-                `;
-              }
-              if (frame) {
-                frame.style.cssText = `
-                  margin: 0 auto !important;
-                  display: block !important;
-                  left: auto !important;
-                  right: auto !important;
-                `;
-              }
-            }
-          }, 100);
+            const dev = (editor as any).getDevice?.() || editor.DeviceManager?.getSelected?.()?.get?.('id');
+            applyResponsiveView(editor, dev || currentDevice);
+          }, 50);
         });
 
         // CRITICAL: Configure StyleManager container after editor is ready
@@ -1857,10 +1815,10 @@ const BasicElementor: React.FC = () => {
 
           // Set state to show style panel
           setSelectedSection(displayName);
-          setShowStructurePanel(false);
           setShowStylePanel(true);
-          
-          // Wait for React to render, then sync StyleManager (wrapper is in left panel)
+          // Structure stays visible on left; Style opens on right
+
+          // Wait for React to render, then sync StyleManager
           const syncStyleManager = async () => {
             const reactWrapper = document.getElementById('style-panel-wrapper') as HTMLElement;
             
@@ -1999,10 +1957,20 @@ const BasicElementor: React.FC = () => {
           }
         });
 
-        // Listen for canvas frame load to ensure CSS injection happens after frame is ready
+        // Listen for canvas frame load - re-apply responsive view (viewport + frame dimensions)
+        editor.on('canvas:frame:load', () => {
+          const dev = (editor as any).getDevice?.() || editor.DeviceManager?.getSelected?.()?.get?.('id') || currentDevice;
+          applyResponsiveView(editor, dev);
+          if (dev === 'Desktop' || dev === 'desktop') {
+            scheduleDesktopRetries(editor);
+          } else {
+            setTimeout(() => applyResponsiveView(editor, dev), 50);
+            setTimeout(() => applyResponsiveView(editor, dev), 200);
+          }
+        });
+
         editor.on('canvas:frame:load', () => {
           console.log('Canvas frame loaded, ensuring CSS is injected');
-          // Re-inject CSS after frame loads
           setTimeout(() => {
             const canvas = editor.Canvas;
             if (canvas) {
@@ -2262,7 +2230,7 @@ const BasicElementor: React.FC = () => {
 
     setSelectedSection(sectionName);
     setShowStylePanel(true);
-    setShowStructurePanel(false);
+    // Structure stays visible on left; Style opens on right
 
     // Find component using selectors and select it
     const selectors = SECTION_SELECTORS[sectionName] || [];
@@ -2291,99 +2259,41 @@ const BasicElementor: React.FC = () => {
     }
   };
 
-  // Handle device change - Simplified and fixed
+  // Handle device change - Desktop: set explicit pixel width so frame isn't mobile-sized
   useEffect(() => {
     const editor = editorInstance.current;
-    if (!editor) {
-      console.warn('Editor not available for device change');
-      return;
-    }
-
-    // Convert lowercase device name to capitalized (GrapesJS expects capitalized names)
+    if (!editor) return;
     const deviceNameMap: Record<string, string> = {
       'desktop': 'Desktop',
       'tablet': 'Tablet',
       'mobile': 'Mobile'
     };
     const capitalizedDevice = deviceNameMap[currentDevice] || currentDevice;
-    
-    console.log('🔄 Changing device to:', capitalizedDevice);
-    
     try {
-      // Set device using GrapesJS API
-      if (editor.setDevice && typeof editor.setDevice === 'function') {
-        editor.setDevice(capitalizedDevice);
-        console.log('✓ Device set via API:', capitalizedDevice);
-        
-        // Force canvas refresh
-        if (editor.refresh) {
-          editor.refresh();
-        }
-        
-        // Trigger canvas update
-        if (editor.trigger) {
-          editor.trigger('canvas:frame:load');
-        }
-        
-        // Wait for device change to take effect, then center canvas
-        setTimeout(() => {
-          const canvas = editor.Canvas;
-          if (!canvas) {
-            console.warn('Canvas not available');
-            return;
-          }
-
-          const frame = canvas.getFrameEl();
-          const canvasEl = document.querySelector('.gjs-cv-canvas') as HTMLElement;
-          
-          // Center canvas and frame
-          if (canvasEl) {
-            canvasEl.style.cssText = `
-              display: flex !important;
-              justify-content: center !important;
-              align-items: flex-start !important;
-              width: 100% !important;
-              height: 100% !important;
-              margin: 0 !important;
-              padding: 24px !important;
-              left: auto !important;
-              right: auto !important;
-            `;
-          }
-          
-          if (frame) {
-            frame.style.cssText = `
-              margin: 0 auto !important;
-              display: block !important;
-              left: auto !important;
-              right: auto !important;
-            `;
-          }
-          
-          // Verify device was actually changed (if getDevice method exists)
-          try {
-            const currentDeviceName = (editor as any).getDevice ? (editor as any).getDevice() : null;
-            if (currentDeviceName) {
-              console.log('✓ Device verification - Current:', currentDeviceName, 'Expected:', capitalizedDevice);
-              
-              if (currentDeviceName !== capitalizedDevice) {
-                console.warn('⚠️ Device mismatch, retrying...');
-                setTimeout(() => {
-                  editor.setDevice(capitalizedDevice);
-                  if (editor.refresh) editor.refresh();
-                }, 100);
-              }
-            }
-          } catch (e) {
-            // getDevice might not exist in all GrapesJS versions
-            console.log('Device verification skipped (getDevice not available)');
-          }
-        }, 100);
+      if (editor.setDevice) editor.setDevice(capitalizedDevice);
+      editor.refresh?.();
+      applyResponsiveView(editor, currentDevice);
+      let clearRetries: (() => void) | undefined;
+      if (currentDevice === 'desktop') {
+        clearRetries = scheduleDesktopRetries(editor);
       } else {
-        console.error('❌ setDevice method not available on editor');
+        const t1 = setTimeout(() => applyResponsiveView(editor, currentDevice), 100);
+        const t2 = setTimeout(() => applyResponsiveView(editor, currentDevice), 300);
+        const t3 = setTimeout(() => applyResponsiveView(editor, currentDevice), 600);
+        clearRetries = () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
       }
-    } catch (error) {
-      console.error('❌ Error setting device:', error);
+      const canvasHost = document.querySelector('.builder-center-panel') || document.querySelector('.basic-elementor-preview');
+      const ro = canvasHost && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => {
+        const dev = (editor as any).getDevice?.() || editor.DeviceManager?.getSelected?.()?.get?.('id');
+        if ((dev || '').toLowerCase() === currentDevice) applyResponsiveView(editor, currentDevice);
+      }) : null;
+      if (ro && canvasHost) ro.observe(canvasHost as Element);
+      return () => {
+        clearRetries?.();
+        ro?.disconnect();
+      };
+    } catch (e) {
+      console.warn('Device change error:', e);
     }
   }, [currentDevice]);
 
@@ -3603,14 +3513,35 @@ const BasicElementor: React.FC = () => {
         </div>
       </div>
 
-      <div className="builder-main-editor" style={{ flex: 1, display: 'flex', overflow: 'hidden', background: 'var(--builder-bg-canvas, #f6f6f7)' }}>
+      <div className={`builder-main-editor device-${currentDevice}`} style={{ flex: 1, display: 'flex', overflow: 'hidden', background: 'var(--builder-bg-canvas, #f6f6f7)' }}>
         {/* Left Sidebar - Same structure as Visual Elementor */}
         <div className="builder-left-panel" style={{ width: 320, minWidth: 320 }}>
           <div className="elementor-elements-header" style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: '1px solid rgba(149, 117, 205, 0.15)' }}>
-            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--builder-text)' }}>Structure</span>
+            <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--builder-text)' }}>
+              {showStylePanel ? `Styles${selectedSection ? `: ${selectedSection}` : ''}` : 'Structure'}
+            </span>
+            {showStylePanel && (
+              <button
+                onClick={() => {
+                  setShowStylePanel(false);
+                  setShowStructurePanel(true);
+                  const editor = editorInstance.current;
+                  if (editor) editor.select(null);
+                }}
+                style={{ padding: '6px 12px', border: '1px solid rgba(149, 117, 205, 0.2)', background: 'transparent', borderRadius: 6, cursor: 'pointer', fontSize: 12, color: 'var(--builder-primary)' }}
+              >
+                Back
+              </button>
+            )}
           </div>
           <div className="elementor-left-scroll" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        {showStructurePanel && !showStylePanel && (
+        {showStylePanel ? (
+          <div className="basic-elementor-style-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#fff' }}>
+            <div style={{ flex: 1, minHeight: 0, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+              <StylePanelMountPoint />
+            </div>
+          </div>
+        ) : showStructurePanel ? (
           <div className="basic-elementor-sidebar elementor-blocks-wrapper">
           <div className="sidebar-section">
             <div className="sidebar-title">Home page</div>
@@ -3719,48 +3650,29 @@ const BasicElementor: React.FC = () => {
             )}
           </div>
           </div>
-        )}
-
-        {/* Style Editor Panel - Always in DOM for GrapesJS appendTo; visibility toggled */}
-        <div
-          className="elementor-panel-card style-editor-panel"
-          data-panel-type="style"
-          style={{
-            display: showStylePanel ? 'flex' : 'none',
-            flexDirection: 'column',
-            flex: 1,
-            minHeight: 0,
-            background: 'var(--builder-bg-widgets, #fefcff)',
-          }}
-        >
-          <div className="elementor-panel-card-title" style={{ padding: '12px 16px', borderBottom: '1px solid rgba(149, 117, 205, 0.15)', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-            <button
-              onClick={() => {
-                setShowStylePanel(false);
-                setShowStructurePanel(true);
-                const editor = editorInstance.current;
-                if (editor) editor.select(null);
-              }}
-              style={{ padding: '4px 8px', border: '1px solid rgba(149, 117, 205, 0.2)', background: 'transparent', borderRadius: 6, cursor: 'pointer', fontSize: 12, color: 'var(--builder-primary)' }}
-            >
-              ← Back
-            </button>
-            <span>Styles{selectedSection ? `: ${selectedSection}` : ''}</span>
-          </div>
-          {/* Wrapper must not be re-rendered or React will clear the StyleManager DOM. Use memoized component. */}
-          <StylePanelMountPoint />
-        </div>
+        ) : null}
           </div>
         </div>
 
         {/* Center - Canvas - Same as Visual Elementor */}
         <div className="builder-center-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--builder-bg-canvas, #f6f6f7)', position: 'relative' }}>
-        <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px' }}>
-          <div className="elementor-canvas-header" style={{ width: '100%', maxWidth: '1200px', marginBottom: 0 }}>
+        <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'stretch', padding: '20px', width: '100%' }}>
+          <div className="elementor-canvas-header" style={{ width: '100%', maxWidth: currentDevice === 'desktop' ? '100%' : '1200px', marginBottom: 0 }}>
             <div className="elementor-canvas-site-name">{themeName || 'Ziplofy Theme'}</div>
             <div className="elementor-canvas-page-name">{pages.find(p => p.id === currentPageId)?.name || 'Home'}</div>
           </div>
-        <div className="basic-elementor-preview" style={{ width: '100%', maxWidth: '1200px', background: '#fff', minHeight: '600px', position: 'relative', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+        <div 
+          className="basic-elementor-preview" 
+          style={{ 
+            width: '100%', 
+            maxWidth: currentDevice === 'desktop' ? '100%' : '1200px', 
+            flex: currentDevice === 'desktop' ? 1 : undefined,
+            background: '#fff', 
+            minHeight: '600px', 
+            position: 'relative', 
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)' 
+          }}
+        >
           {loading && (
             <div className="loading-overlay">
               <div className="loading-spinner"></div>
@@ -3778,7 +3690,7 @@ const BasicElementor: React.FC = () => {
             style={{ height: '100%', width: '100%', minHeight: 0, position: 'relative' }} 
           />
         </div>
-        <div className="elementor-canvas-footer" style={{ width: '100%', maxWidth: '1200px', marginTop: 0 }}>
+        <div className="elementor-canvas-footer" style={{ width: '100%', maxWidth: currentDevice === 'desktop' ? '100%' : '1200px', marginTop: 0 }}>
           Copyright © {new Date().getFullYear()} {themeName || 'Ziplofy Theme'} | Powered by <a href="#" onClick={(e) => e.preventDefault()}>Ziplofy Theme Builder</a>
         </div>
         </div>
