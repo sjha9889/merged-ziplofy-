@@ -1659,7 +1659,7 @@ const ShippingProfileDetailsPage: React.FC = () => {
 
                     return (
                       <div key={entry._id} className="flex items-center gap-3 rounded-lg border border-gray-100 bg-gray-50/50 p-3">
-                        <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center text-sm font-medium text-purple-900 shrink-0 overflow-hidden">
+                        <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center text-sm font-medium text-purple-600 shrink-0 overflow-hidden">
                           {imageUrl ? (
                             <img src={imageUrl} alt={product?.title || 'Product'} className="w-full h-full object-cover" />
                           ) : (

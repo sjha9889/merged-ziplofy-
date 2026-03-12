@@ -57,7 +57,6 @@ const ExportLogs: React.FC = () => {
       alert(err.response?.data?.message || "Failed to download");
     }
   };
-
   const formatDate = (dateStr: string) => {
     try {
       return new Date(dateStr).toLocaleString("en-US", {
@@ -72,7 +71,6 @@ const ExportLogs: React.FC = () => {
       return dateStr;
     }
   };
-
   return (
     <div className="export-logs-page">
       <div className="export-logs-card">

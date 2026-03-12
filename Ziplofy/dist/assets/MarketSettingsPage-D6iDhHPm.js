@@ -1,0 +1,1 @@
+import{j as r}from"./index-Di8-oTzK.js";import{G as t}from"./GridBackgroundWrapper-B79eSp8n.js";const s=()=>r.jsx(t,{children:r.jsx("div",{children:"MarketSettingsPage"})});export{s as MarketSettingsPage};
