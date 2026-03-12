@@ -2,6 +2,7 @@ import {
   BellIcon,
   MagnifyingGlassIcon,
   QuestionMarkCircleIcon,
+  SparklesIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
@@ -72,6 +73,12 @@ const ShopifyNavbar: React.FC = () => {
   const handleStoreChange = useCallback((storeId: string) => {
     setActiveStoreId(storeId);
   }, [setActiveStoreId]);
+
+  const handleShowTour = useCallback(() => {
+    localStorage.removeItem('ziplofy_onboarding_complete');
+    localStorage.removeItem('ziplofy_onboarding_step');
+    window.dispatchEvent(new CustomEvent('ziplofy-show-tour'));
+  }, []);
 
   // Close alerts menu when clicking outside
   useEffect(() => {
@@ -180,6 +187,16 @@ const ShopifyNavbar: React.FC = () => {
               <QuestionMarkCircleIcon className="w-4 h-4 text-gray-600" />
             </button>
           </div>
+
+          {/* Show Tour Button */}
+          <button
+            onClick={handleShowTour}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded text-blue-600 text-xs font-medium transition-colors"
+            aria-label="Show tour"
+          >
+            <SparklesIcon className="w-3.5 h-3.5" />
+            Show Tour
+          </button>
                       {/* Admin Dropdown */}
             <div className="relative bg-gray-50 rounded border border-gray-200">
               <StoreDropdown onStoreChange={handleStoreChange} />

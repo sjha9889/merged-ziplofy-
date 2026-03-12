@@ -203,6 +203,7 @@ export default function Sidebar() {
                       toggle(item.text);
                     }
                   }}
+                  data-tour-id={`nav-${item.text.toLowerCase().replace(/\s+/g, '-')}`}
                   className={`relative z-10 flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors ${
                     active ? 'text-blue-700' : ''
                   }`}
@@ -258,6 +259,7 @@ export default function Sidebar() {
           <li>
             <Link
               to="/settings/general"
+              data-tour-id="nav-settings"
               className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors ${
                 location.pathname.startsWith('/settings') ? 'text-blue-700' : ''
               }`}

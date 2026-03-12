@@ -85,6 +85,7 @@ import notificationOptionRouter from './routes/notification-option.route';
 import notificationOverrideRouter from './routes/notification-override.route';
 import permissionRouter from './routes/permission.route';
 import pixelRouter from './routes/pixel.route';
+import { productOffersRouter } from './routes/product-offers.route';
 import { productOverrideEntryRouter } from './routes/product-override-entry.route';
 import { productOverrideRouter } from './routes/product-override.route';
 import returnRulesRouter from './routes/return-rules.route';
@@ -118,7 +119,6 @@ import { taxAndDutiesGlobalSettingsRouter } from './routes/tax-and-duties-global
 import { taxRateDefaultRouter } from './routes/tax-rate-default.route';
 import { taxRateOverrideRouter } from './routes/tax-rate-override.route';
 import triggerRouter from './routes/trigger.route';
-import { productOffersRouter } from './routes/product-offers.route';
 
 import automationFlowRouter from './routes/automation-flow.route';
 import checkoutSettingsRoute from './routes/checkout-settings.route';
