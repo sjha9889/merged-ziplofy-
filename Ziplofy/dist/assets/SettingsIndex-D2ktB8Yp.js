@@ -1,0 +1,1 @@
+import{j as t}from"./index-BiuNgHjn.js";import r from"./SettingsPlaceholder-DiqFKuRr.js";import"./Box-BcE5U0Su.js";import"./DefaultPropsProvider-Dt-0jJpm.js";import"./Paper-vyJ0-5ks.js";const n=()=>t.jsx(r,{title:"General"});export{n as default};

@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiLock, FiShare2, FiCopy, FiMinus, FiPlus, FiCheck } from 'react-icons/fi';
+import { FiArrowLeft, FiLock, FiShare2, FiMinus, FiPlus, FiCheck } from 'react-icons/fi';
 import { FaStar, FaShippingFast, FaShieldAlt, FaHeadset } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStorefrontProducts } from '../contexts/product.context';
@@ -36,7 +36,6 @@ const StorefrontProductDetailPage: React.FC = () => {
   const { user, checkAuth, login, signup } = useStorefrontAuth();
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
-  const [pageLoaded, setPageLoaded] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [search, setSearch] = useState<string>('');
   const [authPopupOpen, setAuthPopupOpen] = useState<boolean>(false);
@@ -103,11 +102,6 @@ const StorefrontProductDetailPage: React.FC = () => {
     fetchAmountOffProductsOffersForProduct,
     fetchBuyXGetYOffersForProduct,
   } = useProductOffers();
-
-  useEffect(() => {
-    const timer = setTimeout(() => setPageLoaded(true), 200);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     checkAuth();

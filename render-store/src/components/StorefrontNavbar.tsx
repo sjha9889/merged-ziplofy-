@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiLogOut, FiMenu, FiSearch, FiShoppingBag, FiUser, FiX, FiChevronDown, FiPackage } from 'react-icons/fi';
+import { FiLogOut, FiSearch, FiShoppingBag, FiUser, FiX, FiChevronDown, FiPackage } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStorefront } from '../contexts/store.context';
