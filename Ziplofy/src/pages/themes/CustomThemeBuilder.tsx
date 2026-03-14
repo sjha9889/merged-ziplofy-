@@ -1,10 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useCustomThemes } from '../../contexts/custom-themes.context';
 import { useStore } from '../../contexts/store.context';
 import ElementorTutorial from '../../components/ElementorTutorial';
 import html2canvas from 'html2canvas';
 import { safeLocalStorage } from '../../types/local-storage';
+import { Monitor, Tablet, Smartphone } from 'lucide-react';
 import './CustomThemeBuilder.css';
 
 const CustomThemeBuilder: React.FC = () => {
@@ -29,12 +31,50 @@ const CustomThemeBuilder: React.FC = () => {
   const [showTutorial, setShowTutorial] = useState<boolean>(false);
   const [showPreviewModal, setShowPreviewModal] = useState<boolean>(false);
   const [previewHtml, setPreviewHtml] = useState<string>('');
-  const [activeSidebarSection, setActiveSidebarSection] = useState<'widgets' | 'globals' | 'structure' | 'style'>('widgets');
+  const [activeSidebarSection, setActiveSidebarSection] = useState<'widgets' | 'links' | 'structure' | 'style'>('widgets');
   const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] = useState<boolean>(false);
   const [showGridOverlay, setShowGridOverlay] = useState<boolean>(false);
   const [showGlobalSearch, setShowGlobalSearch] = useState<boolean>(false);
   const [globalSearchQuery, setGlobalSearchQuery] = useState<string>('');
   const [showLinkManager, setShowLinkManager] = useState<boolean>(false);
+  const [linksPanelData, setLinksPanelData] = useState<{ component: any; href: string; pageLink: string; linkType: string; tagName: string } | null>(null);
+  const [imagePanelData, setImagePanelData] = useState<{ component: any; src: string; alt: string } | null>(null);
+  const [imageCardMode, setImageCardMode] = useState<'upload' | 'url'>('upload');
+
+  const applyImageFromCard = useCallback((src: string) => {
+    if (!imagePanelData || !src) return;
+    const comp = imagePanelData.component;
+    const editor = editorInstance.current;
+    const view = comp?.getView?.();
+    const el = view?.el;
+    const imgEl = el && (el.tagName === 'IMG' ? el : el.querySelector?.('img'));
+    if (!imgEl) return;
+    (imgEl as HTMLImageElement).setAttribute('src', src);
+    const tag = (comp?.get?.('tagName') || '').toLowerCase();
+    if (tag === 'img') { comp?.addAttributes?.({ src }); comp?.set?.('src', src); }
+    else { const imgComp = editor?.Components?.getComponent?.(imgEl); if (imgComp) { imgComp.addAttributes?.({ src }); imgComp.set?.('src', src); } }
+    comp?.trigger?.('change');
+    setImagePanelData((d) => d ? { ...d, src } : null);
+    setHasUnsavedChanges(true);
+  }, [imagePanelData]);
+
+  const applyAltFromCard = useCallback(() => {
+    if (!imagePanelData) return;
+    const comp = imagePanelData.component;
+    const editor = editorInstance.current;
+    const alt = (imagePanelData.alt || '').trim();
+    const view = comp?.getView?.();
+    const el = view?.el;
+    const imgEl = el && (el.tagName === 'IMG' ? el : el.querySelector?.('img'));
+    if (imgEl) {
+      (imgEl as HTMLImageElement).setAttribute('alt', alt);
+      const tag = (comp?.get?.('tagName') || '').toLowerCase();
+      if (tag === 'img') { comp?.addAttributes?.({ alt }); comp?.set?.('alt', alt); }
+      else { const imgComp = editor?.Components?.getComponent?.(imgEl); if (imgComp) { imgComp.addAttributes?.({ alt }); imgComp.set?.('alt', alt); } }
+    }
+    comp?.trigger?.('change');
+    setHasUnsavedChanges(true);
+  }, [imagePanelData]);
   const [linkManagerLinks, setLinkManagerLinks] = useState<Array<{ id: string; type: string; text: string; href?: string; pageLink?: string; component: any }>>([]);
   const [showNotes, setShowNotes] = useState<boolean>(false);
   const [notes, setNotes] = useState<Array<{ id: string; content: string; createdAt: number }>>([]);
@@ -2047,9 +2087,12 @@ const CustomThemeBuilder: React.FC = () => {
         return `${apiBase}/${src}`;
       };
       
-      // Use multiple timeouts to ensure iframe is ready and DOM is loaded
+      // Use multiple timeouts to ensure iframe is ready – but inject only ONCE to avoid
+      // "Identifier 'engine' has already been declared" (scripts run again on re-inject)
+      let scriptsInjected = false;
       [200, 500, 1000].forEach((delay) => {
         setTimeout(() => {
+          if (scriptsInjected) return;
           try {
             const canvas = editor.Canvas;
             if (canvas) {
@@ -2065,6 +2108,7 @@ const CustomThemeBuilder: React.FC = () => {
                   }
                   return;
                 }
+                scriptsInjected = true;
 
                 // Ensure base tag exists for relative path resolution
                 let baseTag = head.querySelector('base[data-ziplofy-theme-base]');
@@ -2126,11 +2170,11 @@ const CustomThemeBuilder: React.FC = () => {
                               // Continue even if script fails to load
                               resolve();
                             };
-                            // Timeout after 10 seconds
+                            // Timeout after 8 seconds – resolve to avoid blocking next script
                             setTimeout(() => {
                               console.warn(`⚠️ Script load timeout: ${scriptTag.src}`);
                               resolve();
-                            }, 10000);
+                            }, 8000);
                           });
                         } else {
                           // For async/defer scripts, just log
@@ -3515,64 +3559,17 @@ ${linkStylesheetTag}  <style>
                 buildProps: [
                   'width', 'height', 'min-width', 'min-height', 'max-width', 'max-height',
                   'padding', 'margin', 'display', 'position', 'top', 'right', 'bottom', 'left', 'z-index',
-                  { type: 'select', property: 'overflow', label: 'Overflow', options: [
-                    { id: 'visible', label: 'Visible' }, { id: 'hidden', label: 'Hidden' }, { id: 'scroll', label: 'Scroll' }, { id: 'auto', label: 'Auto' },
-                  ]},
-                  { type: 'select', property: 'overflow-x', label: 'Overflow X', options: [
-                    { id: 'visible', label: 'Visible' }, { id: 'hidden', label: 'Hidden' }, { id: 'scroll', label: 'Scroll' }, { id: 'auto', label: 'Auto' },
-                  ]},
-                  { type: 'select', property: 'overflow-y', label: 'Overflow Y', options: [
-                    { id: 'visible', label: 'Visible' }, { id: 'hidden', label: 'Hidden' }, { id: 'scroll', label: 'Scroll' }, { id: 'auto', label: 'Auto' },
-                  ]},
-                  { type: 'select', property: 'float', label: 'Float', options: [
-                    { id: 'none', label: 'None' }, { id: 'left', label: 'Left' }, { id: 'right', label: 'Right' },
-                  ]},
-                  { type: 'select', property: 'clear', label: 'Clear', options: [
-                    { id: 'none', label: 'None' }, { id: 'left', label: 'Left' }, { id: 'right', label: 'Right' }, { id: 'both', label: 'Both' },
-                  ]},
-                  { type: 'select', property: 'vertical-align', label: 'Vertical align', options: [
-                    { id: 'baseline', label: 'Baseline' }, { id: 'top', label: 'Top' }, { id: 'middle', label: 'Middle' }, { id: 'bottom', label: 'Bottom' },
-                    { id: 'text-top', label: 'Text top' }, { id: 'text-bottom', label: 'Text bottom' }, { id: 'sub', label: 'Sub' }, { id: 'super', label: 'Super' },
-                  ]},
-                  { type: 'select', property: 'box-sizing', label: 'Box sizing', options: [
-                    { id: 'content-box', label: 'Content box' }, { id: 'border-box', label: 'Border box' },
-                  ]},
+                  'overflow', 'overflow-x', 'overflow-y', 'float', 'clear', 'vertical-align', 'box-sizing'
                 ],
               },
               {
                 name: 'Typography',
                 open: true,
                 buildProps: [
-                  { type: 'select', property: 'font-family', label: 'Font family', options: [
-                    { id: 'inherit', label: 'Inherit' }, { id: 'Arial, Helvetica, sans-serif', label: 'Arial' }, { id: 'Georgia, serif', label: 'Georgia' },
-                    { id: '"Times New Roman", Times, serif', label: 'Times New Roman' }, { id: '"Courier New", monospace', label: 'Courier New' },
-                    { id: 'Verdana, sans-serif', label: 'Verdana' }, { id: 'system-ui, sans-serif', label: 'System' }, { id: 'sans-serif', label: 'Sans-serif' },
-                    { id: 'serif', label: 'Serif' }, { id: 'monospace', label: 'Monospace' }, { id: 'cursive', label: 'Cursive' }, { id: 'fantasy', label: 'Fantasy' },
-                  ]},
-                  'font-size', 'font-weight', 'font-style', 'font-variant',
-                  { type: 'select', property: 'text-decoration', label: 'Text decoration', options: [
-                    { id: 'none', label: 'None' }, { id: 'underline', label: 'Underline' }, { id: 'overline', label: 'Overline' }, { id: 'line-through', label: 'Line through' },
-                  ]},
-                  { type: 'select', property: 'text-align', label: 'Text align', options: [
-                    { id: 'left', label: 'Left' }, { id: 'center', label: 'Center' }, { id: 'right', label: 'Right' }, { id: 'justify', label: 'Justify' },
-                  ]},
-                  { type: 'select', property: 'text-transform', label: 'Text transform', options: [
-                    { id: 'none', label: 'None' }, { id: 'capitalize', label: 'Capitalize' }, { id: 'uppercase', label: 'Uppercase' }, { id: 'lowercase', label: 'Lowercase' },
-                  ]},
-                  'text-indent', 'line-height', 'letter-spacing', 'word-spacing',
-                  { type: 'select', property: 'white-space', label: 'White space', options: [
-                    { id: 'normal', label: 'Normal' }, { id: 'nowrap', label: 'No wrap' }, { id: 'pre', label: 'Pre' }, { id: 'pre-wrap', label: 'Pre wrap' }, { id: 'pre-line', label: 'Pre line' },
-                  ]},
-                  'color', 'text-shadow',
-                  { type: 'select', property: 'text-overflow', label: 'Text overflow', options: [
-                    { id: 'clip', label: 'Clip' }, { id: 'ellipsis', label: 'Ellipsis' },
-                  ]},
-                  { type: 'select', property: 'word-wrap', label: 'Word wrap', options: [
-                    { id: 'normal', label: 'Normal' }, { id: 'break-word', label: 'Break word' },
-                  ]},
-                  { type: 'select', property: 'word-break', label: 'Word break', options: [
-                    { id: 'normal', label: 'Normal' }, { id: 'break-all', label: 'Break all' }, { id: 'keep-all', label: 'Keep all' },
-                  ]},
+                  'font-family', 'font-size', 'font-weight', 'font-style', 'font-variant',
+                  'text-decoration', 'text-align', 'text-transform', 'text-indent',
+                  'line-height', 'letter-spacing', 'word-spacing', 'white-space',
+                  'color', 'text-shadow', 'text-overflow', 'word-wrap', 'word-break'
                 ],
               },
               {
@@ -3898,7 +3895,7 @@ ${linkStylesheetTag}  <style>
           
           console.log('✅ Editor loaded - ensuring widgets panel is visible');
           
-          // Use requestAnimationFrame to defer state updates and prevent reload loops
+          // Use requestAnimationFrame to defer state updates and prevent reload loops to defer state updates and prevent reload loops
           requestAnimationFrame(() => {
             if (destroyed) return;
             
@@ -4388,7 +4385,6 @@ ${linkStylesheetTag}  <style>
               wrapper.set({ stylable: true });
               editor.runCommand('open-sm');
             }
-              
               const stylePanel = document.getElementById('style-panel');
             if (!stylePanel || typeof editor.StyleManager.render !== 'function') return;
             
@@ -4399,7 +4395,7 @@ ${linkStylesheetTag}  <style>
                 stylePanel.style.width = '100%';
                 stylePanel.style.height = '100%';
                 stylePanel.style.minHeight = '300px';
-                stylePanel.style.background = '#1e1e1e';
+                stylePanel.style.background = '#ffffff';
                 
             // Render Style Manager
             // CRITICAL: Only render if style tab is active
@@ -4407,33 +4403,28 @@ ${linkStylesheetTag}  <style>
                 stylePanel.innerHTML = '';
                 editor.StyleManager.render();
             }
-                
-            // Optimize sector expansion - use requestAnimationFrame and batch DOM updates
-            requestAnimationFrame(() => {
-                  const sectors = stylePanel.querySelectorAll('.gjs-sm-sector');
-                  
-              // Batch DOM updates for better performance
-              const fragment = document.createDocumentFragment();
-              const updates: (() => void)[] = [];
-              
-                  sectors.forEach((sector: any) => {
+
+            // Attach sector toggle handlers (Layout, Typography, etc. collapse like widgets)
+            if (!(stylePanel as any)._sectorToggleBound) {
+              (stylePanel as any)._sectorToggleBound = true;
+              stylePanel.addEventListener('click', (e: MouseEvent) => {
+                const target = e.target as HTMLElement;
+                // Click on header area (not on inputs inside content) - support both title class and any click in sector excluding content
+                const sector = target.closest('.gjs-sm-sector');
                 if (!sector) return;
-                
-                // Prepare updates
-                updates.push(() => {
-                      sector.classList.remove('gjs-sm-sector--closed');
-                      sector.classList.add('gjs-sm-sector--open');
-                      
-                      const sectorContent = sector.querySelector('.gjs-sm-sector-content');
-                      if (sectorContent) {
-                    (sectorContent as HTMLElement).style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; max-height: none !important;';
-                  }
-                });
-              });
-              
-              // Apply all updates in a single batch
-              updates.forEach(update => update());
-            });
+                if (target.closest('.gjs-sm-sector-content') || target.closest('input') || target.closest('select')) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const isOpen = sector.classList.contains('gjs-sm-sector--open') || sector.classList.contains('gjs-sm-open') || !sector.classList.contains('gjs-sm-sector--closed');
+                if (isOpen) {
+                  sector.classList.remove('gjs-sm-sector--open', 'gjs-sm-open');
+                  sector.classList.add('gjs-sm-sector--closed');
+                } else {
+                  sector.classList.remove('gjs-sm-sector--closed');
+                  sector.classList.add('gjs-sm-sector--open', 'gjs-sm-open');
+                }
+              }, true);
+            }
           } catch (e) {
             console.warn('Error initializing Style Manager:', e);
           }
@@ -4512,7 +4503,7 @@ ${linkStylesheetTag}  <style>
         bm.add('navbar', {
           label: 'Navbar',
           category: 'Layout',
-          content: '<nav style="background: #ffffff; padding: 16px 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000;" data-gjs-selectable="true" data-gjs-droppable="*"><div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;"><div style="display: flex; align-items: center; gap: 12px;" data-gjs-selectable="true" data-gjs-droppable="*"><div style="width: 40px; height: 40px; background: #5e72e4; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;" data-gjs-type="text" data-gjs-editable="true">L</div><span style="font-size: 20px; font-weight: 700; color: #1e1e1e;" data-gjs-type="text" data-gjs-editable="true">Logo</span></div><ul style="display: flex; list-style: none; gap: 32px; margin: 0; padding: 0; align-items: center; flex-wrap: wrap;" data-gjs-selectable="true" data-gjs-droppable="*"><li style="margin: 0;" data-gjs-selectable="true"><a href="#" style="color: #495157; text-decoration: none; font-size: 16px; font-weight: 500; transition: color 0.3s;" data-gjs-type="text" data-gjs-editable="true">Home</a></li><li style="margin: 0;" data-gjs-selectable="true"><a href="#" style="color: #495157; text-decoration: none; font-size: 16px; font-weight: 500; transition: color 0.3s;" data-gjs-type="text" data-gjs-editable="true">About</a></li><li style="margin: 0;" data-gjs-selectable="true"><a href="#" style="color: #495157; text-decoration: none; font-size: 16px; font-weight: 500; transition: color 0.3s;" data-gjs-type="text" data-gjs-editable="true">Services</a></li><li style="margin: 0;" data-gjs-selectable="true"><a href="#" style="color: #495157; text-decoration: none; font-size: 16px; font-weight: 500; transition: color 0.3s;" data-gjs-type="text" data-gjs-editable="true">Contact</a></li></ul><div style="display: flex; align-items: center; gap: 12px;" data-gjs-selectable="true" data-gjs-droppable="*"><button style="padding: 10px 24px; background: transparent; color: #5e72e4; border: 2px solid #5e72e4; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s;" data-gjs-type="text" data-gjs-editable="true">Login</button><button style="padding: 10px 24px; background: #5e72e4; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s;" data-gjs-type="text" data-gjs-editable="true">Sign Up</button></div></div></nav>',
+          content: '<nav style="background: #ffffff; padding: 16px 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 1000;" data-gjs-selectable="true" data-gjs-droppable="*"><div style="max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;"><div style="display: flex; align-items: center; gap: 12px;" data-gjs-selectable="true" data-gjs-droppable="*"><div style="width: 40px; height: 40px; background: #5e72e4; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;" data-gjs-type="text" data-gjs-editable="true">L</div><span style="font-size: 20px; font-weight: 700; color: #1e1e1e;" data-gjs-type="text" data-gjs-editable="true">Logo</span></div><ul style="display: flex; list-style: none; gap: 32px; margin: 0; padding: 0; align-items: center; flex-wrap: wrap;" data-gjs-selectable="true" data-gjs-droppable="*"><li style="margin: 0;" data-gjs-selectable="true"><a href="#" style="color: #495157; text-decoration: none; font-size: 16px; font-weight: 500; transition: color 0.3s;" data-gjs-type="text" data-gjs-editable="true">Home</a></li><li style="margin: 0;" data-gjs-selectable="true"><a href="#" style="color: #495157; text-decoration: none; font-size: 16px; font-weight: 500; transition: color 0.3s;" data-gjs-type="text" data-gjs-editable="true">About</a></li><li style="margin: 0;" data-gjs-selectable="true"><a href="#" style="color: #495157; text-decoration: none; font-size: 16px; font-weight: 500; transition: color 0.3s;" data-gjs-type="text" data-gjs-editable="true">Services</a></li><li style="margin: 0;" data-gjs-selectable="true"><a href="#" style="color: #495157; text-decoration: none; font-size: 16px; font-weight: 500; transition: color 0.3s;" data-gjs-type="text" data-gjs-editable="true">Contact</a></li></ul><div style="display: flex; align-items: center; gap: 14px;" data-gjs-selectable="true" data-gjs-droppable="*"><button style="padding: 14px 28px; background: transparent; color: #5e72e4; border: 2px solid #5e72e4; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s;" data-gjs-type="text" data-gjs-editable="true">Login</button><button style="padding: 14px 28px; background: #5e72e4; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s;" data-gjs-type="text" data-gjs-editable="true">Sign Up</button></div></div></nav>',
         } as any);
 
         // ========== TEXT ELEMENTS ==========
@@ -4986,11 +4977,11 @@ ${linkStylesheetTag}  <style>
           content: '<div style="text-align: center; padding: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 16px; color: #ffffff;" data-gjs-selectable="true" data-gjs-droppable="*"><div style="font-size: 64px; font-weight: 800; margin-bottom: 12px; line-height: 1;" data-gjs-type="text" data-gjs-editable="true">1,234</div><div style="font-size: 20px; font-weight: 500; opacity: 0.9;" data-gjs-type="text" data-gjs-editable="true">Total Users</div></div>',
         } as any);
 
-        // Image Carousel/Slider Widget
+        // Image Carousel/Slider Widget - horizontal scroll with arrows, responsive
         bm.add('image-carousel', {
           label: 'Image Carousel',
           category: 'Media',
-          content: '<div style="position: relative; padding: 20px; background: #ffffff; border-radius: 12px;" data-gjs-selectable="true" data-gjs-droppable="*"><div style="display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -ms-overflow-style: none;" data-gjs-selectable="true" data-gjs-droppable="*"><div style="min-width: 300px; scroll-snap-align: start; flex-shrink: 0;" data-gjs-selectable="true"><img src="https://via.placeholder.com/600x400/667eea/ffffff?text=Slide+1" alt="Carousel Image" style="width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" /></div><div style="min-width: 300px; scroll-snap-align: start; flex-shrink: 0;" data-gjs-selectable="true"><img src="https://via.placeholder.com/600x400/764ba2/ffffff?text=Slide+2" alt="Carousel Image" style="width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" /></div><div style="min-width: 300px; scroll-snap-align: start; flex-shrink: 0;" data-gjs-selectable="true"><img src="https://via.placeholder.com/600x400/f093fb/ffffff?text=Slide+3" alt="Carousel Image" style="width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" /></div></div><div style="display: flex; justify-content: center; gap: 8px; margin-top: 16px;"><div style="width: 12px; height: 12px; border-radius: 50%; background: #5e72e4;"></div><div style="width: 12px; height: 12px; border-radius: 50%; background: #e5e7eb;"></div><div style="width: 12px; height: 12px; border-radius: 50%; background: #e5e7eb;"></div></div></div>',
+          content: '<div class="ziplofy-image-carousel" style="position:relative;width:100%;max-width:100%;padding:24px;background:linear-gradient(180deg,#fafbfc 0%,#fff 100%);border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06),0 0 0 1px rgba(0,0,0,0.04);" data-gjs-selectable="true" data-gjs-droppable="*"><div class="ziplofy-carousel-track" style="display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none;padding:8px 0;" data-gjs-selectable="true" data-gjs-droppable="*"><div class="ziplofy-carousel-slide" style="min-width:min(320px,85vw);max-width:100%;scroll-snap-align:center;flex-shrink:0;aspect-ratio:16/10;overflow:hidden;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.1);" data-gjs-selectable="true"><img src="https://via.placeholder.com/600x375/667eea/ffffff?text=Slide+1" alt="Slide 1" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" /></div><div class="ziplofy-carousel-slide" style="min-width:min(320px,85vw);max-width:100%;scroll-snap-align:center;flex-shrink:0;aspect-ratio:16/10;overflow:hidden;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.1);" data-gjs-selectable="true"><img src="https://via.placeholder.com/600x375/764ba2/ffffff?text=Slide+2" alt="Slide 2" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" /></div><div class="ziplofy-carousel-slide" style="min-width:min(320px,85vw);max-width:100%;scroll-snap-align:center;flex-shrink:0;aspect-ratio:16/10;overflow:hidden;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,0.1);" data-gjs-selectable="true"><img src="https://via.placeholder.com/600x375/f093fb/ffffff?text=Slide+3" alt="Slide 3" style="width:100%;height:100%;object-fit:cover;border-radius:12px;" /></div></div><div class="ziplofy-carousel-nav" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:20px;"><button type="button" class="ziplofy-carousel-prev" aria-label="Previous" style="width:40px;height:40px;border-radius:50%;border:2px solid #e5e7eb;background:#fff;color:#5e72e4;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;">‹</button><div style="display:flex;gap:8px;"><span class="ziplofy-carousel-dot" style="width:10px;height:10px;border-radius:50%;background:#5e72e4;"></span><span class="ziplofy-carousel-dot" style="width:10px;height:10px;border-radius:50%;background:#e5e7eb;"></span><span class="ziplofy-carousel-dot" style="width:10px;height:10px;border-radius:50%;background:#e5e7eb;"></span></div><button type="button" class="ziplofy-carousel-next" aria-label="Next" style="width:40px;height:40px;border-radius:50%;border:2px solid #e5e7eb;background:#fff;color:#5e72e4;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;">›</button></div></div>',
         } as any);
 
         // Advanced Card with Hover Effect
@@ -5376,6 +5367,35 @@ ${linkStylesheetTag}  <style>
             }
           }, delay);
         });
+
+        // Carousel prev/next button delegation (canvas iframe) - use editor Canvas API
+        const setupCarouselButtons = () => {
+          try {
+            const frame = editor?.Canvas?.getFrameEl?.() as HTMLIFrameElement | undefined;
+            const doc = frame?.contentDocument;
+            if (!doc || (doc as any).__ziplofyCarouselSetup) return;
+            (doc as any).__ziplofyCarouselSetup = true;
+            doc.addEventListener('click', (e: MouseEvent) => {
+              const t = e.target as HTMLElement;
+              const prev = t.closest?.('.ziplofy-carousel-prev');
+              const next = t.closest?.('.ziplofy-carousel-next');
+              if (!prev && !next) return;
+              const carousel = (prev || next)?.closest?.('.ziplofy-image-carousel');
+              const track = carousel?.querySelector?.('.ziplofy-carousel-track') as HTMLElement;
+              if (!track) return;
+              e.preventDefault();
+              e.stopPropagation();
+              const slide = track.querySelector('.ziplofy-carousel-slide');
+              const slideW = slide?.getBoundingClientRect?.()?.width ?? 340;
+              if (prev) track.scrollBy({ left: -slideW, behavior: 'smooth' });
+              if (next) track.scrollBy({ left: slideW, behavior: 'smooth' });
+            }, true);
+          } catch {}
+        };
+        editor.on('load', () => {
+          [300, 800, 1500].forEach((d) => setTimeout(setupCarouselButtons, d));
+        });
+        editor.on('component:add', () => { setTimeout(setupCarouselButtons, 200); });
 
         // Ensure wrapper is droppable and all components are editable
         editor.on('load', () => {
@@ -5949,6 +5969,11 @@ ${linkStylesheetTag}  <style>
             // Check if component and its collection are properly initialized
             if (!component.collection || !component.cid) return;
             
+            // Track immediately (sync) so component:selected can skip showing image card on drop
+            collectCids(component, lastAddedComponentCids);
+            if (lastAddedClearTimeout) clearTimeout(lastAddedClearTimeout);
+            lastAddedClearTimeout = setTimeout(() => { lastAddedComponentCids.clear(); lastAddedClearTimeout = null; }, 600);
+            
             // OPTIMIZATION: Skip processing nested components during drag - batch process after drag completes
             if (isDraggingBlock) {
               pendingComponents.add(component);
@@ -6200,6 +6225,13 @@ ${linkStylesheetTag}  <style>
         let componentAddTimeout: ReturnType<typeof setTimeout> | null = null;
         let pendingComponents: Set<any> = new Set(); // Batch component additions
         let cachedStylePanel: HTMLElement | null = null;
+        let lastAddedComponentCids = new Set<string>();
+        let lastAddedClearTimeout: ReturnType<typeof setTimeout> | null = null;
+        const collectCids = (c: any, set: Set<string>) => {
+          if (!c?.cid) return;
+          set.add(c.cid);
+          try { (c.components?.() || []).forEach((child: any) => collectCids(child, set)); } catch {}
+        };
         
         // Debounced style panel update - prevents multiple rapid renders
         const debouncedStyleUpdate = (component: any, delay = 150) => {
@@ -6307,27 +6339,7 @@ ${linkStylesheetTag}  <style>
                   (editor.StyleManager as any).setTarget(component);
                 }
                 
-                // Ensure sectors are open and visible
-                setTimeout(() => {
-                  if (!destroyed && component && editor.StyleManager) {
-                    const sectors = cachedStylePanel!.querySelectorAll('.gjs-sm-sector');
-                    sectors.forEach((sector: Element) => {
-                      const htmlSector = sector as HTMLElement;
-                      htmlSector.classList.remove('gjs-sm-sector--closed');
-                      htmlSector.classList.add('gjs-sm-sector--open');
-                      
-                      const sectorContent = htmlSector.querySelector('.gjs-sm-sector-content');
-                      if (sectorContent) {
-                        (sectorContent as HTMLElement).style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; max-height: none !important;';
-                      }
-                    });
-                    
-                    console.log('✓ StyleManager sectors opened:', sectors.length);
-                    
-                    // Re-render once more to ensure all properties are displayed
-                    editor.StyleManager.render();
-                  }
-                }, 100);
+                // Do not force sectors open – allow user to collapse/expand subsections
           } catch (e) {
                 console.error('❌ Error rendering Style Manager:', e);
               }
@@ -6500,6 +6512,11 @@ ${linkStylesheetTag}  <style>
               
               const currentPages = pagesRef.current;
               
+              // Skip image handling for body/wrapper - getComponent may return body for nested imgs
+              if (tagName === 'body' || actualTagName === 'body' || component === editor.getWrapper?.()) {
+                // Don't treat body or root wrapper as image selection
+              } else {
+              
               // Check if component is an image or contains an image
               let isImage = actualTagName === 'img' || tagName === 'img';
               let imageComponent = component;
@@ -6512,7 +6529,8 @@ ${linkStylesheetTag}  <style>
                   try {
                     // Get the actual img component if possible
                     const imgComp = (editor.Components as any).getComponent ? (editor.Components as any).getComponent(imgChild) : null;
-                    if (imgComp && imgComp.cid !== component.cid) {
+                    const imgTag = (imgComp?.get?.('tagName') || '').toLowerCase();
+                    if (imgComp && imgComp.cid !== component.cid && imgTag === 'img') {
                       imageComponent = imgComp;
                       // Re-select the image component
                       requestAnimationFrame(() => {
@@ -6530,10 +6548,14 @@ ${linkStylesheetTag}  <style>
               }
               
               if (isImage) {
-                // Auto-switch to Widgets tab to show Settings panel when image is selected
-                if (activeSidebarSection !== 'widgets') {
-                  setActiveSidebarSection('widgets');
-                }
+                // Don't show image card when user just dropped the widget - only on explicit click
+                if (imageComponent?.cid && lastAddedComponentCids.has(imageComponent.cid)) {
+                  // Skip - component was just added via drag-drop
+                } else {
+                const attrs = imageComponent.getAttributes?.() || {};
+                const src = attrs.src || imageComponent.get?.('src') || '';
+                const alt = attrs.alt || imageComponent.get?.('alt') || '';
+                setImagePanelData({ component: imageComponent, src: src || '', alt: alt || '' });
                 
                 const existingTraits = imageComponent.get('traits') || [];
                 const hasImageSrc = existingTraits.some((t: any) => {
@@ -6655,11 +6677,24 @@ ${linkStylesheetTag}  <style>
                   });
                 }
               }
+              }
+              }
               
               if (isButton || isLink) {
-                // Auto-switch to Widgets tab to show Settings panel when button/link is selected
-                if (activeSidebarSection !== 'widgets') {
-                  setActiveSidebarSection('widgets');
+                const attrs = component.getAttributes?.() || {};
+                const href = attrs.href || component.get('href') || '';
+                const pageLink = attrs['data-page-link'] || component.get('pageLink') || '';
+                const linkType = component.get('linkType') || (pageLink ? 'page' : (href && href !== '#' ? 'url' : (isButton ? 'none' : 'page')));
+                setLinksPanelData({
+                  component,
+                  href: href || '',
+                  pageLink: pageLink || '',
+                  linkType: linkType || 'page',
+                  tagName: (component.get?.('tagName') || 'a').toLowerCase(),
+                });
+                // Auto-switch to Links tab when button/link is selected so user can edit link
+                if (activeSidebarSection !== 'links') {
+                  setActiveSidebarSection('links');
                 }
                 
                 const existingTraits = component.get('traits') || [];
@@ -7127,6 +7162,8 @@ ${linkStylesheetTag}  <style>
         editor.on('component:deselected', () => {
           // Clear cached component ID when deselected
           lastSelectedComponentId = null;
+          setLinksPanelData(null);
+          setImagePanelData(null);
         });
 
         // Ensure style changes are applied - listen to style property changes
@@ -7725,7 +7762,7 @@ ${linkStylesheetTag}  <style>
               stylePanel.style.display = 'block';
               stylePanel.style.visibility = 'visible';
               stylePanel.style.opacity = '1';
-                stylePanel.style.background = '#1e1e1e';
+                stylePanel.style.background = '#ffffff';
                 
                 // Force render Style Manager
                 // CRITICAL: Only render if style tab is active
@@ -8117,7 +8154,7 @@ ${linkStylesheetTag}  <style>
                   stylePanel.style.display = 'block';
                   stylePanel.style.visibility = 'visible';
                   stylePanel.style.opacity = '1';
-                  stylePanel.style.background = '#1e1e1e';
+                  stylePanel.style.background = '#ffffff';
                   stylePanel.style.minHeight = '300px';
                 }
               }
@@ -9138,21 +9175,27 @@ ${linkStylesheetTag}  <style>
               stylePanel.innerHTML = '';
               editor.StyleManager.render();
               
-              // Ensure sectors are open
-              setTimeout(() => {
-                const sectors = stylePanel.querySelectorAll('.gjs-sm-sector');
-                sectors.forEach((sector: Element) => {
-                  const htmlSector = sector as HTMLElement;
-                  htmlSector.classList.remove('gjs-sm-sector--closed');
-                  htmlSector.classList.add('gjs-sm-sector--open');
-                  
-                  const sectorContent = htmlSector.querySelector('.gjs-sm-sector-content');
-                  if (sectorContent) {
-                    (sectorContent as HTMLElement).style.cssText = 'display: block !important; visibility: visible !important; opacity: 1 !important; max-height: none !important;';
+              // Attach sector toggle (Layout, Typography, etc. collapse like widgets)
+              if (!(stylePanel as any)._sectorToggleBound) {
+                (stylePanel as any)._sectorToggleBound = true;
+                stylePanel.addEventListener('click', (e: MouseEvent) => {
+                  const target = e.target as HTMLElement;
+                  const sector = target.closest('.gjs-sm-sector');
+                  if (!sector) return;
+                  if (target.closest('.gjs-sm-sector-content') || target.closest('input') || target.closest('select')) return;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const isOpen = sector.classList.contains('gjs-sm-sector--open') || sector.classList.contains('gjs-sm-open') || !sector.classList.contains('gjs-sm-sector--closed');
+                  if (isOpen) {
+                    sector.classList.remove('gjs-sm-sector--open', 'gjs-sm-open');
+                    sector.classList.add('gjs-sm-sector--closed');
+                  } else {
+                    sector.classList.remove('gjs-sm-sector--closed');
+                    sector.classList.add('gjs-sm-sector--open', 'gjs-sm-open');
                   }
-                });
-              }, 100);
-    } catch (e) {
+                }, true);
+              }
+            } catch (e) {
               console.error('Error rendering StyleManager on tab switch:', e);
             }
           }
@@ -9287,11 +9330,18 @@ ${linkStylesheetTag}  <style>
       }
 
       // Function to render blocks - uses fresh editor reference each time
+      const maxRetries = 25; // ~5 seconds total
+      let retryCount = 0;
       const forceRenderBlocks = () => {
         const currentEditor = editorInstance.current;
         if (!currentEditor?.BlockManager) {
-          console.warn('BlockManager not available yet, retrying...');
-          setTimeout(forceRenderBlocks, 200);
+          retryCount += 1;
+          if (retryCount <= 3) {
+            console.warn('BlockManager not available yet, retrying...');
+          }
+          if (retryCount < maxRetries) {
+            setTimeout(forceRenderBlocks, 200);
+          }
           return;
         }
 
@@ -9692,14 +9742,6 @@ ${linkStylesheetTag}  <style>
               sector.style.visibility = 'visible';
               sector.style.opacity = '1';
               sector.style.background = '#ffffff';
-              
-              // Ensure sector content is visible
-              const sectorContent = sector.querySelector('.gjs-sm-sector-content');
-              if (sectorContent) {
-                (sectorContent as HTMLElement).style.display = 'block';
-                (sectorContent as HTMLElement).style.visibility = 'visible';
-                (sectorContent as HTMLElement).style.opacity = '1';
-              }
             }
           });
           
@@ -10308,11 +10350,11 @@ ${linkStylesheetTag}  <style>
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 10000,
-            background: 'linear-gradient(135deg, #7E60E0 0%, #6b4fc9 100%)',
-            color: '#fff',
+            background: 'linear-gradient(135deg, #F59E0B 0%, #D97706 100%)',
+            color: '#ffffff',
             padding: '14px 28px',
             borderRadius: '8px',
-            boxShadow: '0 4px 20px rgba(126, 96, 224, 0.4)',
+            boxShadow: '0 4px 20px rgba(245, 158, 11, 0.4)',
             display: 'flex',
             alignItems: 'center',
             gap: '10px',
@@ -10769,7 +10811,7 @@ ${linkStylesheetTag}  <style>
               }}
               title="Desktop"
             >
-              💻
+              <Monitor size={18} strokeWidth={2} />
               </button>
           <button
               className={`elementor-device-btn ${currentDevice === 'tablet' ? 'active' : ''}`}
@@ -10805,7 +10847,7 @@ ${linkStylesheetTag}  <style>
               }}
               title="Tablet"
             >
-              📱
+              <Tablet size={18} strokeWidth={2} />
           </button>
           <button
               className={`elementor-device-btn ${currentDevice === 'mobile' ? 'active' : ''}`}
@@ -10841,7 +10883,7 @@ ${linkStylesheetTag}  <style>
               }}
               title="Mobile"
             >
-              📱
+              <Smartphone size={18} strokeWidth={2} />
           </button>
           </div>
         </div>
@@ -11069,10 +11111,27 @@ ${linkStylesheetTag}  <style>
               Widgets
             </button>
             <button
-              className={`elementor-primary-tab ${activeSidebarSection === 'globals' ? 'active' : ''}`}
-              onClick={() => setActiveSidebarSection('globals')}
+              className={`elementor-primary-tab ${activeSidebarSection === 'links' ? 'active' : ''}`}
+              onClick={() => {
+                setActiveSidebarSection('links');
+                const editor = editorInstance.current;
+                const sel = editor?.getSelected?.();
+                if (sel) {
+                  const tag = (sel.get?.('tagName') || '').toLowerCase();
+                  const type = sel.get?.('type') || '';
+                  const isLink = tag === 'a' || type === 'link';
+                  const isButton = tag === 'button' || /button/i.test(type);
+                  const attrs = sel.getAttributes?.() || {};
+                  const href = attrs.href || sel.get?.('href') || '';
+                  const pageLink = attrs['data-page-link'] || sel.get?.('pageLink') || '';
+                  const linkType = sel.get?.('linkType') || (pageLink ? 'page' : (href && href !== '#' ? 'url' : 'page'));
+                  if (isLink || isButton) {
+                    setLinksPanelData({ component: sel, href: href || '', pageLink: pageLink || '', linkType, tagName: tag });
+                  }
+                }
+              }}
             >
-              Globals
+              Links & Nav
             </button>
             <button
               className={`elementor-primary-tab ${activeSidebarSection === 'structure' ? 'active' : ''}`}
@@ -11128,19 +11187,34 @@ ${linkStylesheetTag}  <style>
                 📦
               </button>
               <button
-                className={`elementor-primary-tab-icon ${activeSidebarSection === 'globals' ? 'active' : ''}`}
+                className={`elementor-primary-tab-icon ${activeSidebarSection === 'links' ? 'active' : ''}`}
                 onClick={() => {
                   setIsLeftSidebarCollapsed(false);
-                  setActiveSidebarSection('globals');
+                  setActiveSidebarSection('links');
+                  const editor = editorInstance.current;
+                  const sel = editor?.getSelected?.();
+                  if (sel) {
+                    const tag = (sel.get?.('tagName') || '').toLowerCase();
+                    const type = sel.get?.('type') || '';
+                    const isLink = tag === 'a' || type === 'link';
+                    const isButton = tag === 'button' || /button/i.test(type);
+                    const attrs = sel.getAttributes?.() || {};
+                    const href = attrs.href || sel.get?.('href') || '';
+                    const pageLink = attrs['data-page-link'] || sel.get?.('pageLink') || '';
+                    const linkType = sel.get?.('linkType') || (pageLink ? 'page' : (href && href !== '#' ? 'url' : 'page'));
+                    if (isLink || isButton) {
+                      setLinksPanelData({ component: sel, href: href || '', pageLink: pageLink || '', linkType, tagName: tag });
+                    }
+                  }
                 }}
-                title="Globals"
+                title="Links and Navigations"
                 style={{
                   width: '36px',
                   height: '36px',
                   borderRadius: '8px',
                   border: 'none',
-                  background: activeSidebarSection === 'globals' ? 'rgba(126, 96, 224, 0.15)' : '#F0F0F0',
-                  color: activeSidebarSection === 'globals' ? '#7E60E0' : '#495157',
+                  background: activeSidebarSection === 'links' ? 'rgba(126, 96, 224, 0.15)' : '#F0F0F0',
+                  color: activeSidebarSection === 'links' ? '#7E60E0' : '#495157',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -11149,19 +11223,19 @@ ${linkStylesheetTag}  <style>
                   transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
-                  if (activeSidebarSection !== 'globals') {
+                  if (activeSidebarSection !== 'links') {
                     e.currentTarget.style.background = 'rgba(126, 96, 224, 0.1)';
                     e.currentTarget.style.color = '#7E60E0';
                   }
                 }}
                 onMouseLeave={(e) => {
-                  if (activeSidebarSection !== 'globals') {
+                  if (activeSidebarSection !== 'links') {
                     e.currentTarget.style.background = '#F0F0F0';
                     e.currentTarget.style.color = '#495157';
                   }
                 }}
               >
-                🌐
+                🔗
               </button>
               <button
                 className={`elementor-primary-tab-icon ${activeSidebarSection === 'structure' ? 'active' : ''}`}
@@ -11238,7 +11312,7 @@ ${linkStylesheetTag}  <style>
             </div>
           )}
 
-          {!isLeftSidebarCollapsed && (activeSidebarSection === 'widgets' || activeSidebarSection === 'globals') && (
+          {!isLeftSidebarCollapsed && activeSidebarSection === 'widgets' && (
             <div className="elementor-search-widget">
               <span className="elementor-search-icon">🔍</span>
               <input
@@ -11260,11 +11334,17 @@ ${linkStylesheetTag}  <style>
                 }}
                 aria-hidden={activeSidebarSection !== 'widgets'}
                 ref={(el) => {
-                  // Force visibility when widgets tab is active, even if React tries to hide it
-                  if (el && activeSidebarSection === 'widgets') {
-                    el.style.setProperty('display', 'block', 'important');
-                    el.style.setProperty('visibility', 'visible', 'important');
-                    el.style.setProperty('opacity', '1', 'important');
+                  // Show only when widgets tab is active; hide when switching to other tabs
+                  if (el) {
+                    if (activeSidebarSection === 'widgets') {
+                      el.style.setProperty('display', 'block', 'important');
+                      el.style.setProperty('visibility', 'visible', 'important');
+                      el.style.setProperty('opacity', '1', 'important');
+                    } else {
+                      el.style.setProperty('display', 'none', 'important');
+                      el.style.setProperty('visibility', 'hidden', 'important');
+                      el.style.setProperty('opacity', '0', 'important');
+                    }
                   }
                 }}
               >
@@ -11283,16 +11363,185 @@ ${linkStylesheetTag}  <style>
             <div id="traits-panel" style={{ display: 'none', position: 'absolute', left: -9999, overflow: 'hidden' }} />
 
             <div
-              className="elementor-blocks-wrapper elementor-globals-placeholder"
-              style={{ display: activeSidebarSection === 'globals' ? 'block' : 'none' }}
-              aria-hidden={activeSidebarSection !== 'globals'}
+              className="elementor-panel-card elementor-links-panel"
+              data-panel-type="links"
+              data-visible={activeSidebarSection === 'links'}
+              style={{ display: activeSidebarSection === 'links' ? 'flex' : 'none', flexDirection: 'column', flex: 1 }}
+              aria-hidden={activeSidebarSection !== 'links'}
             >
-              Globals coming soon
+              <div className="elementor-panel-card-title">Links and Navigations</div>
+              <div className="elementor-panel-card-body" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {linksPanelData ? (
+                  <>
+                    <p style={{ fontSize: '12px', color: '#6b7280', margin: '0 0 8px 0' }}>
+                      Edit the link for the selected {linksPanelData.tagName === 'a' ? 'link' : 'button'}.
+                    </p>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>Link type</label>
+                      <select
+                        value={linksPanelData.linkType}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          const comp = linksPanelData.component;
+                          setLinksPanelData((d) => d ? { ...d, linkType: v } : null);
+                          comp.set?.('linkType', v);
+                          if (v === 'none') {
+                            comp.removeAttributes?.('data-page-link');
+                            comp.addAttributes?.({ href: '#' });
+                            comp.set?.('href', '#');
+                            const view = comp.getView?.();
+                            if (view?.el) {
+                              view.el.removeAttribute('data-page-link');
+                              view.el.setAttribute('href', '#');
+                            }
+                          } else if (v === 'page' && linksPanelData.pageLink) {
+                            comp.addAttributes?.({ 'data-page-link': linksPanelData.pageLink });
+                            comp.set?.('href', `#${linksPanelData.pageLink}`);
+                            const view = comp.getView?.();
+                            if (view?.el) {
+                              view.el.setAttribute('data-page-link', linksPanelData.pageLink);
+                              view.el.setAttribute('href', `#${linksPanelData.pageLink}`);
+                            }
+                          } else if (v === 'url' && linksPanelData.href && linksPanelData.href !== '#') {
+                            comp.removeAttributes?.('data-page-link');
+                            const safe = linksPanelData.href.startsWith('http') ? linksPanelData.href : 'https://' + linksPanelData.href;
+                            comp.addAttributes?.({ href: safe });
+                            comp.set?.('href', safe);
+                            const view = comp.getView?.();
+                            if (view?.el) {
+                              view.el.removeAttribute('data-page-link');
+                              view.el.setAttribute('href', safe);
+                            }
+                          }
+                          comp.trigger?.('change');
+                          setHasUnsavedChanges(true);
+                        }}
+                        style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.15)', fontSize: '13px' }}
+                      >
+                        <option value="page">Navigate to page</option>
+                        <option value="url">External URL</option>
+                        {linksPanelData.tagName === 'button' && <option value="none">No action</option>}
+                      </select>
+                    </div>
+                    {linksPanelData.linkType === 'page' && (
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>Select page</label>
+                        <select
+                          value={linksPanelData.pageLink}
+                          onChange={(e) => {
+                            const pageId = e.target.value;
+                            setLinksPanelData((d) => d ? { ...d, pageLink: pageId, href: pageId ? `#${pageId}` : '#' } : null);
+                            const comp = linksPanelData.component;
+                            if (pageId) {
+                              comp.addAttributes?.({ 'data-page-link': pageId, href: `#${pageId}` });
+                              comp.set?.('pageLink', pageId);
+                              comp.set?.('href', `#${pageId}`);
+                              const view = comp.getView?.();
+                              if (view?.el) {
+                                view.el.setAttribute('data-page-link', pageId);
+                                view.el.setAttribute('href', `#${pageId}`);
+                              }
+                            } else {
+                              comp.removeAttributes?.('data-page-link');
+                              comp.addAttributes?.({ href: '#' });
+                              comp.set?.('href', '#');
+                              const view = comp.getView?.();
+                              if (view?.el) {
+                                view.el.removeAttribute('data-page-link');
+                                view.el.setAttribute('href', '#');
+                              }
+                            }
+                            comp.trigger?.('change');
+                            setHasUnsavedChanges(true);
+                          }}
+                          style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.15)', fontSize: '13px' }}
+                        >
+                          <option value="">-- Select page --</option>
+                          {(pages || []).map((p) => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    {linksPanelData.linkType === 'url' && (
+                      <div>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>URL</label>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <input
+                            type="url"
+                            value={linksPanelData.href}
+                            placeholder="https://example.com"
+                            onChange={(e) => setLinksPanelData((d) => d ? { ...d, href: e.target.value } : null)}
+                            onBlur={(e) => {
+                              const comp = linksPanelData.component;
+                              const href = (e.currentTarget?.value || '').trim();
+                              const safe = href && (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('mailto:') || href.startsWith('tel:')) ? href : (href ? 'https://' + href.replace(/^https?:\/\//, '') : '#');
+                              comp.removeAttributes?.('data-page-link');
+                              comp.addAttributes?.({ href: safe || '#' });
+                              comp.set?.('href', safe || '#');
+                              const view = comp.getView?.();
+                              if (view?.el) {
+                                view.el.removeAttribute('data-page-link');
+                                view.el.setAttribute('href', safe || '#');
+                              }
+                              comp.trigger?.('change');
+                              setLinksPanelData((d) => d ? { ...d, href: safe } : null);
+                              setHasUnsavedChanges(true);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                (e.target as HTMLInputElement).blur();
+                              }
+                            }}
+                            style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.15)', fontSize: '13px' }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const comp = linksPanelData.component;
+                              const href = (linksPanelData.href || '').trim();
+                              const safe = href && (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('mailto:') || href.startsWith('tel:')) ? href : (href ? 'https://' + href.replace(/^https?:\/\//, '') : '#');
+                              comp.removeAttributes?.('data-page-link');
+                              comp.addAttributes?.({ href: safe || '#' });
+                              comp.set?.('href', safe || '#');
+                              const view = comp.getView?.();
+                              if (view?.el) {
+                                view.el.removeAttribute('data-page-link');
+                                view.el.setAttribute('href', safe || '#');
+                              }
+                              comp.trigger?.('change');
+                              setLinksPanelData((d) => d ? { ...d, href: safe } : null);
+                              setHasUnsavedChanges(true);
+                            }}
+                            style={{ padding: '8px 14px', borderRadius: '6px', border: '1px solid rgba(94,114,228,0.4)', background: 'rgba(94,114,228,0.1)', color: '#5e72e4', fontSize: '12px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                          >
+                            Apply
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    {linksPanelData.linkType === 'none' && (
+                      <p style={{ fontSize: '12px', color: '#6b7280', margin: 0 }}>Button has no link action.</p>
+                    )}
+                    <p style={{ fontSize: '11px', color: '#9ca3af', margin: '8px 0 0 0' }}>
+                      Current: {linksPanelData.href || linksPanelData.pageLink ? (linksPanelData.pageLink ? `Page: ${pages?.find(p => p.id === linksPanelData.pageLink)?.name || linksPanelData.pageLink}` : linksPanelData.href) : 'No link'}
+                    </p>
+                  </>
+                ) : (
+                  <div style={{ textAlign: 'center', padding: '24px 16px', color: '#9ca3af', fontSize: '13px' }}>
+                    <div style={{ fontSize: '28px', marginBottom: '8px' }}>🔗</div>
+                    <div>Select a button or link</div>
+                    <div style={{ fontSize: '12px', marginTop: '6px' }}>Click a button or link in the canvas, then edit its navigation here.</div>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div
               className="elementor-panel-card"
               data-panel-type="structure"
+              data-visible={activeSidebarSection === 'structure'}
               style={{ display: activeSidebarSection === 'structure' ? 'flex' : 'none' }}
               aria-hidden={activeSidebarSection !== 'structure'}
             >
@@ -11307,6 +11556,7 @@ ${linkStylesheetTag}  <style>
             <div
               className="elementor-panel-card"
               data-panel-type="style"
+              data-visible={activeSidebarSection === 'style'}
               style={{ display: activeSidebarSection === 'style' ? 'flex' : 'none' }}
               aria-hidden={activeSidebarSection !== 'style'}
             >
@@ -11322,17 +11572,89 @@ ${linkStylesheetTag}  <style>
 
         </div>
 
-        {/* Center - Canvas - WordPress Elementor Style */}
-        <div className="builder-center-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#f5f5f7', position: 'relative' }}>
-          {/* Canvas Wrapper with Header and Footer */}
-          <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px' }}>
-            {/* Canvas Header */}
-            <div className="elementor-canvas-header" style={{ width: '100%', maxWidth: '1200px', marginBottom: 0 }}>
-              <div className="elementor-canvas-site-name">{name || 'Ziplofy Theme'}</div>
-              <div className="elementor-canvas-page-name">{pages.find(p => p.id === currentPageId)?.name || 'Home'}</div>
+        {/* On-canvas Image Card - centered, fixed size */}
+        {imagePanelData && createPortal(
+          <>
+          <div role="presentation" onClick={() => setImagePanelData(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 100000 }} />
+          <div
+            style={{
+              position: 'fixed',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: 400,
+              minHeight: 380,
+              background: '#ffffff',
+              borderRadius: '12px',
+              boxShadow: '0 10px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.06)',
+              zIndex: 100001,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '14px', fontWeight: 600, color: '#1f2937' }}>Edit image</span>
+              <button type="button" onClick={() => setImagePanelData(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', color: '#6b7280', padding: '0 4px' }}>×</button>
             </div>
-            
-            {/* Canvas Content */}
+            <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button type="button" onClick={() => setImageCardMode('upload')} style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', border: `1px solid ${imageCardMode === 'upload' ? '#5e72e4' : '#e5e7eb'}`, background: imageCardMode === 'upload' ? 'rgba(94,114,228,0.1)' : '#fff', color: imageCardMode === 'upload' ? '#5e72e4' : '#6b7280', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}>Drop / Upload</button>
+                <button type="button" onClick={() => setImageCardMode('url')} style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', border: `1px solid ${imageCardMode === 'url' ? '#5e72e4' : '#e5e7eb'}`, background: imageCardMode === 'url' ? 'rgba(94,114,228,0.1)' : '#fff', color: imageCardMode === 'url' ? '#5e72e4' : '#6b7280', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}>Paste URL</button>
+              </div>
+              {imageCardMode === 'upload' ? (
+                <div
+                  onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.background = 'rgba(94,114,228,0.08)'; e.currentTarget.style.borderColor = '#5e72e4'; }}
+                  onDragLeave={(e) => { e.currentTarget.style.background = '#f9fafb'; e.currentTarget.style.borderColor = '#d1d5db'; }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.style.background = '#f9fafb';
+                    e.currentTarget.style.borderColor = '#d1d5db';
+                    const file = e.dataTransfer?.files?.[0];
+                    if (file?.type?.startsWith('image/')) {
+                      const r = new FileReader();
+                      r.onload = () => { const s = r.result as string; if (s) applyImageFromCard(s); };
+                      r.readAsDataURL(file);
+                    }
+                  }}
+                  onClick={() => (document.getElementById('ziplofy-image-file-input') as HTMLInputElement)?.click()}
+                  style={{ border: '2px dashed #d1d5db', borderRadius: '10px', padding: '24px', textAlign: 'center', cursor: 'pointer', background: '#f9fafb', transition: 'all 0.2s' }}
+                >
+                  <input id="ziplofy-image-file-input" type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file?.type?.startsWith('image/')) {
+                      const r = new FileReader();
+                      r.onload = () => { const s = r.result as string; if (s) applyImageFromCard(s); };
+                      r.readAsDataURL(file);
+                    }
+                    e.target.value = '';
+                  }} />
+                  <div style={{ fontSize: '28px', marginBottom: '6px', opacity: 0.7 }}>🖼️</div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>Drop image or click to upload</div>
+                  <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>PNG, JPG, GIF</div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input type="text" value={imagePanelData.src} placeholder="https://example.com/image.jpg" onChange={(e) => setImagePanelData((d) => d ? { ...d, src: e.target.value } : null)} onKeyDown={(e) => e.key === 'Enter' && applyImageFromCard((e.target as HTMLInputElement).value.trim())} style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '13px' }} />
+                  <button type="button" onClick={() => applyImageFromCard((imagePanelData?.src || '').trim())} style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: '#5e72e4', color: '#fff', fontWeight: 600, fontSize: '13px', cursor: 'pointer' }}>Apply</button>
+                </div>
+              )}
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>Alt text</label>
+                <input type="text" value={imagePanelData.alt} placeholder="Describe the image" onChange={(e) => setImagePanelData((d) => d ? { ...d, alt: e.target.value } : null)} onBlur={() => applyAltFromCard()} style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #e5e7eb', fontSize: '13px' }} />
+              </div>
+            </div>
+          </div>
+          </>,
+          document.body
+        )}
+
+        {/* Center - Canvas - WordPress Elementor Style */}
+        <div className="builder-center-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: '#ffffff', position: 'relative' }}>
+          {/* Canvas Wrapper - seamless white, no brown bar */}
+          <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px', background: '#ffffff' }}>
+            {/* Canvas Content - header integrated, single white block */}
             <div style={{ 
               width: '100%', 
               maxWidth: '1200px', 
@@ -11341,6 +11663,11 @@ ${linkStylesheetTag}  <style>
               position: 'relative',
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
             }}>
+            {/* Canvas Header - inside white block, no gap */}
+            <div className="elementor-canvas-header" style={{ width: '100%', maxWidth: '100%', marginBottom: 0 }}>
+              <div className="elementor-canvas-site-name">{name || 'Ziplofy Theme'}</div>
+              <div className="elementor-canvas-page-name">{pages.find(p => p.id === currentPageId)?.name || 'Home'}</div>
+            </div>
               {loading && (
                 <div style={{
                   display: 'flex',
@@ -11386,7 +11713,7 @@ ${linkStylesheetTag}  <style>
                   {error}
                 </div>
               )}
-              <div ref={editorRef} style={{ minHeight: '600px' }} />
+              <div ref={editorRef} style={{ minHeight: '600px', marginTop: 0, paddingTop: 0 }} />
             </div>
             
             {/* Canvas Footer */}
@@ -11832,26 +12159,26 @@ ${linkStylesheetTag}  <style>
             maxWidth: 'calc(100vw - 40px)',
             maxHeight: 'calc(100vh - 100px)',
             background: '#ffffff',
-            border: '1px solid rgba(0, 0, 0, 0.2)',
+            border: '1px solid rgba(245, 158, 11, 0.35)',
             borderRadius: '16px',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.1)',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(245, 158, 11, 0.1)',
             display: 'flex',
             flexDirection: 'column',
             animation: 'slideInRight 0.3s ease-out',
           }}
           onClick={(e) => e.stopPropagation()}
         >
-            <div style={{ padding: '16px', borderBottom: '1px solid rgba(0, 0, 0, 0.1)' }}>
+            <div style={{ padding: '16px', borderBottom: '1px solid rgba(245, 158, 11, 0.2)', background: 'linear-gradient(180deg, rgba(254, 243, 199, 0.6) 0%, rgba(255, 255, 255, 0) 100%)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <h3 style={{ margin: 0, color: '#000', fontSize: '16px', fontWeight: 600 }}>📋 Notes & Changes</h3>
+                <h3 style={{ margin: 0, color: '#1f2937', fontSize: '16px', fontWeight: 600 }}>📋 Notes & Changes</h3>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <button
                   onClick={createNewNote}
                   title="Create New Note"
                     style={{
-                      background: 'rgba(126, 96, 224, 0.2)',
-                      border: '1px solid rgba(126, 96, 224, 0.4)',
-                      color: '#7E60E0',
+                      background: 'rgba(245, 158, 11, 0.2)',
+                      border: '1px solid rgba(245, 158, 11, 0.5)',
+                      color: '#b45309',
                       fontSize: '18px',
                       cursor: 'pointer',
                       padding: '4px 10px',
@@ -11864,12 +12191,12 @@ ${linkStylesheetTag}  <style>
                       transition: 'all 0.2s ease',
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(126, 96, 224, 0.3)';
-                      e.currentTarget.style.borderColor = '#7E60E0';
+                      e.currentTarget.style.background = 'rgba(245, 158, 11, 0.3)';
+                      e.currentTarget.style.borderColor = '#d97706';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(126, 96, 224, 0.2)';
-                      e.currentTarget.style.borderColor = 'rgba(126, 96, 224, 0.4)';
+                      e.currentTarget.style.background = 'rgba(245, 158, 11, 0.2)';
+                      e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.5)';
                     }}
                 >
                   +
@@ -11886,10 +12213,10 @@ ${linkStylesheetTag}  <style>
                   style={{
                     background: 'transparent',
                     border: 'none',
-                      color: '#fff',
+                    color: '#6b7280',
                     fontSize: '20px',
                     cursor: 'pointer',
-                      padding: '0',
+                    padding: '0',
                     width: '28px',
                     height: '28px',
                     display: 'flex',
@@ -11899,17 +12226,19 @@ ${linkStylesheetTag}  <style>
                     transition: 'all 0.2s ease',
                   }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                      e.currentTarget.style.background = 'rgba(0, 0, 0, 0.06)';
+                      e.currentTarget.style.color = '#1f2937';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = '#6b7280';
                   }}
                 >
                   ×
                 </button>
               </div>
             </div>
-              <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)' }}>
+              <div style={{ fontSize: '11px', color: '#6b7280' }}>
                 {notes.length} {notes.length === 1 ? 'note' : 'notes'}
           </div>
             </div>
@@ -11918,12 +12247,12 @@ ${linkStylesheetTag}  <style>
                 <div style={{ 
                   textAlign: 'center', 
                   padding: '40px 20px', 
-                  color: 'rgba(255, 255, 255, 0.4)',
+                  color: '#6b7280',
                   fontSize: '13px'
                 }}>
                   <div style={{ fontSize: '32px', marginBottom: '12px' }}>📝</div>
-                  <div>No notes yet</div>
-                  <div style={{ fontSize: '11px', marginTop: '8px', color: 'rgba(255, 255, 255, 0.3)' }}>
+                  <div style={{ color: '#374151' }}>No notes yet</div>
+                  <div style={{ fontSize: '11px', marginTop: '8px', color: '#9ca3af' }}>
                     Click the + button to create your first note
                   </div>
                 </div>
@@ -11932,15 +12261,15 @@ ${linkStylesheetTag}  <style>
                   <div
                     key={note.id}
                     style={{
-                      background: editingNoteId === note.id ? 'rgba(126, 96, 224, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                      border: editingNoteId === note.id ? '1px solid rgba(126, 96, 224, 0.4)' : '1px solid rgba(255, 255, 255, 0.1)',
+                      background: editingNoteId === note.id ? 'rgba(254, 243, 199, 0.8)' : 'rgba(254, 249, 235, 0.9)',
+                      border: editingNoteId === note.id ? '1px solid rgba(245, 158, 11, 0.5)' : '1px solid rgba(245, 158, 11, 0.25)',
                       borderRadius: '8px',
                       padding: '12px',
                       transition: 'all 0.2s ease',
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                      <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.4)' }}>
+                      <div style={{ fontSize: '10px', color: '#78716c' }}>
                         {new Date(note.createdAt).toLocaleDateString()} {new Date(note.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                       <button
@@ -11986,10 +12315,10 @@ ${linkStylesheetTag}  <style>
                           minHeight: '100px',
                           maxHeight: '200px',
                           padding: '8px',
-                          background: 'rgba(255, 255, 255, 0.05)',
-                          border: '1px solid rgba(255, 255, 255, 0.2)',
+                          background: '#ffffff',
+                          border: '1px solid rgba(245, 158, 11, 0.4)',
                           borderRadius: '6px',
-                          color: '#fff',
+                          color: '#1f2937',
                           fontSize: '13px',
                           fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                           lineHeight: '1.5',
@@ -12010,7 +12339,7 @@ ${linkStylesheetTag}  <style>
                       <div
                         onClick={() => setEditingNoteId(note.id)}
                         style={{
-                          color: '#fff',
+                          color: '#1f2937',
                           fontSize: '13px',
                           lineHeight: '1.6',
                           cursor: 'text',
@@ -12022,13 +12351,13 @@ ${linkStylesheetTag}  <style>
                           transition: 'background 0.2s ease',
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+                          e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = 'transparent';
                         }}
                       >
-                        {note.content || <span style={{ color: 'rgba(255, 255, 255, 0.3)', fontStyle: 'italic' }}>Click to edit...</span>}
+                        {note.content || <span style={{ color: '#9ca3af', fontStyle: 'italic' }}>Click to edit...</span>}
                       </div>
                     )}
                   </div>

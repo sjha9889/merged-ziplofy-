@@ -244,6 +244,7 @@ const BasicElementor: React.FC = () => {
     template: true,
     footer: true,
   });
+  const [imagePanelData, setImagePanelData] = useState<{ component: any; src: string; alt: string } | null>(null);
   
   // Multi-page support
   const [pages, setPages] = useState<Page[]>([
@@ -659,6 +660,24 @@ const BasicElementor: React.FC = () => {
       // Rewrite inline CSS urls (base = page)
       let originalCssContent = rewriteCssUrls(cssContent || '', baseUrl);
 
+      // Custom themes from CustomThemeBuilder: content is in ziplofy-pages-data JSON, not in body
+      let extractedPagesFromCustomTheme: { html: string; css: string }[] | null = null;
+      const pagesDataMatch = htmlContent.match(/<script id="ziplofy-pages-data"[^>]*>([\s\S]*?)<\/script>/i);
+      if (pagesDataMatch && pagesDataMatch[1]) {
+        try {
+          const parsed = JSON.parse(pagesDataMatch[1].trim());
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            extractedPagesFromCustomTheme = parsed.map((p: any) => ({
+              html: p?.html || '',
+              css: p?.css || ''
+            }));
+            console.log('✓ Loaded custom theme with', extractedPagesFromCustomTheme.length, 'page(s) from ziplofy-pages-data');
+          }
+        } catch (e) {
+          console.warn('Failed to parse ziplofy-pages-data:', e);
+        }
+      }
+
       // Fetch and store original CSS content from external stylesheets
       const fetchStylesheetPromises = stylesheetLinks.map(async (cssUrl) => {
         const absoluteUrl = toAbsoluteUrl(cssUrl);
@@ -730,8 +749,39 @@ const BasicElementor: React.FC = () => {
       doc.querySelectorAll('style').forEach((s) => s.remove());
       doc.querySelectorAll('link[rel="stylesheet"]').forEach((s) => s.remove());
       
-      // Get body HTML
-      let bodyHtml = doc.body ? doc.body.innerHTML : htmlContent;
+      // Get body HTML: use ziplofy-pages-data first page if custom theme, else body innerHTML
+      let bodyHtml: string;
+      if (extractedPagesFromCustomTheme && extractedPagesFromCustomTheme.length > 0) {
+        const rawPageHtml = extractedPagesFromCustomTheme[0].html || '';
+        const pageDoc = new DOMParser().parseFromString(`<div>${rawPageHtml}</div>`, 'text/html');
+        pageDoc.querySelectorAll('img[src]').forEach((el) => {
+          const src = el.getAttribute('src');
+          if (src) el.setAttribute('src', toAbsoluteUrl(src));
+        });
+        pageDoc.querySelectorAll('a[href]').forEach((el) => {
+          const href = el.getAttribute('href');
+          if (href && !href.startsWith('#')) el.setAttribute('href', toAbsoluteUrl(href));
+        });
+        pageDoc.querySelectorAll('[style*="url("]').forEach((el) => {
+          const style = el.getAttribute('style');
+          if (!style) return;
+          const rewritten = style.replace(/url\((['"]?)([^'")]+)\1\)/gi, (m, q, path) => {
+            const p = (path || '').trim();
+            if (/^(https?:|data:|linear-gradient|radial-gradient|conic-gradient|none|initial)/i.test(p)) return m;
+            return `url("${toAbsoluteUrl(p)}")`;
+          });
+          el.setAttribute('style', rewritten);
+        });
+        const wrapper = pageDoc.body?.querySelector('div');
+        bodyHtml = wrapper ? wrapper.innerHTML : rawPageHtml;
+        const pageCss = extractedPagesFromCustomTheme[0].css || '';
+        if (pageCss.trim()) {
+          const rewrittenPageCss = rewriteCssUrls(pageCss.trim(), baseUrl);
+          originalCssContent = (originalCssContent || '').trim() + '\n\n' + rewrittenPageCss;
+        }
+      } else {
+        bodyHtml = doc.body ? doc.body.innerHTML : htmlContent;
+      }
       bodyHtml = stripGrapesJSCanvasCss(bodyHtml);
       bodyHtml = preprocessHtmlForSelectability(bodyHtml);
       
@@ -1818,6 +1868,31 @@ const BasicElementor: React.FC = () => {
           setShowStylePanel(true);
           // Structure stays visible on left; Style opens on right
 
+          // Detect image for Image panel (change src/alt)
+          const tag = (component.get?.('tagName') || '').toLowerCase();
+          const type = component.get?.('type') || '';
+          let imgComp = tag === 'img' || type === 'image' ? component : null;
+          if (!imgComp) {
+            const children = component.components?.() || [];
+            const imgChild = children.find((c: any) => (c.get?.('tagName') || '').toLowerCase() === 'img');
+            if (imgChild) imgComp = imgChild;
+            else {
+              const el = component.getEl?.();
+              const nestedImg = el?.querySelector?.('img');
+              if (nestedImg) {
+                const ec = editor.Components?.getComponent?.(nestedImg);
+                if (ec) imgComp = ec;
+              }
+            }
+          }
+          if (imgComp) {
+            const src = imgComp.get?.('src') || imgComp.getAttributes?.()?.src || imgComp.getEl?.()?.getAttribute?.('src') || '';
+            const alt = imgComp.get?.('alt') || imgComp.getAttributes?.()?.alt || imgComp.getEl?.()?.getAttribute?.('alt') || '';
+            setImagePanelData({ component: imgComp, src: src || '', alt: alt || '' });
+          } else {
+            setImagePanelData(null);
+          }
+
           // Wait for React to render, then sync StyleManager
           const syncStyleManager = async () => {
             const reactWrapper = document.getElementById('style-panel-wrapper') as HTMLElement;
@@ -1895,8 +1970,26 @@ const BasicElementor: React.FC = () => {
             }
             
             // At this point the StyleManager DOM is mounted inside #style-panel-wrapper.
-            // Our CSS in BasicElementor.css forces sectors and properties to be visible,
-            // so we intentionally avoid additional re-render / polling logic here.
+            // Attach sector toggle handlers (Layout, Typography, etc. collapse like widgets)
+            if (!(reactWrapper as any)._sectorToggleBound) {
+              (reactWrapper as any)._sectorToggleBound = true;
+              reactWrapper.addEventListener('click', (e: MouseEvent) => {
+                const target = e.target as HTMLElement;
+                const sector = target.closest('.gjs-sm-sector');
+                if (!sector) return;
+                if (target.closest('.gjs-sm-sector-content') || target.closest('input') || target.closest('select')) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const isOpen = sector.classList.contains('gjs-sm-sector--open') || sector.classList.contains('gjs-sm-open') || !sector.classList.contains('gjs-sm-sector--closed');
+                if (isOpen) {
+                  sector.classList.remove('gjs-sm-sector--open', 'gjs-sm-open');
+                  sector.classList.add('gjs-sm-sector--closed');
+                } else {
+                  sector.classList.remove('gjs-sm-sector--closed');
+                  sector.classList.add('gjs-sm-sector--open', 'gjs-sm-open');
+                }
+              }, true);
+            }
           };
           
           // Delay to ensure React has rendered the style panel
@@ -1924,6 +2017,7 @@ const BasicElementor: React.FC = () => {
           } catch {}
         };
         editor.on('component:deselected', (component: any) => {
+          setImagePanelData(null);
           if (component) {
             clearBlackInlineColor(component);
             // StyleManager may add black to the previous element when switching targets; clear again after it settles
@@ -2478,6 +2572,26 @@ const BasicElementor: React.FC = () => {
           if (value === null || value === undefined) return '';
           return String(value).replace(/^#/, '').trim();
         };
+        const idsMatch = function(a, b) {
+          const na = normalizeId(a), nb = normalizeId(b);
+          if (!na || !nb) return false;
+          if (na === nb) return true;
+          return na.replace(/^page-/, '') === nb.replace(/^page-/, '');
+        };
+        const normalizeExternalUrl = function(url) {
+          if (!url) return '';
+          const t = String(url).trim();
+          if (!t) return '';
+          const l = t.toLowerCase();
+          if (l.startsWith('http://') || l.startsWith('https://') || l.startsWith('mailto:') || l.startsWith('tel:')) return t;
+          if (t.startsWith('//')) return 'https:' + t;
+          if (t.includes('://')) return t;
+          return 'https://' + t;
+        };
+        const openExternal = function(url) {
+          const u = normalizeExternalUrl(url);
+          if (u) window.open(u, '_blank', 'noopener,noreferrer');
+        };
         const renderPages = function() {
           container.innerHTML = '';
           pages.forEach(function(page, index) {
@@ -2489,15 +2603,14 @@ const BasicElementor: React.FC = () => {
             container.appendChild(wrapper);
           });
         };
-        const showPage = function(pageId) {
+        const showPage = function(pageId, updateHash) {
           const normalizedRequest = normalizeId(pageId);
           if (!normalizedRequest) return false;
-          const pages = document.querySelectorAll('.ziplofy-page');
+          const pageEls = container.querySelectorAll('.ziplofy-page');
           let found = false;
-          pages.forEach(function(pageEl) {
+          pageEls.forEach(function(pageEl) {
             const pageIdAttr = pageEl.getAttribute('data-page-id');
-            const normalizedPageId = normalizeId(pageIdAttr);
-            if (normalizedPageId === normalizedRequest) {
+            if (idsMatch(pageIdAttr, normalizedRequest)) {
               pageEl.classList.add('active');
               pageEl.style.display = 'block';
               found = true;
@@ -2506,15 +2619,88 @@ const BasicElementor: React.FC = () => {
               pageEl.style.display = 'none';
             }
           });
+          if (found && updateHash) {
+            const active = container.querySelector('.ziplofy-page.active');
+            const actualId = active ? (active.getAttribute('data-page-id') || normalizedRequest) : normalizedRequest;
+            window.location.hash = '#' + normalizeId(actualId);
+          }
           return found;
         };
+        const attachLinkHandlers = function() {
+          container.querySelectorAll('a[data-page-link]').forEach(function(link) {
+            const clone = link.cloneNode(true);
+            if (link.parentNode) link.parentNode.replaceChild(clone, link);
+          });
+          container.querySelectorAll('button[data-page-link]').forEach(function(btn) {
+            const clone = btn.cloneNode(true);
+            if (btn.parentNode) btn.parentNode.replaceChild(clone, btn);
+          });
+          container.querySelectorAll('a[data-page-link]').forEach(function(link) {
+            link.addEventListener('click', function(evt) {
+              const targetPage = this.getAttribute('data-page-link');
+              if (targetPage && targetPage.trim()) {
+                evt.preventDefault();
+                evt.stopPropagation();
+                showPage(targetPage, true);
+                return;
+              }
+              const href = this.getAttribute('href');
+              if (href && href.startsWith('#')) {
+                evt.preventDefault();
+                evt.stopPropagation();
+                showPage(href, true);
+                return;
+              }
+              if (href && href.trim()) {
+                evt.preventDefault();
+                evt.stopPropagation();
+                openExternal(href);
+              }
+            });
+          });
+          container.querySelectorAll('button[data-page-link]').forEach(function(button) {
+            button.addEventListener('click', function(evt) {
+              evt.preventDefault();
+              evt.stopPropagation();
+              const targetPage = this.getAttribute('data-page-link');
+              const href = this.getAttribute('href');
+              if (targetPage && targetPage.trim()) {
+                showPage(targetPage, true);
+                return;
+              }
+              if (href && href.startsWith('#')) {
+                showPage(href, true);
+                return;
+              }
+              if (href && (href.startsWith('http://') || href.startsWith('https://') || href.trim())) {
+                openExternal(href);
+              }
+            });
+          });
+          container.querySelectorAll('button[href]').forEach(function(button) {
+            const href = button.getAttribute('href');
+            if (!button.hasAttribute('data-page-link') && href && (href.startsWith('http://') || href.startsWith('https://'))) {
+              button.addEventListener('click', function(evt) {
+                evt.preventDefault();
+                window.open(href, '_blank', 'noopener,noreferrer');
+              });
+            }
+          });
+        };
         renderPages();
+        attachLinkHandlers();
+        let attachTimeout = null;
+        const observer = new MutationObserver(function() {
+          if (attachTimeout) clearTimeout(attachTimeout);
+          attachTimeout = setTimeout(attachLinkHandlers, 300);
+        });
+        observer.observe(container, { childList: true, subtree: true });
         const hashChange = function() {
           const hash = window.location.hash.replace(/^#/, '');
           if (hash) {
-            showPage(hash);
+            showPage(hash, false);
           } else {
-            showPage(pages[0]?.id || 'page-1');
+            showPage(pages[0]?.id || 'page-1', false);
           }
         };
         window.addEventListener('hashchange', hashChange);
@@ -3115,6 +3301,36 @@ const BasicElementor: React.FC = () => {
     }
   }, [themeId, themeType, themeName, createTheme, updateTheme, buildMultiPageHtmlDocument, generateDefaultThumbnail, commitCurrentPage, currentPageId]);
 
+  const applyImageFromCard = useCallback((src: string) => {
+    if (!imagePanelData || !src) return;
+    const comp = imagePanelData.component;
+    comp.addAttributes?.({ src });
+    comp.set?.('src', src);
+    const view = comp.getView?.();
+    if (view?.el) {
+      view.el.setAttribute('src', src);
+      const imgEl = view.el.tagName === 'IMG' ? view.el : view.el.querySelector?.('img');
+      if (imgEl) imgEl.setAttribute('src', src);
+    }
+    comp.trigger?.('change');
+    setImagePanelData((d) => d ? { ...d, src } : null);
+  }, [imagePanelData]);
+
+  const applyAltFromCard = useCallback(() => {
+    if (!imagePanelData) return;
+    const comp = imagePanelData.component;
+    const alt = (imagePanelData.alt || '').trim();
+    comp.addAttributes?.({ alt });
+    comp.set?.('alt', alt);
+    const view = comp.getView?.();
+    if (view?.el) {
+      view.el.setAttribute('alt', alt);
+      const imgEl = view.el.tagName === 'IMG' ? view.el : view.el.querySelector?.('img');
+      if (imgEl) imgEl.setAttribute('alt', alt);
+    }
+    comp.trigger?.('change');
+  }, [imagePanelData]);
+
   const handleSave = () => {
     saveTheme(false);
   };
@@ -3538,6 +3754,63 @@ const BasicElementor: React.FC = () => {
         {showStylePanel ? (
           <div className="basic-elementor-style-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#fff' }}>
             <div style={{ flex: 1, minHeight: 0, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
+              {imagePanelData && (
+                <div style={{ padding: '12px 16px', borderBottom: '1px solid #e5e7eb' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>🖼️ Change image</div>
+                  <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                    <input
+                      type="url"
+                      value={imagePanelData.src}
+                      placeholder="https://example.com/image.jpg"
+                      onChange={(e) => setImagePanelData((d) => d ? { ...d, src: e.target.value } : null)}
+                      onKeyDown={(e) => e.key === 'Enter' && applyImageFromCard((e.target as HTMLInputElement).value.trim())}
+                      style={{ flex: 1, padding: '8px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '12px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => applyImageFromCard((imagePanelData?.src || '').trim())}
+                      style={{ padding: '8px 12px', borderRadius: '6px', border: 'none', background: '#5e72e4', color: '#fff', fontWeight: 600, fontSize: '12px', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                    >
+                      Apply
+                    </button>
+                  </div>
+                  <div style={{ marginBottom: '8px' }}>
+                    <input
+                      id="basic-elementor-image-upload"
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file?.type?.startsWith('image/')) {
+                          const r = new FileReader();
+                          r.onload = () => { const s = r.result as string; if (s) applyImageFromCard(s); };
+                          r.readAsDataURL(file);
+                        }
+                        e.target.value = '';
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => (document.getElementById('basic-elementor-image-upload') as HTMLInputElement)?.click()}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px dashed #d1d5db', background: '#f9fafb', fontSize: '12px', color: '#6b7280', cursor: 'pointer' }}
+                    >
+                      Choose file to upload
+                    </button>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#6b7280', marginBottom: '4px' }}>Alt text</label>
+                    <input
+                      type="text"
+                      value={imagePanelData.alt}
+                      placeholder="Describe the image"
+                      onChange={(e) => setImagePanelData((d) => d ? { ...d, alt: e.target.value } : null)}
+                      onBlur={() => applyAltFromCard()}
+                      style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '12px' }}
+                    />
+                  </div>
+                </div>
+              )}
               <StylePanelMountPoint />
             </div>
           </div>
@@ -3656,16 +3929,16 @@ const BasicElementor: React.FC = () => {
 
         {/* Center - Canvas - Same as Visual Elementor */}
         <div className="builder-center-panel" style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--builder-bg-canvas, #f6f6f7)', position: 'relative' }}>
-        <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'stretch', padding: '20px', width: '100%' }}>
-          <div className="elementor-canvas-header" style={{ width: '100%', maxWidth: currentDevice === 'desktop' ? '100%' : '1200px', marginBottom: 0 }}>
+        <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column', alignItems: currentDevice === 'desktop' ? 'stretch' : 'center', padding: '20px', width: '100%' }}>
+          <div className="elementor-canvas-header" style={{ width: '100%', maxWidth: currentDevice === 'desktop' ? '100%' : (currentDevice === 'mobile' ? '375px' : '768px'), marginBottom: 0 }}>
             <div className="elementor-canvas-site-name">{themeName || 'Ziplofy Theme'}</div>
             <div className="elementor-canvas-page-name">{pages.find(p => p.id === currentPageId)?.name || 'Home'}</div>
           </div>
         <div 
           className="basic-elementor-preview" 
           style={{ 
-            width: '100%', 
-            maxWidth: currentDevice === 'desktop' ? '100%' : '1200px', 
+            width: currentDevice === 'desktop' ? '100%' : (currentDevice === 'mobile' ? '375px' : '768px'), 
+            maxWidth: currentDevice === 'desktop' ? '100%' : (currentDevice === 'mobile' ? '375px' : '768px'), 
             flex: currentDevice === 'desktop' ? 1 : undefined,
             background: '#fff', 
             minHeight: '600px', 
@@ -3690,7 +3963,7 @@ const BasicElementor: React.FC = () => {
             style={{ height: '100%', width: '100%', minHeight: 0, position: 'relative' }} 
           />
         </div>
-        <div className="elementor-canvas-footer" style={{ width: '100%', maxWidth: currentDevice === 'desktop' ? '100%' : '1200px', marginTop: 0 }}>
+        <div className="elementor-canvas-footer" style={{ width: '100%', maxWidth: currentDevice === 'desktop' ? '100%' : (currentDevice === 'mobile' ? '375px' : '768px'), marginTop: 0 }}>
           Copyright © {new Date().getFullYear()} {themeName || 'Ziplofy Theme'} | Powered by <a href="#" onClick={(e) => e.preventDefault()}>Ziplofy Theme Builder</a>
         </div>
         </div>

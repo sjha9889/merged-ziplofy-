@@ -143,27 +143,12 @@ export function syncStylePanelWithSelection(editor: any): void {
         // Always clear before append to avoid duplicate sector/UI (repeating style panel)
         panel.innerHTML = '';
         panel.appendChild(node);
-        // Force ALL sectors open (Layout, Background, Animation, etc.) so user can edit every section
-        try {
-          const sectors = sm.getSectors?.() || [];
-          sectors.forEach((sector: any) => {
-            try {
-              if (typeof sector.setOpen === 'function') sector.setOpen(true);
-            } catch (_) {}
-          });
-        } catch (_) {}
+        // Do not force sectors open – allow user to collapse/expand (minimize) subsections
         // Force StyleManager to refresh inputs with selected component's current styles
         requestAnimationFrame(() => {
           try {
             if (typeof sm.select === 'function') sm.select(selected);
             else if (typeof sm.setTarget === 'function') sm.setTarget(selected);
-            // Ensure sectors stay open after refresh
-            const sectors = sm.getSectors?.() || [];
-            sectors.forEach((sector: any) => {
-              try {
-                if (typeof sector.setOpen === 'function') sector.setOpen(true);
-              } catch (_) {}
-            });
             updateBodySelectionHighlight(editor, selected);
             // For nav/header/section (containers), scroll Background sector into view so user can change background color
             const tag = (selected?.get?.('tagName') || '').toLowerCase();
@@ -187,9 +172,6 @@ export function syncStylePanelWithSelection(editor: any): void {
                   if (reEl?.nodeType === 1 && panel) {
                     panel.innerHTML = '';
                     panel.appendChild(reEl);
-                    (sm.getSectors?.() || []).forEach((s: any) => {
-                      try { s.setOpen?.(true); } catch (_) {}
-                    });
                   }
                 } catch (_) {}
               }, 50);
