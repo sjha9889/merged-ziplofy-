@@ -6,7 +6,8 @@
  * - retry schedule and editor.setStyle fallback
  */
 
-import { PRESERVE_TEXT_COLOR_CSS, SELECTION_HIGHLIGHT_BASIC_CSS, SELECTION_OVERRIDE_CSS, SLIDER_FIX_CSS } from './visualElementorThemeUtils';
+import { PRESERVE_TEXT_COLOR_CSS, SELECTION_HIGHLIGHT_BASIC_CSS, SELECTION_OVERRIDE_CSS, SLIDER_FIX_CSS, POINTER_EVENTS_FINAL_CSS } from './visualElementorThemeUtils';
+import { forcePointerEventsForEditing } from './elementorThemeCanvas';
 
 export interface InjectThemeStylesOptions {
   styleBlockContent: string;
@@ -14,7 +15,7 @@ export interface InjectThemeStylesOptions {
   baseUrl?: string;
 }
 
-const REMOVAL_SELECTOR = '#ziplofy-theme-styles, #ziplofy-preserve-text-color, #ziplofy-selection-highlight, #ziplofy-selection-override, #ziplofy-slider-fix, style[data-ziplofy-theme], link[data-ziplofy-theme]';
+const REMOVAL_SELECTOR = '#ziplofy-theme-styles, #ziplofy-preserve-text-color, #ziplofy-selection-highlight, #ziplofy-selection-override, #ziplofy-slider-fix, #ziplofy-pointer-events-final, style[data-ziplofy-theme], link[data-ziplofy-theme]';
 
 function doInject(editor: any, options: InjectThemeStylesOptions): boolean {
   const { styleBlockContent: cssContent = '', stylesheetUrls = [], baseUrl = '' } = options;
@@ -87,8 +88,12 @@ function doInject(editor: any, options: InjectThemeStylesOptions): boolean {
         }
       }
     }
+    // CRITICAL: Inject pointer-events override LAST so it wins over theme CSS (themes often use pointer-events: none)
+    append('ziplofy-pointer-events-final', POINTER_EVENTS_FINAL_CSS);
+    // JS pass overrides inline pointer-events: none (CSS cannot override inline styles)
+    forcePointerEventsForEditing(frame as HTMLIFrameElement);
     return true;
-  } catch {
+  } catch (e) {
     return false;
   }
 }
@@ -97,7 +102,61 @@ export function injectThemeStylesIntoFrame(editor: any, options: InjectThemeStyl
   return doInject(editor, options);
 }
 
-const RETRY_DELAYS_MS = [100, 300, 500, 800, 1200, 2000];
+/**
+ * Responsive viewport widths per device. Themes use width=device-width which in an iframe
+ * equals iframe width. If the iframe is narrow, responsive themes render mobile layout.
+ * We override viewport meta so the theme applies correct breakpoints per device.
+ */
+export const DEVICE_VIEWPORT_WIDTHS: Record<string, number> = {
+  desktop: 1280,
+  Desktop: 1280,
+  tablet: 768,
+  Tablet: 768,
+  mobile: 375,
+  Mobile: 375,
+};
+
+/**
+ * Override viewport meta in iframe based on device. Ensures responsive themes render
+ * correct layout: desktop breakpoints for desktop, tablet for tablet, mobile for mobile.
+ */
+export function injectViewportForDevice(editor: any, deviceId: string, containerWidth?: number): boolean {
+  try {
+    const canvas = editor.Canvas;
+    if (!canvas) return false;
+    const frame = canvas.getFrameEl?.();
+    if (!frame?.contentDocument) return false;
+    const doc = frame.contentDocument;
+    const head = doc.head || doc.getElementsByTagName('head')[0];
+    if (!head) return false;
+
+    const dev = (deviceId || '').toLowerCase();
+    let width: number;
+    if (dev === 'desktop' && containerWidth != null && containerWidth > 0) {
+      width = Math.max(containerWidth, DEVICE_VIEWPORT_WIDTHS.desktop);
+    } else {
+      width = DEVICE_VIEWPORT_WIDTHS[deviceId] ?? DEVICE_VIEWPORT_WIDTHS[dev] ?? DEVICE_VIEWPORT_WIDTHS.desktop;
+    }
+
+    let meta = head.querySelector('meta[name="viewport"]') as HTMLMetaElement | null;
+    if (!meta) {
+      meta = doc.createElement('meta');
+      meta.name = 'viewport';
+      head.appendChild(meta);
+    }
+    meta.content = `width=${width}, initial-scale=1`;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** @deprecated Use injectViewportForDevice(editor, 'desktop', layoutWidth) */
+export function injectDesktopViewportOverride(editor: any, layoutWidth: number = 1280): boolean {
+  return injectViewportForDevice(editor, 'desktop', layoutWidth);
+}
+
+const RETRY_DELAYS_MS = [50, 100, 200, 400, 600, 1000, 1500, 2500, 3500, 5000];
 const MAX_RETRIES = 15;
 const RETRY_INTERVAL_MS = 200;
 

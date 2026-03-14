@@ -31,6 +31,12 @@ export const SELECTION_HIGHLIGHT_BASIC_CSS = `
     outline: 2px solid #2563eb !important;
     outline-offset: 2px !important;
   }
+  /* Body selected: visible highlight when StyleManager targets body */
+  body.ziplofy-body-selected,
+  .gjs-wrapper-body.ziplofy-body-selected {
+    outline: 2px solid #2563eb !important;
+    outline-offset: 2px !important;
+  }
   .gjs-comp-hover,
   .gjs-hovered {
     outline: 1px dashed #2563eb !important;
@@ -53,6 +59,17 @@ export const SELECTION_OVERRIDE_CSS = `
   [class*="hero"], [class*="hero"] *, [class*="section"], [class*="section"] *, [class*="container"], [class*="container"] *,
   [class*="overlay"], [class*="overlay"] *, [class*="wrapper"], [class*="wrapper"] * { pointer-events: auto !important; }
   [style*="min-height"], [style*="min-height"] * { pointer-events: auto !important; }
+`;
+
+/** Injected AFTER theme CSS so it wins – themes often use pointer-events: none on overlays, sliders, etc. */
+export const POINTER_EVENTS_FINAL_CSS = `
+  *, *::before, *::after,
+  html, html *, body, body *,
+  [data-gjs-type], [data-gjs-selectable], [data-gjs-editable],
+  .gjs-selected, .gjs-selected *, .gjs-comp-selected, .gjs-comp-selected *,
+  .gjs-hovered, .gjs-hovered *, .gjs-comp-hover {
+    pointer-events: auto !important;
+  }
 `;
 
 /** Hide non-active slider slides in iframe (slider JS doesn't run) */
@@ -88,8 +105,8 @@ export const SLIDER_FIX_CSS = `
 `;
 
 const SKIP_TAGS = ['script', 'style', 'link', 'meta', 'head', 'title', 'path', 'svg', 'rect', 'circle', 'ellipse', 'line', 'polyline', 'polygon'];
-const CONTAINER_TAGS = ['div', 'section', 'main', 'article', 'header', 'footer', 'nav', 'aside', 'form', 'ul', 'ol', 'li', 'figure', 'figcaption'];
-const TEXT_TAGS = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'a', 'label', 'li', 'td', 'th', 'button', 'strong', 'em', 'b', 'i', 'u', 'small', 'sub', 'sup', 'blockquote', 'cite', 'img'];
+const CONTAINER_TAGS = ['div', 'section', 'main', 'article', 'header', 'footer', 'nav', 'aside', 'form', 'ul', 'ol', 'li', 'figure', 'figcaption', 'table', 'tbody', 'thead', 'tfoot', 'tr', 'td', 'th', 'fieldset', 'details'];
+const TEXT_TAGS = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'a', 'label', 'li', 'td', 'th', 'button', 'strong', 'em', 'b', 'i', 'u', 'small', 'sub', 'sup', 'blockquote', 'cite', 'img', 'figcaption', 'legend'];
 
 /** Strip GrapesJS canvas CSS erroneously embedded in theme HTML */
 export function stripGrapesJSCanvasCss(html: string): string {
@@ -156,6 +173,28 @@ export function cleanupCssGradients(css: string): string {
   }
   out = out.replace(/url\(\s*(['"]?)\s*(none|initial|inherit|unset|revert|transparent)\s*\1\s*\)/gi, (_: string, __: string, kw: string) => kw);
   return out;
+}
+
+/** Remove empty/invalid tags that cause GrapesJS InvalidCharacterError (tag name '') */
+export function removeEmptyTags(html: string): string {
+  if (!html || typeof html !== 'string') return html;
+  return html.replace(/<\s*\/?\s*>/g, '');
+}
+
+/**
+ * Sanitize block content before appending to a target.
+ * Strips full document markup (html/body) and invalid tags that could cause GrapesJS errors.
+ */
+export function sanitizeBlockContentForAppend(content: string | undefined): string {
+  if (!content || typeof content !== 'string') return '';
+  let html = content.trim();
+  if (!html) return '';
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  if (bodyMatch) html = bodyMatch[1].trim();
+  const htmlMatch = html.match(/<html[^>]*>([\s\S]*?)<\/html>/i);
+  if (htmlMatch) html = htmlMatch[1].trim();
+  html = removeEmptyTags(html);
+  return html || content;
 }
 
 /** Detect content that is CSS instead of HTML (corrupted state) */

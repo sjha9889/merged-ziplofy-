@@ -5,8 +5,8 @@
  */
 
 import { stripGrapesJSCanvasCss, preprocessHtmlForSelectability, cleanupCssGradients } from './visualElementorThemeUtils';
-import { runExpandAndConfigureSelectability } from './visualElementorEditorSetup';
 import { scheduleThemeStyleInjection } from './visualElementorStyleInjection';
+import { setupCanvasForEditing, forcePointerEventsForEditing } from './elementorThemeCanvas';
 
 export interface LoadThemeContentOptions {
   /** HTML body content */
@@ -40,30 +40,43 @@ export function loadThemeContentIntoEditor(editor: any, options: LoadThemeConten
   const rawHtml = html || defaultContent;
   let processedHtml = stripGrapesJSCanvasCss(rawHtml);
   processedHtml = preprocessHtmlForSelectability(processedHtml);
-
-  let cssContent = css;
-  if (stylesheetUrls.length && inlineCssForStyleBlock) {
-    cssContent = inlineCssForStyleBlock;
-  }
-  const hasCss = (cssContent && typeof cssContent === 'string' && cssContent.trim()) || stylesheetUrls.length > 0;
-  if (hasCss && cssContent) {
+  // Use full combined CSS (inline + fetched external) for complete theme load – page.css has everything
+  let cssContent = (css && css.trim()) || (inlineCssForStyleBlock && inlineCssForStyleBlock.trim()) || '';
+  const hasCss = cssContent.length > 0 || stylesheetUrls.length > 0;
+  if (cssContent) {
     cssContent = cleanupCssGradients(cssContent);
   }
-  const styleBlockContent = (stylesheetUrls.length && inlineCssForStyleBlock) ? inlineCssForStyleBlock : (cssContent || '');
-
+  const styleBlockContent = cssContent;
   editor.setComponents(processedHtml || defaultContent);
-
-  setTimeout(() => {
+  requestAnimationFrame(() => {
     try {
-      runExpandAndConfigureSelectability(editor);
+      setupCanvasForEditing(editor);
     } catch (e) {
-      console.warn('Configure selectability:', e);
+      console.warn('Setup canvas for editing:', e);
     }
-  }, 100);
+  });
+  // Match Basic Elementor: expand at 100ms; additional passes for slow canvas (GrapesJS needs time to parse)
+  [100, 250, 500, 800].forEach((ms) => {
+    setTimeout(() => {
+      try {
+        setupCanvasForEditing(editor);
+      } catch {}
+    }, ms);
+  });
 
   scheduleThemeStyleInjection(editor, {
     styleBlockContent,
     stylesheetUrls,
     baseUrl,
+  });
+
+  // Re-run pointer-events fix after async stylesheets load (themes use link tags that load late)
+  [1500, 3000, 5000].forEach((ms) => {
+    setTimeout(() => {
+      try {
+        const frame = editor?.Canvas?.getFrameEl?.();
+        forcePointerEventsForEditing(frame);
+      } catch {}
+    }, ms);
   });
 }

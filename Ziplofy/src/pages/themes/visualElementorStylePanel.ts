@@ -9,17 +9,59 @@ function getPanel(): HTMLElement | null {
   return document.getElementById(STYLE_PANEL_ID);
 }
 
-/** Apply a style property from the panel to the component and its DOM element */
-function applyStyleToComponent(component: any, property: string, value: string): void {
+/** Get the DOM element for a component (handles view.el, getEl, and wrapper elements). Exported for use in style handlers. */
+/** When editor is provided and component is the wrapper, falls back to canvas .gjs-wrapper-body or body if primary lookup returns null. */
+export function getComponentEl(component: any, editor?: any): HTMLElement | null {
+  if (!component) return null;
+  let el = component.getEl?.() ?? component.view?.el ?? (component.view?.$el?.[0]);
+  if (el?.nodeType === 1) return el as HTMLElement;
+  if (editor && component === editor.getWrapper?.()) {
+    const body = (editor.Canvas as any)?.getBody?.();
+    if (body?.nodeType === 1) return body as HTMLElement;
+    const frame = editor.Canvas?.getFrameEl?.();
+    const doc = frame?.contentDocument;
+    el = doc?.querySelector?.('.gjs-wrapper-body') ?? doc?.body ?? null;
+    if (el?.nodeType === 1) return el as HTMLElement;
+  }
+  return null;
+}
+
+/** Apply a style property from the panel to the component and its DOM element. Forces immediate DOM update. */
+function applyStyleToComponent(component: any, property: string, value: string, editor?: any): void {
   if (!component || !property) return;
   try {
+    const cssProp = property.replace(/([A-Z])/g, '-$1').toLowerCase();
     component.addStyle?.({ [property]: value });
-    const el = component.getEl?.() || component.view?.el;
+    const el = getComponentEl(component, editor);
     if (el?.style?.setProperty) {
-      const cssProp = property.replace(/([A-Z])/g, '-$1').toLowerCase();
       el.style.setProperty(cssProp, value, 'important');
     }
+    // CssComposer fallback: add rule for layout/background so styles override theme CSS
+    const css = (editor?.Css || editor?.CssComposer) as any;
+    if (css?.setRule && el) {
+      let selector: string | null = null;
+      const compId = component.getId?.();
+      const elId = (el as HTMLElement).id;
+      if (compId && /^[a-zA-Z][\w-]*$/.test(compId)) {
+        selector = `#${compId}`;
+      } else if (elId && /^[a-zA-Z][\w-]*$/.test(elId)) {
+        selector = `#${elId}`;
+      }
+      if (selector) {
+        try {
+          css.setRule(selector, { [cssProp]: value }, { addStyles: true });
+        } catch (_) {}
+      }
+      // Wrapper: use .gjs-wrapper-body selector
+      const wrapper = editor?.getWrapper?.();
+      if (component === wrapper && css?.setRule) {
+        try {
+          css.setRule('.gjs-wrapper-body', { [cssProp]: value }, { addStyles: true });
+        } catch (_) {}
+      }
+    }
     if (component.view?.updateStyle) component.view.updateStyle();
+    editor?.refresh?.();
   } catch {}
 }
 
@@ -42,6 +84,30 @@ function clearBlackInlineColor(comp: any): void {
     }
     (comp.components?.() || []).forEach((c: any) => clearBlackInlineColor(c));
   } catch {}
+}
+
+const BODY_HIGHLIGHT_CLASS = 'ziplofy-body-selected';
+
+/** Add/remove visual highlight on body when wrapper is selected (body has no default dashed border) */
+export function updateBodySelectionHighlight(editor: any, selected: any): void {
+  try {
+    const wrapper = editor?.getWrapper?.();
+    const frame = editor?.Canvas?.getFrameEl?.();
+    const doc = frame?.contentDocument;
+    if (!doc) return;
+    const body = doc.body;
+    const wrapperBody = doc.querySelector?.('.gjs-wrapper-body');
+    const isWrapper = selected && wrapper && selected === wrapper;
+    const targets = [body, wrapperBody].filter(Boolean);
+    targets.forEach((el: Element) => {
+      if (!el) return;
+      if (isWrapper) {
+        el.classList.add(BODY_HIGHLIGHT_CLASS);
+      } else {
+        el.classList.remove(BODY_HIGHLIGHT_CLASS);
+      }
+    });
+  } catch (_) {}
 }
 
 /**
@@ -74,10 +140,45 @@ export function syncStylePanelWithSelection(editor: any): void {
     if (smEl) {
       const node = (smEl as any).el ?? smEl;
       if (node?.nodeType === 1) {
-        if (!panel.contains(node)) {
-          panel.innerHTML = '';
-          panel.appendChild(node);
-        }
+        // Always clear before append to avoid duplicate sector/UI (repeating style panel)
+        panel.innerHTML = '';
+        panel.appendChild(node);
+        // Do not force sectors open – allow user to collapse/expand (minimize) subsections
+        // Force StyleManager to refresh inputs with selected component's current styles
+        requestAnimationFrame(() => {
+          try {
+            if (typeof sm.select === 'function') sm.select(selected);
+            else if (typeof sm.setTarget === 'function') sm.setTarget(selected);
+            updateBodySelectionHighlight(editor, selected);
+            // For nav/header/section (containers), scroll Background sector into view so user can change background color
+            const tag = (selected?.get?.('tagName') || '').toLowerCase();
+            const isContainer = ['nav', 'header', 'footer', 'section', 'div', 'main', 'aside'].includes(tag);
+            if (isContainer && panel) {
+              setTimeout(() => {
+                const bgSector = Array.from(panel.querySelectorAll('.gjs-sm-sector')).find(
+                  (el) => (el.textContent || '').toLowerCase().includes('background')
+                );
+                bgSector?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+              }, 100);
+            }
+            // Wrapper/body: re-render panel after short delay so Layout/Background sectors appear
+            const wrapper = editor?.getWrapper?.();
+            if (selected === wrapper) {
+              setTimeout(() => {
+                try {
+                  sm.select?.(selected) || sm.setTarget?.(selected);
+                  const reNode = sm.render?.();
+                  const reEl = reNode && ((reNode as any).el ?? reNode);
+                  if (reEl?.nodeType === 1 && panel) {
+                    panel.innerHTML = '';
+                    panel.appendChild(reEl);
+                  }
+                } catch (_) {}
+              }, 50);
+            }
+          } catch (_) {}
+        });
+        updateBodySelectionHighlight(editor, selected);
       }
     }
   } catch (_) {}
@@ -92,7 +193,7 @@ export function setupStyleChangeHandlers(editor: any, onHasChanges?: () => void)
 
   const applyChange = (propName: string, value: string) => {
     const selected = editor.getSelected?.();
-    if (selected && propName) applyStyleToComponent(selected, propName, value);
+    if (selected && propName) applyStyleToComponent(selected, propName, value, editor);
     onHasChanges?.();
   };
 
@@ -134,7 +235,10 @@ export function setupStyleChangeHandlers(editor: any, onHasChanges?: () => void)
  * Clear black/default inline color on component:deselected (StyleManager can leave it on previous element).
  * Ensures color persists until user explicitly changes it.
  */
-export function onComponentDeselected(component: any): void {
+export function onComponentDeselected(editor: any, component: any): void {
+  if (editor) {
+    updateBodySelectionHighlight(editor, null);
+  }
   if (component) {
     clearBlackInlineColor(component);
     setTimeout(() => clearBlackInlineColor(component), 0);
