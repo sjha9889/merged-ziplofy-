@@ -169,22 +169,99 @@ const StorefrontMyOrdersPage: React.FC = () => {
         )}
 
         {user && !loading && !error && orders.length === 0 && (
-          <div className="rounded-2xl border border-gray-200 bg-white p-12 text-center">
-            <div className="mx-auto w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-6">
-              <FiShoppingBag className="w-10 h-10 text-gray-400" />
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex flex-col items-center justify-center py-16 px-4"
+          >
+            {/* Animated Illustration */}
+            <div className="relative mb-8">
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="w-32 h-32 rounded-full bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center"
+              >
+                <motion.div
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <FiShoppingBag className="w-16 h-16 text-gray-300" />
+                </motion.div>
+              </motion.div>
+              
+              {/* Decorative elements */}
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
+                className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center"
+              >
+                <span className="text-amber-500 text-lg">✨</span>
+              </motion.div>
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.4 }}
+                className="absolute -bottom-1 -left-3 w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center"
+              >
+                <span className="text-blue-500 text-sm">💫</span>
+              </motion.div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No orders yet</h3>
-            <p className="text-gray-500 mb-6 max-w-sm mx-auto">
-              Looks like you haven't placed any orders. Start shopping to see your orders here!
-            </p>
-            <button
-              type="button"
-              onClick={() => navigate('/')}
-              className="px-8 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-gray-800 transition-colors"
+
+            {/* Content */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+              className="text-center max-w-md"
             >
-              Start Shopping
-            </button>
-          </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">No orders yet</h3>
+              <p className="text-gray-500 mb-8 leading-relaxed">
+                Your order history is empty. Once you make a purchase, you'll be able to track all your orders here.
+              </p>
+              
+              {/* CTA Button */}
+              <motion.button
+                type="button"
+                onClick={() => navigate('/')}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="inline-flex items-center gap-2 px-8 py-4 bg-gray-900 text-white rounded-full font-medium hover:bg-gray-800 transition-colors shadow-lg shadow-gray-900/20"
+              >
+                <FiShoppingBag className="w-5 h-5" />
+                <span>Start Shopping</span>
+              </motion.button>
+            </motion.div>
+
+            {/* Features */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.4 }}
+              className="grid grid-cols-3 gap-8 mt-16 max-w-xl"
+            >
+              <div className="text-center">
+                <div className="w-12 h-12 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-3">
+                  <FiTruck className="w-5 h-5 text-green-600" />
+                </div>
+                <p className="text-xs text-gray-600 font-medium">Fast Delivery</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mx-auto mb-3">
+                  <FiPackage className="w-5 h-5 text-blue-600" />
+                </div>
+                <p className="text-xs text-gray-600 font-medium">Easy Tracking</p>
+              </div>
+              <div className="text-center">
+                <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center mx-auto mb-3">
+                  <FiCheckCircle className="w-5 h-5 text-purple-600" />
+                </div>
+                <p className="text-xs text-gray-600 font-medium">Secure Checkout</p>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
 
         {user && !loading && !error && orders.length > 0 && (

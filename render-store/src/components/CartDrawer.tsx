@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiMinus, FiPlus, FiTrash2, FiX, FiArrowLeft, FiLock, FiMapPin } from 'react-icons/fi';
+import { FiMinus, FiPlus, FiTrash2, FiX, FiArrowLeft, FiLock, FiMapPin, FiShoppingBag } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useStorefront } from '../contexts/store.context';
 import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 import { useStorefrontCart } from '../contexts/storefront-cart.context';
@@ -705,90 +706,84 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
     }
   };
 
-  const [isMounted, setIsMounted] = useState(open);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    if (open) {
-      setIsMounted(true);
-      // Next frame so transitions apply
-      requestAnimationFrame(() => setIsVisible(true));
-    } else {
-      setIsVisible(false);
-      const timeout = setTimeout(() => {
-        setIsMounted(false);
-      }, 300); // match CSS duration
-      return () => clearTimeout(timeout);
-    }
-  }, [open]);
-
-  if (!isMounted) return null;
-
   return (
     <>
-      <div
-        className={`fixed inset-0 z-50 transition-opacity duration-300 ${
-          isVisible ? 'opacity-100' : 'opacity-0'
-        }`}
-      >
-        <button
-          type="button"
-          aria-label="Close cart"
-          className="absolute inset-0 bg-black/50"
-          onClick={onClose}
-        />
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-50">
+          {/* Backdrop */}
+          <motion.button
+            type="button"
+            aria-label="Close cart"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={onClose}
+          />
 
-        <aside
-          className={`absolute right-0 top-0 h-full w-full max-w-md bg-[#fefcf8] shadow-xl transform transition-transform duration-300 ${
-            isVisible ? 'translate-x-0' : 'translate-x-full'
-          }`}
-        >
-          <div className="flex items-center justify-between border-b border-[#e8e0d5] px-4 py-4">
-            <div className="text-lg font-semibold text-[#0c100c]" style={{ fontFamily: 'var(--font-serif)' }}>Your Cart</div>
+          {/* Drawer */}
+          <motion.aside
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl"
+          >
+          <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
+            <h2 className="text-lg font-semibold text-gray-900">Your Cart</h2>
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg hover:bg-[#f5f1e8] text-[#0c100c] transition-colors"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
               aria-label="Close"
             >
-              <FiX />
+              <FiX className="w-5 h-5" />
             </button>
           </div>
 
-          <div className="flex h-[calc(100%-64px)] flex-col p-4">
+          <div className="flex h-[calc(100%-64px)] flex-col p-5">
             {displayItems.length === 0 ? (
               <div className="flex flex-1 flex-col items-center justify-center text-center">
-                <div className="text-base font-semibold text-[#0c100c]">Your cart is empty</div>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="mt-4 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#e6c547] px-4 py-2 text-sm font-semibold text-[#0c100c] hover:shadow-lg transition-all"
-                    style={{ boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)' }}
-                  >
-                    Continue Shopping
-                  </button>
+                <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                  <FiShoppingBag className="w-10 h-10 text-gray-300" />
+                </div>
+                <p className="text-lg font-medium text-gray-900 mb-2">Your cart is empty</p>
+                <p className="text-sm text-gray-500 mb-6">Looks like you haven't added anything yet</p>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-6 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors"
+                >
+                  Continue Shopping
+                </button>
               </div>
             ) : (
               <>
                 {/* Optional sign-in / rewards banner */}
                 {!user && (
-                  <div className="mb-3 rounded-2xl border border-[#e8e0d5] bg-white px-3 py-3 flex items-center justify-between">
-                    <div className="text-xs text-[#2b1e1e]">
-                      <div className="font-semibold text-[#0c100c]">Sign in to sync your cart</div>
-                      <div>Sign in to checkout and save your cart.</div>
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-4 rounded-2xl border border-gray-100 bg-gradient-to-r from-gray-50 to-white p-4 flex items-center justify-between"
+                  >
+                    <div className="text-xs text-gray-600">
+                      <div className="font-semibold text-gray-900">Sign in to sync your cart</div>
+                      <div>Save items and checkout faster</div>
                     </div>
                     <button
                       type="button"
                       onClick={onClose}
-                      className="px-3 py-1.5 rounded-full bg-[#0c100c] text-white text-xs font-semibold hover:bg-black"
+                      className="px-4 py-2 rounded-full bg-gray-900 text-white text-xs font-medium hover:bg-gray-800 transition-colors"
                     >
                       Sign in
                     </button>
-                  </div>
+                  </motion.div>
                 )}
 
                 <div className="flex-1 space-y-3 overflow-y-auto pr-1">
-                  {displayItems.map((it) => {
+                  {displayItems.map((it, index) => {
                     const pv = typeof it.productVariantId === 'object' ? it.productVariantId : null;
                     const image = pv?.images?.[0];
                     const title = pv?.sku || 'Product';
@@ -801,117 +796,133 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
                       }
                     };
                     return (
-                      <div key={it._id} className="rounded-2xl border border-[#e8e0d5] p-3">
-                        <div className="flex gap-3">
-                          <img
-                            src={image || 'https://via.placeholder.com/96'}
-                            alt={title}
-                            className={`h-20 w-20 flex-shrink-0 rounded-xl bg-[#f5f1e8] object-contain ${productId ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
+                      <motion.div
+                        key={it._id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex gap-4">
+                          <div
+                            className={`h-20 w-20 flex-shrink-0 rounded-xl bg-gray-50 overflow-hidden ${productId ? 'cursor-pointer' : ''}`}
                             onClick={handleProductClick}
-                          />
+                          >
+                            <img
+                              src={image || 'https://via.placeholder.com/96'}
+                              alt={title}
+                              className="h-full w-full object-contain hover:scale-105 transition-transform duration-300"
+                            />
+                          </div>
                           <div className="min-w-0 flex-1">
                             <div
-                              className={`truncate text-sm font-semibold text-[#0c100c] ${productId ? 'cursor-pointer hover:text-amber-600 transition-colors' : ''}`}
+                              className={`truncate text-sm font-medium text-gray-900 ${productId ? 'cursor-pointer hover:text-gray-600 transition-colors' : ''}`}
                               title={title}
                               onClick={handleProductClick}
                             >
                               {title}
                             </div>
                             {pv?.optionValues && (
-                              <div className="mt-1 text-xs text-[#2b1e1e]">
+                              <div className="mt-1 text-xs text-gray-500">
                                 {Object.entries(pv.optionValues).map(([k, v]) => `${k}: ${v}`).join(', ')}
                               </div>
                             )}
-                            <div className="mt-2 flex items-center justify-between">
-                              <div className="text-sm font-semibold text-[#0c100c]">
+                            <div className="mt-3 flex items-center justify-between">
+                              <div className="text-sm font-semibold text-gray-900">
                                 {formatINR(price * it.quantity)}
                               </div>
                               <button
                                 type="button"
                                 onClick={() => deleteCartEntry(it._id)}
-                                className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-rose-600 hover:bg-rose-50"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                                 aria-label="Remove"
                               >
-                                <FiTrash2 />
+                                <FiTrash2 className="w-4 h-4" />
                               </button>
                             </div>
-                            <div className="mt-2 flex items-center gap-2">
+                            <div className="mt-3 flex items-center gap-1">
                               <button
                                 type="button"
-                                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#e8e0d5] hover:bg-[#f5f1e8]"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50 text-gray-600 transition-colors"
                                 onClick={() => updateCartEntry({ id: it._id, quantity: Math.max(1, it.quantity - 1) })}
                                 aria-label="Decrease quantity"
                               >
-                                <FiMinus />
+                                <FiMinus className="w-3.5 h-3.5" />
                               </button>
-                              <div className="w-8 text-center text-sm font-medium text-[#0c100c]">{it.quantity}</div>
+                              <div className="w-10 text-center text-sm font-medium text-gray-900">{it.quantity}</div>
                               <button
                                 type="button"
-                                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#e8e0d5] hover:bg-[#f5f1e8]"
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50 text-gray-600 transition-colors"
                                 onClick={() => updateCartEntry({ id: it._id, quantity: it.quantity + 1 })}
                                 aria-label="Increase quantity"
                               >
-                                <FiPlus />
+                                <FiPlus className="w-3.5 h-3.5" />
                               </button>
                             </div>
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })}
                 </div>
 
-                <div className="mt-4 rounded-2xl border border-[#e8e0d5] p-4 bg-white">
-                  <div className="flex items-center justify-between text-xs text-[#2b1e1e] mb-1">
-                    <span>MRP Total:</span>
-                    <span className="font-semibold text-[#0c100c]">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="mt-4 rounded-2xl border border-gray-100 p-4 bg-gray-50/50"
+                >
+                  <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                    <span>Subtotal</span>
+                    <span className="font-medium text-gray-900">
                       {formatINR(subtotal + totalDiscountAmount)}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-[#2b1e1e] mb-1">
-                    <span>MRP Discount:</span>
-                    <span className="font-semibold text-emerald-700">
-                      -{formatINR(totalDiscountAmount)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-[#2b1e1e] mb-1">
-                    <span>Cart Total:</span>
-                    <span className="font-semibold text-[#0c100c]">
-                      {formatINR(subtotal)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-[#2b1e1e] mb-2">
-                    <span>Shipping:</span>
-                    <span className="font-semibold text-[#0c100c]">
+                  {totalDiscountAmount > 0 && (
+                    <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                      <span>Discount</span>
+                      <span className="font-medium text-emerald-600">
+                        -{formatINR(totalDiscountAmount)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
+                    <span>Shipping</span>
+                    <span className="font-medium text-gray-900">
                       {shippingCost <= 0 ? 'FREE' : formatINR(shippingCost)}
                     </span>
                   </div>
-                  <div className="border-t border-dashed border-gray-300 my-2" />
-                  <div className="flex items-center justify-between text-sm font-semibold text-[#0c100c]">
-                    <span>To Pay:</span>
-                    <span>{formatINR(finalTotal)}</span>
+                  <div className="border-t border-gray-200 pt-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-gray-900">Total</span>
+                      <span className="text-lg font-bold text-gray-900">{formatINR(finalTotal)}</span>
+                    </div>
+                    <p className="text-[11px] text-gray-500 mt-1">Inclusive of all taxes</p>
                   </div>
-                </div>
+                </motion.div>
 
-                <div className="mt-3 flex items-center justify-between rounded-xl bg-white px-4 py-3 border border-[#e8e0d5]">
-                  <div className="flex flex-col">
-                    <span className="text-xs text-[#2b1e1e]">₹ {formatINR(finalTotal)} </span>
-                    <span className="text-[11px] text-gray-500">Inclusive of all taxes</span>
-                  </div>
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                  className="mt-4"
+                >
                   <button
                     type="button"
                     onClick={handleCheckoutClick}
-                    className="px-5 py-2 rounded-full bg-black text-white text-sm font-semibold hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-3.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg"
                     disabled={displayItems.length === 0}
                   >
-                    Pay Now
+                    Proceed to Checkout
                   </button>
-                </div>
+                </motion.div>
               </>
             )}
           </div>
-        </aside>
-      </div>
+        </motion.aside>
+        </div>
+      )}
+    </AnimatePresence>
 
       {/* Quick Checkout Popup (Pay Now from Cart) – Boat-style UI */}
       {checkoutDialogOpen && (
@@ -1026,44 +1037,46 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
                 </div>
               </div>
 
-              {/* Login / phone entry section */}
-              <div className="px-6 pb-4">
-                <div className="rounded-2xl border border-gray-200 overflow-hidden">
-                  <div className="bg-amber-100 text-amber-900 text-xs font-medium px-4 py-2">
-                    Login to redeem rewards or giftcard balance
-                  </div>
-                  <div className="p-4 space-y-4">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900 mb-1">Login to continue</p>
-                      <p className="text-xs text-gray-600 mb-3">
-                        Enter mobile number to receive order updates.
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <span className="px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-700">
-                          +91
-                        </span>
-                        <input
-                          type="tel"
-                          placeholder="Enter mobile number"
-                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 outline-none bg-white text-gray-900"
-                        />
-                      </div>
+              {/* Login / phone entry section - Only show when NOT logged in */}
+              {!user && (
+                <div className="px-6 pb-4">
+                  <div className="rounded-2xl border border-gray-200 overflow-hidden">
+                    <div className="bg-amber-100 text-amber-900 text-xs font-medium px-4 py-2">
+                      Login to redeem rewards or giftcard balance
                     </div>
+                    <div className="p-4 space-y-4">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 mb-1">Login to continue</p>
+                        <p className="text-xs text-gray-600 mb-3">
+                          Enter mobile number to receive order updates.
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <span className="px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-700">
+                            +91
+                          </span>
+                          <input
+                            type="tel"
+                            placeholder="Enter mobile number"
+                            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 outline-none bg-white text-gray-900"
+                          />
+                        </div>
+                      </div>
 
-                    <div className="pt-3 border-t border-gray-100 text-center">
-                      <p className="text-[11px] uppercase tracking-wide text-gray-400 mb-1">
-                        Powered by
-                      </p>
-                      <img src={ZiplofyLogo} alt="Ziplofy" className="h-8 mx-auto mb-2 object-contain" />
-                      <div className="flex items-center justify-center gap-6 text-[10px] text-gray-500">
-                        <span>PCI DSS Certified</span>
-                        <span>100% Secured Payments</span>
-                        <span>Verified Merchant</span>
+                      <div className="pt-3 border-t border-gray-100 text-center">
+                        <p className="text-[11px] uppercase tracking-wide text-gray-400 mb-1">
+                          Powered by
+                        </p>
+                        <img src={ZiplofyLogo} alt="Ziplofy" className="h-8 mx-auto mb-2 object-contain" />
+                        <div className="flex items-center justify-center gap-6 text-[10px] text-gray-500">
+                          <span>PCI DSS Certified</span>
+                          <span>100% Secured Payments</span>
+                          <span>Verified Merchant</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Delivery details */}
               <div className="px-6 pb-4">

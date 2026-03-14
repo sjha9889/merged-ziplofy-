@@ -10,14 +10,34 @@ import { SocketEventType } from '../types/event.types';
 import CustomizeDomainCard from './CustomizeDomainCard';
 import DashboardContent from './DashboardContent';
 import GettingStartedPage from './GettingStartedPage';
+import OnboardingTour from './OnboardingTour';
 
 export default function HomePage() {
   const navigate = useNavigate();
   const [showCalendlyModal, setShowCalendlyModal] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'getting-started'>('dashboard');
+  const [showOnboarding, setShowOnboarding] = useState<boolean>(false);
 
   const { socket } = useSocket();
   const { loggedInUser } = useUserContext();
+
+  // Tour is now only shown when user clicks "Show Tour" button in navbar
+  // Automatic first-time tour is disabled
+
+  // Listen for "Show Tour" button click from navbar
+  useEffect(() => {
+    const handleShowTour = () => {
+      setShowOnboarding(true);
+    };
+    window.addEventListener('ziplofy-show-tour', handleShowTour);
+    return () => {
+      window.removeEventListener('ziplofy-show-tour', handleShowTour);
+    };
+  }, []);
+
+  const handleOnboardingComplete = useCallback(() => {
+    setShowOnboarding(false);
+  }, []);
 
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -193,6 +213,9 @@ export default function HomePage() {
 
   return (
     <>
+      {/* Onboarding Tour */}
+      {showOnboarding && <OnboardingTour onComplete={handleOnboardingComplete} />}
+
       <div className="min-h-screen bg-page-background-color">
         <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
           {/* Header */}
