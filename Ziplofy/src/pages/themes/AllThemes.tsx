@@ -44,10 +44,11 @@ const AllThemes: React.FC = () => {
     isInstalled: false,
     isCustomTheme: false,
   });
-  const [editChoice, setEditChoice] = useState<{ isOpen: boolean; themeId: string; isInstalled?: boolean }>({
+  const [editChoice, setEditChoice] = useState<{ isOpen: boolean; themeId: string; isInstalled?: boolean; isCustomTheme?: boolean }>({
     isOpen: false,
     themeId: "",
     isInstalled: false,
+    isCustomTheme: false,
   });
   const { themes, loading: themesLoading, error: themesError, fetchAll } = useThemes();
   const { installedThemes, installTheme, uninstallTheme, fetchByStoreId } = useInstalledThemes();
@@ -191,8 +192,8 @@ const AllThemes: React.FC = () => {
     window.open(themeUrl, '_blank', 'noopener,noreferrer');
   };
 
-  const handleEditTheme = (themeId: string, isInstalled: boolean = false) => {
-    setEditChoice({ isOpen: true, themeId, isInstalled });
+  const handleEditTheme = (themeId: string, isInstalled: boolean = false, isCustomTheme: boolean = false) => {
+    setEditChoice({ isOpen: true, themeId, isInstalled, isCustomTheme });
   };
 
   // Handle thumbnail update
@@ -581,7 +582,7 @@ const AllThemes: React.FC = () => {
                         className="action-btn secondary" 
                         onClick={() => {
                           if (actualThemeId) {
-                            window.open(`/themes/builder?themeId=${actualThemeId}`, '_blank', 'noopener,noreferrer');
+                            handleEditTheme(actualThemeId, false, true);
                           }
                         }}
                       >
@@ -865,7 +866,7 @@ const AllThemes: React.FC = () => {
                           alert('Invalid theme ID. This theme may have been created with an old format. Please delete and recreate it.');
                           return;
                         }
-                        window.open(`/themes/builder?id=${encodeURIComponent(ct._id)}`, '_blank', 'noopener,noreferrer');
+                        handleEditTheme(ct._id, false, true);
                       }}
                     >
                       Edit
@@ -1043,8 +1044,9 @@ const AllThemes: React.FC = () => {
       />
       <ThemeEditChoiceModal
         isOpen={editChoice.isOpen}
-        onClose={() => setEditChoice({ isOpen: false, themeId: "" })}
+        onClose={() => setEditChoice({ isOpen: false, themeId: "", isInstalled: false, isCustomTheme: false })}
         themeId={editChoice.themeId}
+        isCustomTheme={editChoice.isCustomTheme}
       />
 
       {/* Thumbnail Update Modal */}
