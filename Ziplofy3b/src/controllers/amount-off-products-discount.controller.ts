@@ -1,13 +1,12 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import {
-  AmountOffProductsDiscount,
-  AmountOffProductsEntry,
-  AmountOffProductsCustomerSegmentEntry,
   AmountOffProductsCustomerEntry,
+  AmountOffProductsCustomerSegmentEntry,
+  AmountOffProductsDiscount,
   AmountOffProductsDiscountUsage,
+  AmountOffProductsEntry,
 } from '../models';
-import { Order } from '../models';
 
 export class AmountOffProductsDiscountController {
   /**
