@@ -8,12 +8,14 @@ const registerMock = vi.fn();
 const googleLoginMock = vi.fn();
 const toastErrorMock = vi.fn();
 
-vi.mock('../contexts/auth.context', () => ({
-  useAuth: () => ({
-    register: (...args: unknown[]) => registerMock(...args),
-    googleLogin: (...args: unknown[]) => googleLoginMock(...args),
-  }),
-}));
+vi.mock('../contexts/auth.context', () => {
+  return {
+    useAuth: () => ({
+      register: (...args: unknown[]) => registerMock(...args),
+      googleLogin: (...args: unknown[]) => googleLoginMock(...args),
+    }),
+  };
+});
 
 vi.mock('react-hot-toast', () => ({
   default: {
