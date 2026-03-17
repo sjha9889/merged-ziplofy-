@@ -5,6 +5,7 @@ class MockIntersectionObserver {
   observe = vi.fn();
   disconnect = vi.fn();
   unobserve = vi.fn();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   constructor(_callback: IntersectionObserverCallback, _options?: IntersectionObserverInit) {}
 }
 Object.defineProperty(globalThis, 'IntersectionObserver', { value: MockIntersectionObserver, writable: true });
