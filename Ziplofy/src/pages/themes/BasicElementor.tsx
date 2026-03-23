@@ -1119,6 +1119,10 @@ const BasicElementor: React.FC = () => {
           selectorManager: { 
             componentFirst: true,
           },
+          colorPicker: {
+            appendTo: 'body',
+            showInput: true,
+          },
           styleManager: {
             appendTo: '#style-panel-wrapper',
             sectors: [

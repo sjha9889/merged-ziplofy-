@@ -169,6 +169,10 @@ export const ElementorEditor: React.FC = () => {
             blocks: ['link-block', 'quote', 'text-basic'],
           },
         },
+        colorPicker: {
+          appendTo: 'body',
+          showInput: true,
+        },
         styleManager: {
           appendTo: '#style-panel',
           sectors: [

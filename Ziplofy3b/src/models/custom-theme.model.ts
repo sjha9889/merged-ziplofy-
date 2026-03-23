@@ -18,6 +18,7 @@ export interface ICustomTheme extends Document {
     uploadDate?: Date;
   };
   createdBy: mongoose.Types.ObjectId;
+  status?: 'draft' | 'published';
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -63,6 +64,11 @@ const CustomThemeSchema: Schema<ICustomTheme> = new Schema<ICustomTheme>(
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+    },
+    status: {
+      type: String,
+      enum: ['draft', 'published'],
+      default: 'draft',
     },
     createdAt: {
       type: Date,

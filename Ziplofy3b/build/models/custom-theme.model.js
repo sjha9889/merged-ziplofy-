@@ -76,6 +76,11 @@ const CustomThemeSchema = new mongoose_1.Schema({
         ref: "User",
         required: true,
     },
+    status: {
+        type: String,
+        enum: ['draft', 'published'],
+        default: 'draft',
+    },
     createdAt: {
         type: Date,
         default: Date.now,

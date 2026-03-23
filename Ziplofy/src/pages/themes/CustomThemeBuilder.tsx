@@ -7,10 +7,11 @@ import ElementorTutorial from '../../components/ElementorTutorial';
 import html2canvas from 'html2canvas';
 import { safeLocalStorage } from '../../types/local-storage';
 import { Monitor, Tablet, Smartphone } from 'lucide-react';
+import toast from 'react-hot-toast';
 import './CustomThemeBuilder.css';
 
 const CustomThemeBuilder: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { activeStoreId: contextActiveStoreId } = useStore();
   const editorRef = useRef<HTMLDivElement | null>(null);
@@ -386,6 +387,9 @@ const CustomThemeBuilder: React.FC = () => {
   };
 
   const fetchInstalledThemeFromFiles = async (force: boolean = false): Promise<{ html: string; css?: string; name?: string; pages?: Page[] } | null> => {
+    // #region agent log
+    fetch('http://127.0.0.1:7524/ingest/69f9ae5f-958d-4035-a412-e98057382aad',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'025aee'},body:JSON.stringify({sessionId:'025aee',runId:'initial-loader',hypothesisId:'L1',location:'CustomThemeBuilder.tsx:fetchInstalledThemeFromFiles:entry',message:'installed theme fetch entry',data:{id,force,shouldLoadInstalledTheme,isInstalledMode,resolvedStoreId,storeIdParam,contextActiveStoreId},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion agent log
     console.log('🔍 fetchInstalledThemeFromFiles called:', { shouldLoadInstalledTheme, force, id, isInstalledMode });
     
     if ((!shouldLoadInstalledTheme && !force) || !id) {
@@ -397,6 +401,9 @@ const CustomThemeBuilder: React.FC = () => {
       
       const extractedUserId = extractUserIdFromToken();
       const ownerId = resolvedStoreId || extractedUserId;
+      // #region agent log
+      fetch('http://127.0.0.1:7524/ingest/69f9ae5f-958d-4035-a412-e98057382aad',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'025aee'},body:JSON.stringify({sessionId:'025aee',runId:'initial-loader',hypothesisId:'L2',location:'CustomThemeBuilder.tsx:fetchInstalledThemeFromFiles:owner-resolution',message:'resolved owner id for installed theme',data:{id,resolvedStoreId,extractedUserId,ownerId,storeIdParam,contextActiveStoreId},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion agent log
       
       console.log('🔍 Store ID resolution:', {
         resolvedStoreId,
@@ -410,6 +417,9 @@ const CustomThemeBuilder: React.FC = () => {
       });
       
       if (!ownerId) {
+        // #region agent log
+        fetch('http://127.0.0.1:7524/ingest/69f9ae5f-958d-4035-a412-e98057382aad',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'025aee'},body:JSON.stringify({sessionId:'025aee',runId:'initial-loader',hypothesisId:'L3',location:'CustomThemeBuilder.tsx:fetchInstalledThemeFromFiles:missing-owner',message:'owner id missing for installed theme fetch',data:{id,resolvedStoreId,extractedUserId,storeIdParam,contextActiveStoreId},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion agent log
         console.error('❌ No store/user identifier provided for installed theme editing', {
           resolvedStoreId,
           extractedUserId,
@@ -445,6 +455,9 @@ const CustomThemeBuilder: React.FC = () => {
         credentials: 'include',
         headers: authHeaders,
       });
+      // #region agent log
+      fetch('http://127.0.0.1:7524/ingest/69f9ae5f-958d-4035-a412-e98057382aad',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'025aee'},body:JSON.stringify({sessionId:'025aee',runId:'initial-loader',hypothesisId:'L4',location:'CustomThemeBuilder.tsx:fetchInstalledThemeFromFiles:fetch-response',message:'installed theme index fetch response',data:{id,ownerId,themeUrl,status:response.status,ok:response.ok},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion agent log
       
       console.log('📡 Theme fetch response:', {
         status: response.status,
@@ -963,26 +976,24 @@ const CustomThemeBuilder: React.FC = () => {
     }
   };
 
-  // Add beforeunload warning if theme is not published
+  // Warn when closing/navigating away with unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Show warning if theme hasn't been published
-      if (!isPublished) {
-        // Modern browsers ignore custom messages, but we can still trigger the dialog
+      if (hasUnsavedChanges) {
         e.preventDefault();
-        // Chrome requires returnValue to be set
         e.returnValue = '';
-        // Return a message (though most browsers will show their own)
-        return 'Your theme is not yet published. Do you still want to close the tab?';
       }
     };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [isPublished]);
+  const handleBackClick = useCallback(() => {
+    if (hasUnsavedChanges && !window.confirm('You have unsaved changes. Do you really want to exit? Your progress may be lost.')) {
+      return;
+    }
+    navigate('/themes/all-themes');
+  }, [hasUnsavedChanges, navigate]);
 
   useEffect(() => {
     pagesRef.current = pages;
@@ -3469,6 +3480,7 @@ ${linkStylesheetTag}  <style>
     if (editorInstance.current) return;
     
     let destroyed = false;
+    let editorForThisEffect: any = null;
     const cleanupFns: Array<() => void> = [];
     const registerCleanup = (fn: () => void) => {
       cleanupFns.push(fn);
@@ -3485,6 +3497,9 @@ ${linkStylesheetTag}  <style>
     
     (async () => {
       try {
+        // #region agent log
+        fetch('http://127.0.0.1:7524/ingest/69f9ae5f-958d-4035-a412-e98057382aad',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'025aee'},body:JSON.stringify({sessionId:'025aee',runId:'initial-loader',hypothesisId:'L5',location:'CustomThemeBuilder.tsx:editor-init:effect-entry',message:'editor init effect started',data:{id,isInstalledMode,shouldLoadInstalledTheme,resolvedStoreId,storeIdParam,contextActiveStoreId,loading},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion agent log
         setLoading(true);
         setError(null);
         
@@ -3541,6 +3556,13 @@ ${linkStylesheetTag}  <style>
             ],
           },
           storageManager: { type: null as any },
+          // Fix: Color picker must append to body so it's not clipped by overflow:hidden on style panel
+          colorPicker: {
+            appendTo: 'body',
+            showInput: true,
+            flat: false, // Use dropdown mode (not inline)
+            disabled: false,
+          },
           selectorManager: { 
             componentFirst: true,
             escapeName: (name: string) => {
@@ -3682,6 +3704,10 @@ ${linkStylesheetTag}  <style>
         });
 
         editorInstance.current = editor;
+        editorForThisEffect = editor;
+        // #region agent log
+        fetch('http://127.0.0.1:7524/ingest/69f9ae5f-958d-4035-a412-e98057382aad',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'025aee'},body:JSON.stringify({sessionId:'025aee',runId:'initial-loader',hypothesisId:'L7',location:'CustomThemeBuilder.tsx:after-init',message:'grapesjs.init returned; editor stored',data:{id,isInstalledMode,shouldLoadInstalledTheme,hasWrapper:Boolean(editor?.getWrapper?.()),hasCanvasFrame:Boolean(editor?.Canvas?.getFrameEl?.())},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion agent log
         console.log('✅ Editor instance created and stored', {
           hasEditor: !!editor,
           hasComponents: !!editor.Components,
@@ -3889,7 +3915,20 @@ ${linkStylesheetTag}  <style>
         // This is critical when editing existing themes
         // Use a flag to prevent multiple executions
         let loadHandlerExecuted = false;
-        editor.on('load', () => {
+        const runIfEditorReady = (fn: () => void) => {
+          editor.on('load', fn);
+          // If GrapesJS is already ready (eg. StrictMode mount/unmount), run immediately
+          try {
+            const model = editor.getModel?.();
+            const ready = Boolean(model?.get?.('ready'));
+            if (ready) fn();
+          } catch {}
+        };
+
+        runIfEditorReady(() => {
+          // #region agent log
+          fetch('http://127.0.0.1:7524/ingest/69f9ae5f-958d-4035-a412-e98057382aad',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'025aee'},body:JSON.stringify({sessionId:'025aee',runId:'initial-loader',hypothesisId:'L8',location:'CustomThemeBuilder.tsx:load-handler:widgets',message:'editor load handler (widgets) fired',data:{id,isInstalledMode,shouldLoadInstalledTheme,loadHandlerExecutedPrev:loadHandlerExecuted,destroyed,hasWrapper:Boolean(editor?.getWrapper?.()),hasCanvasBody:Boolean(editor?.Canvas?.getBody?.())},timestamp:Date.now()})}).catch(()=>{});
+          // #endregion agent log
           if (loadHandlerExecuted || destroyed) return; // Prevent multiple executions
           loadHandlerExecuted = true;
           
@@ -5392,13 +5431,19 @@ ${linkStylesheetTag}  <style>
             }, true);
           } catch {}
         };
-        editor.on('load', () => {
+        runIfEditorReady(() => {
+          // #region agent log
+          fetch('http://127.0.0.1:7524/ingest/69f9ae5f-958d-4035-a412-e98057382aad',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'025aee'},body:JSON.stringify({sessionId:'025aee',runId:'initial-loader',hypothesisId:'L9',location:'CustomThemeBuilder.tsx:load-handler:carousel',message:'editor load handler (carousel) fired',data:{id,isInstalledMode,shouldLoadInstalledTheme,destroyed},timestamp:Date.now()})}).catch(()=>{});
+          // #endregion agent log
           [300, 800, 1500].forEach((d) => setTimeout(setupCarouselButtons, d));
         });
         editor.on('component:add', () => { setTimeout(setupCarouselButtons, 200); });
 
         // Ensure wrapper is droppable and all components are editable
-        editor.on('load', () => {
+        runIfEditorReady(() => {
+          // #region agent log
+          fetch('http://127.0.0.1:7524/ingest/69f9ae5f-958d-4035-a412-e98057382aad',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'025aee'},body:JSON.stringify({sessionId:'025aee',runId:'initial-loader',hypothesisId:'L10',location:'CustomThemeBuilder.tsx:load-handler:wrapper',message:'editor load handler (wrapper/theme-load) fired',data:{id,isInstalledMode,shouldLoadInstalledTheme,destroyed,hasWrapper:Boolean(editor?.getWrapper?.())},timestamp:Date.now()})}).catch(()=>{});
+          // #endregion agent log
           try {
             const wrapper = editor.getWrapper();
             if (wrapper) {
@@ -5598,6 +5643,9 @@ ${linkStylesheetTag}  <style>
                       }
                   
                   if (destroyed) return;
+                  // #region agent log
+                  fetch('http://127.0.0.1:7524/ingest/69f9ae5f-958d-4035-a412-e98057382aad',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'025aee'},body:JSON.stringify({sessionId:'025aee',runId:'initial-loader',hypothesisId:'L6',location:'CustomThemeBuilder.tsx:editor-load:theme-result',message:'theme load result before apply',data:{themeId,hasExisting:Boolean(existing),existingHasHtml:Boolean(existing?.html),existingHasCss:Boolean(existing?.css),customTheme404,triedCustomTheme,shouldLoadInstalledTheme,isInstalledMode,resolvedStoreId},timestamp:Date.now()})}).catch(()=>{});
+                  // #endregion agent log
                   
                   console.log('📝 Applying theme to editor:', {
                     hasExisting: !!existing,
@@ -7187,107 +7235,89 @@ ${linkStylesheetTag}  <style>
           }
         });
         
-        editor.on('style:property:update', (property: any, value: any, component: any) => {
+        editor.on('style:property:update', (data: any) => {
           if (!saving) {
             setHasUnsavedChanges(true);
           }
           try {
+            // GrapesJS passes a single data object; extract property name and value
+            const prop = data?.property ?? data;
+            const propName = typeof prop === 'string' ? prop : (prop?.get?.('property') ?? prop?.getName?.());
+            const value = (prop && prop.getFullValue ? prop.getFullValue() : undefined) ?? (prop && prop.getValue ? prop.getValue() : undefined) ?? data?.value;
+            const component = data?.component ?? editor.getSelected();
+
+            if (!propName || value === undefined || value === null) return;
+
+            // Block default black color – preserve theme color until user explicitly changes it
+            if (propName === 'color' && /^(rgb\(0,\s*0,\s*0\)|rgba\(0,\s*0,\s*0[^)]*\)|black|#000(?:000)?(?:ff)?)$/i.test(String(value).trim())) return;
+
             const selected = component || editor.getSelected();
-            if (selected) {
-              // Ensure component is stylable
+            if (!selected) return;
+
             selected.set({ stylable: true }, { silent: true });
-              
-              // CRITICAL: Special handling for wrapper/body element
-              const isWrapper = selected === editor.getWrapper();
-              if (isWrapper) {
-                // Ensure wrapper has the class
-                const classes = selected.getClasses();
-                if (!classes.includes('gjs-wrapper-body')) {
-                  selected.addClass('gjs-wrapper-body');
+
+            const propVal = String(value);
+
+            // CRITICAL: Special handling for wrapper/body element
+            const isWrapper = selected === editor.getWrapper();
+            if (isWrapper) {
+              const classes = selected.getClasses();
+              if (!classes.includes('gjs-wrapper-body')) {
+                selected.addClass('gjs-wrapper-body');
+              }
+              if (editor.CssComposer) {
+                const rule = editor.CssComposer.getRule('.gjs-wrapper-body') || editor.CssComposer.add('.gjs-wrapper-body');
+                if (rule) {
+                  const currentStyles = rule.get('style') || {};
+                  currentStyles[propName] = propVal;
+                  rule.set('style', currentStyles);
                 }
-                
-                // For wrapper, ALWAYS use CSS rules, not inline styles
-                if (property && value !== undefined && editor.CssComposer) {
-                  const rule = editor.CssComposer.getRule('.gjs-wrapper-body') || 
-                              editor.CssComposer.add('.gjs-wrapper-body');
-                  
-                  if (rule) {
-                    const currentStyles = rule.get('style') || {};
-                    currentStyles[property] = value;
-                    rule.set('style', currentStyles);
-                    
-                    console.log(`✓ Wrapper ${property} set via CSS rule:`, value);
-                  }
-                }
+              }
+            } else {
+              if (typeof selected.addStyle === 'function') {
+                selected.addStyle({ [propName]: propVal });
               } else {
-                // For other components, ensure styles are properly applied
-                if (property && value !== undefined) {
-                  // Use addStyle method which works with avoidInlineStyle
-                  if (typeof selected.addStyle === 'function') {
-                selected.addStyle(property, value);
-                  } else {
-                    // Fallback: set style directly
-                    const currentStyles = selected.getStyle() || {};
-                    currentStyles[property] = value;
-                    selected.setStyle(currentStyles);
+                const currentStyles = selected.getStyle() || {};
+                currentStyles[propName] = propVal;
+                selected.setStyle(currentStyles);
+              }
+              if (editor.CssComposer) {
+                const componentId = selected.cid || selected.getId?.();
+                if (componentId) {
+                  const classes = selected.getClasses();
+                  let componentClass = classes.find((c: string) => c && !c.startsWith('gjs-'));
+                  if (!componentClass) {
+                    componentClass = `gjs-comp-${componentId}`;
+                    selected.addClass(componentClass);
                   }
-                  
-                  // CRITICAL: Ensure component has a selector/class for CSS rules
-                  // Since avoidInlineStyle is true, we need to use CSS rules
-                  if (editor.CssComposer) {
-                    // Get or create a selector for this component
-                    const componentId = selected.cid || selected.getId?.();
-                    if (componentId) {
-                      // Ensure component has a class for CSS targeting
-                      const classes = selected.getClasses();
-                      let componentClass = classes.find((c: string) => c && !c.startsWith('gjs-'));
-                      
-                      if (!componentClass) {
-                        // Generate a class name based on component type and ID
-                        const tagName = selected.get('tagName')?.toLowerCase() || 'div';
-                        componentClass = `gjs-comp-${componentId}`;
-                        selected.addClass(componentClass);
-                      }
-                      
-                      // Get or create CSS rule for this component
-                      const selector = `.${componentClass}`;
-                      let rule = editor.CssComposer.getRule(selector);
-                      
-                      if (!rule) {
-                        rule = editor.CssComposer.add(selector);
-                      }
-                      
-                      if (rule) {
-                        const ruleStyles = rule.get('style') || {};
-                        ruleStyles[property] = value;
-                        rule.set('style', ruleStyles);
-                      }
-                    }
+                  const selector = `.${componentClass}`;
+                  let rule = editor.CssComposer.getRule(selector);
+                  if (!rule) rule = editor.CssComposer.add(selector);
+                  if (rule) {
+                    const ruleStyles = rule.get('style') || {};
+                    ruleStyles[propName] = propVal;
+                    rule.set('style', ruleStyles);
                   }
                 }
               }
-              
-              // Force component to update its view and canvas
-              requestAnimationFrame(() => {
-                try {
-              const el = selected.getEl?.();
-              if (el) {
-                    // Update component view
-                if (selected.view?.updateStyle) {
-                  selected.view.updateStyle();
-                }
-                    // Trigger component style change
-                selected.trigger('change:style');
-                    // Force canvas refresh to show changes
-                editor.refresh();
-                    // Also trigger component update
-                    selected.trigger('component:update');
-              }
-                } catch (e) {
-                  console.warn('Error updating component view:', e);
-                }
-              });
             }
+
+            requestAnimationFrame(() => {
+              try {
+                const el = selected.getEl?.();
+                if (el) {
+                  if (selected.view?.updateStyle) selected.view.updateStyle();
+                  selected.trigger('change:style');
+                  editor.refresh();
+                  selected.trigger('component:update');
+                  // Force inline update for color so it overrides theme CSS
+                  const cssProp = propName.replace(/([A-Z])/g, '-$1').toLowerCase();
+                  el.style.setProperty(cssProp, propVal, 'important');
+                }
+              } catch (e) {
+                console.warn('Error updating component view:', e);
+              }
+            });
           } catch (e) {
             console.warn('Style property update error:', e);
           }
@@ -8374,6 +8404,9 @@ ${linkStylesheetTag}  <style>
 
     return () => {
       destroyed = true;
+      // #region agent log
+      fetch('http://127.0.0.1:7524/ingest/69f9ae5f-958d-4035-a412-e98057382aad',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'025aee'},body:JSON.stringify({sessionId:'025aee',runId:'initial-loader',hypothesisId:'L11',location:'CustomThemeBuilder.tsx:editor-init:cleanup',message:'editor init effect cleanup',data:{hasCurrent:Boolean(editorInstance.current),sameInstance:editorInstance.current===editorForThisEffect,id,isInstalledMode,shouldLoadInstalledTheme},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion agent log
       clearTimeout(loadingTimeout);
       cleanupFns.forEach((fn) => {
         try {
@@ -8389,7 +8422,10 @@ ${linkStylesheetTag}  <style>
         // This is a workaround since we can't access the observer variable directly
       }
       
-      if (editorInstance.current) {
+      // Important: in React 18 StrictMode, an earlier effect cleanup can run
+      // after a new effect has already created a fresh editor. Only destroy
+      // the instance created by THIS effect.
+      if (editorInstance.current && editorInstance.current === editorForThisEffect) {
         try {
           editorInstance.current.destroy();
         } catch {}
@@ -8741,7 +8777,7 @@ ${linkStylesheetTag}  <style>
       // 2. We're NOT editing an installed theme (installed themes don't exist in custom-themes collection)
       if (isValidObjectId && !isEditingInstalledTheme) {
         try {
-        const updated = await updateTheme(id, name, exportHtml, combinedCss, thumbnailBlob);
+        const updated = await updateTheme(id, name, exportHtml, combinedCss, thumbnailBlob, applyAfterSave ? 'published' : 'draft');
         if (!updated) {
             console.warn('Update returned empty result; will create a new theme instead.');
             didCreateInstead = true;
@@ -8782,14 +8818,15 @@ ${linkStylesheetTag}  <style>
           window.history.replaceState({}, '', newUrl.toString());
         }
 
-        const created = await createTheme(name, exportHtml, combinedCss, thumbnailBlob);
+        const created = await createTheme(name, exportHtml, combinedCss, thumbnailBlob, applyAfterSave ? 'published' : 'draft');
         if (!created) {
           throw new Error('Failed to create theme');
         }
         savedThemeId = created._id;
-        const newUrl = new URL(window.location.href);
-        newUrl.searchParams.set('id', savedThemeId);
-        window.history.replaceState({}, '', newUrl.toString());
+        // Use setSearchParams so React Router updates - id will be available on next Save (update, not create)
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.set('id', savedThemeId);
+        setSearchParams(nextParams, { replace: true });
         
         // Clear any old localStorage data after successful creation
         clearOldLocalStorageData();
@@ -8816,8 +8853,9 @@ ${linkStylesheetTag}  <style>
         // Auto-hide the message after 3 seconds
         setTimeout(() => setPublishSuccess(false), 3000);
       } else {
-        // Theme was saved but not published
+        // Theme was saved as draft
         setHasUnsavedChanges(false);
+        toast.success('Draft saved! You can continue editing or publish later.');
       }
     } catch (e: any) {
       setSaving(false);
@@ -8839,7 +8877,7 @@ ${linkStylesheetTag}  <style>
       
       alert(errorMessage);
     }
-  }, [createTheme, getPagesSnapshotWithCurrent, id, name, updateTheme, buildMultiPageHtmlDocument, commitCurrentPage, currentPageId, applyPageToEditor]);
+  }, [createTheme, getPagesSnapshotWithCurrent, id, name, updateTheme, buildMultiPageHtmlDocument, commitCurrentPage, currentPageId, applyPageToEditor, searchParams, setSearchParams]);
 
   const previewTheme = useCallback(() => {
     try {
@@ -9839,6 +9877,71 @@ ${linkStylesheetTag}  <style>
     // Note: Panel visibility is now managed by unified useEffect above
   }, [activeSidebarSection]);
 
+  // Fix: Spectrum's click handler does not fire on swatch; programmatically show picker (capture phase to run first)
+  useEffect(() => {
+    if (activeSidebarSection !== 'style') return;
+    const onCapture = (e: MouseEvent) => {
+      const t = e.target as HTMLElement;
+      const panel = document.getElementById('style-panel');
+      if (!panel || !panel.contains(t)) return;
+      const onSwatch = t.closest('.gjs-field-color-picker, .sp-replacer, .sp-preview');
+      if (!onSwatch || t.closest('input, textarea')) return;
+      const fieldColor = onSwatch.closest('.gjs-field-color, [data-colorp-c]');
+      const boundEl = fieldColor?.querySelector('.gjs-field-color-picker') || (t.closest('.sp-replacer')?.previousElementSibling) || (onSwatch.classList.contains('gjs-field-color-picker') ? onSwatch : null);
+      const el = boundEl as HTMLElement | null;
+      if (!el) return;
+      const $ = (editorInstance.current as any)?.$ ?? (window as any).Backbone?.$;
+      if (!$ || typeof $.fn?.spectrum !== 'function') return;
+      const sp = document.querySelector('.sp-container');
+      if (!sp?.classList.contains('sp-hidden')) return;
+      try {
+        $(el).spectrum('show');
+        e.stopPropagation();
+        e.preventDefault();
+        requestAnimationFrame(() => requestAnimationFrame(() => repositionColorPicker()));
+      } catch (_) {}
+    };
+    document.addEventListener('click', onCapture, true);
+    return () => document.removeEventListener('click', onCapture, true);
+  }, [activeSidebarSection]);
+
+  // Reposition Spectrum picker to stay within the left sidebar (340px)
+  const repositionColorPicker = () => {
+    const sp = document.querySelector('.sp-container') as HTMLElement | null;
+    if (!sp || sp.classList.contains('sp-hidden')) return;
+    const leftPanel = document.querySelector('.builder-left-panel') as HTMLElement | null;
+    const sidebarWidth = leftPanel ? leftPanel.getBoundingClientRect().width : 340;
+    const pad = 16;
+    const maxRight = sidebarWidth - pad;
+    const rect = sp.getBoundingClientRect();
+    if (rect.right > maxRight) {
+      const newLeft = maxRight - rect.width;
+      sp.style.left = `${Math.max(pad, newLeft)}px`;
+    }
+    if (rect.bottom > window.innerHeight - pad) {
+      sp.style.top = `${window.innerHeight - rect.height - pad}px`;
+    }
+  };
+
+  // Observe Spectrum picker visibility and reposition when it opens (container created lazily by GrapesJS)
+  useEffect(() => {
+    let obs: MutationObserver | null = null;
+    const tryObserve = () => {
+      const sp = document.querySelector('.sp-container');
+      if (!sp) return false;
+      obs = new MutationObserver(() => {
+        if (!sp.classList.contains('sp-hidden')) repositionColorPicker();
+      });
+      obs.observe(sp, { attributes: true, attributeFilter: ['class'] });
+      return true;
+    };
+    if (tryObserve()) {
+      return () => { obs?.disconnect(); };
+    }
+    const id = setInterval(() => { if (tryObserve()) clearInterval(id); }, 500);
+    return () => { clearInterval(id); obs?.disconnect(); };
+  }, []);
+
   // Function to enrich layer items with element information
   const enrichLayerItems = (editor: any, layersPanel: HTMLElement) => {
     try {
@@ -10371,7 +10474,7 @@ ${linkStylesheetTag}  <style>
       {/* Top Bar - WordPress Elementor Style */}
       <div className="elementor-top-bar">
         <div className="elementor-top-bar-left">
-          <div className="elementor-top-bar-icon" onClick={() => navigate('/themes/all-themes')} title="Back to Themes">☰</div>
+          <div className="elementor-top-bar-icon" onClick={handleBackClick} title="Back to Themes">☰</div>
           
           {/* Editable Theme Name */}
           <div style={{ 
@@ -10982,6 +11085,25 @@ ${linkStylesheetTag}  <style>
             title="Preview"
           >
             Preview
+          </button>
+          <button
+            className="elementor-save-draft-btn"
+            onClick={() => saveToLocal(false)}
+            disabled={saving}
+            title="Save progress as draft"
+            style={{
+              padding: '8px 16px',
+              background: 'rgba(0, 0, 0, 0.06)',
+              border: '1px solid rgba(0, 0, 0, 0.15)',
+              borderRadius: '6px',
+              color: '#374151',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: saving ? 'not-allowed' : 'pointer',
+              opacity: saving ? 0.6 : 1,
+            }}
+          >
+            {saving ? 'Saving...' : 'Save'}
           </button>
           <button
             className="elementor-publish-btn"

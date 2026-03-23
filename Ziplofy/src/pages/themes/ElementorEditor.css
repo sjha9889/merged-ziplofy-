@@ -1,4 +1,22 @@
 /* ElementorEditor - Clean theme builder styles */
+
+/* Spectrum color picker - appended to body, must appear above panels */
+.sp-container {
+  z-index: 100001 !important;
+  position: fixed !important;
+}
+.sp-container.sp-hidden {
+  display: none !important;
+}
+.sp-container .sp-input {
+  cursor: text !important;
+  pointer-events: auto !important;
+  background: #fff !important;
+  border: 1px solid rgba(0, 0, 0, 0.2) !important;
+  padding: 6px 10px !important;
+  min-width: 80px !important;
+}
+
 :root {
   --elem-primary: #1a1a1a;
   --elem-primary-hover: #333;

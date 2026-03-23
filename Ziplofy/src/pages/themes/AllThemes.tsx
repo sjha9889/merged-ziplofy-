@@ -455,8 +455,19 @@ const AllThemes: React.FC = () => {
       (theme.description || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalCount = installedThemes.length + customThemes.length + themes.length;
-  const showingCount = installedThemes.length + customThemes.length + filteredThemes.length;
+  // Total themes = sum of custom themes + marketplace themes
+  const totalCount = customThemes.length + themes.length;
+  const customThemesCount = customThemes.length;
+  // Installed (marketplace only, excluding custom); builder themes appear only in Your creations
+  const installedMarketplaceOnly = installedThemes.filter(
+    (it: any) => !(it.isCustomTheme || it._id?.startsWith('custom-'))
+  );
+  const recentInstallationsMarketplaceOnly = recentInstallations.filter(
+    (rt: any) => !(rt.isCustomTheme || rt._id?.startsWith('custom-'))
+  );
+  const customDrafts = customThemes.filter((ct: any) => ct.status === 'draft');
+  const customPublished = customThemes.filter((ct: any) => ct.status !== 'draft'); // published or legacy (no status)
+  const showingCount = installedMarketplaceOnly.length + customThemes.length + filteredThemes.length;
 
   return (
     <div className="themes-page">
@@ -479,6 +490,13 @@ const AllThemes: React.FC = () => {
                 <div>
                   <span className="themes-stat-value">{totalCount}</span>
                   <span className="themes-stat-label">TOTAL THEMES</span>
+                </div>
+              </div>
+              <div className="themes-stat-card">
+                <AddIcon className="themes-stat-icon" />
+                <div>
+                  <span className="themes-stat-value">{customThemesCount}</span>
+                  <span className="themes-stat-label">CUSTOM THEMES</span>
                 </div>
               </div>
               <div className="themes-stat-card">
@@ -528,14 +546,14 @@ const AllThemes: React.FC = () => {
           </Link>
         </div>
 
-        {/* Installed Themes - Section 1 */}
-        {Array.isArray(installedThemes) && installedThemes.length > 0 && (
+        {/* Installed Themes - Section 1 (marketplace only; custom themes appear only in Your creations) */}
+        {Array.isArray(installedThemes) && installedMarketplaceOnly.length > 0 && (
           <React.Fragment>
             <h2 className="themes-section-title" style={{ marginBottom: 16 }}>Installed themes</h2>
           <div className={`themes-layout ${viewMode} themes-section-body`}>
-            {installedThemes.map((it: any) => {
+            {installedMarketplaceOnly.map((it: any) => {
               const t = it; // The theme data is directly in it, not nested under themeId
-              const isCustomTheme = t.isCustomTheme || t._id?.startsWith('custom-');
+              const isCustomTheme = false; // Installed section shows only marketplace themes
               const actualThemeId = isCustomTheme && t.customThemeId ? t.customThemeId : t._id;
               
               return (
@@ -641,8 +659,8 @@ const AllThemes: React.FC = () => {
           </React.Fragment>
         )}
 
-        {/* Recent Installations - Section 2 */}
-        {recentInstallations.length > 0 && (
+        {/* Recent Installations - Section 2 (marketplace only; custom themes only in Your creations) */}
+        {recentInstallationsMarketplaceOnly.length > 0 && (
           <React.Fragment>
             <div className="flex items-center justify-between mb-4">
               <h2 className="themes-section-title">Recently Installed</h2>
@@ -682,9 +700,7 @@ const AllThemes: React.FC = () => {
             </div>
           )}
           <div className={`themes-layout ${viewMode} themes-section-body`}>
-            {recentInstallations.map((rt: any) => {
-              const isCustomTheme = rt.isCustomTheme || rt._id?.startsWith('custom-');
-              const actualThemeId = isCustomTheme && rt.customThemeId ? rt.customThemeId : rt._id;
+            {recentInstallationsMarketplaceOnly.map((rt: any) => {
               
               return (
                 <div key={rt._id} className="theme-card" style={{ position: 'relative' }}>
@@ -754,18 +770,113 @@ const AllThemes: React.FC = () => {
         </React.Fragment>
       )}
 
-      {/* Your Creations - Section Header */}
-      <div className="themes-section-divider">
-        <h2 className="themes-section-title">Your creations</h2>
-      </div>
+      {/* Drafts - themes saved but not yet published */}
+      {customDrafts.length > 0 && (
+        <React.Fragment>
+          <div className="themes-section-divider">
+            <h2 className="themes-section-title">Drafts</h2>
+          </div>
+          <p className="themes-section-subtitle" style={{ marginBottom: 16, marginTop: 8, color: '#6b7280', fontSize: 14 }}>
+            Themes you&apos;ve saved. Publish when ready to use.
+          </p>
+          <div className={`themes-layout ${viewMode} themes-section-body`}>
+            {customDrafts.map((ct) => {
+              const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(ct._id);
+              const previewUrl = thumbnailPreviews[ct._id];
+              const serverThumbnailUrl = (ct as any).thumbnailUrl;
+              const thumbnailUrl = previewUrl || (serverThumbnailUrl ? `${serverThumbnailUrl}${serverThumbnailUrl.includes('?') ? '&' : '?'}v=${Date.now()}` : null);
+              return (
+                <div key={ct._id} className="theme-card" style={{ position: 'relative' }}>
+                  {isValidObjectId && (
+                    <div className="theme-card-menu">
+                      <button
+                        className="theme-card-menu-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId(openMenuId === ct._id ? null : ct._id);
+                        }}
+                        aria-label="Theme options"
+                      >
+                        <MoreVertIcon fontSize="small" />
+                      </button>
+                      {openMenuId === ct._id && (
+                        <>
+                          <div className="theme-card-menu-overlay" onClick={() => setOpenMenuId(null)} />
+                          <div className="theme-card-menu-dropdown">
+                            <button
+                              className="theme-card-menu-item"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setThumbnailUpdateModal({ isOpen: true, themeId: ct._id, themeName: ct.name });
+                                setOpenMenuId(null);
+                              }}
+                            >
+                              <ImageIcon fontSize="small" style={{ marginRight: '8px' }} />
+                              Update Thumbnail
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  <div className="theme-thumbnail">
+                    {thumbnailUrl ? (
+                      <img
+                        src={thumbnailUrl}
+                        alt={ct.name || ''}
+                        className="theme-image"
+                        onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+                          e.currentTarget.style.display = 'none';
+                          const ph = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (ph) ph.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div className="theme-image-placeholder" style={{ display: thumbnailUrl ? 'none' : 'flex' }}>
+                      <span>{ct.name}</span>
+                    </div>
+                    {isValidObjectId && (
+                      <div className="theme-overlay">
+                        <button className="overlay-btn preview-btn" onClick={() => handlePreviewClick(ct._id, ct.name, false, true)}>
+                          <EyeIcon fontSize="small" />
+                          <span>Preview</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="theme-info">
+                    <div className="theme-header-info">
+                      <h3 className="theme-name">{ct.name}</h3>
+                      <span style={{ fontSize: 11, color: '#6b7280', fontWeight: 500 }}>Draft</span>
+                    </div>
+                    <div className="theme-actions">
+                      <button className="action-btn primary" onClick={() => handleEditTheme(ct._id, false, true)}>
+                        Edit
+                      </button>
+                      <button
+                        className="action-btn secondary"
+                        onClick={() => handleDeleteCustomTheme(ct._id)}
+                        style={{ backgroundColor: '#dc2626', color: '#fff', border: '1px solid #dc2626' }}
+                      >
+                        <DeleteIcon fontSize="small" style={{ marginRight: 4 }} />
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </React.Fragment>
+      )}
 
-        {/* Custom Themes (saved locally) */}
-        {customThemes.length > 0 && (
+        {/* Custom Themes (published) */}
+        {customPublished.length > 0 && (
           <React.Fragment>
             <h2 className="themes-section-title" style={{ marginBottom: 16, marginTop: 24 }}>Custom Themes</h2>
         <>
           <div className={`themes-layout ${viewMode} themes-section-body`}>
-            {customThemes.map((ct) => {
+            {customPublished.map((ct) => {
               // Validate that the theme ID is a valid MongoDB ObjectId
               const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(ct._id);
               // Check if this custom theme is already installed

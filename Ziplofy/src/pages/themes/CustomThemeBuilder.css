@@ -2083,17 +2083,50 @@
   min-height: 40px !important;
 }
 
+/* Spectrum color picker dropdown - appended to body, constrained to left sidebar */
+.sp-container {
+  z-index: 100001 !important;
+  position: fixed !important;
+  display: block !important;
+  visibility: visible !important;
+  max-width: 308px !important; /* fit within builder-left-panel (340px) minus padding */
+  box-sizing: border-box !important;
+}
+.sp-container.sp-hidden {
+  display: none !important;
+}
+/* Ensure the color picker input (hex field) inside dropdown is editable */
+.sp-container .sp-input {
+  cursor: text !important;
+  pointer-events: auto !important;
+  background: #fff !important;
+  border: 1px solid rgba(126, 96, 224, 0.3) !important;
+  padding: 6px 10px !important;
+  min-width: 80px !important;
+}
+/* Color picker trigger - ensure clicks open the dropdown */
+#style-panel .gjs-field-color-picker,
+#style-panel .sp-replacer,
+#style-panel .sp-preview,
+#style-panel .sp-dd {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
 /* Color picker styling - builder theme */
 #style-panel .gjs-field-color,
 #style-panel .sp-replacer {
   border: 1px solid rgba(var(--ziplofy-yellow-rgb), 0.35) !important;
   border-radius: 8px !important;
-  overflow: hidden !important;
+  overflow: visible !important;
   height: 40px !important;
   display: flex !important;
   align-items: stretch !important;
   background: #ffffff !important;
   transition: all 0.2s ease !important;
+  cursor: pointer !important;
 }
 
 #style-panel .gjs-field-color:hover,
@@ -2104,6 +2137,8 @@
 #style-panel .gjs-field-color-picker,
 #style-panel .sp-preview {
   width: 40px !important;
+  min-width: 40px !important;
+  flex-shrink: 0 !important;
   height: 100% !important;
   border: none !important;
   border-right: 1px solid rgba(126, 96, 224, 0.12) !important;
@@ -2488,9 +2523,10 @@
   align-items: stretch !important;
   height: 40px !important;
   border-radius: 8px !important;
-  overflow: hidden !important;
+  overflow: visible !important;
   border: 1px solid rgba(126, 96, 224, 0.22) !important;
   background: #ffffff !important;
+  cursor: pointer !important;
 }
 
 #style-panel .gjs-field-color .gjs-field-color-picker {
@@ -2508,11 +2544,18 @@
   align-items: center !important;
 }
 
+/* Color field hex input - keep editable for manual color entry */
 #style-panel .gjs-field-color input {
   border: none !important;
   background: transparent !important;
-  height: auto !important;
-  padding: 0 !important;
+  min-height: 24px !important;
+  height: 24px !important;
+  padding: 0 8px !important;
+  flex: 1 !important;
+  min-width: 60px !important;
+  cursor: text !important;
+  pointer-events: auto !important;
+  font-size: 12px !important;
 }
 
 /* All radio button groups */
