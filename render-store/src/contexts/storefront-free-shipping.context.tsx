@@ -61,11 +61,8 @@ export interface FreeShippingContextType {
 
   // Functions
   checkEligibleFreeShippingDiscounts: (request: CheckEligibleFreeShippingRequest) => Promise<void>;
-  validateFreeShippingDiscountCode: (request: ValidateFreeShippingCodeRequest) => Promise<void>;
   applyAutomaticDiscount: (discount: FreeShippingDiscount) => void;
   clearAppliedAutomaticDiscount: () => void;
-  clearDiscountCodeResult: () => void;
-  clearError: () => void;
 }
 
 const FreeShippingContext = createContext<FreeShippingContextType | undefined>(undefined);
@@ -128,42 +125,6 @@ export const FreeShippingProvider: React.FC<FreeShippingProviderProps> = ({ chil
     setAppliedAutomaticDiscount(null);
   }, []);
 
-  // Validate free shipping discount code
-  const validateFreeShippingDiscountCode = useCallback(async (request: ValidateFreeShippingCodeRequest) => {
-    try {
-      setDiscountCodeLoading(true);
-      setDiscountCodeError(null);
-
-      const response = await axiosi.post('/storefront/discounts/free-shipping/validate-code', request);
-
-      if (response.data.success) {
-        setDiscountCodeResult(response.data.data.discount);
-        setAppliedAutomaticDiscount(null);
-      } else {
-        setDiscountCodeError(response.data.message || 'Invalid discount code');
-        setDiscountCodeResult(null);
-      }
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Invalid discount code';
-      setDiscountCodeError(errorMessage);
-      setDiscountCodeResult(null);
-      console.error('Error validating free shipping discount code:', err);
-    } finally {
-      setDiscountCodeLoading(false);
-    }
-  }, []);
-
-  // Clear discount code result
-  const clearDiscountCodeResult = useCallback(() => {
-    setDiscountCodeResult(null);
-    setDiscountCodeError(null);
-  }, []);
-
-  // Clear error
-  const clearError = () => {
-    setError(null);
-  };
-
   const value: FreeShippingContextType = {
     // State
     eligibleDiscounts,
@@ -176,11 +137,8 @@ export const FreeShippingProvider: React.FC<FreeShippingProviderProps> = ({ chil
 
     // Functions
     checkEligibleFreeShippingDiscounts,
-    validateFreeShippingDiscountCode,
     applyAutomaticDiscount,
     clearAppliedAutomaticDiscount,
-    clearDiscountCodeResult,
-    clearError,
   };
 
   return (

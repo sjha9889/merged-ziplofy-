@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiMinus, FiPlus, FiTrash2, FiX, FiArrowLeft, FiLock, FiMapPin, FiShoppingBag } from 'react-icons/fi';
+import { FiTrash2, FiX, FiArrowLeft, FiLock, FiMapPin, FiShoppingBag } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStorefront } from '../contexts/store.context';
 import { useStorefrontAuth } from '../contexts/storefront-auth.context';
@@ -13,6 +13,7 @@ import { useAmountOffProduct } from '../contexts/amount-off-product.context';
 import { useBuyXGetY } from '../contexts/buy-x-get-y.context';
 import type { BuyXGetYCartItem } from '../contexts/buy-x-get-y.context';
 import { BxgyChooseItemsModal } from './BxgyChooseItemsModal';
+import { BxgyCheckoutGetsSection } from './BxgyCheckoutGetsSection';
 import { formatINR } from '../utils/currency';
 import { useStorefrontCountries } from '../contexts/storefront-country.context';
 import ZiplofyLogo from '../assets/ziplofy-logo.png';
@@ -37,21 +38,14 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
     eligibleDiscounts,
     discountCodeResult,
     appliedAutomaticDiscount,
-    // The rest of the free-shipping helpers are available via context but
-    // not used directly in this component now that discount sections were
-    // removed from the checkout modal.
-    // loading: freeShippingLoading,
-    // discountCodeLoading,
-    // discountCodeError,
+    loading: freeShippingLoading,
     checkEligibleFreeShippingDiscounts,
-    // validateFreeShippingDiscountCode,
     applyAutomaticDiscount,
     clearAppliedAutomaticDiscount,
-    // clearDiscountCodeResult,
   } = useFreeShipping();
   const {
     eligibleDiscounts: aooEligibleDiscounts,
-    // loading: aooLoading,
+    loading: aooLoading,
     discountCodeResult: aooDiscountCodeResult,
     appliedAutomaticDiscount: aooAppliedAutomaticDiscount,
     // discountCodeLoading: aooDiscountCodeLoading,
@@ -64,7 +58,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
   } = useAmountOffOrder();
   const {
     eligibleDiscounts: aopEligibleDiscounts,
-    // loading: aopLoading,
+    loading: aopLoading,
     discountCodeResult: aopDiscountCodeResult,
     appliedAutomaticDiscount: aopAppliedAutomaticDiscount,
     // discountCodeLoading: aopDiscountCodeLoading,
@@ -77,7 +71,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
   } = useAmountOffProduct();
   const {
     eligibleDiscounts: bxgyEligibleDiscounts,
-    // loading: bxgyLoading,
+    loading: bxgyLoading,
     discountCodeResult: bxgyDiscountCodeResult,
     appliedAutomaticDiscount: bxgyAppliedAutomaticDiscount,
     selectedGetsItems: bxgySelectedGetsItems,
@@ -180,53 +174,70 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
   const cartItemsKey = useMemo(() => JSON.stringify(cartItemsForApi.map((c) => `${c.productId}:${c.quantity}:${c.price}`)), [cartItemsForApi]);
   const bxgyCartItemsKey = useMemo(() => JSON.stringify(buyXGetYCartItems.map((c) => `${c.productId}:${c.quantity}:${c.price}`)), [buyXGetYCartItems]);
   const selectedAddrData = addresses.find((a) => a._id === selectedShippingAddressId);
-  const shippingCountryIso2 = (selectedAddrData?.countryId as { iso2?: string })?.iso2;
+  /** When cart opens before checkout, fall back to first saved address so free-shipping eligibility can run. */
+  const addressForFreeShippingCheck = selectedAddrData ?? (addresses.length > 0 ? addresses[0] : undefined);
+  const shippingCountryIso2 = (addressForFreeShippingCheck?.countryId as { iso2?: string })?.iso2;
+
+  const discountsContextActive = open || checkoutDialogOpen;
+  const discountsOffersLoading =
+    discountsContextActive &&
+    (aooLoading || aopLoading || bxgyLoading || (!!user?._id && freeShippingLoading));
 
   useEffect(() => {
-    if (!checkoutDialogOpen || !storeFrontMeta?.storeId || !user?._id || cartItemsForApi.length === 0) return;
-    const selectedAddr = addresses.find((a) => a._id === selectedShippingAddressId);
+    if (!discountsContextActive || !storeFrontMeta?.storeId || !user?._id || cartItemsForApi.length === 0) return;
+    const addr = addressForFreeShippingCheck;
     checkEligibleFreeShippingDiscounts({
       storeId: storeFrontMeta.storeId,
       customerId: user._id,
       cartItems: cartItemsForApi,
-      shippingAddress: selectedAddr ? {
-        country: (selectedAddr.countryId as { iso2?: string })?.iso2,
-        countryId: typeof selectedAddr.countryId === 'object' ? (selectedAddr.countryId as any)?._id : selectedAddr.countryId,
-        state: selectedAddr.state,
-        city: selectedAddr.city,
-      } : undefined,
+      shippingAddress: addr
+        ? {
+            country: (addr.countryId as { iso2?: string })?.iso2,
+            countryId: typeof addr.countryId === 'object' ? (addr.countryId as any)?._id : addr.countryId,
+            state: addr.state,
+            city: addr.city,
+          }
+        : undefined,
     }).catch(() => {});
-  }, [checkoutDialogOpen, storeFrontMeta?.storeId, user?._id, selectedShippingAddressId, cartItemsKey, shippingCountryIso2, checkEligibleFreeShippingDiscounts]);
+  }, [
+    discountsContextActive,
+    storeFrontMeta?.storeId,
+    user?._id,
+    cartItemsKey,
+    shippingCountryIso2,
+    addressForFreeShippingCheck?._id,
+    checkEligibleFreeShippingDiscounts,
+  ]);
 
-  // Check eligible amount-off-order discounts when checkout modal opens and cart changes
+  // Check eligible amount-off-order discounts when cart or checkout is open and cart changes
   useEffect(() => {
-    if (!checkoutDialogOpen || !storeFrontMeta?.storeId || cartItemsForApi.length === 0) return;
+    if (!discountsContextActive || !storeFrontMeta?.storeId || cartItemsForApi.length === 0) return;
     fetchAooEligibleDiscounts(
       storeFrontMeta.storeId,
       user?._id ?? null,
       cartItemsForApi
     ).catch(() => {});
-  }, [checkoutDialogOpen, storeFrontMeta?.storeId, user?._id, cartItemsKey, fetchAooEligibleDiscounts]);
+  }, [discountsContextActive, storeFrontMeta?.storeId, user?._id, cartItemsKey, fetchAooEligibleDiscounts]);
 
-  // Check eligible amount-off-product discounts when checkout modal opens and cart changes
+  // Check eligible amount-off-product discounts when cart or checkout is open and cart changes
   useEffect(() => {
-    if (!checkoutDialogOpen || !storeFrontMeta?.storeId || buyXGetYCartItems.length === 0) return;
+    if (!discountsContextActive || !storeFrontMeta?.storeId || buyXGetYCartItems.length === 0) return;
     fetchAopEligibleDiscounts(
       storeFrontMeta.storeId,
       user?._id ?? null,
       buyXGetYCartItems
     ).catch(() => {});
-  }, [checkoutDialogOpen, storeFrontMeta?.storeId, user?._id, bxgyCartItemsKey, fetchAopEligibleDiscounts]);
+  }, [discountsContextActive, storeFrontMeta?.storeId, user?._id, bxgyCartItemsKey, fetchAopEligibleDiscounts]);
 
-  // Check eligible Buy X Get Y discounts when checkout modal opens and cart changes
+  // Check eligible Buy X Get Y discounts when cart or checkout is open and cart changes
   useEffect(() => {
-    if (!checkoutDialogOpen || !storeFrontMeta?.storeId || buyXGetYCartItems.length === 0) return;
+    if (!discountsContextActive || !storeFrontMeta?.storeId || buyXGetYCartItems.length === 0) return;
     fetchBxgyEligibleDiscounts(
       storeFrontMeta.storeId,
       user?._id ?? null,
       buyXGetYCartItems
     ).catch(() => {});
-  }, [checkoutDialogOpen, storeFrontMeta?.storeId, user?._id, bxgyCartItemsKey, fetchBxgyEligibleDiscounts]);
+  }, [discountsContextActive, storeFrontMeta?.storeId, user?._id, bxgyCartItemsKey, fetchBxgyEligibleDiscounts]);
 
   // Amounts are stored in paisa (minor units), so 200 rupees = 20000
   const shippingCost = 20000; // Hardcoded ₹200 for now
@@ -288,7 +299,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
 
   // Unified auto-apply effect using combination validation
   useEffect(() => {
-    if (!checkoutDialogOpen) return;
+    if (!discountsContextActive) return;
 
     // Get best eligible discount from each type (skip if manual code applied)
     const candidates: Array<{
@@ -421,7 +432,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
       }
     }
   }, [
-    checkoutDialogOpen,
+    discountsContextActive,
     shippingCost,
     // Free Shipping
     eligibleDiscounts,
@@ -699,7 +710,8 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
       setCheckoutDialogOpen(false);
       await Promise.all(items.map(item => deleteCartEntry(item._id).catch(() => {})));
       clear();
-      onClose(); // Close the cart drawer after successful order
+      onClose();
+      navigate('/order-success');
     } catch (error) { 
       console.error('Failed to create order:', error);
       // You might want to show a toast notification here
@@ -710,7 +722,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
     <>
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50">
+        <div className="fixed inset-0 z-[110]">
           {/* Backdrop */}
           <motion.button
             type="button"
@@ -719,207 +731,283 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-[var(--charcoal-black)]/45 backdrop-blur-[2px]"
             onClick={onClose}
           />
 
-          {/* Drawer */}
+          {/* Drawer — Ornativa theme: ivory panel, warm border, above footer UI (z-100) */}
           <motion.aside
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl"
+            transition={{ type: 'spring', damping: 32, stiffness: 320 }}
+            className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col border-l border-[var(--warm-beige)] bg-[var(--ivory-white)] shadow-[-12px_0_48px_rgba(12,16,12,0.12)]"
           >
-          <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-            <h2 className="text-lg font-semibold text-gray-900">Your Cart</h2>
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
-              aria-label="Close"
-            >
-              <FiX className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div className="flex h-[calc(100%-64px)] flex-col p-5">
-            {displayItems.length === 0 ? (
-              <div className="flex flex-1 flex-col items-center justify-center text-center">
-                <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                  <FiShoppingBag className="w-10 h-10 text-gray-300" />
-                </div>
-                <p className="text-lg font-medium text-gray-900 mb-2">Your cart is empty</p>
-                <p className="text-sm text-gray-500 mb-6">Looks like you haven't added anything yet</p>
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-6 py-2.5 rounded-full bg-gray-900 text-white text-sm font-medium hover:bg-gray-800 transition-colors"
+            <header className="flex shrink-0 items-center justify-between border-b border-[var(--warm-beige)] bg-white/90 px-5 py-4 backdrop-blur-md">
+              <div>
+                <h2
+                  className="text-[1.15rem] font-semibold tracking-tight text-[var(--charcoal-black)]"
+                  style={{ fontFamily: 'var(--font-serif)' }}
                 >
-                  Continue Shopping
-                </button>
+                  Shopping bag
+                </h2>
+                <p className="mt-0.5 text-xs font-medium uppercase tracking-[0.12em] text-[var(--soft-charcoal)]/80">
+                  {displayItems.length} {displayItems.length === 1 ? 'item' : 'items'}
+                </p>
               </div>
-            ) : (
-              <>
-                {/* Optional sign-in / rewards banner */}
-                {!user && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-4 rounded-2xl border border-gray-100 bg-gradient-to-r from-gray-50 to-white p-4 flex items-center justify-between"
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-xl p-2.5 text-[var(--soft-charcoal)] transition-colors hover:bg-[var(--champagne-beige)] hover:text-[var(--charcoal-black)]"
+                aria-label="Close cart"
+              >
+                <FiX className="h-5 w-5" strokeWidth={2} />
+              </button>
+            </header>
+
+            <div className="flex min-h-0 flex-1 flex-col">
+              {displayItems.length === 0 ? (
+                <div className="flex flex-1 flex-col items-center justify-center px-4 py-12 text-center">
+                  <div className="mb-5 flex h-24 w-24 items-center justify-center rounded-full border border-[var(--warm-beige)] bg-[var(--champagne-beige)]/60">
+                    <FiShoppingBag className="h-11 w-11 text-[var(--gold)]/40" />
+                  </div>
+                  <p className="text-lg font-semibold text-[var(--charcoal-black)]" style={{ fontFamily: 'var(--font-serif)' }}>
+                    Your bag is empty
+                  </p>
+                  <p className="mt-2 max-w-[240px] text-sm text-[var(--soft-charcoal)]/90">
+                    Discover pieces you love and add them here.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="mt-8 rounded-full bg-[var(--charcoal-black)] px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#2b1e1e]"
                   >
-                    <div className="text-xs text-gray-600">
-                      <div className="font-semibold text-gray-900">Sign in to sync your cart</div>
-                      <div>Save items and checkout faster</div>
+                    Continue shopping
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {!user && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mx-4 mt-4 shrink-0 rounded-2xl border border-[var(--warm-beige)] bg-gradient-to-r from-[var(--champagne-beige)]/80 to-white px-4 py-3.5"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0 text-left">
+                          <p className="text-sm font-semibold text-[var(--charcoal-black)]">Sign in</p>
+                          <p className="text-xs text-[var(--soft-charcoal)]">Sync your cart across devices</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onClose();
+                            navigate('/auth/login');
+                          }}
+                          className="shrink-0 rounded-full border border-[var(--charcoal-black)] bg-white px-4 py-2 text-xs font-semibold text-[var(--charcoal-black)] transition hover:bg-[var(--champagne-beige)]"
+                        >
+                          Sign in
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-2 pt-4">
+                    <div className="space-y-3">
+                      {displayItems.map((it, index) => {
+                        const pv = typeof it.productVariantId === 'object' ? it.productVariantId : null;
+                        const image = pv?.images?.[0];
+                        const title = pv?.sku || 'Product';
+                        const price = pv?.price ?? 0;
+                        const compareAtPrice = pv?.compareAtPrice ?? null;
+                        const productId = pv?.productId;
+                        const handleProductClick = () => {
+                          if (productId) {
+                            onClose();
+                            navigate(`/products/${productId}`);
+                          }
+                        };
+                        return (
+                          <motion.div
+                            key={it._id}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.04 }}
+                            className="flex gap-3.5 rounded-2xl border border-[var(--warm-beige)] bg-white p-3.5 shadow-[var(--shadow-light)]"
+                          >
+                            <button
+                              type="button"
+                              className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-[var(--warm-beige)] bg-[var(--champagne-beige)]/50"
+                              onClick={handleProductClick}
+                              aria-label={productId ? `View ${title}` : undefined}
+                            >
+                              <img
+                                src={image || 'https://via.placeholder.com/96'}
+                                alt=""
+                                className="h-full w-full object-contain p-1"
+                              />
+                            </button>
+                            <div className="min-w-0 flex-1 text-left">
+                              {productId ? (
+                                <button
+                                  type="button"
+                                  onClick={handleProductClick}
+                                  className="text-left text-[0.9375rem] font-semibold leading-snug text-[var(--charcoal-black)] hover:text-[var(--gold)]"
+                                >
+                                  {title}
+                                </button>
+                              ) : (
+                                <p className="text-[0.9375rem] font-semibold text-[var(--charcoal-black)]">{title}</p>
+                              )}
+                              {pv?.optionValues && (
+                                <p className="mt-0.5 text-xs leading-relaxed text-[var(--soft-charcoal)]">
+                                  {Object.entries(pv.optionValues)
+                                    .map(([k, v]) => `${k}: ${v}`)
+                                    .join(' · ')}
+                                </p>
+                              )}
+                              <div className="mt-2 flex flex-wrap items-baseline gap-2">
+                                <span className="text-sm font-semibold tabular-nums text-[var(--charcoal-black)]">
+                                  {formatINR(price * it.quantity)}
+                                </span>
+                                {compareAtPrice != null && compareAtPrice > price && (
+                                  <span className="text-xs tabular-nums text-[var(--soft-charcoal)] line-through">
+                                    {formatINR(compareAtPrice * it.quantity)}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="mt-3 flex items-center gap-2">
+                                <div className="inline-flex items-center rounded-full border border-[var(--warm-beige)] bg-[var(--ivory-white)] p-0.5">
+                                  <button
+                                    type="button"
+                                    className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium text-[var(--charcoal-black)] transition hover:bg-[var(--champagne-beige)]"
+                                    onClick={() => updateCartEntry({ id: it._id, quantity: Math.max(1, it.quantity - 1) })}
+                                    aria-label="Decrease quantity"
+                                  >
+                                    −
+                                  </button>
+                                  <span className="min-w-[1.75rem] text-center text-sm font-semibold tabular-nums text-[var(--charcoal-black)]">
+                                    {it.quantity}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium text-[var(--charcoal-black)] transition hover:bg-[var(--champagne-beige)]"
+                                    onClick={() => updateCartEntry({ id: it._id, quantity: it.quantity + 1 })}
+                                    aria-label="Increase quantity"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => deleteCartEntry(it._id)}
+                                  className="ml-auto flex h-9 w-9 items-center justify-center rounded-full text-[var(--soft-charcoal)] transition hover:bg-red-50 hover:text-red-600"
+                                  aria-label="Remove item"
+                                >
+                                  <FiTrash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="shrink-0 border-t border-[var(--warm-beige)] bg-gradient-to-b from-white to-[var(--champagne-beige)]/30 px-4 pb-6 pt-6"
+                  >
+                    <h3
+                      className="mb-4 text-base font-semibold text-[var(--charcoal-black)]"
+                      style={{ fontFamily: 'var(--font-serif)' }}
+                    >
+                      Order summary
+                    </h3>
+                    {displayItems.length > 0 && (
+                      <div className="mb-4 rounded-2xl border border-[var(--warm-beige)] bg-white/80 p-3.5 text-xs leading-relaxed text-[var(--soft-charcoal)] shadow-[var(--shadow-light)]">
+                        {discountsOffersLoading ? (
+                          <p className="text-[var(--charcoal-black)]">Calculating the best offers for your bag…</p>
+                        ) : appliedDiscounts.length > 0 ? (
+                          <>
+                            <p className="font-semibold text-[var(--charcoal-black)]" style={{ fontFamily: 'var(--font-serif)' }}>
+                              We&apos;ve applied the best compatible discounts for you.
+                            </p>
+                            <p className="mt-1.5 text-[11px] text-[var(--soft-charcoal)]">
+                              These offers work together and give you the highest savings right now.
+                            </p>
+                            <ul className="mt-2.5 space-y-1.5 border-t border-[var(--warm-beige)] pt-2.5">
+                              {appliedDiscounts.map((d, idx) => {
+                                const badge = getDiscountBadge(d.type);
+                                return (
+                                  <li key={`${d.type}-${idx}`} className="flex items-start justify-between gap-2">
+                                    <span className="min-w-0 flex-1">
+                                      <span
+                                        className={`mr-1.5 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${badge.bg} ${badge.color}`}
+                                      >
+                                        {badge.text}
+                                      </span>
+                                      <span className="text-[var(--charcoal-black)]">{d.label}</span>
+                                    </span>
+                                    <span className="shrink-0 font-semibold tabular-nums text-emerald-700">−{formatINR(d.amount)}</span>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </>
+                        ) : (
+                          <p>No automatic stackable discounts apply to this bag yet. You can still enter a code at checkout.</p>
+                        )}
+                      </div>
+                    )}
+                    <div className="space-y-2.5 text-sm">
+                      <div className="flex justify-between text-[var(--soft-charcoal)]">
+                        <span>Subtotal</span>
+                        <span className="font-medium tabular-nums text-[var(--charcoal-black)]">{formatINR(subtotal)}</span>
+                      </div>
+                      {totalDiscountAmount > 0 && (
+                        <div className="flex justify-between text-emerald-700">
+                          <span>Discount</span>
+                          <span className="font-semibold tabular-nums">−{formatINR(totalDiscountAmount)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-[var(--soft-charcoal)]">
+                        <span>Shipping</span>
+                        <span className="font-medium tabular-nums text-[var(--charcoal-black)]">
+                          {totalDiscountAmount > 0 && (discountCodeResult || appliedAutomaticDiscount)
+                            ? 'Free'
+                            : shippingCost <= 0
+                              ? 'Free'
+                              : formatINR(shippingCost)}
+                        </span>
+                      </div>
+                      <div className="my-3 h-px bg-[var(--warm-beige)]" />
+                      <div className="flex justify-between text-base font-semibold text-[var(--charcoal-black)]">
+                        <span>Total</span>
+                        <span className="tabular-nums">{formatINR(finalTotal)}</span>
+                      </div>
                     </div>
                     <button
                       type="button"
-                      onClick={onClose}
-                      className="px-4 py-2 rounded-full bg-gray-900 text-white text-xs font-medium hover:bg-gray-800 transition-colors"
+                      onClick={handleCheckoutClick}
+                      disabled={displayItems.length === 0}
+                      className="mt-5 w-full rounded-full bg-[var(--charcoal-black)] py-3.5 text-sm font-semibold text-white shadow-md transition hover:bg-[#2b1e1e] disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      Sign in
+                      Proceed to checkout
+                    </button>
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="mt-3 w-full rounded-full border border-[var(--warm-beige)] bg-white py-3 text-sm font-medium text-[var(--charcoal-black)] transition hover:border-[var(--gold)]/50 hover:bg-[var(--champagne-beige)]/50"
+                    >
+                      Continue shopping
                     </button>
                   </motion.div>
-                )}
-
-                <div className="flex-1 space-y-3 overflow-y-auto pr-1">
-                  {displayItems.map((it, index) => {
-                    const pv = typeof it.productVariantId === 'object' ? it.productVariantId : null;
-                    const image = pv?.images?.[0];
-                    const title = pv?.sku || 'Product';
-                    const price = pv?.price ?? 0;
-                    const productId = pv?.productId;
-                    const handleProductClick = () => {
-                      if (productId) {
-                        onClose();
-                        navigate(`/products/${productId}`);
-                      }
-                    };
-                    return (
-                      <motion.div
-                        key={it._id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
-                      >
-                        <div className="flex gap-4">
-                          <div
-                            className={`h-20 w-20 flex-shrink-0 rounded-xl bg-gray-50 overflow-hidden ${productId ? 'cursor-pointer' : ''}`}
-                            onClick={handleProductClick}
-                          >
-                            <img
-                              src={image || 'https://via.placeholder.com/96'}
-                              alt={title}
-                              className="h-full w-full object-contain hover:scale-105 transition-transform duration-300"
-                            />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div
-                              className={`truncate text-sm font-medium text-gray-900 ${productId ? 'cursor-pointer hover:text-gray-600 transition-colors' : ''}`}
-                              title={title}
-                              onClick={handleProductClick}
-                            >
-                              {title}
-                            </div>
-                            {pv?.optionValues && (
-                              <div className="mt-1 text-xs text-gray-500">
-                                {Object.entries(pv.optionValues).map(([k, v]) => `${k}: ${v}`).join(', ')}
-                              </div>
-                            )}
-                            <div className="mt-3 flex items-center justify-between">
-                              <div className="text-sm font-semibold text-gray-900">
-                                {formatINR(price * it.quantity)}
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => deleteCartEntry(it._id)}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                                aria-label="Remove"
-                              >
-                                <FiTrash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                            <div className="mt-3 flex items-center gap-1">
-                              <button
-                                type="button"
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50 text-gray-600 transition-colors"
-                                onClick={() => updateCartEntry({ id: it._id, quantity: Math.max(1, it.quantity - 1) })}
-                                aria-label="Decrease quantity"
-                              >
-                                <FiMinus className="w-3.5 h-3.5" />
-                              </button>
-                              <div className="w-10 text-center text-sm font-medium text-gray-900">{it.quantity}</div>
-                              <button
-                                type="button"
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 hover:bg-gray-50 text-gray-600 transition-colors"
-                                onClick={() => updateCartEntry({ id: it._id, quantity: it.quantity + 1 })}
-                                aria-label="Increase quantity"
-                              >
-                                <FiPlus className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="mt-4 rounded-2xl border border-gray-100 p-4 bg-gray-50/50"
-                >
-                  <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-                    <span>Subtotal</span>
-                    <span className="font-medium text-gray-900">
-                      {formatINR(subtotal + totalDiscountAmount)}
-                    </span>
-                  </div>
-                  {totalDiscountAmount > 0 && (
-                    <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-                      <span>Discount</span>
-                      <span className="font-medium text-emerald-600">
-                        -{formatINR(totalDiscountAmount)}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
-                    <span>Shipping</span>
-                    <span className="font-medium text-gray-900">
-                      {shippingCost <= 0 ? 'FREE' : formatINR(shippingCost)}
-                    </span>
-                  </div>
-                  <div className="border-t border-gray-200 pt-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-semibold text-gray-900">Total</span>
-                      <span className="text-lg font-bold text-gray-900">{formatINR(finalTotal)}</span>
-                    </div>
-                    <p className="text-[11px] text-gray-500 mt-1">Inclusive of all taxes</p>
-                  </div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 }}
-                  className="mt-4"
-                >
-                  <button
-                    type="button"
-                    onClick={handleCheckoutClick}
-                    className="w-full py-3.5 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg"
-                    disabled={displayItems.length === 0}
-                  >
-                    Proceed to Checkout
-                  </button>
-                </motion.div>
-              </>
-            )}
-          </div>
-        </motion.aside>
+                </>
+              )}
+            </div>
+          </motion.aside>
         </div>
       )}
     </AnimatePresence>
@@ -927,11 +1015,12 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
       {/* Quick Checkout Popup (Pay Now from Cart) – Boat-style UI */}
       {checkoutDialogOpen && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
+          className="checkout-page fixed inset-0 z-[120] flex items-center justify-center bg-black/50 p-4"
+          style={{ position: 'fixed' }}
           onClick={() => setCheckoutDialogOpen(false)}
         >
           <div
-            className="bg-white rounded-3xl max-w-md w-full max-h-[85vh] overflow-hidden shadow-2xl font-sans flex flex-col"
+            className="checkout-inner checkout-drawer-modal bg-white rounded-3xl max-w-md w-full max-h-[85vh] overflow-hidden shadow-2xl font-sans flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Top savings & items bar */}
@@ -1036,6 +1125,13 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
                   </div>
                 </div>
               </div>
+
+              <BxgyCheckoutGetsSection
+                appliedBxgy={bxgyDiscountCodeResult ?? bxgyAppliedAutomaticDiscount}
+                eligibleBxgy={bxgyEligibleDiscounts[0] ?? null}
+                selectedGetsItems={bxgySelectedGetsItems}
+                onChooseItemsClick={() => setBxgyChooseItemsModalOpen(true)}
+              />
 
               {/* Login / phone entry section - Only show when NOT logged in */}
               {!user && (
@@ -1310,7 +1406,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
       {/* Add Address Modal */}
       {addAddressModalOpen && (
         <div
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/50 p-4"
           onClick={() => setAddAddressModalOpen(false)}
         >
           <div
@@ -1521,7 +1617,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
       {/* Login Prompt Modal for Guest Checkout */}
       {loginPromptOpen && (
         <div
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/50 p-4"
           onClick={() => setLoginPromptOpen(false)}
         >
           <div
@@ -1551,7 +1647,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
                   onClick={() => {
                     setLoginPromptOpen(false);
                     onClose();
-                    navigate('/login');
+                    navigate('/auth/login');
                   }}
                   className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-amber-500 rounded-lg hover:bg-amber-600 transition-colors"
                 >

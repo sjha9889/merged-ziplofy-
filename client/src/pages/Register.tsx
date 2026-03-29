@@ -2,8 +2,8 @@ import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { useCallback, useState, type FormEvent } from 'react';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
-import SlantedImageCarouselWrapper from '../components/SlantedImageCarouselWrapper';
 import ziplofyLogo from '../assets/ziplofy-logo.png';
+import SlantedImageCarouselWrapper from '../components/SlantedImageCarouselWrapper';
 import { useAuth } from '../contexts/auth.context';
 
 // Define types

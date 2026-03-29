@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.connectDB = void 0;
+require("../utils/env.utils");
 const mongoose_1 = __importDefault(require("mongoose"));
 /**
  * Connects to the MongoDB database using Mongoose.
@@ -13,7 +14,7 @@ const connectDB = async () => {
     const maxRetries = 5;
     const retryDelay = 5000; // 5 seconds
     let retries = 0;
-    const mongoUri = process.env.MONGODB_URI;
+    const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
     if (!mongoUri) {
         console.error('❌ MONGODB_URI environment variable is not set!');
         console.error('Please check your .env file and ensure MONGODB_URI is configured.');

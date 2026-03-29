@@ -30,6 +30,7 @@ import { locationRouter } from './routes/location.route';
 import { orderRouter } from './routes/order.route';
 import { packagingRouter } from './routes/packaging.route';
 import { productTagsRouter } from './routes/product-tags.route';
+
 import { productTypeRouter } from './routes/product-type.route';
 import { productVariantRouter } from './routes/product-variant.route';
 import { productRouter } from './routes/product.route';

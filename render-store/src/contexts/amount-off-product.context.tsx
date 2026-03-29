@@ -66,11 +66,8 @@ interface AmountOffProductContextType {
 
   // Actions (customerId optional for guest checkout)
   fetchEligibleDiscounts: (storeId: string, customerId: string | null, cartItems: AmountOffProductCartItem[]) => Promise<void>;
-  amountOffProductDiscountCodeCheck: (storeId: string, customerId: string | null, cartItems: AmountOffProductCartItem[], discountCode: string) => Promise<AmountOffProductDiscount | null>;
   applyAutomaticDiscount: (discount: AmountOffProductDiscount) => void;
   clearAppliedAutomaticDiscount: () => void;
-  clearDiscounts: () => void;
-  clearDiscountCodeResult: () => void;
 }
 
 // Create Context
@@ -142,63 +139,6 @@ export const AmountOffProductProvider: React.FC<AmountOffProductProviderProps> =
     }
   }, []);
 
-  // Validate discount code (customerId optional for guest checkout)
-  const amountOffProductDiscountCodeCheck = useCallback(async (
-    storeId: string,
-    customerId: string | null,
-    cartItems: AmountOffProductCartItem[],
-    discountCode: string
-  ): Promise<AmountOffProductDiscount | null> => {
-    try {
-      setDiscountCodeLoading(true);
-      setDiscountCodeError(null);
-      setDiscountCodeResult(null);
-
-      const response = await axiosi.post<AmountOffProductValidateResponse>(
-        '/storefront/discounts/amount-off-product/validate-code',
-        {
-          storeId,
-          ...(customerId && { customerId }),
-          cartItems,
-          discountCode: discountCode.trim(),
-        }
-      );
-
-      if (response.data.success) {
-        const discount = response.data.data.discount;
-        setDiscountCodeResult(discount);
-        setAppliedAutomaticDiscount(null);
-        return discount;
-      } else {
-        setDiscountCodeError(response.data.message || 'Invalid discount code');
-        return null;
-      }
-    } catch (err: any) {
-      console.error('Error validating amount off product discount code:', err);
-      setDiscountCodeError(err.response?.data?.message || 'Failed to validate discount code');
-      setDiscountCodeResult(null);
-      return null;
-    } finally {
-      setDiscountCodeLoading(false);
-    }
-  }, []);
-
-  const clearDiscountCodeResult = useCallback(() => {
-    setDiscountCodeResult(null);
-    setDiscountCodeError(null);
-  }, []);
-
-  // Clear discounts
-  const clearDiscounts = useCallback(() => {
-    setEligibleDiscounts([]);
-    setCartTotal(0);
-    setTotalQuantity(0);
-    setError(null);
-    setDiscountCodeResult(null);
-    setAppliedAutomaticDiscount(null);
-    setDiscountCodeError(null);
-  }, []);
-
   // Context value
   const value: AmountOffProductContextType = {
     eligibleDiscounts,
@@ -211,11 +151,8 @@ export const AmountOffProductProvider: React.FC<AmountOffProductProviderProps> =
     discountCodeLoading,
     discountCodeError,
     fetchEligibleDiscounts,
-    amountOffProductDiscountCodeCheck,
     applyAutomaticDiscount,
     clearAppliedAutomaticDiscount,
-    clearDiscounts,
-    clearDiscountCodeResult,
   };
 
   return (

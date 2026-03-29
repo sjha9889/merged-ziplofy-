@@ -1,3 +1,4 @@
+import '../utils/env.utils';
 import mongoose from 'mongoose';
 
 /**
@@ -9,7 +10,7 @@ export const connectDB = async (): Promise<void> => {
   const retryDelay = 5000; // 5 seconds
   let retries = 0;
 
-  const mongoUri = process.env.MONGODB_URI;
+  const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
   
   if (!mongoUri) {
     console.error('❌ MONGODB_URI environment variable is not set!');

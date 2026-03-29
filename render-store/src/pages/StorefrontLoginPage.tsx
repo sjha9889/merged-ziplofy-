@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FcGoogle } from 'react-icons/fc';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight } from 'react-icons/fi';
-import SlantedImageCarouselWrapper from '../components/SlantedImageCarouselWrapper';
 import { useStorefront } from '../contexts/store.context';
 import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 
@@ -36,17 +35,15 @@ const StorefrontLoginPage: React.FC = () => {
   };
 
   return (
-    <SlantedImageCarouselWrapper>
-      <div className="mx-auto w-full max-w-md px-4">
-        <div className="rounded-2xl bg-white/95 p-6 shadow-2xl border border-gray-100 backdrop-blur-sm max-h-[90vh] overflow-y-auto">
-          {/* Header */}
+    <div className="min-h-[60vh] flex items-center justify-center px-4 py-12 bg-[var(--ivory-white)]">
+      <div className="mx-auto w-full max-w-md">
+        <div className="rounded-2xl bg-white p-8 shadow-sm border border-[var(--warm-beige)] max-h-[90vh] overflow-y-auto">
+          {/* Header - matches original theme: serif heading, gold icon */}
           <div className="text-center mb-6">
-            <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br from-[#d4af37] to-[#f0d060] flex items-center justify-center shadow-lg">
-              <span className="text-xl font-bold text-white">
-                {storeFrontMeta?.name?.charAt(0) || 'S'}
-              </span>
+            <div className="w-12 h-12 mx-auto mb-3 rounded-xl flex items-center justify-center text-white text-xl font-bold bg-gradient-to-br from-[var(--gold)] to-[var(--light-gold)] shadow-[var(--shadow-gold)]">
+              {storeFrontMeta?.name?.charAt(0) || 'S'}
             </div>
-            <h1 className="text-xl font-bold text-gray-900">Welcome back</h1>
+            <h1 className="text-xl font-bold text-[var(--charcoal-black)]" style={{ fontFamily: 'var(--font-serif)' }}>Welcome back</h1>
             <p className="mt-2 text-sm text-gray-500">
               Sign in to your account to continue
             </p>
@@ -76,7 +73,7 @@ const StorefrontLoginPage: React.FC = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Enter your email"
-                  className="block w-full pl-10 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] outline-none transition-all text-gray-900 placeholder-gray-400"
+                  className="block w-full pl-10 pr-4 py-2.5 text-sm border border-[var(--warm-beige)] rounded-xl bg-white focus:ring-2 focus:ring-[var(--gold)]/30 focus:border-[var(--gold)] outline-none transition-all text-[var(--charcoal-black)] placeholder-gray-400"
                 />
               </div>
             </div>
@@ -96,7 +93,7 @@ const StorefrontLoginPage: React.FC = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Enter your password"
-                  className="block w-full pl-10 pr-12 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] outline-none transition-all text-gray-900 placeholder-gray-400"
+                  className="block w-full pl-10 pr-12 py-2.5 text-sm border border-gray-200 rounded-xl bg-white focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)] outline-none transition-all text-gray-900 placeholder-gray-400"
                 />
                 <button
                   type="button"
@@ -113,7 +110,7 @@ const StorefrontLoginPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/auth/forgot-password')}
-                className="text-sm font-medium text-[#d4af37] hover:text-[#b8941f] transition-colors"
+                className="text-sm font-medium text-[var(--gold)] hover:text-[var(--dark-gold)] transition-colors"
               >
                 Forgot password?
               </button>
@@ -124,10 +121,10 @@ const StorefrontLoginPage: React.FC = () => {
               type="button"
               disabled={loading}
               onClick={handleLogin}
-              className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-gray-900 text-white font-semibold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-gray-900/20"
+              className="btn-login-primary w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-[var(--charcoal-black)]/20 border-t-[var(--charcoal-black)] rounded-full animate-spin" />
               ) : (
                 <>
                   Sign in
@@ -163,7 +160,7 @@ const StorefrontLoginPage: React.FC = () => {
               <button 
                 type="button" 
                 onClick={() => navigate('/auth/signup')}
-                className="font-semibold text-[#d4af37] hover:text-[#b8941f] transition-colors"
+                className="font-semibold text-[var(--gold)] hover:text-[var(--dark-gold)] transition-colors"
               >
                 Create account
               </button>
@@ -179,7 +176,7 @@ const StorefrontLoginPage: React.FC = () => {
           </p>
         </div>
       </div>
-    </SlantedImageCarouselWrapper>
+    </div>
   );
 };
 
