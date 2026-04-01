@@ -2240,26 +2240,47 @@
   padding: 24px !important;
 }
 
+/* GrapesJS canvas (host): solid outlines — dashed reads as vertical “grid” lines on wide/tall hovers */
 .gjs-selected {
-  outline: 2px solid #000000 !important;
-  outline-offset: 2px;
+  outline: 2px solid #2563eb !important;
+  outline-offset: 2px !important;
+}
+
+/* Host canvas (rare): ancestor chrome — same “stacked rails” as iframe selected-parent */
+.gjs-selected-parent {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 /* Clear visual drop target & placeholder */
 .gjs-placeholder {
-  outline: 2px dashed rgba(0, 0, 0, 0.2) !important;
+  outline: 2px solid rgba(37, 99, 235, 0.35) !important;
   min-height: 40px !important;
   background: rgba(0, 0, 0, 0.02) !important;
 }
 
 .gjs-highlighter {
-  outline: 2px dashed #000000 !important;
-  outline-offset: 0 !important;
+  outline: 2px solid rgba(37, 99, 235, 0.55) !important;
+  outline-offset: 1px !important;
+  border-radius: 2px !important;
+}
+
+/* Wrapper/body: host highlighter matches full canvas — only left/right edges read as “rails” */
+.custom-theme-builder-root.ziplofy-wrapper-or-body-selected .gjs-highlighter {
+  opacity: 0 !important;
+}
+
+/* Component type chip (e.g. “Div”) — keep readable */
+.gjs-toolbar,
+.gjs-com-badge {
+  font-size: 11px !important;
+  border-radius: 4px !important;
 }
 
 /* While dragging a block over the canvas wrapper */
 [data-drop-target="canvas-wrapper"].dropping {
-  outline: 2px dashed rgba(0, 0, 0, 0.3) !important;
+  outline: 2px solid rgba(37, 99, 235, 0.4) !important;
   background: rgba(0, 0, 0, 0.01) !important;
 }
 

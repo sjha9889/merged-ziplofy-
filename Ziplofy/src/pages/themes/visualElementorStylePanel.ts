@@ -3,6 +3,8 @@
  * From-scratch implementation: select element → show styles in panel → edit → apply to element.
  */
 
+import { normalizeStyleManagerCSSValue } from './visualElementorThemeUtils';
+
 const STYLE_PANEL_ID = 'style-panel';
 
 function getPanel(): HTMLElement | null {
@@ -30,11 +32,13 @@ export function getComponentEl(component: any, editor?: any): HTMLElement | null
 function applyStyleToComponent(component: any, property: string, value: string, editor?: any): void {
   if (!component || !property) return;
   try {
+    const normalized = normalizeStyleManagerCSSValue(property, String(value));
+    if (normalized === null) return;
     const cssProp = property.replace(/([A-Z])/g, '-$1').toLowerCase();
-    component.addStyle?.({ [property]: value });
+    component.addStyle?.({ [property]: normalized });
     const el = getComponentEl(component, editor);
     if (el?.style?.setProperty) {
-      el.style.setProperty(cssProp, value, 'important');
+      el.style.setProperty(cssProp, normalized, 'important');
     }
     // CssComposer fallback: add rule for layout/background so styles override theme CSS
     const css = (editor?.Css || editor?.CssComposer) as any;
@@ -49,14 +53,14 @@ function applyStyleToComponent(component: any, property: string, value: string, 
       }
       if (selector) {
         try {
-          css.setRule(selector, { [cssProp]: value }, { addStyles: true });
+          css.setRule(selector, { [cssProp]: normalized }, { addStyles: true });
         } catch (_) {}
       }
       // Wrapper: use .gjs-wrapper-body selector
       const wrapper = editor?.getWrapper?.();
       if (component === wrapper && css?.setRule) {
         try {
-          css.setRule('.gjs-wrapper-body', { [cssProp]: value }, { addStyles: true });
+          css.setRule('.gjs-wrapper-body', { [cssProp]: normalized }, { addStyles: true });
         } catch (_) {}
       }
     }

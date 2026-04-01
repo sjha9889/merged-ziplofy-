@@ -4,6 +4,72 @@
  * Used for theme loading and style handling in CustomThemeBuilder only.
  */
 
+/**
+ * GrapesJS StyleManager sometimes emits unitless multipliers as px (e.g. `line-height: 1.6` → `1.6px`),
+ * which collapses text and breaks the canvas. Normalize before applying to DOM/CSS.
+ * Returns null to skip applying (e.g. empty string would wipe inherited styles).
+ */
+export function normalizeStyleManagerCSSValue(propertyName: string, value: string): string | null {
+  const v = String(value ?? '').trim();
+  if (v === '') return null;
+  const p = String(propertyName)
+    .replace(/([A-Z])/g, '-$1')
+    .toLowerCase();
+  if (p === 'line-height') {
+    const m = v.match(/^(\d+(?:\.\d+)?)px$/i);
+    if (m) {
+      const n = parseFloat(m[1]);
+      if (n > 0 && n < 4) return m[1];
+    }
+  }
+  // Theme often uses rem (e.g. 1.4rem); StyleManager sometimes emits 1.4px — unreadable / overlapping text
+  if (p === 'font-size') {
+    const m = v.match(/^(\d+(?:\.\d+)?)px$/i);
+    if (m) {
+      const n = parseFloat(m[1]);
+      if (n > 0 && n < 4) return `${m[1]}rem`;
+    }
+  }
+  // font-weight: 400px is invalid — strip mistaken unit
+  if (p === 'font-weight') {
+    const m = v.match(/^(\d+)px$/i);
+    if (m) return m[1];
+  }
+  return v;
+}
+
+/**
+ * Fix bad px values already stored on the component (e.g. after StyleManager sync on select).
+ * Returns true if styles were updated.
+ */
+export function sanitizeComponentStylesFromGrapes(component: any): boolean {
+  if (!component?.getStyle) return false;
+  try {
+    const style = component.getStyle() || {};
+    const keys = Object.keys(style);
+    if (keys.length === 0) return false;
+    const next: Record<string, string> = { ...style };
+    let changed = false;
+    for (const k of keys) {
+      const v = String(style[k] ?? '');
+      const nv = normalizeStyleManagerCSSValue(k, v);
+      if (nv === null) continue;
+      if (nv !== v) {
+        next[k] = nv;
+        changed = true;
+      }
+    }
+    if (!changed) return false;
+    component.setStyle(next);
+    try {
+      component.view?.updateStyle?.();
+    } catch (_) {}
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 /** Preserve text/editing visuals – do NOT use color: inherit (StyleManager would never apply changes) */
 export const PRESERVE_TEXT_COLOR_CSS = `
   .gjs-selected,
@@ -24,12 +90,29 @@ export const PRESERVE_TEXT_COLOR_CSS = `
   }
 `;
 
-/** Blue selection outline and hover – match Basic Elementor exactly */
+/**
+ * GrapesJS iframe extras that stack with the host `.gjs-highlighter` (double edges / grid).
+ * Also kills “dashed mode” per-component outlines on highlightable nodes.
+ */
+export const GJS_IFRAME_OVERLAY_KILL_CSS = `
+  .gjs-selected-parent {
+    outline: none !important;
+    outline-offset: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .gjs-dashed *[data-gjs-highlightable] {
+    outline: none !important;
+    outline-offset: 0 !important;
+  }
+`;
+
+/** Selection: no iframe outline — host `.gjs-highlighter` is the single selection ring (avoids double vertical rails). */
 export const SELECTION_HIGHLIGHT_BASIC_CSS = `
   .gjs-comp-selected,
   .gjs-selected {
-    outline: 2px solid #2563eb !important;
-    outline-offset: 2px !important;
+    outline: none !important;
+    outline-offset: 0 !important;
   }
   /* Body selected: visible highlight when StyleManager targets body */
   body.ziplofy-body-selected,
@@ -39,10 +122,33 @@ export const SELECTION_HIGHLIGHT_BASIC_CSS = `
   }
   .gjs-comp-hover,
   .gjs-hovered {
-    outline: 1px dashed #2563eb !important;
-    outline-offset: 1px !important;
+    outline: none !important;
+    outline-offset: 0 !important;
   }
-`;
+  /* Full-page root: rely on panel + host highlighter hide */
+  body.gjs-comp-selected,
+  body.gjs-selected,
+  .gjs-wrapper-body.gjs-comp-selected,
+  .gjs-wrapper-body.gjs-selected {
+    outline: none !important;
+    outline-offset: 0 !important;
+  }
+  /* Selection readability fix: gradient text can become transparent in canvas selection state. */
+  .hero-slide-title.gjs-selected,
+  .hero-slide-title.gjs-comp-selected,
+  .hero-slide-title.gjs-hovered,
+  .hero-slide-overlay.gjs-selected .hero-slide-title,
+  .hero-slide.gjs-selected .hero-slide-title,
+  .gjs-wrapper-body.gjs-selected .hero-slide-title,
+  .gjs-wrapper-body.gjs-selected .hero-slide-title.gjs-hovered,
+  .hero-slide-caption .gjs-selected,
+  .hero-slide-caption .gjs-comp-selected,
+  .hero-slide-caption .gjs-hovered {
+    opacity: 1 !important;
+    filter: none !important;
+    mix-blend-mode: normal !important;
+  }
+` + GJS_IFRAME_OVERLAY_KILL_CSS;
 
 /** Force pointer-events: auto so nav, header, footer, links are clickable for selection (match Basic Elementor) */
 export const SELECTION_OVERRIDE_CSS = `
@@ -92,7 +198,6 @@ export const SLIDER_FIX_CSS = `
   .slick-slide:not(:first-child),
   .carousel-item:not(:first-child):not(.active),
   .slide:not(:first-child):not(.active),
-  .hero-slide:not(:first-child),
   .slideshow__slide:not(:first-child),
   .hero__slide:not(:first-child),
   .splide__slide:not(:first-child),
@@ -101,6 +206,56 @@ export const SLIDER_FIX_CSS = `
   .owl-item:not(:first-child) {
     display: none !important;
     visibility: hidden !important;
+  }
+  /*
+   * NeuralStore / templatemo hero: slides are position:absolute + opacity. Do NOT use .hero-slide:not(:first-child)
+   * — Grapes may inject a node before the first slide, hiding every slide. Sibling combinator only hides *following* slides.
+   * Force opacity on direct .hero-slide so the first slide still paints if .active is missing in the canvas.
+   */
+  .hero-slider-wrapper > .hero-slide ~ .hero-slide {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  .hero-slider-wrapper > .hero-slide {
+    opacity: 1 !important;
+  }
+  /*
+   * Strong deterministic mode for editor canvas:
+   * show exactly one hero slide (active, else first fallback), keep it full-size.
+   * Prevents split/black-center states when class timing or async script updates race in iframe.
+   */
+  .hero-slider-wrapper {
+    position: relative !important;
+    overflow: hidden !important;
+  }
+  .hero-slider-wrapper > .hero-slide {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    display: flex !important;
+  }
+  .hero-slider-wrapper > .hero-slide.active {
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: 2 !important;
+  }
+  .hero-slider-wrapper > .hero-slide:first-of-type {
+    opacity: 1 !important;
+    visibility: visible !important;
+    z-index: 1 !important;
+  }
+  .hero-slider-wrapper > .hero-slide.active:first-of-type {
+    z-index: 2 !important;
+  }
+  .hero-slider-wrapper > .hero-slide > .hero-slide-image {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
   }
 `;
 

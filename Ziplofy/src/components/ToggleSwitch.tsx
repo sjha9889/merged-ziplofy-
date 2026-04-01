@@ -34,6 +34,4 @@ const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ checked, onChange, disabled
     </label>
   );
 };
-
 export default ToggleSwitch;
-

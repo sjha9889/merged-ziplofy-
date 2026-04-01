@@ -6,7 +6,7 @@
  * - retry schedule and editor.setStyle fallback
  */
 
-import { PRESERVE_TEXT_COLOR_CSS, SELECTION_HIGHLIGHT_BASIC_CSS, SELECTION_OVERRIDE_CSS, SLIDER_FIX_CSS, POINTER_EVENTS_FINAL_CSS } from './visualElementorThemeUtils';
+import { SELECTION_HIGHLIGHT_BASIC_CSS, SELECTION_OVERRIDE_CSS, SLIDER_FIX_CSS, POINTER_EVENTS_FINAL_CSS, GJS_IFRAME_OVERLAY_KILL_CSS } from './visualElementorThemeUtils';
 import { forcePointerEventsForEditing } from './elementorThemeCanvas';
 
 export interface InjectThemeStylesOptions {
@@ -15,7 +15,7 @@ export interface InjectThemeStylesOptions {
   baseUrl?: string;
 }
 
-const REMOVAL_SELECTOR = '#ziplofy-theme-styles, #ziplofy-preserve-text-color, #ziplofy-selection-highlight, #ziplofy-selection-override, #ziplofy-slider-fix, #ziplofy-pointer-events-final, style[data-ziplofy-theme], link[data-ziplofy-theme]';
+const REMOVAL_SELECTOR = '#ziplofy-theme-styles, #ziplofy-preserve-text-color, #ziplofy-selection-highlight, #ziplofy-selection-override, #ziplofy-slider-fix, #ziplofy-pointer-events-final, #ziplofy-gjs-iframe-overlay-kill, style[data-ziplofy-theme], link[data-ziplofy-theme]';
 
 function doInject(editor: any, options: InjectThemeStylesOptions): boolean {
   const { styleBlockContent: cssContent = '', stylesheetUrls = [], baseUrl = '' } = options;
@@ -38,7 +38,6 @@ function doInject(editor: any, options: InjectThemeStylesOptions): boolean {
       head.appendChild(el);
     };
 
-    append('ziplofy-preserve-text-color', PRESERVE_TEXT_COLOR_CSS);
     append('ziplofy-selection-highlight', SELECTION_HIGHLIGHT_BASIC_CSS);
     append('ziplofy-selection-override', SELECTION_OVERRIDE_CSS);
     append('ziplofy-slider-fix', SLIDER_FIX_CSS);
@@ -90,6 +89,15 @@ function doInject(editor: any, options: InjectThemeStylesOptions): boolean {
     }
     // CRITICAL: Inject pointer-events override LAST so it wins over theme CSS (themes often use pointer-events: none)
     append('ziplofy-pointer-events-final', POINTER_EVENTS_FINAL_CSS);
+    // Grapes frame CSS may inject after head styles — append parent-outline kill to body so it wins the cascade
+    try {
+      doc.getElementById('ziplofy-gjs-iframe-overlay-kill')?.remove();
+      const tail = doc.createElement('style');
+      tail.id = 'ziplofy-gjs-iframe-overlay-kill';
+      tail.setAttribute('data-ziplofy-theme', 'true');
+      tail.textContent = GJS_IFRAME_OVERLAY_KILL_CSS;
+      (doc.body || head).appendChild(tail);
+    } catch (_) {}
     // JS pass overrides inline pointer-events: none (CSS cannot override inline styles)
     forcePointerEventsForEditing(frame as HTMLIFrameElement);
     return true;

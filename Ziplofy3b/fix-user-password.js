@@ -18,7 +18,7 @@ async function fixUserPassword() {
       console.log('User not found!');
       process.exit(1);
     }
-
+    
     console.log('User found, updating password...');
     
     // Hash the password
