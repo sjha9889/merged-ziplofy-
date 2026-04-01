@@ -19,6 +19,8 @@ import { useStorefrontCountries } from '../contexts/storefront-country.context';
 import { BxgyChooseItemsModal } from './BxgyChooseItemsModal';
 import { BxgyCheckoutGetsSection } from './BxgyCheckoutGetsSection';
 import { formatINR } from '../utils/currency';
+import { savePendingCheckout } from '../utils/pendingCheckout';
+import type { CreateOrderPayload } from '../contexts/storefront-order.context';
 
 export type BuyNowCheckoutLine = {
   variant: StorefrontProductVariant;
@@ -44,7 +46,7 @@ export const QuickBuyNowCheckoutModal: React.FC<QuickBuyNowCheckoutModalProps> =
   const { addresses, fetchCustomerAddressesByCustomerId, addCustomerAddress, loading: addressLoading } =
     useCustomerAddresses();
   const { countries, getCountries, loading: countriesLoading } = useStorefrontCountries();
-  const { createOrder, loading: orderLoading } = useStorefrontOrder();
+  const { loading: orderLoading } = useStorefrontOrder();
 
   const {
     eligibleDiscounts,
@@ -635,72 +637,78 @@ export const QuickBuyNowCheckoutModal: React.FC<QuickBuyNowCheckoutModalProps> =
     }
   };
 
-  const handlePlaceOrder = async () => {
-    if (!selectedShippingAddressId || !user?._id || !line) {
-      return;
+  const buildQuickBuyOrderPayload = (): CreateOrderPayload | null => {
+    if (!selectedShippingAddressId || !user?._id || !line || !storeFrontMeta?.storeId) {
+      return null;
     }
-    try {
-      const v = line.variant;
-      const price = v.price ?? 0;
-      let orderItems = [
-        {
-          productVariantId: v._id,
-          quantity: line.quantity,
-          price,
-          total: price * line.quantity,
-        },
-      ];
+    const v = line.variant;
+    const price = v.price ?? 0;
+    let orderItems = [
+      {
+        productVariantId: v._id,
+        quantity: line.quantity,
+        price,
+        total: price * line.quantity,
+      },
+    ];
 
-      const appliedBxgy = bxgyDiscountCodeResult ?? bxgyAppliedAutomaticDiscount;
-      const getsItemsToUse =
-        appliedBxgy?.customerGetsAnyItemsFrom === 'specific-collections' &&
-        bxgySelectedGetsItems &&
-        bxgySelectedGetsItems.length > 0
-          ? bxgySelectedGetsItems
-          : appliedBxgy?.getsItems ?? [];
-      if (getsItemsToUse.length > 0) {
-        const freeGetsItems = getsItemsToUse.map((gi) => ({
-          productVariantId: gi.productVariantId ?? gi.productId,
-          quantity: gi.quantity,
-          price: gi.discountedPrice,
-          total: gi.discountedPrice * gi.quantity,
-        }));
-        orderItems = [...orderItems, ...freeGetsItems];
-      }
-
-      if (!storeFrontMeta?.storeId) {
-        throw new Error('Store ID is required');
-      }
-
-      const freeShippingDiscountId =
-        (appliedAutomaticDiscount?.id || discountCodeResult?.id) ?? undefined;
-      const amountOffOrderDiscountId =
-        (aooAppliedAutomaticDiscount?.id || aooDiscountCodeResult?.id) ?? undefined;
-      const amountOffProductDiscountId =
-        (aopAppliedAutomaticDiscount?.id || aopDiscountCodeResult?.id) ?? undefined;
-      const buyXGetYDiscountId = appliedBxgy?.id ?? undefined;
-
-      await createOrder({
-        storeId: storeFrontMeta.storeId,
-        shippingAddressId: selectedShippingAddressId,
-        billingAddressId: selectedBillingAddressId || undefined,
-        items: orderItems,
-        paymentMethod: 'cod',
-        subtotal,
-        tax,
-        shippingCost,
-        total: finalTotal,
-        ...(freeShippingDiscountId && { freeShippingDiscountId }),
-        ...(amountOffOrderDiscountId && { amountOffOrderDiscountId }),
-        ...(amountOffProductDiscountId && { amountOffProductDiscountId }),
-        ...(buyXGetYDiscountId && { buyXGetYDiscountId }),
-      });
-      resetDiscountContexts();
-      handleClose();
-      navigate('/order-success');
-    } catch (error) {
-      console.error('Failed to create order:', error);
+    const appliedBxgy = bxgyDiscountCodeResult ?? bxgyAppliedAutomaticDiscount;
+    const getsItemsToUse =
+      appliedBxgy?.customerGetsAnyItemsFrom === 'specific-collections' &&
+      bxgySelectedGetsItems &&
+      bxgySelectedGetsItems.length > 0
+        ? bxgySelectedGetsItems
+        : appliedBxgy?.getsItems ?? [];
+    if (getsItemsToUse.length > 0) {
+      const freeGetsItems = getsItemsToUse.map((gi) => ({
+        productVariantId: gi.productVariantId ?? gi.productId,
+        quantity: gi.quantity,
+        price: gi.discountedPrice,
+        total: gi.discountedPrice * gi.quantity,
+      }));
+      orderItems = [...orderItems, ...freeGetsItems];
     }
+
+    const freeShippingDiscountId =
+      (appliedAutomaticDiscount?.id || discountCodeResult?.id) ?? undefined;
+    const amountOffOrderDiscountId =
+      (aooAppliedAutomaticDiscount?.id || aooDiscountCodeResult?.id) ?? undefined;
+    const amountOffProductDiscountId =
+      (aopAppliedAutomaticDiscount?.id || aopDiscountCodeResult?.id) ?? undefined;
+    const buyXGetYDiscountId = appliedBxgy?.id ?? undefined;
+
+    return {
+      storeId: storeFrontMeta.storeId,
+      shippingAddressId: selectedShippingAddressId,
+      billingAddressId: selectedBillingAddressId || undefined,
+      items: orderItems,
+      paymentMethod: 'cod',
+      subtotal,
+      tax,
+      shippingCost,
+      total: finalTotal,
+      ...(freeShippingDiscountId && { freeShippingDiscountId }),
+      ...(amountOffOrderDiscountId && { amountOffOrderDiscountId }),
+      ...(amountOffProductDiscountId && { amountOffProductDiscountId }),
+      ...(buyXGetYDiscountId && { buyXGetYDiscountId }),
+    };
+  };
+
+  const goToCheckoutPayment = () => {
+    const payload = buildQuickBuyOrderPayload();
+    if (!payload) return;
+    const pending = {
+      createOrderPayload: payload,
+      cartEntryIds: [] as string[],
+      merchantName: storeFrontMeta?.name || 'Store',
+      itemSummaryLine: line ? `${line.quantity} × ${line.productTitle}` : '1 item',
+      amountPaise: finalTotal,
+      orderIdDisplay: `ORD-${Date.now().toString(36).toUpperCase()}`,
+    };
+    savePendingCheckout(pending);
+    resetDiscountContexts();
+    handleClose();
+    navigate('/checkout/payment', { state: { pending } });
   };
 
   if (!open || !line || !user) {
@@ -1026,7 +1034,7 @@ export const QuickBuyNowCheckoutModal: React.FC<QuickBuyNowCheckoutModalProps> =
           <div className="px-6 py-4 border-t border-gray-200 bg-white">
             <button
               type="button"
-              onClick={handlePlaceOrder}
+              onClick={goToCheckoutPayment}
               disabled={!selectedShippingAddressId || orderLoading || addresses.length === 0}
               className="w-full px-6 py-3 text-sm rounded-full bg-black text-white font-semibold hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               title={

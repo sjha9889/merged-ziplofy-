@@ -102,6 +102,8 @@ const shipping_profile_route_1 = __importDefault(require("./routes/shipping-prof
 const shipping_zone_rate_route_1 = __importDefault(require("./routes/shipping-zone-rate.route"));
 const shipping_zone_route_1 = __importDefault(require("./routes/shipping-zone.route"));
 const state_route_1 = __importDefault(require("./routes/state.route"));
+const store_banner_route_1 = __importDefault(require("./routes/store-banner.route"));
+const payment_route_1 = __importDefault(require("./routes/payment.route"));
 const store_branding_route_1 = __importDefault(require("./routes/store-branding.route"));
 const store_contact_info_route_1 = __importDefault(require("./routes/store-contact-info.route"));
 const store_notification_email_route_1 = require("./routes/store-notification-email.route");
@@ -224,6 +226,8 @@ app.use("/api/store-shipping-policy", store_shipping_policy_route_1.default);
 app.use("/api/store-terms-policy", store_terms_policy_route_1.default);
 app.use("/api/store-return-refund-policy", store_return_refund_policy_route_1.default);
 app.use("/api/store-branding", store_branding_route_1.default);
+app.use("/api/store-banners", store_banner_route_1.default);
+app.use("/api/payments", payment_route_1.default);
 app.use("/api/local-delivery-settings", local_delivery_settings_route_1.default);
 app.use("/api/local-delivery-location-entries", local_delivery_location_entry_route_1.default);
 app.use("/api/general-settings", general_settings_route_1.default);

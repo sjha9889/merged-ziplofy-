@@ -66,6 +66,7 @@ const ShipmentReceivePage = lazy(() => import("./pages/ShipmentReceivePage"));
 const TagManagement = lazy(() => import("./pages/TagManagement"));
 const TransferDetailsPage = lazy(() => import("./pages/TransferDetailsPage"));
 const TransfersPage = lazy(() => import("./pages/TransfersPage"));
+const TransactionsPage = lazy(() => import("./pages/TransactionsPage"));
 const VendorsPage = lazy(() => import("./pages/VendorsPage"));
 const AmountOffOrderDetailsPage = lazy(() => import("./pages/discounts/AmountOffOrderDetailsPage"));
 const AmountOffOrderPage = lazy(() => import("./pages/discounts/AmountOffOrderPage"));
@@ -107,6 +108,7 @@ const NewRolePage = lazy(() => import("./pages/settings/NewRolePage"));
 const NotificationOptionDetailPage = lazy(() => import("./pages/settings/NotificationOptionDetailPage"));
 const NotificationsPage = lazy(() => import("./pages/settings/NotificationsPage"));
 const PaymentsSettingsPage = lazy(() => import("./pages/settings/PaymentsSettingsPage"));
+const PaymentTransactionDetailsPage = lazy(() => import("./pages/settings/PaymentTransactionDetailsPage"));
 const PlanSelectPage = lazy(() => import("./pages/settings/PlanSelectPage"));
 const PlanSettingsPage = lazy(() => import("./pages/settings/PlanSettingsPage"));
 const PlanSubscriptionsPage = lazy(() => import("./pages/settings/PlanSubscriptionsPage"));
@@ -190,6 +192,7 @@ import { MarketProvider } from "./contexts/market.context";
 import { NotificationCategoriesProvider } from "./contexts/notification-categories.context";
 import { NotificationOptionsProvider } from "./contexts/notification-options.context";
 import { PackagingProvider } from "./contexts/packaging.context";
+import { PaymentProvider } from "./contexts/payment.context";
 import { PixelProvider } from "./contexts/pixel.context";
 import { ProductOverrideEntryProvider } from "./contexts/product-override-entry.context";
 import { ProductOverrideProvider } from "./contexts/product-override.context";
@@ -207,6 +210,7 @@ import { ShippingProfileProvider } from "./contexts/shipping-profile.context";
 import { ShippingZoneRateProvider } from "./contexts/shipping-zone-rate.context";
 import { ShippingZoneProvider } from "./contexts/shipping-zone.context";
 import { StateProvider } from "./contexts/state.context";
+import { StoreBannerProvider } from "./contexts/store-banner.context";
 import { StoreBrandingProvider } from "./contexts/store-branding.context";
 import { StoreContactInfoProvider } from "./contexts/store-contact-info.context";
 import { StoreNotificationEmailProvider } from "./contexts/store-notification-email.context";
@@ -366,6 +370,8 @@ const AdminApp: React.FC = () => {
               <Route path="users/roles/:roleId" element={<RoleDetailsPage />} />
               <Route path="users/roles/new" element={<NewRolePage />} />
               <Route path="users/security" element={<UsersSecurityPage />} />
+              <Route path="payments/transactions/:transactionId" element={<PaymentTransactionDetailsPage />} />
+              <Route path="payments/transactions" element={<TransactionsPage />} />
               <Route path="payments" element={<PaymentsSettingsPage />} />
               <Route path="checkout" element={<CheckoutSettingsPage />} />
               <Route path="customer-accounts" element={<CustomerAccountsPage />} />
@@ -465,6 +471,8 @@ const App: React.FC = () => {
         <AbandonedCartProvider>
         <StoreBillingAddressProvider>
         <StoreBrandingProvider>
+        <StoreBannerProvider>
+        <PaymentProvider>
         <GeneralSettingsProvider>
         <CustomerAccountSettingsProvider>
         <ReturnRulesProvider>
@@ -575,6 +583,8 @@ const App: React.FC = () => {
         </ReturnRulesProvider>
         </CustomerAccountSettingsProvider>
         </GeneralSettingsProvider>
+        </PaymentProvider>
+        </StoreBannerProvider>
         </StoreBrandingProvider>
         </StoreBillingAddressProvider>
         </AbandonedCartProvider>

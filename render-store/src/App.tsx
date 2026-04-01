@@ -14,6 +14,7 @@ import { StorefrontSearchProvider } from './contexts/storefront-search.context';
 import { BuyXGetYProvider } from './contexts/buy-x-get-y.context';
 import { FreeShippingProvider } from './contexts/storefront-free-shipping.context';
 import { StorefrontOrderProvider } from './contexts/storefront-order.context';
+import { PaymentProvider } from './contexts/payment.context';
 import ScrollToTop from './components/ScrollToTop';
 import { ProductOffersProvider } from './contexts/product-offers.context';
 import { Layout } from './ui/Layout';
@@ -33,6 +34,7 @@ import { BlogDetailPage } from './pages/BlogDetailPage';
 import { ContactPage } from './pages/ContactPage';
 import { WishlistPage } from './pages/WishlistPage';
 import { OrderSuccessPage } from './pages/OrderSuccessPage';
+import CheckoutPaymentPage from './pages/CheckoutPaymentPage';
 
 function ThemeRuntimeOnRouteChange() {
   const location = useLocation();
@@ -86,6 +88,8 @@ const StorefrontRoutes: React.FC = () => (
     <ThemeRuntimeOnRouteChange />
     <Toaster position="top-center" toastOptions={{ duration: 4000, style: { background: '#363636', color: '#fff' } }} />
     <Routes>
+      {/* Full-screen checkout: no store header / footer / cart chrome */}
+      <Route path="/checkout/payment" element={<CheckoutPaymentPage />} />
       <Route element={<LayoutShell />}>
         <Route path="/" element={<StorefrontApp />} />
         <Route path="/products/:id" element={<StorefrontProductDetailPage />} />
@@ -133,31 +137,33 @@ function App() {
   return (
     <StorefrontProvider>
       <StorefrontAuthProvider>
-        <StorefrontProductVariantProvider>
-          <StorefrontCartProvider>
-            <StorefrontOrderProvider>
-              <CustomerAddressProvider>
-                <StorefrontCountryProvider>
-                  <StorefrontCollectionsProvider>
-                  <StorefrontSearchProvider>
-                  <AmountOffOrderProvider>
-                    <AmountOffProductProvider>
-                      <BuyXGetYProvider>
-                        <FreeShippingProvider>
-                          <ProductOffersProvider>
-                            <StorefrontEntry />
-                          </ProductOffersProvider>
-                        </FreeShippingProvider>
-                      </BuyXGetYProvider>
-                    </AmountOffProductProvider>
-                  </AmountOffOrderProvider>
-                  </StorefrontSearchProvider>
-                  </StorefrontCollectionsProvider>
-                </StorefrontCountryProvider>
-              </CustomerAddressProvider>
-            </StorefrontOrderProvider>
-          </StorefrontCartProvider>
-        </StorefrontProductVariantProvider>
+        <PaymentProvider>
+          <StorefrontProductVariantProvider>
+            <StorefrontCartProvider>
+              <StorefrontOrderProvider>
+                <CustomerAddressProvider>
+                  <StorefrontCountryProvider>
+                    <StorefrontCollectionsProvider>
+                      <StorefrontSearchProvider>
+                        <AmountOffOrderProvider>
+                          <AmountOffProductProvider>
+                            <BuyXGetYProvider>
+                              <FreeShippingProvider>
+                                <ProductOffersProvider>
+                                  <StorefrontEntry />
+                                </ProductOffersProvider>
+                              </FreeShippingProvider>
+                            </BuyXGetYProvider>
+                          </AmountOffProductProvider>
+                        </AmountOffOrderProvider>
+                      </StorefrontSearchProvider>
+                    </StorefrontCollectionsProvider>
+                  </StorefrontCountryProvider>
+                </CustomerAddressProvider>
+              </StorefrontOrderProvider>
+            </StorefrontCartProvider>
+          </StorefrontProductVariantProvider>
+        </PaymentProvider>
       </StorefrontAuthProvider>
     </StorefrontProvider>
   );

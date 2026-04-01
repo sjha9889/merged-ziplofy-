@@ -15,6 +15,8 @@ import type { BuyXGetYCartItem } from '../contexts/buy-x-get-y.context';
 import { BxgyChooseItemsModal } from './BxgyChooseItemsModal';
 import { BxgyCheckoutGetsSection } from './BxgyCheckoutGetsSection';
 import { formatINR } from '../utils/currency';
+import { savePendingCheckout } from '../utils/pendingCheckout';
+import type { CreateOrderPayload } from '../contexts/storefront-order.context';
 import { useStorefrontCountries } from '../contexts/storefront-country.context';
 import ZiplofyLogo from '../assets/ziplofy-logo.png';
 
@@ -27,13 +29,13 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
   const navigate = useNavigate();
   const { storeFrontMeta } = useStorefront();
   const { user, checkAuth } = useStorefrontAuth();
-  const { items, guestItems, isGuest, getCartByCustomerId, updateCartEntry, deleteCartEntry, clear } = useStorefrontCart();
+  const { items, guestItems, isGuest, getCartByCustomerId, updateCartEntry, deleteCartEntry } = useStorefrontCart();
 
   // Use guest items when not logged in, otherwise use server items
   const displayItems = isGuest ? guestItems : items;
   const { addresses, fetchCustomerAddressesByCustomerId, addCustomerAddress, loading: addressLoading } = useCustomerAddresses();
   const { countries, getCountries, loading: countriesLoading } = useStorefrontCountries();
-  const { createOrder, loading: orderLoading } = useStorefrontOrder();
+  const { loading: orderLoading } = useStorefrontOrder();
   const {
     eligibleDiscounts,
     discountCodeResult,
@@ -643,79 +645,76 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
     }
   };
 
-  const handlePlaceOrder = async () => {
-    if (!selectedShippingAddressId || !user?._id) {
-      console.error('Cannot place order: missing shipping address or user');
-      return;
+  const buildCheckoutOrderPayload = (): CreateOrderPayload | null => {
+    if (!selectedShippingAddressId || !user?._id || items.length === 0 || !storeFrontMeta?.storeId) {
+      return null;
     }
-    if (items.length === 0) {
-      console.error('Cannot place order: cart is empty');
-      return;
+    let orderItems = items.map((item) => {
+      const pv = typeof item.productVariantId === 'object' ? item.productVariantId : null;
+      const price = pv?.price ?? 0;
+      return {
+        productVariantId: typeof item.productVariantId === 'object' ? item.productVariantId._id : item.productVariantId,
+        quantity: item.quantity,
+        price,
+        total: price * item.quantity,
+      };
+    });
+
+    const appliedBxgy = bxgyDiscountCodeResult ?? bxgyAppliedAutomaticDiscount;
+    const getsItemsToUse =
+      appliedBxgy?.customerGetsAnyItemsFrom === 'specific-collections' && bxgySelectedGetsItems && bxgySelectedGetsItems.length > 0
+        ? bxgySelectedGetsItems
+        : appliedBxgy?.getsItems ?? [];
+    if (getsItemsToUse.length > 0) {
+      const freeGetsItems = getsItemsToUse.map((gi) => ({
+        productVariantId: gi.productVariantId ?? gi.productId,
+        quantity: gi.quantity,
+        price: gi.discountedPrice,
+        total: gi.discountedPrice * gi.quantity,
+      }));
+      orderItems = [...orderItems, ...freeGetsItems];
     }
-    try {
-      let orderItems = items.map((item) => {
-        const pv = typeof item.productVariantId === 'object' ? item.productVariantId : null;
-        const price = pv?.price ?? 0;
-        return { 
-          productVariantId: typeof item.productVariantId === 'object' ? item.productVariantId._id : item.productVariantId, 
-          quantity: item.quantity, 
-          price, 
-          total: price * item.quantity 
-        };
-      });
 
-      const appliedBxgy = bxgyDiscountCodeResult ?? bxgyAppliedAutomaticDiscount;
-      const getsItemsToUse =
-        appliedBxgy?.customerGetsAnyItemsFrom === 'specific-collections' && bxgySelectedGetsItems && bxgySelectedGetsItems.length > 0
-          ? bxgySelectedGetsItems
-          : appliedBxgy?.getsItems ?? [];
-      if (getsItemsToUse.length > 0) {
-        const freeGetsItems = getsItemsToUse.map((gi) => ({
-          productVariantId: gi.productVariantId ?? gi.productId,
-          quantity: gi.quantity,
-          price: gi.discountedPrice,
-          total: gi.discountedPrice * gi.quantity,
-        }));
-        orderItems = [...orderItems, ...freeGetsItems];
-      }
+    const freeShippingDiscountId =
+      (appliedAutomaticDiscount?.id || discountCodeResult?.id) ?? undefined;
+    const amountOffOrderDiscountId =
+      (aooAppliedAutomaticDiscount?.id || aooDiscountCodeResult?.id) ?? undefined;
+    const amountOffProductDiscountId =
+      (aopAppliedAutomaticDiscount?.id || aopDiscountCodeResult?.id) ?? undefined;
+    const buyXGetYDiscountId = appliedBxgy?.id ?? undefined;
 
-      if (!storeFrontMeta?.storeId) {
-        throw new Error('Store ID is required');
-      }
-      console.log('Placing order with items:', orderItems);
-      const freeShippingDiscountId =
-        (appliedAutomaticDiscount?.id || discountCodeResult?.id) ?? undefined;
-      const amountOffOrderDiscountId =
-        (aooAppliedAutomaticDiscount?.id || aooDiscountCodeResult?.id) ?? undefined;
-      const amountOffProductDiscountId =
-        (aopAppliedAutomaticDiscount?.id || aopDiscountCodeResult?.id) ?? undefined;
-      const buyXGetYDiscountId = appliedBxgy?.id ?? undefined;
+    return {
+      storeId: storeFrontMeta.storeId,
+      shippingAddressId: selectedShippingAddressId,
+      billingAddressId: selectedBillingAddressId || undefined,
+      items: orderItems,
+      paymentMethod: 'cod',
+      subtotal,
+      tax,
+      shippingCost,
+      total: finalTotal,
+      ...(freeShippingDiscountId && { freeShippingDiscountId }),
+      ...(amountOffOrderDiscountId && { amountOffOrderDiscountId }),
+      ...(amountOffProductDiscountId && { amountOffProductDiscountId }),
+      ...(buyXGetYDiscountId && { buyXGetYDiscountId }),
+    };
+  };
 
-      await createOrder({
-        storeId: storeFrontMeta.storeId,
-        shippingAddressId: selectedShippingAddressId,
-        billingAddressId: selectedBillingAddressId || undefined,
-        items: orderItems,
-        paymentMethod: 'cod',
-        subtotal,
-        tax,
-        shippingCost,
-        total: finalTotal,
-        ...(freeShippingDiscountId && { freeShippingDiscountId }),
-        ...(amountOffOrderDiscountId && { amountOffOrderDiscountId }),
-        ...(amountOffProductDiscountId && { amountOffProductDiscountId }),
-        ...(buyXGetYDiscountId && { buyXGetYDiscountId }),
-      });
-      console.log('Order placed successfully');
-      setCheckoutDialogOpen(false);
-      await Promise.all(items.map(item => deleteCartEntry(item._id).catch(() => {})));
-      clear();
-      onClose();
-      navigate('/order-success');
-    } catch (error) { 
-      console.error('Failed to create order:', error);
-      // You might want to show a toast notification here
-    }
+  const goToCheckoutPayment = () => {
+    const payload = buildCheckoutOrderPayload();
+    if (!payload) return;
+    const pending = {
+      createOrderPayload: payload,
+      cartEntryIds: items.map((i) => i._id),
+      merchantName: storeFrontMeta?.name || 'Store',
+      itemSummaryLine: `${displayItems.length} ${displayItems.length === 1 ? 'item' : 'items'}`,
+      amountPaise: finalTotal,
+      orderIdDisplay: `ORD-${Date.now().toString(36).toUpperCase()}`,
+    };
+    savePendingCheckout(pending);
+    setCheckoutDialogOpen(false);
+    onClose();
+    navigate('/checkout/payment', { state: { pending } });
   };
 
   return (
@@ -1370,7 +1369,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
             <div className="px-6 py-4 border-t border-gray-200 bg-white">
               <button
                 type="button"
-                onClick={handlePlaceOrder}
+                onClick={goToCheckoutPayment}
                 disabled={!selectedShippingAddressId || orderLoading || addresses.length === 0}
                 className="w-full px-6 py-3 text-sm rounded-full bg-black text-white font-semibold hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 title={

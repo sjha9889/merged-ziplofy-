@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { CreditCardIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { CreditCardIcon, PlusIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
 
 const PaymentsSettingsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [captureMethod, setCaptureMethod] = useState('auto_checkout');
   const [giftCardExpiration, setGiftCardExpiration] = useState<'never' | 'expires'>('never');
 
@@ -14,6 +16,27 @@ const PaymentsSettingsPage: React.FC = () => {
             Configure payment providers, capture rules, and payment methods at checkout.
           </p>
         </header>
+
+        {/* Manual payment transactions */}
+        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-base font-semibold text-gray-900 mb-1">Transactions</h2>
+              <p className="text-sm text-gray-500 max-w-xl">
+                View manual payment confirmations (UPI, reference IDs) submitted for your store from
+                checkout.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/settings/payments/transactions')}
+              className="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 transition-colors shrink-0"
+            >
+              View transactions
+              <ArrowRightIcon className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
 
         {/* Payment providers */}
         <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">

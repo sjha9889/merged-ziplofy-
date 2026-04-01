@@ -29,7 +29,8 @@ export default function SettingsSidebarNavList({
           ? childActive ||
             (!!item.path && currentPath.startsWith(`${item.path}/`)) ||
             isActivePath(item.path)
-          : isActivePath(item.path);
+          : isActivePath(item.path) ||
+            (!!item.path && currentPath.startsWith(`${item.path}/`));
         const isExpanded = hasChildren ? expanded[itemKey] ?? childActive : false;
 
         return (
