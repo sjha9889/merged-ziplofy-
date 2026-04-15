@@ -1,3 +1,4 @@
+import { BanknotesIcon, ClockIcon, CubeIcon, Squares2X2Icon } from '@heroicons/react/24/outline';
 import React from 'react';
 
 interface AbandonedCartSummaryProps {
@@ -8,6 +9,9 @@ interface AbandonedCartSummaryProps {
   formatDate: (dateString: string) => string;
 }
 
+const formatInr = (n: number) =>
+  `₹${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
 const AbandonedCartSummary: React.FC<AbandonedCartSummaryProps> = ({
   totalItems,
   uniqueProducts,
@@ -16,27 +20,42 @@ const AbandonedCartSummary: React.FC<AbandonedCartSummaryProps> = ({
   formatDate,
 }) => {
   return (
-    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-100 pl-4 border-l-4 border-l-blue-500/60">
-        <h3 className="text-sm font-semibold text-gray-900">Summary</h3>
+    <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+      <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/90 to-white px-5 py-3.5">
+        <h3 className="text-sm font-semibold text-gray-900">Cart summary</h3>
+        <p className="mt-0.5 text-xs text-gray-500">Totals for this abandoned checkout</p>
       </div>
-      <div className="p-4">
-        <div className="space-y-2.5 text-sm">
-          <div className="flex justify-between">
-            <span className="text-gray-600">Items</span>
-            <span className="text-gray-900 font-medium">{totalItems}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Products</span>
-            <span className="text-gray-900 font-medium">{uniqueProducts}</span>
-          </div>
-          <div className="border-t border-gray-100 pt-3 mt-3">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-900 font-medium">Total</span>
-              <span className="text-blue-600 font-semibold">₹{totalValue.toFixed(2)}</span>
+      <div className="space-y-3 p-5">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-2.5">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-500">
+              <CubeIcon className="h-3.5 w-3.5 text-blue-600" aria-hidden />
+              Items
             </div>
+            <p className="mt-1 text-lg font-semibold tabular-nums text-gray-900">{totalItems}</p>
           </div>
-          <p className="text-xs text-gray-500 mt-3">Updated: {formatDate(lastUpdated)}</p>
+          <div className="rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-2.5">
+            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-500">
+              <Squares2X2Icon className="h-3.5 w-3.5 text-blue-600" aria-hidden />
+              SKUs
+            </div>
+            <p className="mt-1 text-lg font-semibold tabular-nums text-gray-900">{uniqueProducts}</p>
+          </div>
+        </div>
+        <div className="flex items-center justify-between rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50/80 to-indigo-50/40 px-4 py-3">
+          <span className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+            <BanknotesIcon className="h-4 w-4 text-blue-600" aria-hidden />
+            Estimated value
+          </span>
+          <span className="text-lg font-bold tabular-nums text-blue-700">{formatInr(totalValue)}</span>
+        </div>
+        <div className="flex items-start gap-2 rounded-lg border border-gray-100 bg-white px-3 py-2.5 text-xs text-gray-600">
+          <ClockIcon className="mt-0.5 h-4 w-4 shrink-0 text-gray-400" aria-hidden />
+          <span>
+            <span className="font-semibold text-gray-700">Last updated</span>
+            <br />
+            {formatDate(lastUpdated)}
+          </span>
         </div>
       </div>
     </div>
@@ -44,4 +63,3 @@ const AbandonedCartSummary: React.FC<AbandonedCartSummaryProps> = ({
 };
 
 export default AbandonedCartSummary;
-

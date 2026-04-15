@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import AddOptionValuesModal from '../components/AddOptionValuesModal';
 import AddProductVariantsModal from '../components/AddProductVariantsModal';
 import ConfirmDeleteVariantModal from '../components/ConfirmDeleteVariantModal';
@@ -20,38 +20,34 @@ import { useStore } from '../contexts/store.context';
 
 const ProductDetailsPage: React.FC = () => {
   const { id } = useParams();
-  const navigate = useNavigate();
-  const { products, addVariantsToProduct, deleteVariantFromProduct, addOptionToProduct, fetchProductsByStoreId } = useProducts();
+  const { products, addVariantsToProduct, deleteVariantFromProduct, addOptionToProduct, fetchProductsByStoreId } =
+    useProducts();
   const { activeStoreId } = useStore();
   const { fetchVariantsByProductId, variants, loading } = useProductVariants();
 
-  const product = useMemo(() => products.find(p => p._id === id), [products, id]);
+  const product = useMemo(() => products.find((p) => p._id === id), [products, id]);
 
-  // Fetch products when navigating directly to product URL (products may not be loaded yet)
   useEffect(() => {
     if (activeStoreId && id && products.length === 0) {
       fetchProductsByStoreId(activeStoreId);
     }
   }, [activeStoreId, id, products.length, fetchProductsByStoreId]);
 
-  // UI-only: Add Variants dialog state and handlers (replicated from NewProductPage)
   const [addVariantsOpen, setAddVariantsOpen] = useState(false);
   const [variantsForm, setVariantsForm] = useState<Array<{ optionName: string; values: string[] }>>([
-    { optionName: '', values: [''] }
+    { optionName: '', values: [''] },
   ]);
 
-  // Delete Variants dialog state and handlers
   const [deleteVariantOpen, setDeleteVariantOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [selectedDimension, setSelectedDimension] = useState('');
   const [deletingVariant, setDeletingVariant] = useState(false);
 
-  // Add Option in Variant dialog state and handlers
   const [addOptionOpen, setAddOptionOpen] = useState(false);
   const [selectedOptionName, setSelectedOptionName] = useState('');
   const [newOptionValues, setNewOptionValues] = useState<string[]>(['']);
   const [submittingOption, setSubmittingOption] = useState(false);
-  
+
   const handleOpenAddVariants = useCallback(() => {
     setAddVariantsOpen(true);
   }, []);
@@ -61,7 +57,6 @@ const ProductDetailsPage: React.FC = () => {
     setVariantsForm([{ optionName: '', values: [''] }]);
   }, []);
 
-  // Delete Variants handlers
   const handleOpenDeleteVariant = useCallback(() => {
     setDeleteVariantOpen(true);
   }, []);
@@ -83,7 +78,6 @@ const ProductDetailsPage: React.FC = () => {
     setSelectedDimension('');
   }, []);
 
-  // Add Option in Variant handlers
   const handleOpenAddOption = useCallback(() => {
     setAddOptionOpen(true);
   }, []);
@@ -96,11 +90,10 @@ const ProductDetailsPage: React.FC = () => {
 
   const handleConfirmDelete = useCallback(async () => {
     if (!product || !selectedDimension) return;
-    
+
     try {
       setDeletingVariant(true);
       await deleteVariantFromProduct(product._id, selectedDimension);
-      // Refresh variants after deletion
       await fetchVariantsByProductId(product._id);
       handleCloseConfirmDelete();
     } catch (error) {
@@ -111,53 +104,59 @@ const ProductDetailsPage: React.FC = () => {
   }, [product, selectedDimension, deleteVariantFromProduct, fetchVariantsByProductId, handleCloseConfirmDelete]);
 
   const addVariantRow = useCallback(() => {
-    setVariantsForm(prev => [...prev, { optionName: '', values: [''] }]);
+    setVariantsForm((prev) => [...prev, { optionName: '', values: [''] }]);
   }, []);
 
   const removeVariantRow = useCallback((index: number) => {
-    setVariantsForm(prev => prev.filter((_, i) => i !== index));
+    setVariantsForm((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   const updateVariantOptionName = useCallback((index: number, optionName: string) => {
-    setVariantsForm(prev => prev.map((v, i) => (i === index ? { ...v, optionName } : v)));
+    setVariantsForm((prev) => prev.map((v, i) => (i === index ? { ...v, optionName } : v)));
   }, []);
 
   const addVariantValue = useCallback((variantIndex: number) => {
-    setVariantsForm(prev => prev.map((v, i) => (
-      i === variantIndex ? { ...v, values: [...v.values, ''] } : v
-    )));
+    setVariantsForm((prev) =>
+      prev.map((v, i) => (i === variantIndex ? { ...v, values: [...v.values, ''] } : v))
+    );
   }, []);
 
   const removeVariantValue = useCallback((variantIndex: number, valueIndex: number) => {
-    setVariantsForm(prev => prev.map((v, i) => (
-      i === variantIndex ? { ...v, values: v.values.filter((_, j) => j !== valueIndex) } : v
-    )));
+    setVariantsForm((prev) =>
+      prev.map((v, i) =>
+        i === variantIndex ? { ...v, values: v.values.filter((_, j) => j !== valueIndex) } : v
+      )
+    );
   }, []);
 
   const updateVariantValue = useCallback((variantIndex: number, valueIndex: number, value: string) => {
-    setVariantsForm(prev => prev.map((v, i) => (
-      i === variantIndex
-        ? { ...v, values: v.values.map((val, j) => (j === valueIndex ? value : val)) }
-        : v
-    )));
+    setVariantsForm((prev) =>
+      prev.map((v, i) =>
+        i === variantIndex
+          ? { ...v, values: v.values.map((val, j) => (j === valueIndex ? value : val)) }
+          : v
+      )
+    );
   }, []);
 
   const [submittingVariants, setSubmittingVariants] = useState(false);
-  
+
   const handleSubmitAddVariants = useCallback(async () => {
     if (!id) return;
     const payload = variantsForm
-      .map(v => ({ optionName: v.optionName.trim(), values: v.values.map(val => val.trim()).filter(Boolean) }))
-      .filter(v => v.optionName && v.values.length > 0);
+      .map((v) => ({
+        optionName: v.optionName.trim(),
+        values: v.values.map((val) => val.trim()).filter(Boolean),
+      }))
+      .filter((v) => v.optionName && v.values.length > 0);
     if (payload.length === 0) return;
     try {
       setSubmittingVariants(true);
       await addVariantsToProduct(id, payload);
       handleCloseAddVariants();
-      // refresh variants list
       fetchVariantsByProductId(id);
-    } catch (e) {
-      // noop; errors handled by context
+    } catch {
+      // errors from context
     } finally {
       setSubmittingVariants(false);
     }
@@ -165,48 +164,37 @@ const ProductDetailsPage: React.FC = () => {
 
   const handleSubmitAddOption = useCallback(async () => {
     if (!id || !selectedOptionName) return;
-    const validValues = newOptionValues.filter(val => val.trim().length > 0);
+    const validValues = newOptionValues.filter((val) => val.trim().length > 0);
     if (validValues.length === 0) return;
-    
+
     try {
       setSubmittingOption(true);
-      
-      console.log('Calling addOptionToProduct with:', {
-        productId: id,
-        optionName: selectedOptionName,
-        values: validValues
-      });
-      
       await addOptionToProduct(id, selectedOptionName, validValues);
-      
-      console.log('Successfully added option values');
       handleCloseAddOption();
-      // refresh variants list
       fetchVariantsByProductId(id);
     } catch (e) {
       console.error('Error adding option values:', e);
-      // noop; errors handled by context
     } finally {
       setSubmittingOption(false);
     }
   }, [id, selectedOptionName, newOptionValues, addOptionToProduct, fetchVariantsByProductId, handleCloseAddOption]);
 
   const updateNewOptionValue = useCallback((index: number, value: string) => {
-    setNewOptionValues(prev => {
-      const newValues = [...prev];
-      newValues[index] = value;
-      return newValues;
+    setNewOptionValues((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
     });
   }, []);
 
   const addNewOptionValue = useCallback(() => {
-    setNewOptionValues(prev => [...prev, '']);
+    setNewOptionValues((prev) => [...prev, '']);
   }, []);
 
   const removeNewOptionValue = useCallback((index: number) => {
-    setNewOptionValues(prev => {
-      const newValues = prev.filter((_, i) => i !== index);
-      return newValues.length > 0 ? newValues : [''];
+    setNewOptionValues((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      return next.length > 0 ? next : [''];
     });
   }, []);
 
@@ -222,52 +210,34 @@ const ProductDetailsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
-          {/* Simple Header */}
-          <ProductDetailsHeader
-            product={product}
-            variantsCount={variants.length}
-            onAddVariants={handleOpenAddVariants}
-            onDeleteVariant={handleOpenDeleteVariant}
-            onAddOption={handleOpenAddOption}
-          />
+      <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8">
+        <ProductDetailsHeader
+          product={product}
+          variantsCount={variants.length}
+          onAddVariants={handleOpenAddVariants}
+          onDeleteVariant={handleOpenDeleteVariant}
+          onAddOption={handleOpenAddOption}
+        />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Main Content */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Images Gallery */}
-              <ProductImagesGallery imageUrls={product.imageUrls || []} />
-              
-              {/* Basic Information */}
-              <ProductBasicInformation product={product} />
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 xl:gap-8">
+          <div className="space-y-6 xl:col-span-2">
+            <ProductImagesGallery imageUrls={product.imageUrls || []} />
+            <ProductBasicInformation product={product} />
+            <ProductPricing product={product} />
+            <ProductOrganization product={product} />
+            <ProductShippingInformation product={product} />
+            <ProductOptions product={product} />
+            <ProductVariantsList variants={variants} productId={id || ''} loading={loading} />
+          </div>
 
-              {/* Pricing */}
-              <ProductPricing product={product} />
-
-              {/* Organization */}
-              <ProductOrganization product={product} />
-
-              {/* Shipping Information */}
-              <ProductShippingInformation product={product} />
-
-              {/* Product Options */}
-              <ProductOptions product={product} />
-
-              {/* Variants */}
-              <ProductVariantsList
-                variants={variants}
-                productId={id || ''}
-                loading={loading}
-              />
-            </div>
-            
-            {/* Right Sidebar */}
-            <div className="lg:col-span-1">
+          <div className="xl:col-span-1">
+            <div className="xl:sticky xl:top-6">
               <ProductStatusDetails product={product} />
             </div>
           </div>
         </div>
-      {/* Add Variants Dialog - UI only (replica of NewProductPage variant UI) */}
+      </div>
+
       <AddProductVariantsModal
         isOpen={addVariantsOpen}
         variantsForm={variantsForm}
@@ -282,7 +252,6 @@ const ProductDetailsPage: React.FC = () => {
         onUpdateVariantValue={updateVariantValue}
       />
 
-      {/* Delete Variant Modal */}
       <DeleteVariantDimensionModal
         isOpen={deleteVariantOpen}
         product={product}
@@ -292,7 +261,6 @@ const ProductDetailsPage: React.FC = () => {
         onDimensionChange={setSelectedDimension}
       />
 
-      {/* Confirmation Modal */}
       <ConfirmDeleteVariantModal
         isOpen={confirmDeleteOpen}
         selectedDimension={selectedDimension}
@@ -301,7 +269,6 @@ const ProductDetailsPage: React.FC = () => {
         onConfirm={handleConfirmDelete}
       />
 
-      {/* Add Option in Variant Dialog */}
       <AddOptionValuesModal
         isOpen={addOptionOpen}
         product={product}
@@ -320,5 +287,3 @@ const ProductDetailsPage: React.FC = () => {
 };
 
 export default ProductDetailsPage;
-
-

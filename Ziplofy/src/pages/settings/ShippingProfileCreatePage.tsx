@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
+import { SettingsHero, SettingsPanel } from '../../components/settings/SettingsPageScaffold';
 import { useShippingProfiles } from '../../contexts/shipping-profile.context';
 import { useStore } from '../../contexts/store.context';
 
@@ -42,32 +42,33 @@ const ShippingProfileCreatePage: React.FC = () => {
   };
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4 border-b border-gray-200 pb-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleBack}
-              className="p-1 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              <ArrowLeftIcon className="w-5 h-5" />
-            </button>
-            <h1 className="text-xl font-medium text-gray-900">
-              Create shipping profile
-            </h1>
-          </div>
-          <button
-            onClick={handleSave}
-            disabled={!profileName.trim() || loading}
-            className="px-3 py-1.5 text-sm font-medium border border-gray-200 text-gray-700 min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-          >
-            {loading ? 'Saving...' : 'Save'}
-          </button>
-        </div>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Create shipping profile"
+          actions={
+            <>
+              <button
+                type="button"
+                onClick={handleBack}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <ArrowLeftIcon className="h-4 w-4" />
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={!profileName.trim() || loading}
+                className="min-w-[100px] rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {loading ? 'Saving...' : 'Save'}
+              </button>
+            </>
+          }
+        />
 
-        {/* Form Section */}
-        <div className="border border-gray-200 bg-white/95 p-4 max-w-2xl">
+        <SettingsPanel className="max-w-2xl p-4">
           <h2 className="text-sm font-medium text-gray-900 mb-1">
             Profile name
           </h2>
@@ -86,9 +87,9 @@ const ShippingProfileCreatePage: React.FC = () => {
               {error}
             </p>
           )}
-        </div>
+        </SettingsPanel>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

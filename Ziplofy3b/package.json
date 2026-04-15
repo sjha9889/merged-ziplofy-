@@ -20,7 +20,11 @@
     "seed:states": "node build/seed/seed.states.js",
     "seed:tax-defaults-india": "node build/seed/seed.tax-defaults-india.js",
     "seed:country-tax": "node build/seed/seed.country-tax.js",
-    "seed:store-codes": "node build/seed/seed.store-codes.js"
+    "seed:store-codes": "node build/seed/seed.store-codes.js",
+    "seed:products-demo": "node build/seed/seed.products-demo.js",
+    "seed:discounts-demo": "node build/seed/seed.discounts-demo-matrix.js",
+    "reset-discount-model": "npx ts-node --transpile-only src/seed/reset.discount-models.ts",
+    "seed:run": "node scripts/run-seeds.js"
   },
   "keywords": [
     "express",

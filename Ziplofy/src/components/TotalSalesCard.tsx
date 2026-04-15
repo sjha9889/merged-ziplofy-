@@ -9,9 +9,9 @@ interface TotalSalesCardProps {
 }
 
 const TotalSalesCard: React.FC<TotalSalesCardProps> = ({
-  totalSales = 2500,
-  percentageChange = 4.9,
-  lastMonth = 2345,
+  totalSales = 0,
+  percentageChange = 0,
+  lastMonth = 0,
 }) => {
   return (
     <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-sm">

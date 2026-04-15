@@ -9,9 +9,9 @@ interface NewCustomerCardProps {
 }
 
 const NewCustomerCard: React.FC<NewCustomerCardProps> = ({
-  newCustomers = 110,
-  percentageChange = 7.5,
-  lastMonth = 89,
+  newCustomers = 0,
+  percentageChange = 0,
+  lastMonth = 0,
 }) => {
   return (
     <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-sm">

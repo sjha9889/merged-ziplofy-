@@ -1,4 +1,3 @@
-import React from 'react';
 import { describe, expect, it } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import SlantedImageCarouselWrapper from './SlantedImageCarouselWrapper';
@@ -37,6 +36,32 @@ describe('SlantedImageCarouselWrapper', () => {
     const style = Array.from(container.querySelectorAll('style')).map((s) => s.textContent ?? '').join('\n');
     expect(style).toContain('@keyframes scrollUp');
     expect(style).toContain('@keyframes scrollDown');
+  });
+  
+  it('renders default images when no images prop is provided', () => {
+    const { container } = render(
+      <SlantedImageCarouselWrapper>
+        <div>Content</div>
+      </SlantedImageCarouselWrapper>
+    );
+
+    const imgs = container.querySelectorAll('img');
+    expect(imgs.length).toBeGreaterThan(0);
+  });
+
+  it('renders custom images when provided', () => {
+    const images = ['https://example.com/a.jpg', 'https://example.com/b.jpg'];
+
+    const { container } = render(
+      <SlantedImageCarouselWrapper images={images}>
+        <div>Content</div>
+      </SlantedImageCarouselWrapper>
+    );
+
+    const imgs = Array.from(container.querySelectorAll('img'));
+    const srcs = imgs.map((img) => (img as HTMLImageElement).src);
+    expect(srcs.some((s) => s.includes('a.jpg'))).toBe(true);
+    expect(srcs.some((s) => s.includes('b.jpg'))).toBe(true);
   });
 });
 

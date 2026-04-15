@@ -71,7 +71,7 @@ export interface StorefrontOrder {
   items: OrderItem[];
 }
 
-interface CreateOrderPayload {
+export interface CreateOrderPayload {
   storeId: string;
   shippingAddressId: string;
   billingAddressId?: string;

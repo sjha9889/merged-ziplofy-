@@ -15,54 +15,58 @@ export interface CartItem {
   };
 }
 
+const formatInr = (n: number) =>
+  `₹${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
 interface AbandonedCartItemRowProps {
   item: CartItem;
 }
 
 const AbandonedCartItemRow: React.FC<AbandonedCartItemRowProps> = ({ item }) => {
-  const productLabel = Object.entries(item.productVariant.optionValues || {})
-    .map(([key, value]) => `${key}: ${value}`)
-    .join(', ') || item.productVariant.sku;
+  const productLabel =
+    Object.entries(item.productVariant.optionValues || {})
+      .map(([key, value]) => `${key}: ${value}`)
+      .join(', ') || item.productVariant.sku;
+
+  const lineTotal = item.productVariant.price * item.quantity;
 
   return (
-    <tr className="hover:bg-blue-50/40 transition-colors">
-      <td className="px-4 py-3 whitespace-nowrap">
+    <tr className="transition-colors hover:bg-blue-50/30">
+      <td className="px-4 py-4 sm:px-5">
         <div className="flex items-center gap-3">
           {item.productVariant.images && item.productVariant.images.length > 0 ? (
             <img
               src={item.productVariant.images[0]}
-              alt={item.productVariant.sku}
-              className="w-10 h-10 object-cover rounded-lg border border-gray-200 shrink-0"
+              alt=""
+              className="h-12 w-12 shrink-0 rounded-xl border border-gray-200 object-cover shadow-sm"
             />
           ) : (
-            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-              <CubeIcon className="w-5 h-5 text-blue-400" />
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gray-100 bg-gradient-to-br from-gray-50 to-gray-100">
+              <CubeIcon className="h-6 w-6 text-gray-400" aria-hidden />
             </div>
           )}
           <div className="min-w-0">
-            <p className="text-sm text-gray-900 truncate">
-              {productLabel}
-            </p>
+            <p className="text-sm font-medium text-gray-900">{productLabel}</p>
+            <p className="mt-0.5 font-mono text-xs text-gray-500 sm:hidden">{item.productVariant.sku}</p>
           </div>
         </div>
       </td>
-      <td className="px-4 py-3 whitespace-nowrap">
-        <p className="text-sm text-gray-600">{item.productVariant.sku}</p>
+      <td className="hidden whitespace-nowrap px-4 py-4 sm:table-cell sm:px-5">
+        <p className="font-mono text-sm text-gray-600">{item.productVariant.sku}</p>
       </td>
-      <td className="px-4 py-3 whitespace-nowrap text-right">
-        <p className="text-sm text-gray-900">₹{item.productVariant.price.toFixed(2)}</p>
+      <td className="whitespace-nowrap px-4 py-4 text-right sm:px-5">
+        <p className="text-sm font-medium tabular-nums text-gray-900">{formatInr(item.productVariant.price)}</p>
       </td>
-      <td className="px-4 py-3 whitespace-nowrap text-center">
-        <span className="text-sm text-gray-900">{item.quantity}</span>
+      <td className="whitespace-nowrap px-4 py-4 text-center sm:px-5">
+        <span className="inline-flex min-w-[2rem] items-center justify-center rounded-lg bg-gray-100 px-2 py-0.5 text-sm font-semibold tabular-nums text-gray-800">
+          {item.quantity}
+        </span>
       </td>
-      <td className="px-4 py-3 whitespace-nowrap text-right">
-        <p className="text-sm text-blue-600 font-medium">
-          ₹{(item.productVariant.price * item.quantity).toFixed(2)}
-        </p>
+      <td className="whitespace-nowrap px-4 py-4 text-right sm:px-5">
+        <p className="text-sm font-semibold tabular-nums text-blue-700">{formatInr(lineTotal)}</p>
       </td>
     </tr>
   );
 };
 
 export default AbandonedCartItemRow;
-

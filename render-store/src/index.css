@@ -165,3 +165,59 @@ html {
   background-color: var(--gold);
   color: var(--charcoal-black);
 }
+
+/* Layout: Account dropdown (Chronova + render-store) */
+.header-icon-wrap {
+  position: relative;
+}
+.header-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+.header-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  min-width: 180px;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+  padding: 0.5rem;
+  z-index: 50;
+}
+.header-dropdown-menu a,
+.header-dropdown-menu button {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #374151;
+  border-radius: 0.25rem;
+}
+.header-dropdown-menu a:hover,
+.header-dropdown-menu button:hover {
+  background: #f3f4f6;
+}
+
+/* Login/Signup primary button - gold theme to match original (Shop Now style) */
+.btn-login-primary {
+  background: linear-gradient(to right, var(--gold), var(--light-gold)) !important;
+  color: var(--charcoal-black) !important;
+}
+.btn-login-primary:hover:not(:disabled) {
+  background: linear-gradient(to right, var(--dark-gold), var(--gold)) !important;
+  box-shadow: var(--shadow-gold);
+}

@@ -1,22 +1,44 @@
 import React, { useState } from 'react';
-import { CreditCardIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { CreditCardIcon, PlusIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { useNavigate } from 'react-router-dom';
+import { SettingsHero, SettingsPanel } from '../../components/settings/SettingsPageScaffold';
 
 const PaymentsSettingsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [captureMethod, setCaptureMethod] = useState('auto_checkout');
   const [giftCardExpiration, setGiftCardExpiration] = useState<'never' | 'expires'>('never');
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto py-6 px-4">
-        <header className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Payments</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Configure payment providers, capture rules, and payment methods at checkout.
-          </p>
-        </header>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Payments"
+          description="Configure payment providers, capture rules, and payment methods at checkout."
+        />
+
+        {/* Manual payment transactions */}
+        <SettingsPanel className="p-5 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h2 className="text-base font-semibold text-gray-900 mb-1">Transactions</h2>
+              <p className="text-sm text-gray-500 max-w-xl">
+                View manual payment confirmations (UPI, reference IDs) submitted for your store from
+                checkout.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate('/settings/payments/transactions')}
+              className="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 transition-colors shrink-0"
+            >
+              View transactions
+              <ArrowRightIcon className="w-4 h-4" />
+            </button>
+          </div>
+        </SettingsPanel>
 
         {/* Payment providers */}
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
+        <SettingsPanel className="p-5 sm:p-6">
           <h2 className="text-base font-semibold text-gray-900 mb-1">Payment providers</h2>
           <p className="text-sm text-gray-500 mb-4">
             Providers that enable you to accept payment methods at a rate set by the third-party. An
@@ -29,10 +51,10 @@ const PaymentsSettingsPage: React.FC = () => {
           <button className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 transition-colors">
             Choose a provider
           </button>
-        </div>
+        </SettingsPanel>
 
         {/* Supported payment methods */}
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
+        <SettingsPanel className="p-5 sm:p-6">
           <h2 className="text-base font-semibold text-gray-900 mb-1">Supported payment methods</h2>
           <p className="text-sm text-gray-500 mb-4">
             Payment methods that are available with one of Ziplofy's approved payment providers
@@ -58,10 +80,10 @@ const PaymentsSettingsPage: React.FC = () => {
             <PlusIcon className="w-4 h-4" />
             Add payment method
           </button>
-        </div>
+        </SettingsPanel>
 
         {/* Payment capture method */}
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
+        <SettingsPanel className="p-5 sm:p-6">
           <h2 className="text-base font-semibold text-gray-900 mb-1">Payment capture method</h2>
           <p className="text-sm text-gray-500 mb-4">
             Payments are authorized when an order is placed. Select how to{' '}
@@ -123,10 +145,10 @@ const PaymentsSettingsPage: React.FC = () => {
               </div>
             </label>
           </div>
-        </div>
+        </SettingsPanel>
 
         {/* Manual payment methods */}
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
+        <SettingsPanel className="p-5 sm:p-6">
           <h2 className="text-base font-semibold text-gray-900 mb-1">Manual payment methods</h2>
           <p className="text-sm text-gray-500 mb-4">
             Payments made outside your online store. Orders paid manually must be approved before being
@@ -136,10 +158,10 @@ const PaymentsSettingsPage: React.FC = () => {
             <PlusIcon className="w-4 h-4" />
             Manual payment method
           </button>
-        </div>
+        </SettingsPanel>
 
         {/* Payment method customizations */}
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
+        <SettingsPanel className="p-5 sm:p-6">
           <h2 className="text-base font-semibold text-gray-900 mb-1">Payment method customizations</h2>
           <p className="text-sm text-gray-500 mb-4">
             Control how payment methods appear to your customers at checkout
@@ -147,10 +169,10 @@ const PaymentsSettingsPage: React.FC = () => {
           <button className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 transition-colors">
             View payment method customization apps
           </button>
-        </div>
+        </SettingsPanel>
 
         {/* Gift card expiration */}
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
+        <SettingsPanel className="p-5 sm:p-6">
           <h2 className="text-base font-semibold text-gray-900 mb-4">Gift card expiration</h2>
           <div className="space-y-2">
             <label className="flex items-center gap-2 cursor-pointer">
@@ -176,10 +198,10 @@ const PaymentsSettingsPage: React.FC = () => {
               <span className="text-sm text-gray-900">Gift cards expire</span>
             </label>
           </div>
-        </div>
+        </SettingsPanel>
 
         {/* Apple Wallet passes */}
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
+        <SettingsPanel className="p-5 sm:p-6">
           <div className="flex justify-between items-center">
             <div>
               <h2 className="text-base font-semibold text-gray-900 mb-1">Apple Wallet passes</h2>
@@ -191,7 +213,7 @@ const PaymentsSettingsPage: React.FC = () => {
               Customize
             </button>
           </div>
-        </div>
+        </SettingsPanel>
 
         <div className="text-center text-sm text-gray-500 mt-2">
           <button type="button" className="text-gray-700 font-medium hover:underline">

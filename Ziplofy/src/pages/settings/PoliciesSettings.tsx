@@ -19,6 +19,7 @@ import { useStoreShippingPolicy } from '../../contexts/store-shipping-policy.con
 import { useStoreTermsPolicy } from '../../contexts/store-terms-policy.context';
 import { useStore } from '../../contexts/store.context';
 import { useUserContext } from '../../contexts/user.context';
+import { SettingsHero } from '../../components/settings/SettingsPageScaffold';
 
 const PoliciesSettings: React.FC = () => {
   const navigate = useNavigate();
@@ -99,14 +100,12 @@ const PoliciesSettings: React.FC = () => {
   }, [stores, activeStoreId, loggedInUser]);
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-        <header>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Policies</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage return rules and the policies shown in checkout and your store footer.
-          </p>
-        </header>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Policies"
+          description="Manage return rules and the policies shown in checkout and your store footer."
+        />
 
       {/* Return rules */}
       <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">

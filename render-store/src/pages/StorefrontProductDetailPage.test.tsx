@@ -10,6 +10,9 @@ vi.mock('react-router-dom', async () => {
 
 vi.mock('../components/StorefrontNavbar', () => ({ default: () => <nav>Navbar</nav> }));
 vi.mock('../components/AuthPopup', () => ({ default: () => null }));
+vi.mock('../components/QuickBuyNowCheckoutModal', () => ({
+  QuickBuyNowCheckoutModal: () => null,
+}));
 vi.mock('../contexts/product.context', () => ({
   useStorefrontProducts: () => ({
     products: [],
@@ -17,13 +20,14 @@ vi.mock('../contexts/product.context', () => ({
     productDetailLoading: false,
     productDetailError: null,
     fetchProductById: vi.fn(),
+    fetchProductsByStoreId: vi.fn().mockResolvedValue(undefined),
     clearProductDetail: vi.fn(),
   }),
 }));
 vi.mock('../contexts/store.context', () => ({ useStorefront: () => ({ storeFrontMeta: { storeId: 's1' } }) }));
 vi.mock('../contexts/product-variant.context', () => ({
   useStorefrontProductVariants: () => ({
-    variants: [{ _id: 'v1', price: 99900, optionValues: {} }],
+    variants: [{ _id: 'v1', productId: 'p1', sku: 'SKU', price: 99900, optionValues: {}, images: [] }],
     loading: false,
     fetchVariantsByProductId: vi.fn(),
   }),
@@ -32,12 +36,8 @@ vi.mock('../contexts/storefront-cart.context', () => ({
   useStorefrontCart: () => ({ createCartEntry: vi.fn(), getCartByCustomerId: vi.fn() }),
 }));
 vi.mock('../contexts/storefront-auth.context', () => ({
-  useStorefrontAuth: () => ({ user: null, checkAuth: vi.fn(), login: vi.fn(), signup: vi.fn() }),
+  useStorefrontAuth: () => ({ user: null, checkAuth: vi.fn() }),
 }));
-vi.mock('../contexts/customer-address-storefront.context', () => ({
-  useCustomerAddresses: () => ({ addresses: [], fetchCustomerAddressesByCustomerId: vi.fn(), addCustomerAddress: vi.fn() }),
-}));
-vi.mock('../contexts/storefront-order.context', () => ({ useStorefrontOrder: () => ({ createOrder: vi.fn(), loading: false }) }));
 vi.mock('../contexts/product-offers.context', () => ({
   useProductOffers: () => ({
     freeShippingOffers: [],
@@ -45,14 +45,17 @@ vi.mock('../contexts/product-offers.context', () => ({
     amountOffProductsOffers: [],
     buyXGetYOffers: [],
     loading: false,
+    freeShippingLoading: false,
+    amountOffOrderLoading: false,
+    amountOffProductsLoading: false,
+    buyXGetYLoading: false,
+    error: null,
+    clear: vi.fn(),
     fetchFreeShippingOffersForProduct: vi.fn(),
     fetchAmountOffOrderOffersForProduct: vi.fn(),
     fetchAmountOffProductsOffersForProduct: vi.fn(),
     fetchBuyXGetYOffersForProduct: vi.fn(),
   }),
-}));
-vi.mock('../contexts/storefront-country.context', () => ({
-  useStorefrontCountries: () => ({ countries: [], getCountries: vi.fn() }),
 }));
 
 const Wrapper = ({ children }: { children: React.ReactNode }) => (

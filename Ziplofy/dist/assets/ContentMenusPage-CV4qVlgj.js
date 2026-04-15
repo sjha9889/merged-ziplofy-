@@ -1,1 +1,0 @@
-import{j as r}from"./index-cUpVmfrg.js";import{G as e}from"./GridBackgroundWrapper-BTUGsGWh.js";const o=()=>r.jsx(e,{children:r.jsx("div",{children:"ContentMenusPage"})});export{o as ContentMenusPage};

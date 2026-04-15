@@ -11,20 +11,61 @@ const ProductTableRow: React.FC<ProductTableRowProps> = ({ product, onRowClick }
     onRowClick(product._id);
   }, [product._id, onRowClick]);
 
+  const categoryName = product.category && typeof product.category === "object" ? product.category.name : "—";
+  const preview = product.imageUrls?.[0];
+
   return (
     <tr 
-      className="hover:bg-blue-50/40 cursor-pointer transition-colors"
+      className="hover:bg-blue-50/40 cursor-pointer transition-colors even:bg-gray-50/30"
       onClick={handleClick}
     >
-      <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">{product.title}</td>
-      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-        {product.category && typeof product.category === 'object' ? product.category.name : product.category || '—'}
+      <td className="px-4 py-3.5">
+        <div className="flex items-center gap-3 min-w-[260px]">
+          <div className="w-9 h-9 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+            {preview ? (
+              <img src={preview} alt={product.title} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-xs font-semibold text-gray-500">{product.title.slice(0, 1).toUpperCase()}</span>
+            )}
+          </div>
+          <div className="min-w-0">
+            <p className="font-medium text-gray-900 leading-tight truncate">{product.title}</p>
+            <p className="text-xs text-gray-500 mt-0.5 truncate">{categoryName} · {product.sku || "No SKU"}</p>
+          </div>
+        </div>
       </td>
-      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">₹{Number(product.price).toFixed(2)}</td>
-      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{product.sku || '—'}</td>
-      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 capitalize">{product.status}</td>
-      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{typeof product.quantity === 'number' ? product.quantity : 0}</td>
-      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">{new Date(product.updatedAt).toLocaleString()}</td>
+      <td className="px-4 py-3 whitespace-nowrap text-sm font-semibold text-gray-800">₹{Number(product.price).toFixed(2)}</td>
+      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600 capitalize">
+        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+          product.status === 'active'
+            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+            : 'bg-gray-100 text-gray-700 border border-gray-200'
+        }`}>
+          {product.status === "active" ? "Published" : "Draft"}
+        </span>
+      </td>
+      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">
+        <span className="inline-flex min-w-6 items-center justify-center rounded-md bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-700">
+          {typeof product.quantity === 'number' ? product.quantity : 0}
+        </span>
+      </td>
+      <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-500">{new Date(product.updatedAt).toLocaleString()}</td>
+      <td
+        className="px-4 py-3 whitespace-nowrap"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+          aria-label="More actions"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <circle cx="8" cy="3" r="1.5" />
+            <circle cx="8" cy="8" r="1.5" />
+            <circle cx="8" cy="13" r="1.5" />
+          </svg>
+        </button>
+      </td>
     </tr>
   );
 };

@@ -8,8 +8,8 @@ interface TotalRevenueCardProps {
 }
 
 const TotalRevenueCard: React.FC<TotalRevenueCardProps> = ({
-  totalRevenue = 8220.64,
-  lastMonth = 620.0,
+  totalRevenue = 0,
+  lastMonth = 0,
   currency = '$',
 }) => {
   const formatCurrency = (amount: number) => {

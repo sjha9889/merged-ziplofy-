@@ -9,6 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../../components/Modal';
+import { SettingsHero } from '../../components/settings/SettingsPageScaffold';
 
 const CustomerPrivacyPage: React.FC = () => {
   const navigate = useNavigate();
@@ -30,14 +31,12 @@ const CustomerPrivacyPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-        <header>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Customer privacy</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage privacy policy, cookie banner, data sharing, and marketing consent settings.
-          </p>
-        </header>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Customer privacy"
+          description="Manage privacy policy, cookie banner, data sharing, and marketing consent settings."
+        />
 
         {/* Section 1: Privacy settings */}
         <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">

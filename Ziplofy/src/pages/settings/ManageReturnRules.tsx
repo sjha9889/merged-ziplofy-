@@ -1,7 +1,6 @@
 import React from 'react';
 import { ArrowLeftIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import { useCollections } from '../../contexts/collection.context';
 import { useStore } from '../../contexts/store.context';
 import { useProducts, ProductSearchWithVariantsItem } from '../../contexts/product.context';
@@ -196,8 +195,8 @@ const ManageReturnRules: React.FC = () => {
   );
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <button
@@ -693,7 +692,7 @@ const ManageReturnRules: React.FC = () => {
           </p>
         </div>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

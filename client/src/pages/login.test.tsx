@@ -7,12 +7,14 @@ import userEvent from '@testing-library/user-event';
 const loginMock = vi.fn();
 const googleLoginMock = vi.fn();
 
-vi.mock('../contexts/auth.context', () => ({
-  useAuth: () => ({
-    login: (...args: unknown[]) => loginMock(...args),
-    googleLogin: (...args: unknown[]) => googleLoginMock(...args),
-  }),
-}));
+vi.mock('../contexts/auth.context', () => {
+  return {
+    useAuth: () => ({
+      login: (...args: unknown[]) => loginMock(...args),
+      googleLogin: (...args: unknown[]) => googleLoginMock(...args),
+    }),
+  };
+});
 
 let lastGoogleProps:
   | {

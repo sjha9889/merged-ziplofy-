@@ -1,3 +1,27 @@
+import React from 'react';
+import { describe, expect, it, vi } from 'vitest';
+import { render } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import ScrollToTop from './ScrollToTop';
+
+describe('ScrollToTop', () => {
+  it('calls window.scrollTo when pathname changes', () => {
+    const scrollSpy = vi.spyOn(window, 'scrollTo');
+
+    render(
+      <MemoryRouter initialEntries={['/initial']}>
+        <ScrollToTop />
+      </MemoryRouter>,
+    );
+
+    expect(scrollSpy).toHaveBeenCalledWith({
+      top: 0,
+      left: 0,
+      behavior: 'instant',
+    });
+  });
+});
+
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';

@@ -6,6 +6,7 @@ import BillingPaymentMethodsSection from '../../components/BillingPaymentMethods
 import BillingTaxIdSection from '../../components/BillingTaxIdSection';
 import GstModal from '../../components/GstModal';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { SettingsHero } from '../../components/settings/SettingsPageScaffold';
 
 const BillingProfilePage: React.FC = () => {
   const navigate = useNavigate();
@@ -75,24 +76,23 @@ const BillingProfilePage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-        <header className="flex items-start gap-3">
-          <button
-            type="button"
-            onClick={handleBack}
-            className="mt-0.5 inline-flex items-center justify-center p-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
-            aria-label="Back to billing"
-          >
-            <ArrowLeftIcon className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Billing profile</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Your payment methods, tax ID, billing currency and store address.
-            </p>
-          </div>
-        </header>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Billing profile"
+          description="Your payment methods, tax ID, billing currency and store address."
+          leading={
+            <button
+              type="button"
+              onClick={handleBack}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200/90 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50/90 transition-colors"
+              aria-label="Back to billing"
+            >
+              <ArrowLeftIcon className="h-4 w-4" />
+              Back
+            </button>
+          }
+        />
 
         <BillingPaymentMethodsSection onAddPayment={handleOpenAddPayment} />
 

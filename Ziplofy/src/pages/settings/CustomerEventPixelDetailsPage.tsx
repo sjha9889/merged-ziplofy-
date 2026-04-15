@@ -140,8 +140,8 @@ const CustomerEventPixelDetailsPage: React.FC = () => {
 
   if (!pixelId) {
     return (
-      <div className="min-h-screen bg-page-background-color">
-        <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+      <div className="w-full">
+        <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
           <button
             type="button"
             onClick={() => navigate('/settings/customer-events')}
@@ -159,8 +159,8 @@ const CustomerEventPixelDetailsPage: React.FC = () => {
 
   if (!activeStoreId) {
     return (
-      <div className="min-h-screen bg-page-background-color">
-        <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+      <div className="w-full">
+        <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
           <button
             type="button"
             onClick={() => navigate('/settings/customer-events')}
@@ -177,8 +177,8 @@ const CustomerEventPixelDetailsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
         <div className="max-w-[960px] w-full">
           {loading && !pixel ? (
             <div className="flex flex-col items-center justify-center py-12 gap-3">

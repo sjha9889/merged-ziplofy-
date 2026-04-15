@@ -1,4 +1,4 @@
-import { BuildingOffice2Icon, PlusIcon } from '@heroicons/react/24/outline';
+import { BuildingOffice2Icon, PlusIcon, UserGroupIcon } from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useState } from 'react';
 import AddVendorModal from '../components/vendors/AddVendorModal';
 import VendorList from '../components/vendors/VendorList';
@@ -43,61 +43,101 @@ const VendorsPage: React.FC = () => {
     }
   }, [activeStoreId, vendorName, createVendor]);
 
+  const count = vendors.length;
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="pl-3 border-l-4 border-blue-500/60">
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Vendors</h1>
-            <p className="text-sm text-gray-500 mt-0.5">Manage your product suppliers</p>
+    <div className="w-full space-y-6 pb-8">
+      <header className="rounded-2xl border border-gray-200/80 bg-gradient-to-b from-white to-blue-50/20 px-5 py-5 shadow-sm sm:px-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 pl-3 border-l-4 border-blue-500/70">
+            <div className="flex flex-wrap items-center gap-2 gap-y-1">
+              <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Vendors</h1>
+              <span className="inline-flex items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
+                <UserGroupIcon className="h-3.5 w-3.5" aria-hidden />
+                {count} {count === 1 ? 'supplier' : 'suppliers'}
+              </span>
+            </div>
+            <p className="mt-1 text-sm text-gray-500">
+              Organize product suppliers and assign them when editing products or purchase orders.
+            </p>
           </div>
           <button
+            type="button"
             onClick={handleOpenModal}
-            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
           >
-            <PlusIcon className="w-4 h-4" />
-            Add Vendor
+            <PlusIcon className="h-4 w-4" aria-hidden />
+            Add vendor
           </button>
         </div>
+        <div className="mt-4 hidden rounded-xl border border-blue-100/80 bg-blue-50/40 px-4 py-2.5 sm:block">
+          <p className="text-xs leading-relaxed text-blue-950/80">
+            <span className="font-semibold text-blue-950">Tip:</span> use clear vendor names so your team can filter
+            and report on sourcing consistently.
+          </p>
+        </div>
+      </header>
 
-        {/* Main Content */}
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
-          {loading ? (
-            <div className="flex justify-center py-16">
-              <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-blue-600"></div>
+      <section className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+        <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/90 to-white px-5 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50">
+              <BuildingOffice2Icon className="h-5 w-5 text-blue-600" aria-hidden />
             </div>
-          ) : vendors.length === 0 ? (
-            <div className="text-center py-16 px-6">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 mb-4">
-                <BuildingOffice2Icon className="w-8 h-8 text-blue-500" />
+            <div>
+              <h2 className="text-sm font-semibold text-gray-900">Vendor directory</h2>
+              <p className="text-xs text-gray-500">
+                {loading ? 'Loading…' : count === 0 ? 'No suppliers on file yet' : `${count} on record`}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-0">
+          {loading ? (
+            <div className="flex min-h-[280px] items-center justify-center px-4 py-16">
+              <div className="flex flex-col items-center gap-4">
+                <div
+                  className="h-10 w-10 animate-spin rounded-full border-2 border-gray-200 border-t-blue-600"
+                  aria-hidden
+                />
+                <p className="text-sm font-medium text-gray-600">Loading vendors…</p>
               </div>
-              <h3 className="text-base font-semibold text-gray-900 mb-1">No vendors yet</h3>
-              <p className="text-sm text-gray-500 max-w-sm mx-auto mb-6">
-                Add vendors to organize your product suppliers and track where your products come from.
+            </div>
+          ) : count === 0 ? (
+            <div className="flex min-h-[280px] flex-col items-center justify-center px-8 py-16 text-center">
+              <div className="relative mb-5">
+                <div className="absolute inset-0 rounded-full bg-blue-400/10 blur-xl" aria-hidden />
+                <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl border border-gray-100 bg-white shadow-sm">
+                  <BuildingOffice2Icon className="h-8 w-8 text-blue-500" aria-hidden />
+                </div>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">No vendors yet</h3>
+              <p className="mt-2 max-w-md text-sm text-gray-500">
+                Add suppliers to link products and purchase orders to the businesses you buy from.
               </p>
               <button
+                type="button"
                 onClick={handleOpenModal}
-                className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
               >
-                <PlusIcon className="w-4 h-4" />
-                Add Vendor
+                <PlusIcon className="h-4 w-4" aria-hidden />
+                Add vendor
               </button>
             </div>
           ) : (
             <VendorList vendors={vendors} />
           )}
         </div>
-      </div>
+      </section>
 
       <AddVendorModal
-          isOpen={open}
-          onClose={handleCloseModal}
-          vendorName={vendorName}
-          onVendorNameChange={handleVendorNameChange}
-          onSubmit={handleSubmit}
-        />
+        isOpen={open}
+        onClose={handleCloseModal}
+        vendorName={vendorName}
+        onVendorNameChange={handleVendorNameChange}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 };

@@ -14,6 +14,7 @@ import SenderEmailSection from '../../components/SenderEmailSection';
 import { useNotificationCategories } from '../../contexts/notification-categories.context';
 import { useStoreNotificationEmail } from '../../contexts/store-notification-email.context';
 import { useStore } from '../../contexts/store.context';
+import { SettingsHero } from '../../components/settings/SettingsPageScaffold';
 
 const NotificationsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -129,14 +130,12 @@ const NotificationsPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-        <header>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Notifications</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Configure sender email, notification categories, and webhooks.
-          </p>
-        </header>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Notifications"
+          description="Configure sender email, notification categories, and webhooks."
+        />
 
         {/* Sender email Section */}
         <SenderEmailSection

@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { FiPackage, FiChevronRight, FiMapPin, FiCreditCard, FiTruck, FiCheckCircle, FiClock, FiXCircle, FiShoppingBag, FiCalendar, FiBox } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
-import StorefrontNavbar from '../components/StorefrontNavbar';
 import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 import { useStorefrontOrder, type StorefrontOrder } from '../contexts/storefront-order.context';
 import { formatINR } from '../utils/currency';
-
-const NAVBAR_HEIGHT = 64;
 
 type OrderFilter = 'all' | 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled';
 
@@ -125,23 +122,46 @@ const StorefrontMyOrdersPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <StorefrontNavbar />
+    <main className="account-page">
+      <div className="account-inner">
+        <nav className="account-breadcrumb" aria-label="Breadcrumb">
+          <Link to="/">Home</Link>
+          <span className="account-breadcrumb-sep">•</span>
+          <span className="account-breadcrumb-current">User Dashboard</span>
+          <span className="account-breadcrumb-sep">•</span>
+          <span className="account-breadcrumb-current">Orders History</span>
+        </nav>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pb-16" style={{ paddingTop: `${NAVBAR_HEIGHT + 32}px` }}>
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="mb-8"
-        >
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">My Orders</h1>
-          <p className="mt-1 text-gray-500">Track and manage your orders</p>
-        </motion.div>
+        <div className="account-layout">
+          <aside className="account-sidebar">
+            <nav className="account-nav" aria-label="Account navigation">
+              <button type="button" className="account-nav-item" onClick={() => navigate('/profile')}>
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                My Profile
+              </button>
+              <button type="button" className="account-nav-item active">
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+                Orders
+              </button>
+              <button type="button" className="account-nav-item" onClick={() => navigate('/')}>
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+                Continue Shopping
+              </button>
+            </nav>
+          </aside>
+
+          <div className="account-content">
+        <div className="account-panel account-panel-orders">
+          <h1 className="account-content-title">Orders History</h1>
 
         {!user && (
-          <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center">
+          <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center account-panel">
             <div className="mx-auto w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
               <FiPackage className="w-8 h-8 text-gray-400" />
             </div>
@@ -304,35 +324,22 @@ const StorefrontMyOrdersPage: React.FC = () => {
                 </motion.div>
               </div>
 
-              {/* Filter Tabs */}
-              <div className="bg-white rounded-xl border border-gray-200 p-1.5 flex gap-1 overflow-x-auto flex-shrink-0 mb-4">
+              <div className="account-orders-tabs" role="tablist">
                 {(['all', 'pending', 'shipped', 'delivered'] as OrderFilter[]).map((f) => (
                   <button
                     key={f}
+                    type="button"
                     onClick={() => setFilter(f)}
-                    className={`relative flex-1 px-3 py-2 text-xs font-medium rounded-lg transition-colors whitespace-nowrap ${
-                      filter === f 
-                        ? '' 
-                        : 'text-gray-600 hover:bg-gray-100'
-                    }`}
-                    style={{ WebkitTapHighlightColor: 'transparent' }}
+                    className={`account-order-tab ${filter === f ? 'active' : ''}`}
+                    role="tab"
+                    data-filter={f}
                   >
-                    {filter === f && (
-                      <motion.span
-                        layoutId="orderFilterTab"
-                        className="absolute inset-0 bg-gray-900 rounded-lg"
-                        transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                      />
-                    )}
-                    <span className={`relative z-10 ${filter === f ? 'text-white' : ''}`}>
-                      {f.charAt(0).toUpperCase() + f.slice(1)}
-                    </span>
+                    {f.charAt(0).toUpperCase() + f.slice(1)}
                   </button>
                 ))}
               </div>
 
-              {/* Order List - Scrollable */}
-              <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+              <div className="account-orders-list flex-1 overflow-y-auto space-y-3 pr-1">
                 <AnimatePresence mode="popLayout">
                 {filteredOrders.length === 0 && (
                   <motion.div 
@@ -359,11 +366,8 @@ const StorefrontMyOrdersPage: React.FC = () => {
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ duration: 0.2, delay: index * 0.05 }}
                       onClick={() => setSelectedOrder(order._id)}
-                      className={`bg-white rounded-xl border-2 p-4 cursor-pointer transition-all ${
-                        isSelected 
-                          ? 'border-[#d4af37] shadow-lg shadow-[#d4af37]/10' 
-                          : 'border-gray-200 hover:border-gray-300 hover:shadow-md'
-                      }`}
+                      className={`account-order-card ${isSelected ? 'border-[#d4af37] border-2 shadow-lg' : 'border-gray-200'}`}
+                      data-order-status={order.status}
                     >
                       <div className="flex gap-4">
                         {/* Product Image */}
@@ -377,13 +381,12 @@ const StorefrontMyOrdersPage: React.FC = () => {
                           )}
                         </div>
                         
-                        {/* Order Info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0 account-order-details">
+                          <div className="account-order-header flex items-start justify-between gap-2">
                             <div>
-                              <p className="text-sm font-semibold text-gray-900">
-                                #{order._id.slice(-8).toUpperCase()}
-                              </p>
+                              <span className="account-order-id text-sm font-semibold text-gray-900">
+                                Order ID : #{order._id.slice(-8).toUpperCase()}
+                              </span>
                               <p className="text-xs text-gray-500 mt-0.5">
                                 {formatDate(order.orderDate)}
                               </p>
@@ -392,7 +395,7 @@ const StorefrontMyOrdersPage: React.FC = () => {
                           </div>
                           
                           <div className="flex items-center justify-between mt-2">
-                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusConfig.bgLight} ${statusConfig.text}`}>
+                            <span className={`account-order-badge inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusConfig.bgLight} ${statusConfig.text}`}>
                               <statusConfig.icon className="w-3 h-3" />
                               {statusConfig.label}
                             </span>
@@ -586,8 +589,11 @@ const StorefrontMyOrdersPage: React.FC = () => {
             </div>
           </div>
         )}
+        </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </main>
   );
 };
 

@@ -1,55 +1,215 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiShoppingCart, FiArrowRight, FiTruck, FiShield, FiHeadphones, FiCheck, FiStar } from 'react-icons/fi';
-import { FaFacebook, FaTwitter, FaInstagram, FaPinterest } from 'react-icons/fa';
-import { motion } from 'framer-motion';
-import StorefrontNavbar from '../components/StorefrontNavbar';
-import AuthPopup from '../components/AuthPopup';
+import React, { useCallback, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import type { StorefrontProductItem } from '../contexts/product.context';
 import { useStorefrontProducts } from '../contexts/product.context';
 import { useStorefront } from '../contexts/store.context';
 import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 import { useStorefrontCart } from '../contexts/storefront-cart.context';
 import { useStorefrontCollections } from '../contexts/storefront-collections.context';
+import { useStorefrontSearch } from '../contexts/storefront-search.context';
 import { useStorefrontProductVariants } from '../contexts/product-variant.context';
 import { formatINR } from '../utils/currency';
 
+const CATEGORY_IMGS = [
+  '/assets/img/category-1.jpg', '/assets/img/category-2.jpg', '/assets/img/category-3.jpg',
+  '/assets/img/category-4.jpg', '/assets/img/category-5.jpg', '/assets/img/category-6.jpg',
+  '/assets/img/category-7.jpg', '/assets/img/category-8.jpg', '/assets/img/category-9.jpg',
+  '/assets/img/category-10.jpg', '/assets/img/category-11.jpg', '/assets/img/category-12.jpg',
+];
+const COLLECTION_IMGS = ['/assets/img/collection-1.webp', '/assets/img/collection-6.webp', '/assets/img/collection-8.webp', '/assets/img/collection-5.webp'];
+
+function ProductCardDeals({
+  product,
+  onAddToCart,
+}: {
+  product: StorefrontProductItem;
+  onAddToCart: (p: StorefrontProductItem, e: React.MouseEvent) => void;
+}) {
+  const img = (product.imageUrls && product.imageUrls[0]) || '/assets/img/watch-1.jpg';
+  return (
+    <article className="product-card">
+      <Link to={`/products/${product._id}`} className="product-card-link">
+        <div className="product-card-image">
+          <img src={img} alt={product.title} width={200} height={180} />
+          <div className="product-card-icons">
+            <button type="button" className="product-icon-btn" aria-label="Add to wishlist">
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+            </button>
+            <button type="button" className="product-icon-btn" aria-label="Compare">
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+            </button>
+            <button type="button" className="product-icon-btn" aria-label="Quick view">
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+            </button>
+          </div>
+        </div>
+        <div className="product-timer">276 Days : 10 Hours : 44 Mins : 39 Secs</div>
+        <h3 className="product-title">{product.title}</h3>
+        <div className="product-rating">⭐⭐⭐⭐☆ <span>(189)</span></div>
+        <div className="product-price">
+          <span className="price-current">{formatINR(product.price)}</span>
+          {product.compareAtPrice && product.compareAtPrice > product.price && (
+            <span className="price-old">{formatINR(product.compareAtPrice)}</span>
+          )}
+        </div>
+      </Link>
+      <div className="product-actions">
+        <Link to="/wishlist" className="btn-wishlist" aria-label="Add to wishlist">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+        </Link>
+        <button type="button" className="btn-add-cart" onClick={(e) => { e.preventDefault(); onAddToCart(product, e as unknown as React.MouseEvent); }}>
+          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+          Add to Cart
+        </button>
+      </div>
+    </article>
+  );
+}
+
+function ListingCard({ product }: { product: StorefrontProductItem }) {
+  const img = (product.imageUrls && product.imageUrls[0]) || '/assets/img/category-12.jpg';
+  const discount = product.compareAtPrice && product.compareAtPrice > product.price
+    ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+    : 0;
+
+  return (
+    <Link to={`/products/${product._id}`} className="listing-card">
+      <div className="listing-image">
+        <img src={img} alt={product.title} width={110} height={110} />
+      </div>
+      <div className="listing-content">
+        {discount > 0 && <span className="listing-badge">{discount}% OFF</span>}
+        <h3 className="listing-title">{product.title}</h3>
+        <div className="listing-rating">⭐⭐⭐⭐☆ <span>(189)</span></div>
+        <div className="listing-price">
+          <span className="listing-price-current">{formatINR(product.price)}</span>
+          {product.compareAtPrice && product.compareAtPrice > product.price && (
+            <span className="listing-price-old">{formatINR(product.compareAtPrice)}</span>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function DayDealCard({
+  product,
+  onAddToCart,
+  slideIndex,
+}: {
+  product: StorefrontProductItem;
+  onAddToCart: (p: StorefrontProductItem, e: React.MouseEvent) => void;
+  slideIndex: number;
+}) {
+  const img = (product.imageUrls && product.imageUrls[0]) || `/assets/img/watch-${(slideIndex % 10) + 1}.jpg`;
+  const discount = product.compareAtPrice && product.compareAtPrice > product.price
+    ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+    : 0;
+
+  return (
+    <div className="day-deals-slide">
+      <Link to={`/products/${product._id}`} className="day-deal-card" data-slide={slideIndex}>
+        <div className="day-deal-image">
+          <img src={img} alt={product.title} width={280} height={200} />
+        </div>
+        <div className="day-deal-content">
+          {discount > 0 && <span className="day-deal-badge">{discount}% OFF</span>}
+          <h3 className="day-deal-title">{product.title}</h3>
+          <div className="day-deal-rating">⭐⭐⭐⭐½ <span>(189)</span></div>
+          <div className="day-deal-colors">
+            <span className="color-dot" style={{ background: '#7C3AED' }}></span>
+            <span className="color-dot" style={{ background: '#6EE7B7' }}></span>
+            <span className="color-dot" style={{ background: '#FDE68A' }}></span>
+            <span className="color-dot" style={{ background: '#93C5FD' }}></span>
+            <span className="color-dot" style={{ background: '#3B82F6' }}></span>
+          </div>
+          <div className="day-deal-timer">
+            <div className="timer-box"><span className="timer-value">276</span><span className="timer-label">Days</span></div>
+            <div className="timer-box"><span className="timer-value">10</span><span className="timer-label">Hours</span></div>
+            <div className="timer-box"><span className="timer-value">12</span><span className="timer-label">Minutes</span></div>
+            <div className="timer-box"><span className="timer-value">58</span><span className="timer-label">Seconds</span></div>
+          </div>
+          <div className="day-deal-stock">
+            <span>Sold: 4</span>
+            <div className="stock-bar"><div className="stock-fill"></div></div>
+            <span>Available: 200</span>
+          </div>
+          <div className="day-deal-bottom">
+            <div className="day-deal-price">
+              <span className="day-deal-current">{formatINR(product.price)}</span>
+              {product.compareAtPrice && product.compareAtPrice > product.price && (
+                <span className="day-deal-old">{formatINR(product.compareAtPrice)}</span>
+              )}
+            </div>
+            <span className="day-deal-cta" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart(product, e as unknown as React.MouseEvent); }} role="button" tabIndex={0}>
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+              Add to Cart
+            </span>
+          </div>
+        </div>
+      </Link>
+    </div>
+  );
+}
+
+function FeaturedTechCard({ product }: { product: StorefrontProductItem }) {
+  const img = (product.imageUrls && product.imageUrls[0]) || '/assets/img/watch-1.jpg';
+  const discount = product.compareAtPrice && product.compareAtPrice > product.price
+    ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
+    : 0;
+
+  return (
+    <Link to={`/products/${product._id}`} className="featured-tech-card featured-tech-side">
+      <div className="featured-tech-card-img">
+        <img src={img} alt={product.title} width={120} height={90} />
+      </div>
+      <div className="featured-tech-card-content">
+        {discount > 0 && <span className="featured-tech-badge">{discount}% OFF</span>}
+        <h3 className="featured-tech-name">{product.title}</h3>
+        <div className="featured-tech-rating">⭐⭐⭐⭐½ <span>(189)</span></div>
+        <div className="featured-tech-price">
+          <span className="featured-tech-current">{formatINR(product.price)}</span>
+          {product.compareAtPrice && product.compareAtPrice > product.price && (
+            <span className="featured-tech-old">{formatINR(product.compareAtPrice)}</span>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 const StorefrontApp: React.FC = () => {
   const { storeFrontMeta } = useStorefront();
-  const { products, loading, pagination, orderDiscount, fetchProductsByStoreId } = useStorefrontProducts();
-  const { user, logout, checkAuth } = useStorefrontAuth();
+  const { products, loading, fetchProductsByStoreId } = useStorefrontProducts();
+  const { user } = useStorefrontAuth();
   const { getCartByCustomerId, createCartEntry } = useStorefrontCart();
   const { fetchVariantsByProductId } = useStorefrontProductVariants();
-  const { collections, loading: collectionsLoading, fetchCollectionsByStoreId } = useStorefrontCollections();
+  const { collections, fetchCollectionsByStoreId } = useStorefrontCollections();
   const navigate = useNavigate();
-  const [search, setSearch] = useState<string>('');
-  const [confirmLogoutOpen, setConfirmLogoutOpen] = useState(false);
-  const [authPopupOpen, setAuthPopupOpen] = useState(false);
+  const { searchValue: search } = useStorefrontSearch();
+  const storeName = storeFrontMeta?.name || 'Chronova';
 
   useEffect(() => {
     if (storeFrontMeta?.storeId) {
-      fetchProductsByStoreId({ storeId: storeFrontMeta.storeId, page: 1, limit: 12 });
+      fetchProductsByStoreId({ storeId: storeFrontMeta.storeId, page: 1, limit: 24 });
     }
-  }, [storeFrontMeta?.storeId]);
+  }, [storeFrontMeta?.storeId, fetchProductsByStoreId]);
 
   useEffect(() => {
     if (storeFrontMeta?.storeId) {
       fetchCollectionsByStoreId(storeFrontMeta.storeId);
     }
-  }, [storeFrontMeta?.storeId]);
-
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+  }, [storeFrontMeta?.storeId, fetchCollectionsByStoreId]);
 
   useEffect(() => {
     if (user?._id) {
       getCartByCustomerId(user._id).catch(() => {});
     }
-  }, [user?._id]);
+  }, [user?._id, getCartByCustomerId]);
 
-  const handleAddToCartFromCard = useCallback(
+  const handleAddToCart = useCallback(
     async (product: StorefrontProductItem, e: React.MouseEvent) => {
+      e.preventDefault();
       e.stopPropagation();
       if (!storeFrontMeta?.storeId) return;
       try {
@@ -58,13 +218,10 @@ const StorefrontApp: React.FC = () => {
         const variantToAdd = realVariants.length === 1 ? realVariants[0] : variants[0];
         if (variantToAdd) {
           await createCartEntry(
-            {
-              storeId: storeFrontMeta.storeId,
-              productVariantId: variantToAdd._id,
-              quantity: 1,
-            },
-            variantToAdd // Pass variant for guest cart
+            { storeId: storeFrontMeta.storeId, productVariantId: variantToAdd._id, quantity: 1 },
+            variantToAdd
           );
+          window.dispatchEvent(new CustomEvent('open-cart-drawer'));
         } else {
           navigate(`/products/${product._id}`);
         }
@@ -75,628 +232,335 @@ const StorefrontApp: React.FC = () => {
     [storeFrontMeta?.storeId, fetchVariantsByProductId, createCartEntry, navigate]
   );
 
-  // Build order discount text
-  const orderDiscountText = orderDiscount
-    ? orderDiscount.valueType === 'fixed-amount'
-      ? `${formatINR(orderDiscount.fixedAmount || 0)} off`
-      : `${orderDiscount.percentage || 0}% off`
-    : null;
-
-  const orderDiscountCondition = orderDiscount?.minimumPurchase === 'minimum-amount' && orderDiscount.minimumAmount
-    ? `on orders above ${formatINR(orderDiscount.minimumAmount)}`
-    : orderDiscount?.minimumPurchase === 'minimum-quantity' && orderDiscount.minimumQuantity
-    ? `on orders with ${orderDiscount.minimumQuantity}+ items`
-    : 'on all orders';
+  const filteredProducts = products.filter((p) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return p.title?.toLowerCase().includes(q) || (p.vendor?.name || '').toLowerCase().includes(q);
+  });
+  const dealsProducts = filteredProducts.slice(0, 6);
+  const listingProducts = filteredProducts.slice(0, 8);
+  const dayDealsProducts = filteredProducts.slice(0, 6);
+  const featuredProducts = filteredProducts.slice(0, 5);
 
   return (
-    <div className="min-h-screen bg-white">
-      <StorefrontNavbar showSearch searchValue={search} onSearchChange={setSearch} />
-
-      {/* Order Discount Banner */}
-      {orderDiscount && (
-        <div className="fixed top-16 left-0 right-0 z-40 bg-gradient-to-r from-[#d4af37] via-[#e6c547] to-[#d4af37] text-[#0c100c] py-2.5 px-4 text-center shadow-lg">
-          <div className="max-w-7xl mx-auto flex items-center justify-center gap-3 flex-wrap">
-            <span className="text-sm font-bold">{orderDiscountText}</span>
-            <span className="text-xs font-medium opacity-80">{orderDiscountCondition}</span>
-            {orderDiscount.title && (
-              <span className="px-2.5 py-0.5 bg-white/30 backdrop-blur-sm rounded-full text-xs font-semibold">
-                {orderDiscount.title}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Confirm Logout Modal */}
-      {confirmLogoutOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fadeIn" onClick={() => setConfirmLogoutOpen(false)}>
-          <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-md w-full mx-4 animate-scaleIn" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Confirm Logout</h2>
-            <p className="text-gray-600 mb-8">Are you sure you want to logout?</p>
-            <div className="flex gap-3 justify-end">
-              <button
-                type="button"
-                onClick={() => setConfirmLogoutOpen(false)}
-                className="px-6 py-3 rounded-xl border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-all duration-200"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => { logout(); setConfirmLogoutOpen(false); }}
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold hover:from-red-600 hover:to-pink-600 transition-all duration-200 shadow-lg hover:shadow-xl"
-              >
-                Logout
-              </button>
+    <>
+      <section className="hero-wrap" data-aos="fade-up" data-aos-duration="600">
+        <div className="hero">
+          <div className="hero-track" id="hero-track">
+            <div className="hero-slide active">
+              <div className="hero-inner">
+                <div className="hero-content">
+                  <span className="hero-label">Exclusive offer</span>
+                  <span className="hero-badge">25% OFF</span>
+                  <h1>Precision Timepieces Crafted for Modern Elegance.</h1>
+                  <p>Discover premium watches that combine timeless design with modern technology. Elevate your style with {storeName}&apos;s finest collection.</p>
+                  <Link to="/category" className="hero-cta">Shop Now <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></Link>
+                </div>
+              </div>
+            </div>
+            <div className="hero-slide">
+              <div className="hero-inner">
+                <div className="hero-content">
+                  <span className="hero-label">Limited Edition</span>
+                  <span className="hero-badge">30% OFF</span>
+                  <h1>Luxury Automatic Watches for Every Occasion.</h1>
+                  <p>Explore our handcrafted automatic timepieces. Swiss precision meets contemporary design in every detail.</p>
+                  <Link to="/category" className="hero-cta">Explore Now <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></Link>
+                </div>
+              </div>
+            </div>
+            <div className="hero-slide">
+              <div className="hero-inner">
+                <div className="hero-content">
+                  <span className="hero-label">New Arrivals</span>
+                  <span className="hero-badge">Free Shipping</span>
+                  <h1>Smart Watches for the Connected Lifestyle.</h1>
+                  <p>Stay connected with our latest smartwatch range. Fitness tracking, notifications, and sleek design in one.</p>
+                  <Link to="/category" className="hero-cta">Shop Smart <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></Link>
+                </div>
+              </div>
+            </div>
+            <div className="hero-slide">
+              <div className="hero-inner">
+                <div className="hero-content">
+                  <span className="hero-label">Best Sellers</span>
+                  <span className="hero-badge">Top Rated</span>
+                  <h1>Classic Leather &amp; Stainless Steel Designs.</h1>
+                  <p>From boardroom to weekend, our classic collection delivers sophistication and reliability you can count on.</p>
+                  <Link to="/category" className="hero-cta">View Collection <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></Link>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Hero Section - ORNATIVA Theme */}
-      <section className={`relative overflow-hidden bg-gradient-to-br from-[#fefcf8] via-[#f5f1e8] to-[#e8e0d5] min-h-[85vh] flex items-center ${orderDiscount ? 'mt-28' : 'mt-20'}`}>
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 right-1/4 w-96 h-96 bg-[#d4af37] rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob" />
-          <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-[#e6c547] rounded-full mix-blend-multiply filter blur-3xl opacity-5 animate-blob animation-delay-2000" />
-        </div>
-        
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full py-20">
-          <div className="max-w-4xl mx-auto text-center">
-            {/* Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#d4af37]/10 border border-[#d4af37]/30 mb-6"
-            >
-              <span className="w-2 h-2 bg-[#d4af37] rounded-full animate-pulse" />
-              <span className="text-sm font-semibold text-[#0c100c]">Timeless Luxury, Crafted for You</span>
-            </motion.div>
-
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-3xl sm:text-4xl lg:text-6xl font-bold text-[#0c100c] mb-6 leading-tight"
-              style={{ fontFamily: 'var(--font-serif)' }}
-            >
-              {storeFrontMeta?.name || 'Welcome to Our Store'}
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="text-base sm:text-lg text-[#2b1e1e] mb-10 max-w-2xl mx-auto leading-relaxed"
-            >
-              {storeFrontMeta?.description || 'Discover amazing products at unbeatable prices. Shop the latest trends and timeless classics.'}
-            </motion.p>
-
-            {/* Stats */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="flex flex-wrap justify-center gap-8 mb-10"
-            >
-              {[
-                { icon: FiStar, value: '10K+', label: 'Happy Customers' },
-                { icon: FiShoppingCart, value: '500+', label: 'Products' },
-                { icon: FiHeadphones, value: '24/7', label: 'Support' },
-              ].map((stat, i) => (
-                <div key={i} className="flex items-center gap-3 px-4 py-2 rounded-xl bg-white/50 backdrop-blur-sm border border-[#e8e0d5]">
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#d4af37] to-[#e6c547] flex items-center justify-center shadow-sm">
-                    <stat.icon className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="text-left">
-                    <div className="text-xl font-bold text-[#0c100c]">{stat.value}</div>
-                    <div className="text-xs text-[#2b1e1e]">{stat.label}</div>
-                  </div>
-                </div>
-              ))}
-            </motion.div>
-
-            {/* CTA Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="flex flex-wrap justify-center gap-4"
-            >
-              <button
-                onClick={() => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' })}
-                className="group px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#d4af37] to-[#e6c547] text-[#0c100c] font-semibold text-sm hover:shadow-xl transition-all duration-300 flex items-center gap-2 hover:scale-105"
-                style={{ boxShadow: '0 4px 20px rgba(212, 175, 55, 0.35)' }}
-              >
-                Shop Now
-                <FiArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
-              <button
-                onClick={() => document.getElementById('collections')?.scrollIntoView({ behavior: 'smooth' })}
-                className="px-8 py-3.5 rounded-xl bg-[#0c100c] text-[#fefcf8] font-semibold text-sm hover:bg-[#2b1e1e] transition-all duration-300 hover:scale-105"
-              >
-                Explore Collections
-              </button>
-            </motion.div>
+          <button type="button" className="hero-prev" id="hero-prev" aria-label="Previous slide">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <button type="button" className="hero-next" id="hero-next" aria-label="Next slide">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+          </button>
+          <div className="hero-dots" id="hero-dots">
+            <button type="button" className="hero-dot active" data-slide="0" aria-label="Slide 1"></button>
+            <button type="button" className="hero-dot" data-slide="1" aria-label="Slide 2"></button>
+            <button type="button" className="hero-dot" data-slide="2" aria-label="Slide 3"></button>
+            <button type="button" className="hero-dot" data-slide="3" aria-label="Slide 4"></button>
           </div>
         </div>
       </section>
 
-      {/* Trust Badges Section - ORNATIVA Theme */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-center mb-14"
-          >
-            <span className="inline-block px-4 py-1.5 rounded-full bg-[#d4af37]/10 text-[#d4af37] text-xs font-semibold uppercase tracking-wider mb-4">Why Us</span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#0c100c] mb-3" style={{ fontFamily: 'var(--font-serif)' }}>Why Choose Us</h2>
-            <p className="text-sm text-[#2b1e1e] max-w-xl mx-auto">Experience shopping like never before with our premium service</p>
-          </motion.div>
-          
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-            {[
-              { icon: FiTruck, title: 'Free Shipping', desc: 'On orders over ₹500' },
-              { icon: FiShield, title: 'Secure Payment', desc: '100% secure checkout' },
-              { icon: FiHeadphones, title: '24/7 Support', desc: 'Dedicated support team' },
-              { icon: FiCheck, title: 'Easy Returns', desc: '30-day return policy' },
-            ].map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                  className="group p-6 rounded-2xl bg-[#fefcf8] border border-[#e8e0d5] hover:border-[#d4af37]/50 hover:shadow-xl hover:shadow-[#d4af37]/5 transition-all duration-300 hover:-translate-y-1 text-center"
-                >
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#d4af37] to-[#e6c547] flex items-center justify-center mb-4 mx-auto shadow-lg shadow-[#d4af37]/20 group-hover:scale-110 transition-transform duration-300">
-                    <Icon className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-sm font-bold text-[#0c100c] mb-1">{item.title}</h3>
-                  <p className="text-xs text-[#2b1e1e]">{item.desc}</p>
-                </motion.div>
-              );
-            })}
+      <section className="categories" aria-labelledby="categories-heading" data-aos="fade-up" data-aos-duration="600">
+        <div className="categories-inner">
+          <h2 id="categories-heading" className="sr-only">Product Categories</h2>
+          <div className="categories-grid">
+            {collections.length > 0
+              ? collections.slice(0, 12).map((c, i) => (
+                  <Link key={c._id} to={`/collections/${c._id}/${c.urlHandle}`} className="category-card">
+                    <img src={CATEGORY_IMGS[i % CATEGORY_IMGS.length]} alt={c.title} width={60} height={60} />
+                    <span>{c.title}</span>
+                  </Link>
+                ))
+              : CATEGORY_IMGS.slice(0, 12).map((src, i) => (
+                  <Link key={i} to="/category" className="category-card">
+                    <img src={src} alt="Category" width={60} height={60} />
+                    <span>Category {i + 1}</span>
+                  </Link>
+                ))}
           </div>
         </div>
       </section>
 
-      {/* Collections Section - ORNATIVA Theme */}
-      {collections.length > 0 && (
-        <section id="collections" className="relative py-20 bg-gradient-to-b from-[#f5f1e8] to-[#fefcf8] overflow-hidden">
-          {/* Subtle Background Pattern */}
-          <div className="absolute inset-0 opacity-[0.03]" style={{
-            backgroundImage: `radial-gradient(circle at 1px 1px, rgba(212, 175, 55, 0.15) 1px, transparent 0)`,
-            backgroundSize: '40px 40px',
-          }} />
-
-          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Section Header */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="text-center mb-14"
-            >
-              <span className="inline-block px-4 py-1.5 rounded-full bg-[#d4af37]/10 text-[#d4af37] text-xs font-semibold uppercase tracking-wider mb-4">Collections</span>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#0c100c] mb-3" style={{ fontFamily: 'var(--font-serif)' }}>
-                Shop by Collections
-              </h2>
-              <p className="text-sm text-[#2b1e1e] max-w-xl mx-auto">
-                Discover our curated collections featuring the latest trends and timeless classics
-              </p>
-            </motion.div>
-
-            {collectionsLoading && (
-              <div className="text-center py-16">
-                <div className="inline-block rounded-full h-12 w-12 border-4 border-[#e8e0d5] border-t-[#d4af37] animate-spin" />
-                <p className="text-[#2b1e1e] mt-4">Loading collections...</p>
+      <section className="deals" aria-labelledby="deals-heading" data-aos="fade-up" data-aos-duration="600">
+        <div className="deals-inner">
+          <header className="deals-header">
+            <div className="deals-header-left">
+              <h2 id="deals-heading">Limited Time Watch Deals</h2>
+              <p className="deals-sub">Special pricing on premium timepieces for a limited time.</p>
+            </div>
+            <div className="deals-header-right">
+              <div className="deals-countdown" id="deals-countdown">Ends in: 276 : 10 : 44 : 39</div>
+              <div className="deals-filters">
+                <button type="button" className="deals-filter active" data-filter="all">View All</button>
+                <button type="button" className="deals-filter" data-filter="phones">Smart Phones</button>
+                <button type="button" className="deals-filter" data-filter="camera">Camera</button>
+                <button type="button" className="deals-filter" data-filter="headphone">Headphone</button>
               </div>
-            )}
-
-            {!collectionsLoading && collections.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-                {collections.map((c, index) => (
-                  <CollectionCard key={c._id} collection={c} navigate={navigate} index={index} />
-                ))}
-              </div>
+            </div>
+          </header>
+          <div className="deals-grid">
+            {loading ? (
+              <div className="deals-loading">Loading...</div>
+            ) : dealsProducts.length > 0 ? (
+              dealsProducts.map((p) => (
+                <ProductCardDeals key={p._id} product={p} onAddToCart={handleAddToCart} />
+              ))
+            ) : (
+              <p className="deals-empty">No deals at the moment.</p>
             )}
           </div>
-        </section>
-      )}
-
-      {/* Featured Products Section - ORNATIVA Theme */}
-      <section id="products" className="relative py-20 bg-white overflow-hidden">
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-center mb-14"
-          >
-            <span className="inline-block px-4 py-1.5 rounded-full bg-[#d4af37]/10 text-[#d4af37] text-xs font-semibold uppercase tracking-wider mb-4">Featured</span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-[#0c100c] mb-3" style={{ fontFamily: 'var(--font-serif)' }}>Featured Products</h2>
-            <p className="text-sm text-[#2b1e1e] max-w-xl mx-auto">
-              Handpicked products that our customers love
-            </p>
-          </motion.div>
-
-          {loading && (
-            <div className="text-center py-16">
-              <div className="inline-block rounded-full h-12 w-12 border-4 border-[#e8e0d5] border-t-[#d4af37] animate-spin" />
-              <p className="text-[#2b1e1e] mt-4">Loading products...</p>
-            </div>
-          )}
-
-          {!loading && products.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
-              {products
-                .filter((p) => {
-                  if (!search) return true;
-                  const q = search.toLowerCase();
-                  return p.title?.toLowerCase().includes(q) || (p.vendor?.name || '').toLowerCase().includes(q);
-                })
-                .map((p, index) => (
-                  <ProductCard
-                    key={p._id}
-                    product={p}
-                    onClick={() => navigate(`/products/${p._id}`)}
-                    onAddToCart={handleAddToCartFromCard}
-                    index={index}
-                  />
-                ))}
-            </div>
-          )}
-
-          {pagination?.hasNext && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className="text-center mt-14"
-            >
-              <button
-                type="button"
-                onClick={() => storeFrontMeta?.storeId && fetchProductsByStoreId({ storeId: storeFrontMeta.storeId, page: (pagination?.page || 1) + 1, limit: pagination?.limit || 12 })}
-                className="group px-8 py-3.5 bg-[#0c100c] text-white rounded-xl font-semibold hover:bg-[#2b1e1e] transition-all flex items-center gap-2 mx-auto hover:scale-105"
-              >
-                Load More Products
-                <FiArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </motion.div>
-          )}
         </div>
       </section>
 
-      {/* Footer - ORNATIVA Theme */}
-      <footer className="bg-[#0c100c] text-[#fefcf8] relative overflow-hidden">
-        {/* Decorative Background */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#d4af37]/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#e6c547]/5 rounded-full blur-3xl" />
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-            {/* Brand Column */}
-            <div className="col-span-2 lg:col-span-1">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-[#d4af37] to-[#e6c547] flex items-center justify-center text-white text-lg font-black shadow-lg shadow-[#d4af37]/20">
-                  {storeFrontMeta?.name?.charAt(0) || 'Z'}
-                </div>
-                <div className="text-lg font-bold text-white" style={{ fontFamily: 'var(--font-serif)' }}>
-                  {storeFrontMeta?.name || 'Store'}
-                </div>
+      <section className="promo-wrap" aria-labelledby="promo-heading" data-aos="fade-up" data-aos-duration="600">
+        <div className="promo-inner">
+          <div className="promo-banner">
+            <div className="promo-card">
+              <h2 id="promo-heading">Hurry! Limited Deals</h2>
+              <p className="promo-sub">Watches you love, prices you&apos;ll love more.</p>
+              <div className="promo-countdown">
+                <div className="countdown-block countdown-days"><span className="countdown-label">Days</span><span className="countdown-value" id="promo-days">276</span></div>
+                <div className="countdown-block countdown-hours"><span className="countdown-label">Hours</span><span className="countdown-value" id="promo-hours">10</span></div>
+                <div className="countdown-block countdown-mins"><span className="countdown-label">Mins</span><span className="countdown-value" id="promo-mins">34</span></div>
+                <div className="countdown-block countdown-secs"><span className="countdown-label">Secs</span><span className="countdown-value" id="promo-secs">29</span></div>
               </div>
-              <p className="text-gray-400 mb-5 text-sm leading-relaxed max-w-xs">
-                {storeFrontMeta?.description || 'Your trusted online shopping destination for quality products at great prices.'}
-              </p>
-              <div className="flex gap-2">
-                {[FaFacebook, FaTwitter, FaInstagram, FaPinterest].map((Icon, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    className="w-10 h-10 rounded-xl bg-white/5 hover:bg-[#d4af37] text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center hover:scale-110 border border-white/5 hover:border-[#d4af37]"
-                  >
-                    <Icon className="w-4 h-4" />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Quick Links */}
-            <div>
-              <h4 className="font-bold mb-4 text-sm text-white" style={{ fontFamily: 'var(--font-serif)' }}>Quick Links</h4>
-              <div className="flex flex-col gap-2.5">
-                {['About Us', 'Contact', 'FAQ', 'Blog'].map((link) => (
-                  <button
-                    key={link}
-                    type="button"
-                    className="text-left text-gray-400 hover:text-[#d4af37] text-sm transition-all duration-200 hover:translate-x-1 transform inline-block w-fit"
-                  >
-                    {link}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Customer Service */}
-            <div>
-              <h4 className="font-bold mb-4 text-sm text-white" style={{ fontFamily: 'var(--font-serif)' }}>Customer Service</h4>
-              <div className="flex flex-col gap-2.5">
-                {['Help Center', 'Shipping Info', 'Returns', 'Track Order'].map((link) => (
-                  <button
-                    key={link}
-                    type="button"
-                    className="text-left text-gray-400 hover:text-[#d4af37] text-sm transition-all duration-200 hover:translate-x-1 transform inline-block w-fit"
-                  >
-                    {link}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Newsletter */}
-            <div>
-              <h4 className="font-bold mb-4 text-sm text-white" style={{ fontFamily: 'var(--font-serif)' }}>Stay Connected</h4>
-              <p className="text-gray-400 mb-4 text-sm">
-                Subscribe for exclusive offers.
-              </p>
-              <div className="flex flex-col gap-2">
-                <input
-                  type="email"
-                  placeholder="Your email"
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:border-[#d4af37] transition-colors text-sm"
-                />
-                <button
-                  type="button"
-                  className="w-full px-4 py-3 rounded-xl bg-gradient-to-r from-[#d4af37] to-[#e6c547] text-[#0c100c] font-bold text-sm hover:shadow-lg hover:shadow-[#d4af37]/20 transition-all hover:scale-[1.02]"
-                >
-                  Subscribe
-                </button>
-              </div>
+              <Link to="/category" className="promo-cta">Explore Watches <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></Link>
             </div>
           </div>
-
-          <div className="border-t border-white/10 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-gray-500 text-sm">
-              © {new Date().getFullYear()} {storeFrontMeta?.name || 'Store'}. All rights reserved.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4 lg:gap-6">
-              {['Privacy Policy', 'Terms of Service', 'Cookies'].map((link) => (
-                <button
-                  key={link}
-                  type="button"
-                  className="text-gray-500 hover:text-[#d4af37] text-sm transition-colors duration-200"
-                >
-                  {link}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </footer>
-
-      <AuthPopup open={authPopupOpen} onClose={() => setAuthPopupOpen(false)} />
-    </div>
-  );
-};
-
-// Modern Collection Card Component - ORNATIVA Theme
-const CollectionCard: React.FC<{
-  collection: any;
-  navigate: (path: string) => void;
-  index: number;
-}> = ({ collection, navigate, index }) => {
-  const gradients = [
-    'from-[#f5f1e8] to-[#e8e0d5]',
-    'from-[#e8e0d5] to-[#fefcf8]',
-    'from-[#fefcf8] to-[#f5f1e8]',
-  ];
-  const gradient = gradients[index % gradients.length];
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.4, delay: index * 0.1 }}
-      className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl border border-[#e8e0d5]/50 hover:border-[#d4af37]/30 transition-all duration-300"
-    >
-      <button
-        type="button"
-        onClick={() => navigate(`/collections/${collection._id}/${collection.urlHandle}`)}
-        className="w-full h-full text-left focus:outline-none focus:ring-2 focus:ring-[#d4af37] focus:ring-offset-2 rounded-2xl"
-      >
-        {/* Image/Header Section */}
-        <div className={`relative h-48 bg-gradient-to-br ${gradient} overflow-hidden`}>
-          {/* Decorative Elements */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full bg-[#d4af37]/10 blur-3xl group-hover:scale-150 transition-transform duration-700" />
-          <div className="absolute bottom-0 right-0 w-32 h-32 rounded-full bg-[#e6c547]/10 blur-2xl" />
-
-          {/* Collection Icon/Initial */}
-          <div className="relative z-10 flex items-center justify-center h-full">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#d4af37] to-[#e6c547] flex items-center justify-center shadow-xl shadow-[#d4af37]/20 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
-              <span className="text-3xl font-bold text-white" style={{ fontFamily: 'var(--font-serif)' }}>
-                {collection.title.charAt(0).toUpperCase()}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Section */}
-        <div className="p-5">
-          <h3 className="text-base font-bold text-[#0c100c] mb-1.5 line-clamp-1 group-hover:text-[#d4af37] transition-colors duration-300" style={{ fontFamily: 'var(--font-serif)' }}>
-            {collection.title}
-          </h3>
-          <p className="text-xs text-[#2b1e1e] leading-relaxed line-clamp-2 mb-4">
-            {collection.metaDescription || collection.description || 'Explore this curated collection'}
-          </p>
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] text-[#2b1e1e]/60 uppercase tracking-wider font-medium px-2 py-1 rounded-md bg-[#f5f1e8]">
-              {collection.urlHandle}
-            </span>
-            <div className="flex items-center gap-1.5 text-[#d4af37] font-semibold text-xs group-hover:gap-2 transition-all duration-300">
-              <span>View</span>
-              <FiArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
-            </div>
-          </div>
-        </div>
-      </button>
-    </motion.div>
-  );
-};
-
-// Minimal Product Card Component with Gold Theme
-const ProductCard: React.FC<{
-  product: StorefrontProductItem;
-  onClick: () => void;
-  onAddToCart: (product: StorefrontProductItem, e: React.MouseEvent) => void;
-  index?: number;
-}> = ({ product, onClick, onAddToCart, index = 0 }) => {
-  const images = Array.isArray(product.imageUrls) && product.imageUrls.length > 0 
-    ? product.imageUrls 
-    : ['https://via.placeholder.com/600x400?text=Product'];
-  const [idx, setIdx] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
-
-  useEffect(() => {
-    if (images.length <= 1) return;
-    const t = setInterval(() => {
-      setIdx((i) => (i + 1) % images.length);
-    }, 3000);
-    return () => clearInterval(t);
-  }, [images.length]);
-
-  const discountPercentage = product.compareAtPrice && product.compareAtPrice > product.price 
-    ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
-    : 0;
-
-  const productOfferText = product.productDiscount
-    ? product.productDiscount.valueType === 'fixed-amount'
-      ? `${formatINR(product.productDiscount.fixedAmount || 0)} off`
-      : `${product.productDiscount.percentage || 0}% off`
-    : null;
-
-  const isCodeBased = product.productDiscount?.method === 'discount-code';
-  const discountCode = product.productDiscount?.discountCode;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.4, delay: (index % 4) * 0.05 }}
-      className="group bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-[#d4af37]/30 hover:shadow-xl hover:shadow-[#d4af37]/5 transition-all duration-300 cursor-pointer"
-      onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      {/* Image Section */}
-      <div className="relative aspect-square overflow-hidden bg-[#f8f8f8]">
-        {images.map((src, i) => (
-          <img
-            key={i}
-            className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${
-              i === idx ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
-            } ${isHovered ? 'scale-110' : ''}`}
-            src={src}
-            alt={product.title}
-          />
-        ))}
-
-        {/* Gradient Overlay on Hover */}
-        <div className={`absolute inset-0 bg-gradient-to-t from-black/20 to-transparent transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`} />
-
-        {/* Discount Badge */}
-        {productOfferText && (
-          <span className="absolute top-3 left-3 inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-bold bg-gradient-to-r from-[#d4af37] to-[#e6c547] text-white shadow-lg">
-            {productOfferText}
-          </span>
-        )}
-
-        {/* Sale Badge */}
-        {discountPercentage > 0 && !productOfferText && (
-          <span className="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-gradient-to-r from-[#d4af37] to-[#e6c547] text-white shadow-lg">
-            {discountPercentage}% OFF
-          </span>
-        )}
-
-        {/* Quick Add Button */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onAddToCart(product, e);
-          }}
-          className={`absolute bottom-3 left-3 right-3 py-2.5 rounded-xl bg-[#0c100c] text-white text-xs font-semibold hover:bg-[#d4af37] transition-all duration-300 transform ${
-            isHovered ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-          } flex items-center justify-center gap-2`}
-        >
-          <FiShoppingCart className="w-3.5 h-3.5" />
-          Add to Cart
-        </button>
-
-        {/* Image Dots */}
-        {images.length > 1 && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {images.map((_, i) => (
-              <span
-                key={i}
-                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                  i === idx ? 'bg-[#d4af37] w-4' : 'bg-white/70'
-                }`}
-              />
+          <div className="brand-logos">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <span key={i} className="brand-logo" aria-hidden="true">Logoipsum</span>
             ))}
           </div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="p-4">
-        {/* Vendor */}
-        {product.vendor?.name && (
-          <p className="text-[10px] font-semibold text-[#d4af37] uppercase tracking-wider mb-1.5">
-            {product.vendor.name}
-          </p>
-        )}
-
-        {/* Title */}
-        <h3 className="text-sm font-semibold text-[#0c100c] line-clamp-2 mb-3 min-h-[2.5rem] leading-snug group-hover:text-[#d4af37] transition-colors">
-          {product.title}
-        </h3>
-
-        {/* Price */}
-        <div className="flex items-baseline gap-2">
-          <span className="text-lg font-bold text-[#0c100c]">
-            {formatINR(product.price)}
-          </span>
-          {product.compareAtPrice && product.compareAtPrice > product.price && (
-            <>
-              <span className="text-xs text-gray-400 line-through">
-                {formatINR(product.compareAtPrice)}
-              </span>
-              <span className="text-[10px] font-bold text-green-600 bg-green-50 px-1.5 py-0.5 rounded">
-                {discountPercentage}% off
-              </span>
-            </>
-          )}
         </div>
+      </section>
 
-        {/* Discount Code */}
-        {isCodeBased && discountCode && (
-          <p className="text-[10px] text-gray-500 mt-2 flex items-center gap-1">
-            <span className="px-1.5 py-0.5 bg-[#d4af37]/10 rounded text-[#d4af37] font-semibold">{discountCode}</span>
-          </p>
-        )}
-      </div>
-    </motion.div>
+      <section className="listing-section" aria-labelledby="listing-heading" data-aos="fade-up" data-aos-duration="600">
+        <div className="listing-inner">
+          <header className="listing-header">
+            <h2 id="listing-heading">Premium Watch Collection</h2>
+            <Link to="/category" className="listing-view-all">View All</Link>
+          </header>
+          <div className="listing-grid">
+            {loading ? (
+              <div className="listing-loading">Loading...</div>
+            ) : listingProducts.length > 0 ? (
+              listingProducts.map((p) => (
+                <ListingCard key={p._id} product={p} />
+              ))
+            ) : (
+              <p className="listing-empty">No products yet.</p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="promo-cards-section" aria-label="Featured promotions" data-aos="fade-up" data-aos-duration="600">
+        <div className="promo-cards-inner">
+          <div className="promo-cards-grid">
+            {collections.length >= 4
+              ? collections.slice(0, 4).map((c, i) => (
+                  <Link key={c._id} to={`/collections/${c._id}/${c.urlHandle}`} className="banner-card">
+                    <div className="promo-card-bg">
+                      <img src={COLLECTION_IMGS[i]} alt="" aria-hidden="true" />
+                    </div>
+                    <div className={`promo-card-overlay promo-overlay-${['green', 'yellow', 'pink', 'blue'][i]}`}>
+                      <span className="promo-card-badge">Collection</span>
+                      <h3 className="promo-card-title">{c.title}</h3>
+                      <p className="promo-card-shipping">Free worldwide shipping on orders over $200</p>
+                      <span className="promo-card-cta">Explore Collection <span className="promo-card-arrow"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></span></span>
+                    </div>
+                  </Link>
+                ))
+              : [1, 2, 3, 4].map((i) => (
+                  <Link key={i} to="/category" className="banner-card">
+                    <div className="promo-card-bg">
+                      <img src={COLLECTION_IMGS[i - 1]} alt="" aria-hidden="true" />
+                    </div>
+                    <div className={`promo-card-overlay promo-overlay-${['green', 'yellow', 'pink', 'blue'][i - 1]}`}>
+                      <span className="promo-card-badge">Exclusive Offer</span>
+                      <h3 className="promo-card-title">Collection {i}</h3>
+                      <p className="promo-card-shipping">Free worldwide shipping</p>
+                      <span className="promo-card-cta">Explore <span className="promo-card-arrow"><svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg></span></span>
+                    </div>
+                  </Link>
+                ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="day-deals-section" aria-labelledby="day-deals-heading" data-aos="fade-up" data-aos-duration="600">
+        <div className="day-deals-inner">
+          <h2 id="day-deals-heading">Watch Deals of the Day</h2>
+          <div className="day-deals-slider">
+            <div className="day-deals-track">
+              {dayDealsProducts.length > 0
+                ? dayDealsProducts.map((p, i) => (
+                    <DayDealCard key={p._id} product={p} onAddToCart={handleAddToCart} slideIndex={i} />
+                  ))
+                : (
+                  <div className="day-deals-slide">
+                    <Link to="/category" className="day-deal-card">
+                      <div className="day-deal-image"><img src="/assets/img/watch-6.jpg" alt="Shop" width={280} height={200} /></div>
+                      <div className="day-deal-content">
+                        <span className="day-deal-badge">Shop Now</span>
+                        <h3 className="day-deal-title">Browse our collection</h3>
+                        <span className="day-deal-cta">View Products</span>
+                      </div>
+                    </Link>
+                  </div>
+                )}
+            </div>
+            <div className="day-deals-dots">
+              <button type="button" className="day-deals-dot active" data-slide="0" aria-label="Slide 1"></button>
+              <button type="button" className="day-deals-dot" data-slide="1" aria-label="Slide 2"></button>
+              <button type="button" className="day-deals-dot" data-slide="2" aria-label="Slide 3"></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="category-promo-section" aria-label="Category promotions" data-aos="fade-up" data-aos-duration="600">
+        <div className="category-promo-inner">
+          <div className="category-promo-grid">
+            <Link to="/category" className="category-promo-card">
+              <div className="category-promo-bg">
+                <img src="/assets/img/category-13.webp" alt="" aria-hidden="true" />
+                <div className="category-promo-overlay"></div>
+              </div>
+              <div className="category-promo-content">
+                <span className="category-promo-badge badge-purple">Starting From $299</span>
+                <h3 className="category-promo-title">Luxury Watches</h3>
+                <p className="category-promo-desc">Timeless craftsmanship and elegant designs made for those who value precision and style.</p>
+                <span className="category-promo-cta">Explore Collection <span className="category-promo-arrow"></span></span>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="features-trust-section" aria-label="Store features and benefits" data-aos="fade-up" data-aos-duration="600">
+        <div className="features-trust-inner">
+          <div className="features-trust-grid">
+            <div className="features-trust-card features-trust-card-teal">
+              <div className="features-trust-icon-wrap">
+                <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+              </div>
+              <h3 className="features-trust-title">Free Worldwide Shipping</h3>
+              <p className="features-trust-desc">Enjoy fast and secure delivery on all watch orders with no extra shipping charges.</p>
+            </div>
+            <div className="features-trust-card features-trust-card-yellow">
+              <div className="features-trust-icon-wrap">
+                <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+              </div>
+              <h3 className="features-trust-title">2 Year Warranty</h3>
+              <p className="features-trust-desc">Every watch comes with an official warranty covering manufacturing defects and quality assurance.</p>
+            </div>
+            <div className="features-trust-card features-trust-card-orange">
+              <div className="features-trust-icon-wrap">
+                <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              </div>
+              <h3 className="features-trust-title">Easy 30-Day Returns</h3>
+              <p className="features-trust-desc">If your watch isn&apos;t the perfect fit, return it within 30 days with our hassle-free return policy.</p>
+            </div>
+            <div className="features-trust-card features-trust-card-green">
+              <div className="features-trust-icon-wrap">
+                <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+              </div>
+              <h3 className="features-trust-title">100% Secure Checkout</h3>
+              <p className="features-trust-desc">Shop with confidence using encrypted payments and trusted payment gateways.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="featured-tech-section" aria-labelledby="featured-tech-heading" data-aos="fade-up" data-aos-duration="600">
+        <div className="featured-tech-inner">
+          <h2 id="featured-tech-heading" className="featured-tech-title">Precision craftsmanship for every moment.</h2>
+          <div className="featured-tech-grid">
+            <div className="featured-tech-col featured-tech-col-left">
+              {featuredProducts[0] && <FeaturedTechCard product={featuredProducts[0]} />}
+              {featuredProducts[1] && <FeaturedTechCard product={featuredProducts[1]} />}
+            </div>
+            <div className="featured-tech-col featured-tech-col-center">
+              {featuredProducts[2] ? (
+                <Link to={`/products/${featuredProducts[2]._id}`} className="featured-tech-card featured-tech-featured">
+                  <div className="featured-tech-featured-img">
+                    <img src={(featuredProducts[2].imageUrls && featuredProducts[2].imageUrls[0]) || '/assets/img/watch-5.jpg'} alt={featuredProducts[2].title} width={280} height={280} />
+                  </div>
+                  <h3 className="featured-tech-name">{featuredProducts[2].title}</h3>
+                  <div className="featured-tech-price">
+                    <span className="featured-tech-current">{formatINR(featuredProducts[2].price)}</span>
+                    {featuredProducts[2].compareAtPrice && featuredProducts[2].compareAtPrice > featuredProducts[2].price && (
+                      <span className="featured-tech-old">{formatINR(featuredProducts[2].compareAtPrice)}</span>
+                    )}
+                  </div>
+                </Link>
+              ) : (
+                <Link to="/category" className="featured-tech-card featured-tech-featured">
+                  <div className="featured-tech-featured-img">
+                    <img src="/assets/img/watch-5.jpg" alt="Featured" width={280} height={280} />
+                  </div>
+                  <h3 className="featured-tech-name">Shop Collection</h3>
+                  <div className="featured-tech-price"><span className="featured-tech-current">View All</span></div>
+                </Link>
+              )}
+            </div>
+            <div className="featured-tech-col featured-tech-col-right">
+              {featuredProducts[3] && <FeaturedTechCard product={featuredProducts[3]} />}
+              {featuredProducts[4] && <FeaturedTechCard product={featuredProducts[4]} />}
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
   );
 };
 

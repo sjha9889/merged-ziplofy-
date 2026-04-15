@@ -3,6 +3,7 @@ import { ClipboardDocumentIcon, TrashIcon } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import { useStore } from '../../contexts/store.context';
 import { useStoreSecuritySettings } from '../../contexts/store-security-settings.context';
+import { SettingsHero } from '../../components/settings/SettingsPageScaffold';
 
 const UsersSecurityPage: React.FC = () => {
   const { stores, activeStoreId } = useStore();
@@ -111,16 +112,12 @@ const UsersSecurityPage: React.FC = () => {
   }, [activeStoreId, settings, update]);
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Security</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Manage collaborator access and security codes for your store.
-            </p>
-          </div>
-        </header>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Security"
+          description="Manage collaborator access and security codes for your store."
+        />
 
         {loading && (
           <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-12 flex flex-col items-center justify-center">

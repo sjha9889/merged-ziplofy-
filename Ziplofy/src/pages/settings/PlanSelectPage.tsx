@@ -6,6 +6,7 @@ import {
   ChevronDownIcon,
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
+import { SettingsHero } from '../../components/settings/SettingsPageScaffold';
 
 type Plan = {
   name: string;
@@ -135,24 +136,23 @@ const PlanSelectPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-        <header className="flex items-start gap-3">
-          <button
-            type="button"
-            onClick={() => navigate('/settings/plan')}
-            className="mt-0.5 inline-flex items-center gap-2 p-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
-            aria-label="Back to plan"
-          >
-            <ArrowLeftIcon className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Pick your plan</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Everything you need to run your business
-            </p>
-          </div>
-        </header>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Pick your plan"
+          description="Everything you need to run your business"
+          leading={
+            <button
+              type="button"
+              onClick={() => navigate('/settings/plan')}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200/90 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50/90 transition-colors"
+              aria-label="Back to plan"
+            >
+              <ArrowLeftIcon className="h-4 w-4" />
+              Back
+            </button>
+          }
+        />
 
         <div className="flex flex-col md:flex-row gap-4 flex-wrap text-sm text-gray-600">
           <div className="flex items-center gap-2">

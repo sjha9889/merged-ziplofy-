@@ -19,31 +19,32 @@ const ProductTypesList: React.FC<ProductTypesListProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className="text-sm text-gray-500 py-6 text-center">Loading tags...</div>
+      <div className="px-5 py-14 text-center text-sm text-gray-500 sm:px-6">Loading types…</div>
     );
   }
 
   if (tags.length === 0) {
     return (
-      <div className="text-sm text-gray-500 py-6 text-center">No tags yet.</div>
+      <div className="px-5 py-14 text-center sm:px-6">
+        <p className="text-sm font-medium text-gray-900">No product types yet</p>
+        <p className="mt-1 text-sm text-gray-500">Add a type above to get started.</p>
+      </div>
     );
   }
 
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden">
-      <table className="w-full">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">
-              Tag Name
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[360px] text-left text-sm">
+        <thead>
+          <tr className="border-b border-gray-100 bg-gray-50/80 text-xs font-semibold uppercase tracking-wider text-gray-500">
+            <th className="px-5 py-3 sm:px-6">Type name</th>
+            <th className="w-24 px-4 py-3 text-right" aria-label="Actions">
               Actions
             </th>
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
-          {tags.map(tag => (
+        <tbody className="divide-y divide-gray-100">
+          {tags.map((tag) => (
             <ProductTypeItem key={tag._id} tag={tag} onDeleteClick={onDeleteClick} />
           ))}
         </tbody>
@@ -53,4 +54,3 @@ const ProductTypesList: React.FC<ProductTypesListProps> = ({
 };
 
 export default ProductTypesList;
-

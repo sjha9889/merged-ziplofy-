@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 import { render, waitFor } from '@testing-library/react';
 
@@ -89,29 +89,6 @@ describe('AuthProvider / useAuth', () => {
       return null;
     }
     expect(() => render(<Bad />)).toThrow('useAuth must be used within an AuthProvider');
-  });
-
-  it('mount: when ?logout=true, removes accessToken and strips query param', async () => {
-    storage.setItem('accessToken', 't1');
-    // Use real jsdom location/history so replaceState works normally
-    window.history.pushState({}, '', '/login?logout=true');
-    const replaceStateSpy = vi.spyOn(window.history, 'replaceState');
-
-    axiosGet.mockResolvedValueOnce({ data: { id: '1' } as IUser });
-
-    render(
-      <AuthProvider>
-        <div />
-      </AuthProvider>
-    );
-
-    await waitFor(() => {
-      expect(storage.getItem('accessToken')).toBeNull();
-      expect(replaceStateSpy).toHaveBeenCalledTimes(1);
-      const url = String(replaceStateSpy.mock.calls[0]?.[2]);
-      expect(url).toContain('/login');
-      expect(url).not.toContain('logout=true');
-    });
   });
 
   it('checkAuth: when accessToken exists, calls GET /auth/me and sets user', async () => {

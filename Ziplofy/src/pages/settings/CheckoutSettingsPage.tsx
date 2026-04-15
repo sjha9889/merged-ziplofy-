@@ -18,6 +18,7 @@ import ToggleSwitch from '../../components/ToggleSwitch';
 import { useCheckoutSettings } from '../../contexts/checkout-settings.context';
 import { useCountries } from '../../contexts/country.context';
 import { useStore } from '../../contexts/store.context';
+import { SettingsHero } from '../../components/settings/SettingsPageScaffold';
 
 const CheckoutSettingsPage: React.FC = () => {
   const { countries, total, loading: countriesLoading, getCountries } = useCountries();
@@ -491,26 +492,24 @@ const CheckoutSettingsPage: React.FC = () => {
   }, [selectedRegions.length, countries.length]);
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto py-6 px-4">
-        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Checkout</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Manage contact, marketing, and advanced checkout preferences.
-            </p>
-          </div>
-          {isDirty && (
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isSaving || checkoutLoading || !settings}
-              className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
-            >
-              {isSaving ? 'Saving...' : 'Save changes'}
-            </button>
-          )}
-        </header>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Checkout"
+          description="Manage contact, marketing, and advanced checkout preferences."
+          actions={
+            isDirty ? (
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={isSaving || checkoutLoading || !settings}
+                className="inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium text-white bg-blue-600 shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 transition-colors shrink-0"
+              >
+                {isSaving ? 'Saving...' : 'Save changes'}
+              </button>
+            ) : undefined
+          }
+        />
 
         {/* Customer contact method, Order tracking, and Checkout requirements */}
         <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">

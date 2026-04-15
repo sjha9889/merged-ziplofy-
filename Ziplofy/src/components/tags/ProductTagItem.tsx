@@ -1,4 +1,4 @@
-import { TrashIcon } from '@heroicons/react/24/outline';
+import { TagIcon, TrashIcon } from '@heroicons/react/24/outline';
 import React from 'react';
 
 interface Tag {
@@ -13,17 +13,23 @@ interface ProductTagItemProps {
 
 const ProductTagItem: React.FC<ProductTagItemProps> = ({ tag, onDeleteClick }) => {
   return (
-    <tr className="hover:bg-gray-50 transition-colors">
-      <td className="px-4 py-3 whitespace-nowrap">
-        <span className="text-sm font-medium text-gray-900">{tag.name}</span>
+    <tr className="transition-colors hover:bg-gray-50/60">
+      <td className="px-5 py-4 sm:px-6">
+        <div className="flex items-center gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-700">
+            <TagIcon className="h-4 w-4" aria-hidden />
+          </span>
+          <span className="font-medium text-gray-900">{tag.name}</span>
+        </div>
       </td>
-      <td className="px-4 py-3 whitespace-nowrap">
+      <td className="px-4 py-4 text-right">
         <button
+          type="button"
           onClick={() => onDeleteClick(tag)}
-          className="cursor-pointer p-1.5 hover:bg-red-50 rounded-lg transition-colors"
-          aria-label="Delete tag"
+          className="inline-flex rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
+          aria-label={`Delete tag ${tag.name}`}
         >
-          <TrashIcon className="w-4 h-4 text-gray-600 hover:text-red-600" />
+          <TrashIcon className="h-5 w-5" />
         </button>
       </td>
     </tr>
@@ -31,4 +37,3 @@ const ProductTagItem: React.FC<ProductTagItemProps> = ({ tag, onDeleteClick }) =
 };
 
 export default ProductTagItem;
-

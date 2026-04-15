@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { FiMail, FiArrowLeft, FiArrowRight, FiCheckCircle } from 'react-icons/fi';
 import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 import { useStorefront } from '../contexts/store.context';
-import SlantedImageCarouselWrapper from '../components/SlantedImageCarouselWrapper';
 
 const StorefrontForgotPasswordPage: React.FC = () => {
   const navigate = useNavigate();
@@ -39,9 +38,9 @@ const StorefrontForgotPasswordPage: React.FC = () => {
   };
 
   return (
-    <SlantedImageCarouselWrapper>
-      <div className="mx-auto w-full max-w-md px-4">
-        <div className="rounded-2xl bg-white/95 p-8 shadow-2xl border border-gray-100 backdrop-blur-sm">
+    <div className="min-h-[60vh] flex items-center justify-center px-4 py-12 bg-[var(--ivory-white)]">
+      <div className="mx-auto w-full max-w-md">
+        <div className="rounded-2xl bg-white p-8 shadow-sm border border-[var(--warm-beige)]">
           {/* Back Button */}
           <button
             type="button"
@@ -69,7 +68,7 @@ const StorefrontForgotPasswordPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => { setSuccess(false); setEmail(''); }}
-                className="text-sm font-medium text-[#d4af37] hover:text-[#b8941f] transition-colors"
+                className="text-sm font-medium text-[var(--gold)] hover:text-[var(--dark-gold)] transition-colors"
               >
                 Try a different email
               </button>
@@ -79,10 +78,10 @@ const StorefrontForgotPasswordPage: React.FC = () => {
             <>
               {/* Header */}
               <div className="text-center mb-8">
-                <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-[#d4af37] to-[#f0d060] flex items-center justify-center shadow-lg">
-                  <FiMail className="w-7 h-7 text-white" />
+                <div className="w-14 h-14 mx-auto mb-4 rounded-2xl flex items-center justify-center text-white bg-gradient-to-br from-[var(--gold)] to-[var(--light-gold)] shadow-[var(--shadow-gold)]">
+                  <FiMail className="w-7 h-7" />
                 </div>
-                <h1 className="text-2xl font-bold text-gray-900">Forgot password?</h1>
+                <h1 className="text-2xl font-bold text-[var(--charcoal-black)]" style={{ fontFamily: 'var(--font-serif)' }}>Forgot password?</h1>
                 <p className="mt-2 text-sm text-gray-500">
                   No worries! Enter your email and we'll send you a reset link.
                 </p>
@@ -113,7 +112,7 @@ const StorefrontForgotPasswordPage: React.FC = () => {
                       onKeyDown={handleKeyDown}
                       placeholder="Enter your email"
                       disabled={loading}
-                      className="block w-full pl-10 pr-4 py-3 text-sm border border-gray-200 rounded-xl bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#d4af37]/30 focus:border-[#d4af37] outline-none transition-all text-gray-900 placeholder-gray-400 disabled:opacity-50"
+                      className="block w-full pl-10 pr-4 py-3 text-sm border border-[var(--warm-beige)] rounded-xl bg-white focus:ring-2 focus:ring-[var(--gold)]/30 focus:border-[var(--gold)] outline-none transition-all text-[var(--charcoal-black)] placeholder-gray-400 disabled:opacity-50"
                     />
                   </div>
                 </div>
@@ -122,10 +121,10 @@ const StorefrontForgotPasswordPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={loading || !email.trim()}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-gray-900 text-white font-semibold hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-gray-900/20"
+                  className="btn-login-primary w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                   {loading ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-[var(--charcoal-black)]/20 border-t-[var(--charcoal-black)] rounded-full animate-spin" />
                   ) : (
                     <>
                       Send reset link
@@ -142,7 +141,7 @@ const StorefrontForgotPasswordPage: React.FC = () => {
                   <button 
                     type="button" 
                     onClick={() => navigate('/auth/signup')}
-                    className="font-semibold text-[#d4af37] hover:text-[#b8941f] transition-colors"
+                    className="font-semibold text-[var(--gold)] hover:text-[var(--dark-gold)] transition-colors"
                   >
                     Create account
                   </button>
@@ -152,7 +151,7 @@ const StorefrontForgotPasswordPage: React.FC = () => {
           )}
         </div>
       </div>
-    </SlantedImageCarouselWrapper>
+    </div>
   );
 };
 

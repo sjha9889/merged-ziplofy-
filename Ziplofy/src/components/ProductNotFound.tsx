@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, CubeIcon } from '@heroicons/react/24/outline';
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -18,28 +18,30 @@ const ProductNotFound: React.FC<ProductNotFoundProps> = ({ onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-page-background-color flex items-center justify-center p-4">
-      <div className="bg-white p-12 text-center rounded-xl border border-gray-200/80 shadow-sm max-w-lg w-full">
-        <div className="bg-red-100 w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center">
-          <XMarkIcon className="w-8 h-8 text-red-600" />
+    <div className="flex min-h-screen items-center justify-center bg-page-background-color p-4">
+      <div className="w-full max-w-lg overflow-hidden rounded-2xl border border-gray-200/80 bg-white text-center shadow-sm">
+        <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/90 to-white px-6 py-8">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-gray-100 bg-white shadow-sm">
+            <CubeIcon className="h-8 w-8 text-gray-400" aria-hidden />
+          </div>
+          <h1 className="text-lg font-semibold text-gray-900">Product not found</h1>
+          <p className="mt-2 text-sm leading-relaxed text-gray-500">
+            This product may have been removed or the link is incorrect. Return to your catalog to continue.
+          </p>
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Product Not Found
-        </h1>
-        <p className="text-gray-600 mb-6">
-          The product you're looking for doesn't exist or has been removed.
-        </p>
-        <button
-          onClick={handleBack}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 mx-auto"
-        >
-          <ArrowLeftIcon className="w-5 h-5" />
-          Back to Products
-        </button>
+        <div className="p-6">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 sm:w-auto"
+          >
+            <ArrowLeftIcon className="h-4 w-4" aria-hidden />
+            Back to products
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
 export default ProductNotFound;
-

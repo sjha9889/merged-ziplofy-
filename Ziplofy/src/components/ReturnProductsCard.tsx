@@ -9,9 +9,9 @@ interface ReturnProductsCardProps {
 }
 
 const ReturnProductsCard: React.FC<ReturnProductsCardProps> = ({
-  returnProducts = 72,
-  percentageChange = 6.0,
-  lastMonth = 60,
+  returnProducts = 0,
+  percentageChange = 0,
+  lastMonth = 0,
 }) => {
   return (
     <div className="bg-white rounded-xl border border-gray-200/80 p-5 shadow-sm">

@@ -277,8 +277,8 @@ const ProductVariantDetailsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
+    <div className="w-full pb-8">
+      <div className="w-full space-y-6">
         {/* Header */}
         <ProductVariantDetailsHeader
           product={product}
