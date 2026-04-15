@@ -42,16 +42,6 @@ interface AmountOffProductCheckResponse {
   message: string;
 }
 
-interface AmountOffProductValidateResponse {
-  success: boolean;
-  data: {
-    discount: AmountOffProductDiscount;
-    cartTotal: number;
-    totalQuantity: number;
-  };
-  message: string;
-}
-
 interface AmountOffProductContextType {
   // State
   eligibleDiscounts: AmountOffProductDiscount[];
@@ -87,7 +77,7 @@ export const AmountOffProductProvider: React.FC<AmountOffProductProviderProps> =
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [discountCodeResult, setDiscountCodeResult] = useState<AmountOffProductDiscount | null>(null);
-  const [discountCodeLoading, setDiscountCodeLoading] = useState<boolean>(false);
+  const [discountCodeLoading] = useState<boolean>(false);
   const [discountCodeError, setDiscountCodeError] = useState<string | null>(null);
 
   const [appliedAutomaticDiscount, setAppliedAutomaticDiscount] = useState<AmountOffProductDiscount | null>(null);

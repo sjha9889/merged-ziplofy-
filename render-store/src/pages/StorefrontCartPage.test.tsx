@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, useNavigate } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import StorefrontCartPage from './StorefrontCartPage';
 
 vi.mock('../components/CartDrawer', () => ({
-  default: ({ open, onClose }: { open: boolean; onClose: () => void }) => (
+  default: ({ onClose }: { open: boolean; onClose: () => void }) => (
     <div data-testid="cart-drawer">
       <span>Cart</span>
       <button onClick={onClose}>Close</button>

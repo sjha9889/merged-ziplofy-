@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FaStar } from 'react-icons/fa';
-import { FiCalendar, FiChevronRight, FiEdit2, FiLogOut, FiMail, FiMapPin, FiPackage, FiPhone, FiPlus, FiSettings, FiShoppingBag, FiStar, FiTrash2, FiUser, FiX } from 'react-icons/fi';
-import { HiShieldCheck } from 'react-icons/hi';
+import { FiCalendar, FiEdit2, FiLogOut, FiMail, FiMapPin, FiPackage, FiPhone, FiPlus, FiSettings, FiShoppingBag, FiStar, FiTrash2, FiUser, FiX } from 'react-icons/fi';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStorefrontCountries } from '../contexts/storefront-country.context';

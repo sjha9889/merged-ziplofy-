@@ -8,14 +8,14 @@ vi.mock('../config/axios.config', () => ({
 }));
 
 const TestConsumer = () => {
-  const { eligibleDiscounts, loading, fetchEligibleDiscounts, applyAutomaticDiscount, clearDiscounts } = useAmountOffOrder();
+  const { eligibleDiscounts, loading, fetchEligibleDiscounts, applyAutomaticDiscount, clearAppliedAutomaticDiscount } = useAmountOffOrder();
   return (
     <div>
       <span data-testid="count">{eligibleDiscounts.length}</span>
       <span data-testid="loading">{String(loading)}</span>
       <button onClick={() => fetchEligibleDiscounts('s1', null, [{ quantity: 1, price: 100 }])}>Fetch</button>
-      <button onClick={() => applyAutomaticDiscount({ id: 'd1', method: 'automatic', discountAmount: 10, message: 'ok', combinations: { productDiscounts: true, orderDiscounts: true, shippingDiscounts: true } })}>Apply</button>
-      <button onClick={() => clearDiscounts()}>Clear</button>
+      <button onClick={() => applyAutomaticDiscount({ id: 'd1', method: 'automatic', valueType: 'fixed-amount', discountAmount: 10, message: 'ok', combinations: { productDiscounts: true, orderDiscounts: true, shippingDiscounts: true } })}>Apply</button>
+      <button onClick={() => clearAppliedAutomaticDiscount()}>Clear</button>
     </div>
   );
 };

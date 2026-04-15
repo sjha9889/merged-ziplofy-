@@ -28,11 +28,12 @@ describe('protect middleware', () => {
   it('calls next with 401 when no Authorization header', async () => {
     const req = createReq() as Request;
     const res = createRes() as Response;
-    const next = vi.fn<NextFunction>();
+    const nextSpy = vi.fn();
+    const next = nextSpy as unknown as NextFunction;
 
     await (protect as (a: Request, b: Response, c: NextFunction) => Promise<void>)(req, res, next);
 
-    expect(next).toHaveBeenCalledWith(
+    expect(nextSpy).toHaveBeenCalledWith(
       expect.objectContaining({ message: 'Authorization required' })
     );
   });
@@ -40,11 +41,12 @@ describe('protect middleware', () => {
   it('calls next with 401 when token is invalid', async () => {
     const req = createReq('Bearer invalid-token') as Request;
     const res = createRes() as Response;
-    const next = vi.fn<NextFunction>();
+    const nextSpy = vi.fn();
+    const next = nextSpy as unknown as NextFunction;
 
     await (protect as (a: Request, b: Response, c: NextFunction) => Promise<void>)(req, res, next);
 
-    expect(next).toHaveBeenCalledWith(
+    expect(nextSpy).toHaveBeenCalledWith(
       expect.objectContaining({ message: expect.any(String) })
     );
   });
@@ -64,11 +66,12 @@ describe('protect middleware', () => {
 
     const req = createReq(`Bearer ${token}`) as Request & { user?: unknown };
     const res = createRes() as Response;
-    const next = vi.fn<NextFunction>();
+    const nextSpy = vi.fn();
+    const next = nextSpy as unknown as NextFunction;
 
     await (protect as (a: Request, b: Response, c: NextFunction) => Promise<void>)(req, res, next);
 
-    expect(next).toHaveBeenCalledWith();
+    expect(nextSpy).toHaveBeenCalledWith();
     expect(req.user).toBeDefined();
   });
 });

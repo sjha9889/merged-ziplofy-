@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import type { BuyXGetYDiscount, BuyXGetYGetsItem } from '../contexts/buy-x-get-y.context';
 import { formatINR } from '../utils/currency';
 

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { CustomError, asyncErrorHandler } from './error.utils';
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 
 describe('CustomError', () => {
   it('creates error with message and statusCode', () => {
@@ -42,8 +42,9 @@ describe('asyncErrorHandler', () => {
     });
     const req = {} as Request;
     const res = {} as Response;
-    const next = vi.fn<NextFunction>();
+    const nextSpy = vi.fn();
+    const next = nextSpy as unknown as NextFunction;
     await handler(req, res, next);
-    expect(next).toHaveBeenCalledWith(err);
+    expect(nextSpy).toHaveBeenCalledWith(err);
   });
 });

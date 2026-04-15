@@ -78,7 +78,7 @@ export const AmountOffOrderProvider: React.FC<AmountOffOrderProviderProps> = ({ 
   const [error, setError] = useState<string | null>(null);
   const [discountCodeResult, setDiscountCodeResult] = useState<AmountOffOrderDiscount | null>(null);
   const [appliedAutomaticDiscount, setAppliedAutomaticDiscount] = useState<AmountOffOrderDiscount | null>(null);
-  const [discountCodeLoading, setDiscountCodeLoading] = useState<boolean>(false);
+  const [discountCodeLoading] = useState<boolean>(false);
   const [discountCodeError, setDiscountCodeError] = useState<string | null>(null);
 
   const applyAutomaticDiscount = useCallback((discount: AmountOffOrderDiscount) => {

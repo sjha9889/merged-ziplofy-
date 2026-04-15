@@ -8,13 +8,13 @@ vi.mock('../config/axios.config', () => ({
 }));
 
 const TestConsumer = () => {
-  const { eligibleDiscounts, loading, fetchEligibleDiscounts, clearDiscounts } = useAmountOffProduct();
+  const { eligibleDiscounts, loading, fetchEligibleDiscounts, clearAppliedAutomaticDiscount } = useAmountOffProduct();
   return (
     <div>
       <span data-testid="count">{eligibleDiscounts.length}</span>
       <span data-testid="loading">{String(loading)}</span>
       <button onClick={() => fetchEligibleDiscounts('s1', null, [{ quantity: 1, price: 50 }])}>Fetch</button>
-      <button onClick={() => clearDiscounts()}>Clear</button>
+      <button onClick={() => clearAppliedAutomaticDiscount()}>Clear</button>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter, useParams } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import StorefrontCollectionPage from './StorefrontCollectionPage';
 
 vi.mock('react-router-dom', async () => {

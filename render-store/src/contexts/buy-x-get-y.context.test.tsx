@@ -8,7 +8,7 @@ vi.mock('../config/axios.config', () => ({
 }));
 
 const TestConsumer = () => {
-  const { eligibleDiscounts, selectedGetsItems, setSelectedGetsItems, fetchEligibleDiscounts, clearDiscounts } = useBuyXGetY();
+  const { eligibleDiscounts, selectedGetsItems, setSelectedGetsItems, fetchEligibleDiscounts, clearAppliedAutomaticDiscount } = useBuyXGetY();
   return (
     <div>
       <span data-testid="count">{eligibleDiscounts.length}</span>
@@ -17,7 +17,7 @@ const TestConsumer = () => {
       <button onClick={() => setSelectedGetsItems([{ productId: 'p1', productVariantId: 'v1', productTitle: 'T', productImage: null, originalPrice: 50, discountedPrice: 0, discountPerItem: 50, quantity: 1, discountType: 'free', discountTypeLabel: 'FREE', discountValue: null, savings: 50 }])}>
         Set
       </button>
-      <button onClick={() => clearDiscounts()}>Clear</button>
+      <button onClick={() => clearAppliedAutomaticDiscount()}>Clear</button>
     </div>
   );
 };
@@ -37,7 +37,18 @@ describe('BuyXGetYProvider', () => {
       data: {
         success: true,
         data: {
-          eligibleDiscounts: [{ id: 'bxgy1', customerGetsQuantity: 1, totalDiscountAmount: 50, getsItems: [] }],
+          eligibleDiscounts: [{
+            id: 'bxgy1',
+            method: 'automatic',
+            discountedValue: 'free',
+            customerGetsQuantity: 1,
+            maxUsesPerOrder: null,
+            totalDiscountAmount: 50,
+            getsItems: [],
+            discountSummary: 'Buy X Get Y',
+            message: '',
+            combinations: { productDiscounts: true, orderDiscounts: true, shippingDiscounts: true },
+          }],
           cartTotal: 200,
           totalQuantity: 2,
         },

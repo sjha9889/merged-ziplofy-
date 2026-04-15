@@ -66,35 +66,6 @@ interface BuyXGetYCheckResponse {
   message: string;
 }
 
-interface BuyXGetYValidateCodeResponse {
-  success: boolean;
-  message: string;
-  data: {
-    id: string;
-    discountCode: string;
-    method: string;
-    title?: string;
-    discountedValue: 'free' | 'amount' | 'percentage';
-    discountedAmount?: number;
-    discountedPercentage?: number;
-    customerGetsAnyItemsFrom?: string;
-    customerGetsQuantity: number;
-    maxUsesPerOrder: number | null;
-    totalDiscountAmount: number;
-    getsItems: BuyXGetYGetsItem[];
-    discountSummary: string;
-    getsCollectionIds?: string[];
-    getsCollectionNames?: string[];
-    combinations: {
-      productDiscounts: boolean;
-      orderDiscounts: boolean;
-      shippingDiscounts: boolean;
-    };
-    cartTotal: number;
-    totalQuantity: number;
-  } | null;
-}
-
 interface BuyXGetYContextType {
   // State
   eligibleDiscounts: BuyXGetYDiscount[];
@@ -135,7 +106,7 @@ export const BuyXGetYProvider: React.FC<BuyXGetYProviderProps> = ({ children }) 
   const [discountCodeResult, setDiscountCodeResult] = useState<BuyXGetYDiscount | null>(null);
   const [appliedAutomaticDiscount, setAppliedAutomaticDiscount] = useState<BuyXGetYDiscount | null>(null);
   const [selectedGetsItems, setSelectedGetsItemsState] = useState<BuyXGetYGetsItem[] | null>(null);
-  const [discountCodeLoading, setDiscountCodeLoading] = useState<boolean>(false);
+  const [discountCodeLoading] = useState<boolean>(false);
   const [discountCodeError, setDiscountCodeError] = useState<string | null>(null);
 
   const setSelectedGetsItems = useCallback((items: BuyXGetYGetsItem[] | null) => {

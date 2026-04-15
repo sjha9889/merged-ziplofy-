@@ -86,7 +86,7 @@ export const FreeShippingProvider: React.FC<FreeShippingProviderProps> = ({ chil
   const [appliedAutomaticDiscount, setAppliedAutomaticDiscount] = useState<FreeShippingDiscount | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [discountCodeLoading, setDiscountCodeLoading] = useState(false);
+  const [discountCodeLoading] = useState(false);
   const [discountCodeError, setDiscountCodeError] = useState<string | null>(null);
 
   // Check eligible free shipping discounts (automatic)

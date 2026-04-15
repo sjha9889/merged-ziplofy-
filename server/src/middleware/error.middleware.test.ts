@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { errorMiddleware } from './error.middleware';
 import { CustomError } from '../utils/error.utils';
 
@@ -14,7 +14,7 @@ describe('errorMiddleware', () => {
     const err = new CustomError('Bad request', 400);
     const req = createReq() as Request;
     const res = createRes() as Response;
-    const next = vi.fn<NextFunction>();
+    const next = vi.fn() as unknown as NextFunction;
 
     errorMiddleware(err, req, res, next);
 

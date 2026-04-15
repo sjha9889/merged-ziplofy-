@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { BxgyChooseItemsModal } from './BxgyChooseItemsModal';
 
 vi.mock('../contexts/storefront-collections.context', () => ({
@@ -19,6 +18,7 @@ const discount = {
   method: 'automatic',
   customerGetsAnyItemsFrom: 'specific-collections' as const,
   customerGetsQuantity: 2,
+  maxUsesPerOrder: null,
   totalDiscountAmount: 100,
   getsItems: [],
   discountSummary: 'Buy 1 Get 1',
