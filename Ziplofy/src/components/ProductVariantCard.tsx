@@ -1,4 +1,5 @@
-import React from 'react';
+import { ChevronRightIcon } from '@heroicons/react/24/outline';
+import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ProductVariant } from '../contexts/product-variant.context';
 
@@ -7,65 +8,76 @@ interface ProductVariantCardProps {
   productId: string;
 }
 
+const formatInr = (n: number) =>
+  `₹${Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
 const ProductVariantCard: React.FC<ProductVariantCardProps> = ({ variant, productId }) => {
   const navigate = useNavigate();
 
-  const handleClick = () => {
+  const handleClick = useCallback(() => {
     navigate(`/products/${productId}/variants/${variant._id}`);
-  };
+  }, [navigate, productId, variant._id]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleClick();
+      }
+    },
+    [handleClick]
+  );
+
+  const price = variant.price != null ? Number(variant.price) : 0;
 
   return (
     <div
-      className="p-4 border border-gray-200 rounded-xl cursor-pointer transition-all hover:shadow-md hover:border-blue-500/60 hover:bg-blue-50/30"
+      role="button"
+      tabIndex={0}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      className="group cursor-pointer rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm ring-1 ring-black/[0.02] transition-all hover:border-blue-200/90 hover:shadow-md hover:shadow-blue-500/[0.06] focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
     >
-      <div className="flex justify-between items-center mb-4">
-        <p className="text-sm font-medium text-gray-900">
-          {variant.sku || 'N/A'}
-        </p>
-        <p className="text-sm font-medium text-gray-600">
-          ₹{variant.price?.toFixed(2) || '0.00'}
-        </p>
+      <div className="mb-3 flex items-start justify-between gap-2">
+        <p className="font-mono text-sm font-semibold text-gray-900">{variant.sku || '—'}</p>
+        <span className="shrink-0 rounded-lg bg-blue-50 px-2 py-0.5 text-sm font-bold tabular-nums text-blue-800">
+          {formatInr(price)}
+        </span>
       </div>
-      
-      <div className="flex gap-2 flex-wrap mb-4">
-        {variant.optionValues && Object.entries(variant.optionValues).map(([key, value]) => (
-          <span
-            key={`${key}-${value}`}
-            className="px-2 py-1 text-xs font-medium rounded-lg border border-gray-200 text-gray-700"
-          >
-            {key}: {value}
-          </span>
-        ))}
+
+      <div className="mb-4 flex flex-wrap gap-2">
+        {variant.optionValues &&
+          Object.entries(variant.optionValues).map(([key, value]) => (
+            <span
+              key={`${key}-${value}`}
+              className="rounded-lg border border-gray-200 bg-gray-50/80 px-2 py-1 text-xs font-medium text-gray-700"
+            >
+              {key}: {value}
+            </span>
+          ))}
       </div>
-      
-      <div className="grid grid-cols-2 gap-4 mb-4">
+
+      <div className="grid grid-cols-2 gap-3 border-t border-gray-100 pt-3 text-xs">
         <div>
-          <p className="text-sm text-gray-600 mb-1">
-            Inventory Tracking
-          </p>
-          <p className="text-base">
-            {variant.isInventoryTrackingEnabled ? 'Enabled' : 'Disabled'}
+          <p className="font-medium text-gray-500">Inventory</p>
+          <p className="mt-0.5 font-semibold text-gray-900">
+            {variant.isInventoryTrackingEnabled ? 'Tracked' : 'Off'}
           </p>
         </div>
         <div>
-          <p className="text-sm text-gray-600 mb-1">
-            Weight
-          </p>
-          <p className="text-base">
-            {variant.weightValue || 0} {variant.weightUnit || 'kg'}
+          <p className="font-medium text-gray-500">Weight</p>
+          <p className="mt-0.5 font-semibold text-gray-900">
+            {variant.weightValue ?? 0} {variant.weightUnit || 'kg'}
           </p>
         </div>
       </div>
-      
-      <div className="mt-4">
-        <p className="text-sm text-gray-600">
-          Continue selling: {variant.outOfStockContinueSelling ? 'Yes' : 'No'}
-        </p>
-      </div>
+
+      <p className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 text-xs text-gray-500">
+        <span>Oversell: {variant.outOfStockContinueSelling ? 'Yes' : 'No'}</span>
+        <ChevronRightIcon className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-0.5" aria-hidden />
+      </p>
     </div>
   );
 };
 
 export default ProductVariantCard;
-

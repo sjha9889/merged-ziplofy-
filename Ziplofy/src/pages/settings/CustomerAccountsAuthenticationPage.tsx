@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeftIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import ToggleSwitch from '../../components/ToggleSwitch';
 import { useStore } from '../../contexts/store.context';
 import { useCustomerAccountSettings } from '../../contexts/customer-account-settings.context';
@@ -109,8 +108,8 @@ const CustomerAccountsAuthenticationPage: React.FC = () => {
   const isDisabled = loading || saving || !settings;
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4 border-b border-gray-200 pb-4">
           <div className="flex items-center gap-3">
@@ -259,7 +258,7 @@ const CustomerAccountsAuthenticationPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

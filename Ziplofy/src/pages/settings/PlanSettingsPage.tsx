@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import CancelTrialModal from '../../components/CancelTrialModal';
 import PlanDetailsSection from '../../components/PlanDetailsSection';
 import SubscriptionsSection from '../../components/SubscriptionsSection';
+import { SettingsHero } from '../../components/settings/SettingsPageScaffold';
 
 const PlanSettingsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -32,16 +33,12 @@ const PlanSettingsPage: React.FC = () => {
 
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-        <header className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Plan</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Manage your plan, trial, and subscriptions.
-            </p>
-          </div>
-        </header>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Plan"
+          description="Manage your plan, trial, and subscriptions."
+        />
 
         <PlanDetailsSection
           onCancelTrial={handleOpenCancelDialog}

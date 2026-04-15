@@ -29,8 +29,8 @@ export default function MetaobjectsPage(): JSX.Element {
   const [tab, setTab] = useState<number>(0);
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
+    <div className="min-h-[calc(100vh-48px)] w-full bg-page-background-color">
+      <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
         <ContentPageHeader />
         <div className="mb-6">
           <ContentTabs tabs={tabs} activeIndex={tab} onChange={setTab} />

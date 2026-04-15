@@ -34,7 +34,7 @@ const NewCustomerPage: React.FC = () => {
     taxSettings: {
       collectTax: 'collect',
     },
-    
+     
     // Additional Information
     notes: '',
     tags: '',

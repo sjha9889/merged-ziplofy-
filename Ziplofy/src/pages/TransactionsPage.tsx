@@ -3,6 +3,7 @@ import React, { useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePayment } from '../contexts/payment.context';
 import { useStore } from '../contexts/store.context';
+import { SettingsHero } from '../components/settings/SettingsPageScaffold';
 
 function formatInrPaise(paise: number | null): string {
   if (paise === null || paise === undefined) return '—';
@@ -51,36 +52,33 @@ const TransactionsPage: React.FC = () => {
   const handleBack = () => navigate('/settings/payments');
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto py-6 px-4">
-        <div className="mb-6">
-          <button
-            type="button"
-            onClick={handleBack}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 mb-4"
-          >
-            <ArrowLeftIcon className="w-4 h-4" />
-            Back to Payments
-          </button>
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Transactions</h1>
-              <p className="mt-1 text-sm text-gray-500 max-w-xl">
-                Manual payment confirmations (UPI and reference IDs) recorded for your active store,
-                newest first.
-              </p>
-            </div>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Transactions"
+          description="Manual payment confirmations (UPI and reference IDs) recorded for your active store, newest first."
+          leading={
+            <button
+              type="button"
+              onClick={handleBack}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200/90 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50/90 transition-colors"
+            >
+              <ArrowLeftIcon className="h-4 w-4" />
+              Back to payments
+            </button>
+          }
+          actions={
             <button
               type="button"
               onClick={() => load()}
               disabled={loading || !activeStoreId}
-              className="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors shrink-0"
+              className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium border border-gray-200/90 text-gray-700 bg-white shadow-sm hover:bg-gray-50/90 disabled:opacity-50 transition-colors shrink-0"
             >
               <ArrowPathIcon className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </button>
-          </div>
-        </div>
+          }
+        />
 
         {!activeStoreId && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-900">

@@ -14,18 +14,18 @@ const ProductsInCollectionList: React.FC<ProductsInCollectionListProps> = ({
   onRemoveProduct,
 }) => {
   return (
-    <div className="space-y-3">
+    <ul className="space-y-3" aria-label="Products in collection">
       {collectionEntries.map((entry) => (
-        <ProductsInCollectionItem
-          key={entry?._id || Math.random()}
-          entry={entry}
-          onProductClick={onProductClick}
-          onRemoveProduct={onRemoveProduct}
-        />
+        <li key={entry._id}>
+          <ProductsInCollectionItem
+            entry={entry}
+            onProductClick={onProductClick}
+            onRemoveProduct={onRemoveProduct}
+          />
+        </li>
       ))}
-    </div>
+    </ul>
   );
 };
 
 export default ProductsInCollectionList;
-

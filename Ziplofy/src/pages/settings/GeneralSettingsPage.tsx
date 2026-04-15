@@ -16,6 +16,7 @@ import { useStoreContactInfo } from '../../contexts/store-contact-info.context';
 import { useStore } from '../../contexts/store.context';
 import { useStoreBillingAddress } from '../../contexts/storeBillingAddress.context';
 import { useUserContext } from '../../contexts/user.context';
+import { SettingsHero } from '../../components/settings/SettingsPageScaffold';
 
 
 const GeneralSettingsPage: React.FC = () => {
@@ -567,16 +568,12 @@ const GeneralSettingsPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4 pb-28">
-        <header className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">General</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Manage your store profile, defaults, order settings, and resources.
-            </p>
-          </div>
-        </header>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6 pb-28">
+        <SettingsHero
+          title="General"
+          description="Manage your store profile, defaults, order settings, and resources."
+        />
 
         {/* Store details section ✅ */}
         <StoreDetailsSection

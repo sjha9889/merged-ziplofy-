@@ -1483,8 +1483,8 @@ const ShippingProfileDetailsPage: React.FC = () => {
 
   if (!profileId) {
     return (
-      <div className="min-h-screen bg-page-background-color">
-        <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+      <div className="w-full">
+        <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
           <div className="text-center py-12">
             <h2 className="text-lg font-semibold text-gray-900 mb-3">Invalid profile</h2>
             <button
@@ -1502,8 +1502,8 @@ const ShippingProfileDetailsPage: React.FC = () => {
 
   if (profileFetching && !currentProfile) {
     return (
-      <div className="min-h-screen bg-page-background-color">
-        <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+      <div className="w-full">
+        <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
           <div className="flex flex-col items-center justify-center py-12 gap-3">
             <div className="w-8 h-8 border-2 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
             <p className="text-sm text-gray-500">Loading profile…</p>
@@ -1515,8 +1515,8 @@ const ShippingProfileDetailsPage: React.FC = () => {
 
   if (!currentProfile) {
     return (
-      <div className="min-h-screen bg-page-background-color">
-        <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+      <div className="w-full">
+        <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
           <div className="text-center py-12">
             <h2 className="text-lg font-semibold text-gray-900 mb-3">Shipping profile not found</h2>
             <button
@@ -1533,8 +1533,8 @@ const ShippingProfileDetailsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
         {/* Header */}
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-start gap-3 min-w-0">

@@ -1,15 +1,23 @@
 import {
   Visibility as EyeIcon,
-  FilterList as FilterIcon,
-  GridView as GridIcon,
-  ViewList as ListIcon,
-  Search as SearchIcon,
   Star as StarIcon,
   Delete as DeleteIcon,
   MoreVert as MoreVertIcon,
   Image as ImageIcon,
-  Add as AddIcon,
 } from "@mui/icons-material";
+import {
+  Bars3Icon,
+  CheckCircleIcon,
+  ClockIcon,
+  FunnelIcon,
+  MagnifyingGlassIcon,
+  PhotoIcon,
+  PlusIcon,
+  RectangleStackIcon,
+  SparklesIcon,
+  Squares2X2Icon,
+  SwatchIcon,
+} from "@heroicons/react/24/outline";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useThemes } from "../../contexts/themes.context";
@@ -28,6 +36,22 @@ interface Theme {
   category: string;
   thumbnailUrl: string;
 }
+
+const ThemeSectionHeader: React.FC<{
+  icon: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>;
+  title: string;
+  description: string;
+}> = ({ icon: Icon, title, description }) => (
+  <div className="flex items-start gap-3 border-b border-gray-100 bg-gradient-to-r from-gray-50/90 to-white px-5 py-4">
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50">
+      <Icon className="h-5 w-5 text-blue-600" aria-hidden />
+    </div>
+    <div className="min-w-0 pt-0.5">
+      <h2 className="text-sm font-semibold text-gray-900">{title}</h2>
+      <p className="mt-0.5 text-xs leading-relaxed text-gray-500">{description}</p>
+    </div>
+  </div>
+);
 
 const AllThemes: React.FC = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
@@ -459,80 +483,133 @@ const AllThemes: React.FC = () => {
   const showingCount = installedThemes.length + customThemes.length + filteredThemes.length;
 
   return (
-    <div className="themes-page">
-      <div className="themes-page-inner">
-        {/* Header with Stats */}
-        <div className="themes-page-header">
-          <div className="themes-page-header-main">
-            <div className="themes-page-title-block">
-              <div className="themes-page-title-accent" />
+    <div className="w-full space-y-6 pb-8">
+      <header className="rounded-2xl border border-gray-200/80 bg-gradient-to-b from-white to-blue-50/20 px-5 py-5 shadow-sm sm:px-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 pl-3 border-l-4 border-blue-500/70">
+            <div className="flex flex-wrap items-center gap-2 gap-y-1">
+              <h1 className="text-3xl font-semibold tracking-tight text-gray-900">Theme library</h1>
+              <span className="inline-flex items-center gap-1 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
+                <PhotoIcon className="h-3.5 w-3.5" aria-hidden />
+                {themes.length} templates
+              </span>
+            </div>
+            <p className="mt-1 text-sm text-gray-500">
+              Install storefront themes, preview demos, or build a custom theme in the editor.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-3 rounded-xl border border-gray-200/80 bg-white/90 px-4 py-3 shadow-sm backdrop-blur-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                <Squares2X2Icon className="h-5 w-5" aria-hidden />
+              </div>
               <div>
-                <h1 className="themes-page-title">Theme Library</h1>
-                <p className="themes-page-subtitle">
-                  Manage and customize your store themes
-                </p>
+                <p className="text-xl font-bold leading-tight text-gray-900">{totalCount}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Total items</p>
               </div>
             </div>
-            <div className="themes-page-stats">
-              <div className="themes-stat-card">
-                <GridIcon className="themes-stat-icon" />
-                <div>
-                  <span className="themes-stat-value">{totalCount}</span>
-                  <span className="themes-stat-label">TOTAL THEMES</span>
-                </div>
+            <div className="flex items-center gap-3 rounded-xl border border-gray-200/80 bg-white/90 px-4 py-3 shadow-sm backdrop-blur-sm">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                <RectangleStackIcon className="h-5 w-5" aria-hidden />
               </div>
-              <div className="themes-stat-card">
-                <FilterIcon className="themes-stat-icon" style={{ transform: 'rotate(90deg)' }} />
-                <div>
-                  <span className="themes-stat-value">{showingCount}</span>
-                  <span className="themes-stat-label">SHOWING</span>
-                </div>
+              <div>
+                <p className="text-xl font-bold leading-tight text-gray-900">{showingCount}</p>
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Visible now</p>
               </div>
             </div>
           </div>
         </div>
+        <div className="mt-4 hidden rounded-xl border border-blue-100/80 bg-blue-50/40 px-4 py-2.5 sm:block">
+          <p className="text-xs leading-relaxed text-blue-950/80">
+            <span className="font-semibold text-blue-950">Tip:</span> use <strong>Try theme</strong> to install a
+            template, then <strong>Edit</strong> to customize it for your brand.
+          </p>
+        </div>
+      </header>
 
-        {/* Controls Bar */}
-        <div className="themes-controls-bar">
-          <div className="themes-search-wrap">
-            <SearchIcon className="themes-search-icon" />
+      <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+        <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/90 to-white px-5 py-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50">
+              <MagnifyingGlassIcon className="h-5 w-5 text-blue-600" aria-hidden />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-gray-900">Search & layout</p>
+              <p className="mt-0.5 text-xs text-gray-500">
+                Find themes by name or description. Grid and list apply to every section below.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:flex-wrap sm:items-center sm:p-5">
+          <div className="relative min-w-0 flex-1 sm:max-w-md">
+            <MagnifyingGlassIcon
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+              aria-hidden
+            />
             <input
-              type="text"
-              placeholder="Search Theme"
-              className="themes-search-input"
+              type="search"
+              placeholder="Search by name or description…"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50/80 py-2.5 pl-10 pr-3 text-sm text-gray-900 shadow-sm transition-colors placeholder:text-gray-400 focus:border-blue-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <button className="themes-filter-btn">
-            <FilterIcon fontSize="small" />
+          <button
+            type="button"
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-gray-600 shadow-sm hover:bg-gray-50 hover:text-gray-900"
+          >
+            <FunnelIcon className="h-4 w-4 text-gray-500" aria-hidden />
             <span>Filter</span>
           </button>
-          <div className="themes-view-toggle">
+          <div className="flex shrink-0 overflow-hidden rounded-xl border border-gray-200 bg-gray-50/90 p-0.5">
             <button
-              className={`themes-view-btn ${viewMode === "grid" ? "active" : ""}`}
-              onClick={() => setViewMode("grid")}
+              type="button"
+              className={`rounded-lg px-3 py-2 transition-colors ${
+                viewMode === 'grid'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-gray-500 hover:bg-white hover:text-gray-800'
+              }`}
+              onClick={() => setViewMode('grid')}
+              aria-pressed={viewMode === 'grid'}
+              aria-label="Grid view"
             >
-              <GridIcon fontSize="small" />
+              <Squares2X2Icon className="h-4 w-4" aria-hidden />
             </button>
             <button
-              className={`themes-view-btn ${viewMode === "list" ? "active" : ""}`}
-              onClick={() => setViewMode("list")}
+              type="button"
+              className={`rounded-lg px-3 py-2 transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-gray-500 hover:bg-white hover:text-gray-800'
+              }`}
+              onClick={() => setViewMode('list')}
+              aria-pressed={viewMode === 'list'}
+              aria-label="List view"
             >
-              <ListIcon fontSize="small" />
+              <Bars3Icon className="h-4 w-4" aria-hidden />
             </button>
           </div>
-          <Link to="/themes/builder" className="themes-create-btn">
-            <AddIcon fontSize="small" />
+          <Link
+            to="/themes/builder"
+            className="ml-auto inline-flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+          >
+            <PlusIcon className="h-4 w-4" aria-hidden />
             <span>Create your own</span>
           </Link>
         </div>
+      </div>
 
         {/* Installed Themes - Section 1 */}
         {Array.isArray(installedThemes) && installedThemes.length > 0 && (
-          <React.Fragment>
-            <h2 className="themes-section-title" style={{ marginBottom: 16 }}>Installed themes</h2>
-          <div className={`themes-layout ${viewMode} themes-section-body`}>
+          <section className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+            <ThemeSectionHeader
+              icon={CheckCircleIcon}
+              title="Installed themes"
+              description="Live on your store — open the storefront preview or jump into the theme builder."
+            />
+            <div className="bg-gray-50/30 p-4 sm:p-5">
+          <div className={`themes-layout ${viewMode}`}>
             {installedThemes.map((it: any) => {
               const t = it; // The theme data is directly in it, not nested under themeId
               const isCustomTheme = t.isCustomTheme || t._id?.startsWith('custom-');
@@ -638,15 +715,24 @@ const AllThemes: React.FC = () => {
               </div>
             );})}
           </div>
-          </React.Fragment>
+            </div>
+          </section>
         )}
 
         {/* Recent Installations - Section 2 */}
         {recentInstallations.length > 0 && (
-          <React.Fragment>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="themes-section-title">Recently Installed</h2>
-              <div className="flex items-center gap-3">
+          <section className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+            <div className="flex flex-col gap-3 border-b border-gray-100 bg-gradient-to-r from-gray-50/90 to-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50">
+                  <ClockIcon className="h-5 w-5 text-blue-600" aria-hidden />
+                </div>
+                <div className="min-w-0 pt-0.5">
+                  <h2 className="text-sm font-semibold text-gray-900">Recently installed</h2>
+                  <p className="mt-0.5 text-xs text-gray-500">History of themes you tried on this store.</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 {selectionMode && (
                   <button
                     onClick={() => {
@@ -676,12 +762,13 @@ const AllThemes: React.FC = () => {
                 </button>
               </div>
             </div>
+            <div className="space-y-3 bg-gray-50/30 p-4 sm:p-5">
           {selectionMode && (
-            <div className="themes-selection-hint">
+            <div className="themes-selection-hint rounded-xl border border-amber-200/80 bg-amber-50/80 px-3 py-2.5 text-xs font-medium text-amber-950">
               Select themes to delete from history
             </div>
           )}
-          <div className={`themes-layout ${viewMode} themes-section-body`}>
+          <div className={`themes-layout ${viewMode}`}>
             {recentInstallations.map((rt: any) => {
               const isCustomTheme = rt.isCustomTheme || rt._id?.startsWith('custom-');
               const actualThemeId = isCustomTheme && rt.customThemeId ? rt.customThemeId : rt._id;
@@ -751,20 +838,48 @@ const AllThemes: React.FC = () => {
               );
             })}
           </div>
-        </React.Fragment>
+            </div>
+          </section>
       )}
 
-      {/* Your Creations - Section Header */}
-      <div className="themes-section-divider">
-        <h2 className="themes-section-title">Your creations</h2>
-      </div>
-
-        {/* Custom Themes (saved locally) */}
-        {customThemes.length > 0 && (
-          <React.Fragment>
-            <h2 className="themes-section-title" style={{ marginBottom: 16, marginTop: 24 }}>Custom Themes</h2>
-        <>
-          <div className={`themes-layout ${viewMode} themes-section-body`}>
+        {/* Custom Themes (saved locally) — always show block for orientation */}
+        <section className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+          <ThemeSectionHeader
+            icon={SparklesIcon}
+            title="Your creations"
+            description="Themes you build in the editor — apply to your store, update thumbnails, or remove drafts."
+          />
+          <div className="bg-gray-50/30 p-4 sm:p-5">
+            {customThemesLoading ? (
+              <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-gray-200 bg-white/80 py-12">
+                <div
+                  className="h-10 w-10 animate-spin rounded-full border-2 border-gray-200 border-t-blue-600"
+                  aria-hidden
+                />
+                <p className="text-sm font-medium text-gray-600">Loading your themes…</p>
+              </div>
+            ) : customThemes.length === 0 ? (
+              <div className="flex min-h-[220px] flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-white/90 px-6 py-12 text-center">
+                <div className="relative mb-4">
+                  <div className="absolute inset-0 rounded-full bg-blue-400/10 blur-xl" aria-hidden />
+                  <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-gray-100 bg-white shadow-sm">
+                    <SparklesIcon className="h-7 w-7 text-blue-500" aria-hidden />
+                  </div>
+                </div>
+                <h3 className="text-base font-semibold text-gray-900">No custom themes yet</h3>
+                <p className="mt-2 max-w-sm text-sm text-gray-500">
+                  Open the theme builder to design a storefront, then return here to apply it or manage thumbnails.
+                </p>
+                <Link
+                  to="/themes/builder"
+                  className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+                >
+                  <PlusIcon className="h-4 w-4" aria-hidden />
+                  Start in theme builder
+                </Link>
+              </div>
+            ) : (
+          <div className={`themes-layout ${viewMode}`}>
             {customThemes.map((ct) => {
               // Validate that the theme ID is a valid MongoDB ObjectId
               const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(ct._id);
@@ -942,18 +1057,33 @@ const AllThemes: React.FC = () => {
               );
             })}
           </div>
-        </>
-          </React.Fragment>
-        )}
+            )}
+          </div>
+        </section>
 
         {/* All Themes - Section 4 */}
-        <h2 className="themes-section-title" style={{ marginBottom: 16, marginTop: 24 }}>All themes</h2>
+        <section className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+          <ThemeSectionHeader
+            icon={SwatchIcon}
+            title="Browse all themes"
+            description="Ready-made templates from the library — install to preview on your store."
+          />
+          <div className="bg-gray-50/30 p-4 sm:p-5">
       <div className={`themes-layout ${viewMode}`}>
         {themesLoading && (
-          <div className="no-results"><div className="no-results-content"><h3>Loading themes...</h3></div></div>
+          <div className="col-span-full flex min-h-[240px] flex-col items-center justify-center gap-3 rounded-xl border border-gray-100 bg-white py-16 shadow-sm">
+            <div
+              className="h-10 w-10 animate-spin rounded-full border-2 border-gray-200 border-t-blue-600"
+              aria-hidden
+            />
+            <p className="text-sm font-medium text-gray-600">Loading theme catalog…</p>
+          </div>
         )}
         {themesError && (
-          <div className="no-results"><div className="no-results-content"><h3>{themesError}</h3></div></div>
+          <div className="col-span-full rounded-xl border border-red-200 bg-red-50/80 px-4 py-4 text-sm text-red-900">
+            <p className="font-semibold">Could not load themes</p>
+            <p className="mt-1 text-red-800/90">{themesError}</p>
+          </div>
         )}
         {filteredThemes.map((theme) => (
           <div key={theme._id} className="theme-card">
@@ -1025,14 +1155,24 @@ const AllThemes: React.FC = () => {
         ))}
       </div>
 
-      {filteredThemes.length === 0 && (
-        <div className="no-results">
-          <div className="no-results-content">
-            <h3>No themes found</h3>
-            <p>Try adjusting your search or filter criteria</p>
-          </div>
+      {!themesLoading && !themesError && filteredThemes.length === 0 && (
+        <div className="col-span-full flex min-h-[200px] flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-white/90 px-6 py-12 text-center">
+          <MagnifyingGlassIcon className="h-10 w-10 text-gray-300" aria-hidden />
+          <h3 className="mt-4 text-base font-semibold text-gray-900">No themes match your search</h3>
+          <p className="mt-2 max-w-sm text-sm text-gray-500">Try a different keyword or clear the search box to see the full catalog.</p>
+          {searchTerm ? (
+            <button
+              type="button"
+              onClick={() => setSearchTerm('')}
+              className="mt-5 text-sm font-semibold text-blue-600 hover:text-blue-700"
+            >
+              Clear search
+            </button>
+          ) : null}
         </div>
       )}
+          </div>
+        </section>
 
       {/* Theme Preview Modal */}
       <ThemePreviewModal
@@ -1097,7 +1237,6 @@ const AllThemes: React.FC = () => {
           </div>
         </div>
       )}
-      </div>
     </div>
   );
 };

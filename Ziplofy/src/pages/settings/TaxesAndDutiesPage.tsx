@@ -12,6 +12,7 @@ import {
 import { useCountries } from '../../contexts/country.context';
 import { useTaxAndDutiesGlobalSettings } from '../../contexts/tax-and-duties-global-settings.context';
 import { useStore } from '../../contexts/store.context';
+import { SettingsHero } from '../../components/settings/SettingsPageScaffold';
 
 interface TaxRegion {
   id: string;
@@ -117,14 +118,12 @@ const TaxesAndDutiesPage: React.FC = () => {
   const totalPages = Math.ceil(filteredRegions.length / rowsPerPage);
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-        <header>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Taxes and duties</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage tax regions, duties, import taxes, and global tax settings.
-          </p>
-        </header>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Taxes and duties"
+          description="Manage tax regions, duties, import taxes, and global tax settings."
+        />
 
         {/* Tax Regions Section */}
         <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">

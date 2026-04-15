@@ -7,7 +7,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        'page-background-color': '#fdfdfd',
+        // Barely off-white so white cards read almost flush with the canvas
+        'page-background-color': '#fefefe',
       },
       keyframes: {
         'fade-in': {

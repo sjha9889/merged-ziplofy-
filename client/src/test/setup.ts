@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import { vi } from 'vitest';
 
 // Ensure test-friendly window location by default
 Object.defineProperty(window, 'location', {
@@ -21,6 +22,4 @@ class MockIntersectionObserver {
 
 // @ts-expect-error global assignment for tests
 globalThis.IntersectionObserver = MockIntersectionObserver;
-
-import '@testing-library/jest-dom/vitest';
 

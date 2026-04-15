@@ -5,30 +5,44 @@ interface ProductPricingProps {
   product: Product;
 }
 
+const formatInr = (n: number) =>
+  `₹${Number(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
 const ProductPricing: React.FC<ProductPricingProps> = ({ product }) => {
+  const price = product.price != null ? Number(product.price) : 0;
+  const cost = product.cost != null ? Number(product.cost) : 0;
+  const profit = product.profit != null ? Number(product.profit) : 0;
+  const margin = product.marginPercent != null ? Number(product.marginPercent) : 0;
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
-      <div className="px-4 py-3 border-b border-gray-100 pl-4 border-l-4 border-l-blue-500/60">
+    <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+      <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/90 to-white px-5 py-3.5">
         <h2 className="text-sm font-semibold text-gray-900">Pricing</h2>
+        <p className="mt-0.5 text-xs text-gray-500">Price, cost, and margin</p>
       </div>
-      <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div>
-          <p className="text-xs text-gray-600 mb-1.5">Price</p>
-          <p className="text-sm font-medium text-gray-900">₹{product.price != null ? Number(product.price).toFixed(2) : '0.00'}</p>
+      <div className="grid grid-cols-1 gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50/60 to-white px-4 py-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Price</p>
+          <p className="mt-1 text-lg font-bold tabular-nums text-blue-800">{formatInr(price)}</p>
         </div>
-        {typeof product.compareAtPrice === 'number' && (
-          <div>
-            <p className="text-xs text-gray-600 mb-1.5">Compare At</p>
-            <p className="text-sm font-medium text-gray-900">₹{product.compareAtPrice.toFixed(2)}</p>
+        {typeof product.compareAtPrice === 'number' ? (
+          <div className="rounded-xl border border-gray-100 bg-gray-50/40 px-4 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Compare at</p>
+            <p className="mt-1 text-sm font-semibold tabular-nums text-gray-900">
+              {formatInr(product.compareAtPrice)}
+            </p>
           </div>
-        )}
-        <div>
-          <p className="text-xs text-gray-600 mb-1.5">Cost</p>
-          <p className="text-sm font-medium text-gray-900">₹{product.cost != null ? Number(product.cost).toFixed(2) : '0.00'}</p>
+        ) : null}
+        <div className="rounded-xl border border-gray-100 bg-gray-50/40 px-4 py-3">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Cost</p>
+          <p className="mt-1 text-sm font-semibold tabular-nums text-gray-900">{formatInr(cost)}</p>
         </div>
-        <div>
-          <p className="text-xs text-gray-600 mb-1.5">Profit</p>
-          <p className="text-sm font-medium text-gray-900">₹{product.profit != null ? Number(product.profit).toFixed(2) : '0.00'} ({product.marginPercent != null ? Number(product.marginPercent).toFixed(1) : '0.0'}%)</p>
+        <div className="rounded-xl border border-emerald-100 bg-emerald-50/30 px-4 py-3 sm:col-span-2 lg:col-span-1">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Profit</p>
+          <p className="mt-1 text-sm font-semibold tabular-nums text-emerald-900">
+            {formatInr(profit)}{' '}
+            <span className="text-xs font-normal text-gray-600">({margin.toFixed(1)}% margin)</span>
+          </p>
         </div>
       </div>
     </div>
@@ -36,4 +50,3 @@ const ProductPricing: React.FC<ProductPricingProps> = ({ product }) => {
 };
 
 export default ProductPricing;
-

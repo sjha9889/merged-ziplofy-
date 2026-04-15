@@ -3,78 +3,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.connectDB = void 0;
+exports.connectDB = connectDB;
 require("../utils/env.utils");
 const mongoose_1 = __importDefault(require("mongoose"));
-/**
- * Connects to the MongoDB database using Mongoose.
- * Includes retry logic and better error handling for network issues.
- */
-const connectDB = async () => {
-    const maxRetries = 5;
-    const retryDelay = 5000; // 5 seconds
-    let retries = 0;
-    const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
-    if (!mongoUri) {
-        console.error('❌ MONGODB_URI environment variable is not set!');
-        console.error('Please check your .env file and ensure MONGODB_URI is configured.');
-        process.exit(1);
+// const MONGO_URI = "mongodb://developer200419_db_user:7UIJzXhODvAqFVKC@ac-mwnk6wr-shard-00-00.p33ikoz.mongodb.net:27017,ac-mwnk6wr-shard-00-01.p33ikoz.mongodb.net:27017,ac-mwnk6wr-shard-00-02.p33ikoz.mongodb.net:27017/?ssl=true&replicaSet=atlas-c5qzh1-shard-0&authSource=admin&appName=Cluster0"
+const MONGO_URI = "mongodb://localhost:27017/";
+async function connectDB() {
+    try {
+        await mongoose_1.default.connect(MONGO_URI);
+        console.log("✅ MongoDB connected");
     }
-    const connectWithRetry = async () => {
-        try {
-            const conn = await mongoose_1.default.connect(mongoUri, {
-                serverSelectionTimeoutMS: 10000, // 10 seconds timeout
-                socketTimeoutMS: 45000, // 45 seconds socket timeout
-                connectTimeoutMS: 10000, // 10 seconds connection timeout
-                retryWrites: true,
-                w: 'majority',
-            });
-            console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-            console.log(`📊 Database: ${conn.connection.name}`);
-        }
-        catch (error) {
-            retries++;
-            // Provide more specific error messages
-            if (error.name === 'MongoServerSelectionError') {
-                if (error.message.includes('ENOTFOUND') || error.message.includes('getaddrinfo')) {
-                    console.error(`❌ MongoDB Connection Error (Attempt ${retries}/${maxRetries}):`);
-                    console.error('   DNS Resolution Failed - Cannot resolve MongoDB hostname');
-                    console.error(`   Host: ${error.message.match(/[a-zA-Z0-9.-]+\.mongodb\.net/)?.[0] || 'Unknown'}`);
-                    console.error('');
-                    console.error('🔍 Possible causes:');
-                    console.error('   1. Network connectivity issue - Check your internet connection');
-                    console.error('   2. MongoDB Atlas cluster might be paused - Check MongoDB Atlas dashboard');
-                    console.error('   3. DNS resolution problem - Try using a different DNS server');
-                    console.error('   4. Firewall blocking connection - Check firewall settings');
-                    console.error('   5. Incorrect connection string - Verify MONGODB_URI in .env file');
-                    console.error('');
-                }
-                else {
-                    console.error(`❌ MongoDB Connection Error (Attempt ${retries}/${maxRetries}):`);
-                    console.error(`   ${error.message}`);
-                }
-            }
-            else {
-                console.error(`❌ Database connection error (Attempt ${retries}/${maxRetries}):`);
-                console.error(`   ${error.message}`);
-            }
-            if (retries < maxRetries) {
-                console.log(`⏳ Retrying connection in ${retryDelay / 1000} seconds...`);
-                await new Promise(resolve => setTimeout(resolve, retryDelay));
-                return connectWithRetry();
-            }
-            else {
-                console.error('');
-                console.error('❌ Failed to connect to MongoDB after', maxRetries, 'attempts');
-                console.error('   Please check:');
-                console.error('   1. Your internet connection');
-                console.error('   2. MongoDB Atlas cluster status');
-                console.error('   3. MONGODB_URI in your .env file');
-                console.error('   4. Network/firewall settings');
-                process.exit(1);
-            }
-        }
-    };
-    await connectWithRetry();
-};
-exports.connectDB = connectDB;
+    catch (error) {
+        console.error("❌ MongoDB connection failed:", error);
+    }
+}

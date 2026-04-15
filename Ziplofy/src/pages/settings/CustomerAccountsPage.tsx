@@ -5,6 +5,7 @@ import SignInLinksCard from '../../components/SignInLinksCard';
 import TurnOffSelfServeReturnsModal from '../../components/TurnOffSelfServeReturnsModal';
 import { useCustomerAccountSettings } from '../../contexts/customer-account-settings.context';
 import { useStore } from '../../contexts/store.context';
+import { SettingsHero } from '../../components/settings/SettingsPageScaffold';
 
 const CustomerAccountsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -131,26 +132,24 @@ const CustomerAccountsPage: React.FC = () => {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Customer accounts</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Configure sign-in options, authentication, and account features.
-            </p>
-          </div>
-          {settings && (
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={!hasUnsavedChanges || isControlsDisabled}
-              className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
-            >
-              {saving ? 'Saving...' : 'Save changes'}
-            </button>
-          )}
-        </header>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Customer accounts"
+          description="Configure sign-in options, authentication, and account features."
+          actions={
+            settings ? (
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={!hasUnsavedChanges || isControlsDisabled}
+                className="inline-flex min-w-[100px] items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium text-white bg-blue-600 shadow-sm hover:bg-blue-700 transition-colors disabled:cursor-not-allowed disabled:opacity-50 shrink-0"
+              >
+                {saving ? 'Saving...' : 'Save changes'}
+              </button>
+            ) : undefined
+          }
+        />
 
         {error && (
           <div className="rounded-xl border border-red-200 bg-red-50/80 text-red-800 px-4 py-3 text-sm">

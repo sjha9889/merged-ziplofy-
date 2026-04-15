@@ -20,28 +20,31 @@ const AddVendorModal: React.FC<AddVendorModalProps> = ({
     <Modal
       open={isOpen}
       onClose={onClose}
-      title="Add Vendor"
+      title="Add vendor"
       maxWidth="sm"
       actions={
         <>
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
           >
             Cancel
           </button>
           <button
+            type="button"
             onClick={onSubmit}
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            disabled={!vendorName.trim()}
+            className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Submit
+            Add vendor
           </button>
         </>
       }
     >
       <div>
-        <label htmlFor="vendor-name" className="block text-sm font-medium text-gray-700 mb-1.5">
-          Enter vendor name
+        <label htmlFor="vendor-name" className="mb-2 block text-sm font-medium text-gray-700">
+          Vendor name
         </label>
         <input
           id="vendor-name"
@@ -49,8 +52,8 @@ const AddVendorModal: React.FC<AddVendorModalProps> = ({
           autoFocus
           value={vendorName}
           onChange={onVendorNameChange}
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 outline-none transition-colors bg-white text-sm"
-          placeholder="Enter vendor name"
+          className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm shadow-sm outline-none transition-all placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
+          placeholder="e.g. Acme Wholesale Co."
         />
       </div>
     </Modal>
@@ -58,4 +61,3 @@ const AddVendorModal: React.FC<AddVendorModalProps> = ({
 };
 
 export default AddVendorModal;
-

@@ -1,5 +1,5 @@
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
-import React, { useCallback, useEffect, useState } from 'react';
+import { ArrowLeftIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AbandonedCartsEmptyState from '../../components/orders/AbandonedCartsEmptyState';
 import AbandonedCartsHeader from '../../components/orders/AbandonedCartsHeader';
@@ -13,7 +13,6 @@ const AbandonedCartsPage: React.FC = () => {
   const { abandonedCarts, loading, error, fetchAbandonedCartsByStoreId } = useAbandonedCarts();
   const { activeStoreId } = useStore();
 
-  // Modal state
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [emailSubject, setEmailSubject] = useState('');
@@ -64,13 +63,10 @@ const AbandonedCartsPage: React.FC = () => {
   }, []);
 
   const handleSendEmailSubmit = useCallback(() => {
-    // TODO: Implement email sending functionality
     console.log('Sending email to:', selectedCustomer?.email);
     console.log('Subject:', emailSubject);
     console.log('Body:', emailBody);
     console.log('Template:', emailTemplate);
-
-    // Close modal after sending
     handleCloseEmailModal();
   }, [selectedCustomer?.email, emailSubject, emailBody, emailTemplate, handleCloseEmailModal]);
 
@@ -105,11 +101,29 @@ const AbandonedCartsPage: React.FC = () => {
     [navigate]
   );
 
+  const { totalLineItems, totalEstimatedValue } = useMemo(() => {
+    let lineItems = 0;
+    let value = 0;
+    for (const c of abandonedCarts) {
+      lineItems += c.totalItems;
+      for (const item of c.cartItems) {
+        value += item.productVariant.price * item.quantity;
+      }
+    }
+    return { totalLineItems: lineItems, totalEstimatedValue: value };
+  }, [abandonedCarts]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-page-background-color">
-        <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4 flex justify-center items-center min-h-[50vh]">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-gray-600"></div>
+        <div className="mx-auto flex min-h-[50vh] max-w-[1440px] items-center justify-center px-4 py-8 sm:px-6">
+          <div className="flex flex-col items-center gap-4 rounded-2xl border border-gray-200/80 bg-white px-10 py-12 shadow-sm">
+            <div
+              className="h-10 w-10 animate-spin rounded-full border-2 border-gray-200 border-t-blue-600"
+              aria-hidden
+            />
+            <p className="text-sm font-medium text-gray-600">Loading abandoned carts…</p>
+          </div>
         </div>
       </div>
     );
@@ -118,15 +132,22 @@ const AbandonedCartsPage: React.FC = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-page-background-color">
-        <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
-          <div className="bg-white border border-red-200 rounded-xl p-4 flex items-center justify-between shadow-sm">
-            <p className="text-sm text-red-700">{error}</p>
-            <button
-              onClick={handleRefresh}
-              className="px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-            >
-              Retry
-            </button>
+        <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6">
+          <div className="flex items-start gap-4 rounded-2xl border border-red-200/90 bg-gradient-to-br from-red-50/80 to-white p-5 shadow-sm">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-700">
+              <ExclamationTriangleIcon className="h-5 w-5" aria-hidden />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-sm font-semibold text-red-900">Couldn&apos;t load abandoned carts</h2>
+              <p className="mt-1 text-sm text-red-800/90">{error}</p>
+              <button
+                type="button"
+                onClick={handleRefresh}
+                className="mt-4 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700"
+              >
+                Try again
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -135,41 +156,43 @@ const AbandonedCartsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
-        {/* Header */}
-        <div className="mb-6">
-          <button
-            onClick={() => navigate('/orders')}
-            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-4 transition-colors"
-          >
-            <ArrowLeftIcon className="w-5 h-5" />
-            <span className="text-sm font-medium">Back to Orders</span>
-          </button>
+      <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8">
+        <header className="mb-8 space-y-6">
+          <nav aria-label="Breadcrumb">
+            <button
+              type="button"
+              onClick={() => navigate('/orders')}
+              className="inline-flex items-center gap-2 rounded-xl border border-gray-200/80 bg-white px-3 py-2 text-sm font-medium text-gray-600 shadow-sm transition-colors hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+            >
+              <ArrowLeftIcon className="h-4 w-4" aria-hidden />
+              Orders
+            </button>
+          </nav>
+
           <AbandonedCartsHeader
             cartCount={abandonedCarts.length}
+            totalLineItems={totalLineItems}
+            totalEstimatedValue={totalEstimatedValue}
             loading={loading}
             onRefresh={handleRefresh}
           />
-        </div>
+        </header>
 
         {abandonedCarts.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+          <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
             <AbandonedCartsEmptyState />
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
-            <AbandonedCartsList
-              carts={abandonedCarts}
-              getInitials={getInitials}
-              formatDate={formatDate}
-              onSendEmail={handleSendEmail}
-              onViewDetails={handleViewDetails}
-            />
-          </div>
+          <AbandonedCartsList
+            carts={abandonedCarts}
+            getInitials={getInitials}
+            formatDate={formatDate}
+            onSendEmail={handleSendEmail}
+            onViewDetails={handleViewDetails}
+          />
         )}
       </div>
 
-      {/* Email Modal */}
       <SendRecoveryEmailModal
         isOpen={isEmailModalOpen}
         customer={selectedCustomer}

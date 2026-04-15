@@ -6,6 +6,7 @@ import { Route, BrowserRouter as Router, Routes, useLocation } from "react-route
 // Import axios config early to ensure interceptors are set up before any requests
 import "./config/axios.config";
 
+import AdminStandardLayout from "./components/layout/AdminStandardLayout";
 import Sidebar from "./components/Sidebar";
 import { AmountOffProductsDiscountProvider } from "./contexts/amount-off-products-discount.context";
 import { CustomerTagsProvider } from "./contexts/customer-tags.context";
@@ -138,6 +139,7 @@ const LanguageSettingsPage = lazy(() => import("./pages/LanguageSettingsPage").t
 const MarketSettingsPage = lazy(() => import("./pages/MarketSettingsPage").then(m => ({ default: m.MarketSettingsPage })));
 const MetafeildsAndMetaObjectsSettingsPage = lazy(() => import("./pages/MetafeildsAndMetaObjectsSettingsPage").then(m => ({ default: m.MetafeildsAndMetaObjectsSettingsPage })));
 const OnlineStorePage = lazy(() => import("./pages/OnlineStorePage"));
+const OnlineStorePagesPage = lazy(() => import("./pages/OnlineStorePagesPage"));
 const OnlineStorePreferencePage = lazy(() => import("./pages/OnlineStorePreferencePage"));
 const MarketDetailsPage = lazy(() => import("./pages/markets/MarketDetailsPage"));
 const MarketsCatalogDetailsPage = lazy(() => import("./pages/markets/MarketsCatalogDetailsPage"));
@@ -240,8 +242,14 @@ const NAVBAR_HEIGHT = 48; // keep consistent with Sidebar offset (h-12 = 48px)
 const SIDEBAR_WIDTH = 240; // keep consistent with Sidebar width
 
 const PageLoader: React.FC = () => (
-  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "200px", color: "#6b7280" }}>
-    <span>Loading...</span>
+  <div className="flex min-h-[280px] w-full items-center justify-center px-4 py-16">
+    <div className="flex flex-col items-center gap-4 rounded-2xl border border-gray-200/80 bg-white px-12 py-10 shadow-sm">
+      <div
+        className="h-10 w-10 animate-spin rounded-full border-2 border-gray-200 border-t-blue-600"
+        aria-hidden
+      />
+      <p className="text-sm font-medium text-gray-600">Loading page…</p>
+    </div>
   </div>
 );
 
@@ -264,21 +272,22 @@ const AdminApp: React.FC = () => {
         {showSidebar && <Sidebar />}
 
         <main
+          className={[
+            "flex-1 overflow-y-auto overflow-x-hidden antialiased text-gray-900 transition-[margin-left] duration-300 ease-out",
+            isFullScreen ? "bg-transparent p-0" : "bg-page-background-color p-4 sm:p-6 lg:p-8",
+          ]
+            .filter(Boolean)
+            .join(" ")}
           style={{
-            flexGrow: 1,
-            padding: isFullScreen ? 0 : "24px",
-            overflow: "auto",
             marginTop: showNavbar ? `${NAVBAR_HEIGHT}px` : 0,
             marginLeft: showSidebar ? `${SIDEBAR_WIDTH}px` : 0,
-            width: showSidebar ? `calc(100% - ${SIDEBAR_WIDTH}px)` : '100%',
-            height: showNavbar ? `calc(100vh - ${NAVBAR_HEIGHT}px)` : '100vh',
-            backgroundColor: isFullScreen ? 'transparent' : '#fdfdfd',
-            color: '#000',
-            transition: 'margin-left 0.3s ease',
+            width: showSidebar ? `calc(100% - ${SIDEBAR_WIDTH}px)` : "100%",
+            height: showNavbar ? `calc(100vh - ${NAVBAR_HEIGHT}px)` : "100vh",
           }}
         >
           <Suspense fallback={<PageLoader />}>
           <Routes>
+            <Route element={<AdminStandardLayout />}>
             {/* Top-level */}
             <Route path="/" element={<HomePage />} />
             <Route path="/orders" element={<OrdersPage />} />
@@ -337,6 +346,7 @@ const AdminApp: React.FC = () => {
             <Route path="/content/metaobjects" element={<ContentMetaObjectsPage />} />
             <Route path="/online-store" element={<OnlineStorePage />} />
             <Route path="/online-store/themes" element={<AllThemes />} />
+            <Route path="/online-store/pages" element={<OnlineStorePagesPage />} />
             <Route path="/online-store/preference" element={<OnlineStorePreferencePage />} />
             <Route path="/markets" element={<MarketsPage />} />
             <Route path="/markets/new" element={<MarketsNewPage />} />
@@ -419,6 +429,7 @@ const AdminApp: React.FC = () => {
             <Route path="/themes/layout/:themeId" element={<ThemeLayoutEditor />} />
             <Route path="/themes/code/:themeId" element={<ThemeCodeEditor />} />
             <Route path="/themes/code-fullscreen/:themeId" element={<ThemeCodeEditorFullScreen />} />
+            </Route>
           </Routes>
           </Suspense>
         </main>

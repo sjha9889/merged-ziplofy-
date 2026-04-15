@@ -43,7 +43,7 @@ const AmountOffProductsTable: React.FC<AmountOffProductsTableProps> = ({
   }
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+    <div className="overflow-hidden rounded-xl border border-gray-200/70 bg-gray-50/40 shadow-sm ring-1 ring-black/[0.02]">
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-100">
           <thead className="bg-gray-50/80">

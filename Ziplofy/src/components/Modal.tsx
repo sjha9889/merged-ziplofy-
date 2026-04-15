@@ -70,7 +70,7 @@ export const Modal = ({
         onClick={(e) => e.stopPropagation()} // Prevent the click event from propagating to the overlay
         className={`relative bg-white border border-gray-200 w-full ${maxWidthClasses[maxWidth]} ${
           modalHeight ? '' : 'max-h-[calc(100vh-80px)]'
-        } flex flex-col shadow-xl`}
+        } flex flex-col shadow-xl rounded-2xl overflow-hidden`}
         style={{
           width: modalWidth,
           height: modalHeight,

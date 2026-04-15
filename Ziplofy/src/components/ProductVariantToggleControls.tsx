@@ -1,3 +1,4 @@
+import { CubeIcon, TruckIcon } from '@heroicons/react/24/outline';
 import React from 'react';
 
 interface ProductVariantToggleControlsProps {
@@ -16,53 +17,61 @@ const ProductVariantToggleControls: React.FC<ProductVariantToggleControlsProps> 
   onSaveChanges,
 }) => {
   return (
-    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm mb-6">
-      <div className="flex justify-between items-center flex-wrap gap-4">
-        <div className="flex gap-6 flex-wrap items-center">
-          <label className="flex items-center gap-2.5 cursor-pointer">
-            <div className="relative inline-block w-10 h-5">
+    <div className="mb-6 overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+      <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/90 to-white px-5 py-3.5">
+        <h2 className="text-sm font-semibold text-gray-900">Fulfillment</h2>
+        <p className="mt-0.5 text-xs text-gray-500">Physical product and inventory tracking for this SKU</p>
+      </div>
+      <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
+          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/40 p-3 transition-colors hover:bg-gray-50">
+            <div className="relative inline-block h-5 w-10 shrink-0">
               <input
                 type="checkbox"
                 checked={isPhysicalProduct}
                 onChange={(e) => onIsPhysicalProductChange(e.target.checked)}
-                className="sr-only peer"
+                className="peer sr-only"
               />
-              <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-gray-400 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-gray-900"></div>
+              <div className={`relative ${toggleTrackClass} after:content-['']`} />
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">
-                Is Physical Product
-              </p>
-              <p className="text-xs text-gray-600">
-                {isPhysicalProduct ? 'This is a physical product' : 'This is a digital product'}
-              </p>
+            <div className="flex min-w-0 items-center gap-2">
+              <TruckIcon className="h-4 w-4 shrink-0 text-gray-400" aria-hidden />
+              <div>
+                <p className="text-sm font-semibold text-gray-900">Physical product</p>
+                <p className="text-xs text-gray-500">
+                  {isPhysicalProduct ? 'Shipping & package fields apply' : 'Digital or service'}
+                </p>
+              </div>
             </div>
           </label>
-          <label className="flex items-center gap-2.5 cursor-pointer">
-            <div className="relative inline-block w-10 h-5">
+
+          <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/40 p-3 transition-colors hover:bg-gray-50">
+            <div className="relative inline-block h-5 w-10 shrink-0">
               <input
                 type="checkbox"
                 checked={isInventoryTrackingEnabled}
                 onChange={(e) => onIsInventoryTrackingEnabledChange(e.target.checked)}
-                className="sr-only peer"
+                className="peer sr-only"
               />
-              <div className="w-10 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-gray-400 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-gray-900"></div>
+              <div className={`relative ${toggleTrackClass} after:content-['']`} />
             </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">
-                Inventory Tracking
-              </p>
-              <p className="text-xs text-gray-600">
-                {isInventoryTrackingEnabled ? 'Track inventory for this variant' : 'Do not track inventory'}
-              </p>
+            <div className="flex min-w-0 items-center gap-2">
+              <CubeIcon className="h-4 w-4 shrink-0 text-gray-400" aria-hidden />
+              <div>
+                <p className="text-sm font-semibold text-gray-900">Inventory tracking</p>
+                <p className="text-xs text-gray-500">
+                  {isInventoryTrackingEnabled ? 'Stock tracked for this variant' : 'Not tracked'}
+                </p>
+              </div>
             </div>
           </label>
         </div>
         <button
+          type="button"
           onClick={onSaveChanges}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+          className="shrink-0 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
         >
-          Save Changes
+          Save fulfillment
         </button>
       </div>
     </div>
@@ -70,4 +79,3 @@ const ProductVariantToggleControls: React.FC<ProductVariantToggleControlsProps> 
 };
 
 export default ProductVariantToggleControls;
-

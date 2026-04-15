@@ -1,4 +1,10 @@
-import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import {
+  CalendarDaysIcon,
+  LinkIcon,
+  PencilSquareIcon,
+  TagIcon,
+  TrashIcon,
+} from '@heroicons/react/24/outline';
 import React from 'react';
 import type { Collection } from '../../contexts/collection.context';
 
@@ -13,69 +19,73 @@ const CollectionOverviewSection: React.FC<CollectionOverviewSectionProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const updated = new Date(collection.updatedAt).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-semibold text-gray-900">Overview</h2>
-        <div className="flex items-center gap-1.5">
+    <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+      <div className="flex flex-col gap-3 border-b border-gray-100 bg-gradient-to-r from-gray-50/90 to-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-900">Storefront &amp; SEO</h2>
+          <p className="text-xs text-gray-500">How this collection appears online</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
           <button
+            type="button"
             onClick={onEdit}
-            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-            aria-label="Edit collection"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 shadow-sm transition-colors hover:border-gray-300 hover:bg-gray-50"
           >
-            <PencilIcon className="w-4 h-4 text-gray-600" />
+            <PencilSquareIcon className="h-3.5 w-3.5" aria-hidden />
+            Edit
           </button>
           <button
+            type="button"
             onClick={onDelete}
-            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-            aria-label="Delete collection"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition-colors hover:bg-red-100"
           >
-            <TrashIcon className="w-4 h-4 text-gray-600" />
+            <TrashIcon className="h-3.5 w-3.5" aria-hidden />
+            Delete
           </button>
         </div>
       </div>
-      <div className="border-t border-gray-200 mb-4"></div>
-      {collection.description && (
-        <p className="text-sm text-gray-600 mb-4">{collection.description}</p>
-      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <p className="text-xs text-gray-600 mb-1">Page title</p>
-          <p className="text-sm text-gray-900">{collection.pageTitle || '-'}</p>
+      <div className="space-y-4 p-5">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Page title</p>
+            <p className="mt-1 text-sm font-medium text-gray-900">{collection.pageTitle || '—'}</p>
+          </div>
+          <div className="rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-3">
+            <p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-500">
+              <LinkIcon className="h-3 w-3" aria-hidden />
+              URL handle
+            </p>
+            <p className="mt-1 font-mono text-sm font-medium text-gray-900">{collection.urlHandle || '—'}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-xs text-gray-600 mb-1">URL handle</p>
-          <p className="text-sm text-gray-900">{collection.urlHandle || '-'}</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-600 mb-1">Status</p>
-          <p className="text-sm text-gray-900 capitalize">
-            <span
-              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                collection.status === 'published'
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-gray-100 text-gray-800'
-              }`}
-            >
-              {collection.status || 'draft'}
-            </span>
+
+        <div className="rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-3">
+          <p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-gray-500">
+            <TagIcon className="h-3 w-3" aria-hidden />
+            Meta description
+          </p>
+          <p className="mt-1 text-sm leading-relaxed text-gray-700">
+            {collection.metaDescription || '—'}
           </p>
         </div>
-        <div className="md:col-span-2">
-          <p className="text-xs text-gray-600 mb-1">Meta description</p>
-          <p className="text-sm text-gray-900">{collection.metaDescription || '-'}</p>
+
+        <div className="flex items-center gap-2 rounded-lg border border-gray-100 bg-white px-3 py-2.5 text-xs text-gray-500">
+          <CalendarDaysIcon className="h-4 w-4 shrink-0 text-gray-400" aria-hidden />
+          <span>
+            <span className="font-semibold text-gray-700">Last updated</span> · {updated}
+          </span>
         </div>
       </div>
-
-      <div className="border-t border-gray-200 my-3"></div>
-
-      <p className="text-xs text-gray-500">
-        Last updated: {new Date(collection.updatedAt).toLocaleDateString()}
-      </p>
     </div>
   );
 };
 
 export default CollectionOverviewSection;
-

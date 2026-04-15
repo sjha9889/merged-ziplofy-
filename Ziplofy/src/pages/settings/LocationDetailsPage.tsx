@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import ToggleSwitch from '../../components/ToggleSwitch';
 import { useLocations } from '../../contexts/location.context';
 import { useStore } from '../../contexts/store.context';
+import { SettingsHero } from '../../components/settings/SettingsPageScaffold';
 
 const LocationDetailsPage: React.FC = () => {
   const { locations, updateLocation } = useLocations();
@@ -101,8 +102,8 @@ const LocationDetailsPage: React.FC = () => {
 
   if (!location) {
     return (
-      <div className="min-h-screen bg-page-background-color">
-        <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
+      <div className="w-full">
+        <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
           <h2 className="text-lg font-semibold text-gray-900">Location not found</h2>
           <button
             type="button"
@@ -128,34 +129,34 @@ const LocationDetailsPage: React.FC = () => {
     .join(', ');
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-        {/* Header */}
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-start gap-3 min-w-0">
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title={
+            <span className="inline-flex flex-wrap items-center gap-2">
+              <span>{location.name}</span>
+              <span
+                className={`shrink-0 rounded-md px-2.5 py-1 text-xs font-medium ${
+                  location.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'
+                }`}
+              >
+                {location.isActive ? 'Active' : 'Inactive'}
+              </span>
+            </span>
+          }
+          description={addressLine || 'No address'}
+          leading={
             <button
               type="button"
               onClick={handleBack}
-              className="mt-0.5 inline-flex items-center justify-center p-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors shrink-0"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200/90 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50/90 transition-colors shrink-0"
               aria-label="Back to locations"
             >
-              <ArrowLeftIcon className="w-5 h-5" />
+              <ArrowLeftIcon className="h-4 w-4" />
+              Back
             </button>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{location.name}</h1>
-                <span
-                  className={`shrink-0 px-2.5 py-1 rounded-md text-xs font-medium ${
-                    location.isActive ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-600'
-                  }`}
-                >
-                  {location.isActive ? 'Active' : 'Inactive'}
-                </span>
-              </div>
-              <p className="mt-1 text-sm text-gray-500">{addressLine || 'No address'}</p>
-            </div>
-          </div>
-        </header>
+          }
+        />
 
         {/* Location Info Section */}
         <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5">

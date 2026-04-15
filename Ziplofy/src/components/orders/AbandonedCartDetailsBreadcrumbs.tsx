@@ -1,3 +1,4 @@
+import { ChevronRightIcon, HomeIcon } from '@heroicons/react/24/outline';
 import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -12,8 +13,8 @@ const AbandonedCartDetailsBreadcrumbs: React.FC<AbandonedCartDetailsBreadcrumbsP
 }) => {
   const navigate = useNavigate();
 
-  const handleBreadcrumbClick = useCallback(
-    (e: React.MouseEvent<HTMLAnchorElement>) => {
+  const goToList = useCallback(
+    (e: React.MouseEvent) => {
       e.preventDefault();
       navigate('/orders/abandoned-carts');
     },
@@ -21,20 +22,33 @@ const AbandonedCartDetailsBreadcrumbs: React.FC<AbandonedCartDetailsBreadcrumbsP
   );
 
   return (
-    <nav className="mb-2" aria-label="Breadcrumb">
-      <ol className="flex items-center gap-1.5 text-sm text-gray-500">
+    <nav aria-label="Breadcrumb">
+      <ol className="flex flex-wrap items-center gap-1 text-sm">
+        <li className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => navigate('/orders')}
+            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
+          >
+            <HomeIcon className="h-3.5 w-3.5" aria-hidden />
+            Orders
+          </button>
+        </li>
+        <ChevronRightIcon className="h-3.5 w-3.5 shrink-0 text-gray-300" aria-hidden />
         <li>
           <a
             href="/orders/abandoned-carts"
-            onClick={handleBreadcrumbClick}
-            className="hover:text-blue-600 cursor-pointer transition-colors"
+            onClick={goToList}
+            className="rounded-lg px-2 py-1 font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
           >
-            Abandoned Carts
+            Abandoned carts
           </a>
         </li>
-        <li className="text-gray-300">/</li>
-        <li className="text-gray-700 font-medium">
-          {customerFirstName} {customerLastName}
+        <ChevronRightIcon className="h-3.5 w-3.5 shrink-0 text-gray-300" aria-hidden />
+        <li>
+          <span className="rounded-lg bg-gray-100/80 px-2 py-1 font-semibold text-gray-900" aria-current="page">
+            {customerFirstName} {customerLastName}
+          </span>
         </li>
       </ol>
     </nav>
@@ -42,4 +56,3 @@ const AbandonedCartDetailsBreadcrumbs: React.FC<AbandonedCartDetailsBreadcrumbsP
 };
 
 export default AbandonedCartDetailsBreadcrumbs;
-

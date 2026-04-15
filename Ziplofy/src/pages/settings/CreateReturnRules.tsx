@@ -40,7 +40,9 @@ const CreateReturnRules: React.FC = () => {
   };
 
   return (
-    <Box>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+    <Box sx={{ width: '100%' }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <IconButton onClick={() => navigate(-1)} size="small">
@@ -117,6 +119,8 @@ const CreateReturnRules: React.FC = () => {
         <Button variant="contained" onClick={onCreate} disabled={loading || !activeStoreId}>Create</Button>
       </Box>
     </Box>
+      </div>
+    </div>
   );
 };
 

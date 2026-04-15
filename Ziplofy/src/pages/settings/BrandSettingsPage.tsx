@@ -20,7 +20,6 @@ import BrandPrimaryColorSection from '../../components/BrandPrimaryColorSection'
 import BrandSecondaryColorSection from '../../components/BrandSecondaryColorSection';
 import BrandSloganSection from '../../components/BrandSloganSection';
 import BrandVisualPlaceholder from '../../components/BrandVisualPlaceholder';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import { useStoreBranding } from '../../contexts/store-branding.context';
 import { useStore } from '../../contexts/store.context';
 
@@ -369,8 +368,8 @@ const BrandSettingsPage: React.FC = () => {
   }, [navigate]);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-[1200px] mx-auto py-8 px-4">
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
       
       {/* Header */}
       <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
@@ -605,7 +604,7 @@ const BrandSettingsPage: React.FC = () => {
         </a>
       </div>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 
