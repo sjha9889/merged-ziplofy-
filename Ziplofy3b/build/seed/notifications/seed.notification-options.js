@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
-const mongoose_1 = __importDefault(require("mongoose"));
 const database_config_1 = require("../../config/database.config");
 const notification_category_model_1 = require("../../models/notification-category/notification-category.model");
 const notification_option_model_1 = require("../../models/notification-option/notification-option.model");
@@ -12,9 +11,6 @@ const customer_notifications_enum_1 = require("../../enums/customer-notification
 const staff_notifications_enum_1 = require("../../enums/staff-notifications.enum");
 const fulfillment_notifications_enum_1 = require("../../enums/fulfillment-notifications.enum");
 dotenv_1.default.config();
-const customerNotificationsCategoryId = "6911afd3928a6f0f5ef44543";
-const staffNotificationsCategoryId = "6911afd3928a6f0f5ef44544";
-const fulfillmentRequestNotificationsCategoryId = "6911afd3928a6f0f5ef44545";
 const optionSeeds = [
     {
         categoryName: 'Customer notifications',
@@ -499,25 +495,21 @@ async function seedNotificationOptions() {
         // Delete all existing notification options
         await notification_option_model_1.NotificationOption.deleteMany({});
         console.log('Deleted all existing notification options');
-        // Map category names to their IDs
-        const categoryIdMap = {
-            'Customer notifications': customerNotificationsCategoryId,
-            'Staff notifications': staffNotificationsCategoryId,
-            'Fulfillment request notification': fulfillmentRequestNotificationsCategoryId,
-        };
+        // Resolve category IDs dynamically by name for current DB.
+        const targetNames = optionSeeds.map((c) => c.categoryName);
+        const categories = await notification_category_model_1.NotificationCategory.find({ name: { $in: targetNames } })
+            .select('_id name')
+            .lean();
+        const categoryIdMap = new Map();
+        categories.forEach((cat) => {
+            categoryIdMap.set(cat.name, cat._id);
+        });
         for (const categorySeed of optionSeeds) {
-            const categoryIdString = categoryIdMap[categorySeed.categoryName];
-            if (!categoryIdString) {
-                console.warn(`No category ID mapped for "${categorySeed.categoryName}". Skipping options for this category.`);
+            const targetCategoryId = categoryIdMap.get(categorySeed.categoryName);
+            if (!targetCategoryId) {
+                console.warn(`Notification category "${categorySeed.categoryName}" not found. Please run seed:notification-categories first.`);
                 continue;
             }
-            const categoryObjectId = new mongoose_1.default.Types.ObjectId(categoryIdString);
-            const category = await notification_category_model_1.NotificationCategory.findById(categoryObjectId);
-            if (!category) {
-                console.warn(`Notification category "${categorySeed.categoryName}" with id "${categoryIdString}" not found. Please seed categories first.`);
-                continue;
-            }
-            const targetCategoryId = category._id;
             for (const option of categorySeed.options) {
                 await notification_option_model_1.NotificationOption.updateOne({
                     notificationCategoryId: targetCategoryId,

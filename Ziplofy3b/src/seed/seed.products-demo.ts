@@ -448,15 +448,44 @@ async function seedOneProduct(
   );
 }
 
-async function main() {
-  const raw = process.env.SEED_STORE_ID || DEFAULT_STORE_ID;
-  if (!mongoose.Types.ObjectId.isValid(raw)) {
-    throw new Error(`Invalid SEED_STORE_ID / default store id: ${raw}`);
+async function resolveStoreId(): Promise<mongoose.Types.ObjectId | null> {
+  const envStoreId = process.env.SEED_STORE_ID;
+  if (envStoreId) {
+    if (!mongoose.Types.ObjectId.isValid(envStoreId)) {
+      throw new Error(`Invalid SEED_STORE_ID: ${envStoreId}`);
+    }
+    const found = await Store.findById(envStoreId).select('_id').lean();
+    if (!found?._id) {
+      throw new Error(`SEED_STORE_ID not found: ${envStoreId}`);
+    }
+    return new mongoose.Types.ObjectId(String(found._id));
   }
-  const storeId = new mongoose.Types.ObjectId(raw);
-  const handles = DEMO_PRODUCTS.map((p) => p.urlHandle);
 
+  if (mongoose.Types.ObjectId.isValid(DEFAULT_STORE_ID)) {
+    const foundDefault = await Store.findById(DEFAULT_STORE_ID).select('_id').lean();
+    if (foundDefault?._id) {
+      return new mongoose.Types.ObjectId(String(foundDefault._id));
+    }
+  }
+
+  const firstStore = await Store.findOne().sort({ createdAt: 1 }).select('_id').lean();
+  if (!firstStore?._id) {
+    return null;
+  }
+  return new mongoose.Types.ObjectId(String(firstStore._id));
+}
+
+async function main() {
   await connectDB();
+  const storeId = await resolveStoreId();
+  if (!storeId) {
+    console.log(
+      'No store found. Skipping demo product seed. Create a store first or set SEED_STORE_ID.'
+    );
+    process.exit(0);
+  }
+
+  const handles = DEMO_PRODUCTS.map((p) => p.urlHandle);
   await removePreviousDemo(storeId, handles);
   const refs = await ensureRefs(storeId);
 

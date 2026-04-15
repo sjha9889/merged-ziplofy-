@@ -1,10 +1,10 @@
-dotenv.config();
 import mongoose from "mongoose";
 import { connectDB } from "../../config/database.config";
 import { Variants } from "../../models/variants/variants.model";
 import dotenv from "dotenv";
 
 // Load environment variables
+dotenv.config();
 
 const variantData = [
   { name: "Size", values: ["XS", "S", "M", "L", "XL", "XXL"] },

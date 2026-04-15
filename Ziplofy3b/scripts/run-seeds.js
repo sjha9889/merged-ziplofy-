@@ -13,7 +13,9 @@
  *   notifications  — notification-categories, notification-options
  *   india-tax      — tax-defaults-india, country-tax (fix hardcoded India ID in seeds if needed)
  *   optional       — packaging, store-codes
+ *   demo           — products-demo, discounts-demo (products first)
  *   full           — base → geo → notifications → india-tax → optional (recommended order)
+ *   all            — full → demo (one-shot complete seeding)
  */
 const { execSync } = require('child_process');
 const path = require('path');
@@ -33,6 +35,7 @@ const PRESETS = {
   notifications: ['seed:notification-categories', 'seed:notification-options'],
   'india-tax': ['seed:tax-defaults-india', 'seed:country-tax'],
   optional: ['seed:packaging', 'seed:store-codes'],
+  demo: ['seed:products-demo', 'seed:discounts-demo'],
   full: [
     'seed:permissions',
     'seed:triggers',
@@ -47,6 +50,23 @@ const PRESETS = {
     'seed:country-tax',
     'seed:packaging',
     'seed:store-codes',
+  ],
+  all: [
+    'seed:permissions',
+    'seed:triggers',
+    'seed:actions',
+    'seed:categories',
+    'seed:variants',
+    'seed:countries',
+    'seed:states',
+    'seed:notification-categories',
+    'seed:notification-options',
+    'seed:tax-defaults-india',
+    'seed:country-tax',
+    'seed:packaging',
+    'seed:store-codes',
+    'seed:products-demo',
+    'seed:discounts-demo',
   ],
 };
 

@@ -371,14 +371,38 @@ async function seedOneProduct(def, storeId, refs) {
     await inventory_level_model_1.InventoryLevelModel.insertMany(inventoryLevelDocs);
     console.log(`  ✓ ${def.title} — ${createdVariants.length} variant(s), ${inventoryLevelDocs.length} inventory row(s)`);
 }
-async function main() {
-    const raw = process.env.SEED_STORE_ID || DEFAULT_STORE_ID;
-    if (!mongoose_1.default.Types.ObjectId.isValid(raw)) {
-        throw new Error(`Invalid SEED_STORE_ID / default store id: ${raw}`);
+async function resolveStoreId() {
+    const envStoreId = process.env.SEED_STORE_ID;
+    if (envStoreId) {
+        if (!mongoose_1.default.Types.ObjectId.isValid(envStoreId)) {
+            throw new Error(`Invalid SEED_STORE_ID: ${envStoreId}`);
+        }
+        const found = await store_model_1.Store.findById(envStoreId).select('_id').lean();
+        if (!found?._id) {
+            throw new Error(`SEED_STORE_ID not found: ${envStoreId}`);
+        }
+        return new mongoose_1.default.Types.ObjectId(String(found._id));
     }
-    const storeId = new mongoose_1.default.Types.ObjectId(raw);
-    const handles = DEMO_PRODUCTS.map((p) => p.urlHandle);
+    if (mongoose_1.default.Types.ObjectId.isValid(DEFAULT_STORE_ID)) {
+        const foundDefault = await store_model_1.Store.findById(DEFAULT_STORE_ID).select('_id').lean();
+        if (foundDefault?._id) {
+            return new mongoose_1.default.Types.ObjectId(String(foundDefault._id));
+        }
+    }
+    const firstStore = await store_model_1.Store.findOne().sort({ createdAt: 1 }).select('_id').lean();
+    if (!firstStore?._id) {
+        return null;
+    }
+    return new mongoose_1.default.Types.ObjectId(String(firstStore._id));
+}
+async function main() {
     await (0, database_config_1.connectDB)();
+    const storeId = await resolveStoreId();
+    if (!storeId) {
+        console.log('No store found. Skipping demo product seed. Create a store first or set SEED_STORE_ID.');
+        process.exit(0);
+    }
+    const handles = DEMO_PRODUCTS.map((p) => p.urlHandle);
     await removePreviousDemo(storeId, handles);
     const refs = await ensureRefs(storeId);
     console.log(`Seeding ${DEMO_PRODUCTS.length} demo products for store ${storeId.toHexString()}…`);
