@@ -63,14 +63,14 @@ export const Modal = ({
   return createPortal(
     <div
       onClick={isCallModal ? () => {} : onClose} // Clicking outside the modal content triggers the `onClose` function (unless it's a call modal)
-      className="z-5000 bg-black/20 w-screen h-screen fixed inset-0 flex items-center justify-center"
+      className="fixed inset-0 z-[5000] flex h-screen w-screen items-center justify-center bg-slate-900/45 p-4 backdrop-blur-[3px]"
     >
       {/* Modal content container */}
       <div
         onClick={(e) => e.stopPropagation()} // Prevent the click event from propagating to the overlay
-        className={`relative bg-white border border-gray-200 w-full ${maxWidthClasses[maxWidth]} ${
-          modalHeight ? '' : 'max-h-[calc(100vh-80px)]'
-        } flex flex-col shadow-xl rounded-2xl overflow-hidden`}
+        className={`relative flex w-full flex-col overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-2xl ring-1 ring-black/5 ${maxWidthClasses[maxWidth]} ${
+          modalHeight ? '' : 'max-h-[min(92vh,calc(100vh-48px))]'
+        }`}
         style={{
           width: modalWidth,
           height: modalHeight,
@@ -78,28 +78,31 @@ export const Modal = ({
       >
         {/* Title section */}
         {title && (
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60 px-5 py-4">
             {typeof title === 'string' ? (
-              <h2 className="text-base font-medium text-gray-900">{title}</h2>
+              <h2 className="border-l-4 border-blue-500/70 pl-3 text-lg font-semibold tracking-tight text-slate-900">
+                {title}
+              </h2>
             ) : (
-              title
+              <div className="min-w-0 flex-1">{title}</div>
             )}
             <button
+              type="button"
               onClick={onClose}
-              className="p-1 text-gray-600 hover:text-gray-900 transition-colors"
+              className="shrink-0 rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
               aria-label="Close"
             >
-              <XMarkIcon className="w-5 h-5" />
+              <XMarkIcon className="h-5 w-5" />
             </button>
           </div>
         )}
 
         {/* Content section */}
-        <div className="flex-1 overflow-y-auto px-4 py-4">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto bg-slate-50/30 px-5 py-5">{children}</div>
 
         {/* Actions section */}
         {actions && (
-          <div className="px-4 py-3 border-t border-gray-200 flex justify-end gap-2">
+          <div className="flex shrink-0 justify-end gap-3 border-t border-slate-200/80 bg-white px-5 py-4">
             {actions}
           </div>
         )}

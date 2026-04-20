@@ -5,8 +5,6 @@ import {
   ArrowsUpDownIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
-import GridBackgroundWrapper from "../../components/GridBackgroundWrapper";
-
 interface AutomationTemplate {
   id: string;
   title: string;
@@ -20,63 +18,63 @@ const templates: AutomationTemplate[] = [
     id: "1",
     title: "Recover abandoned cart",
     description: "Send an email 10 hours after a customer gets to checkout but doesn't place an order to...",
-    creator: "Shopify",
+    creator: "Ziplofy",
     requiresApp: true,
   },
   {
     id: "2",
     title: "Recover abandoned cart",
     description: "Send a marketing email when a customer adds at least one product to their cart but doesn't...",
-    creator: "Shopify",
+    creator: "Ziplofy",
     requiresApp: true,
   },
   {
     id: "3",
     title: "Convert abandoned product browse",
     description: "Send a marketing email to customers who viewed a product but didn't add it to their cart. ...",
-    creator: "Shopify",
+    creator: "Ziplofy",
     requiresApp: true,
   },
   {
     id: "4",
     title: "Welcome new subscribers with a discount email",
     description: "Send new subscribers a welcome email with a discount when they subscribe through a form ...",
-    creator: "Shopify",
+    creator: "Ziplofy",
     requiresApp: true,
   },
   {
     id: "5",
     title: "Thank customers after they purchase",
     description: "Send a different thank you email to customers after their first and second purchases. 1 day aft...",
-    creator: "Shopify",
+    creator: "Ziplofy",
     requiresApp: true,
   },
   {
     id: "6",
     title: "Welcome new subscribers with a discount series",
     description: "Send new subscribers a welcome series with 4 emails when they subscribe through a form on...",
-    creator: "Shopify",
+    creator: "Ziplofy",
     requiresApp: true,
   },
   {
     id: "7",
     title: "Celebrate customer birthday",
     description: "Build customer loyalty by offering customers a special discount on their birthday. This...",
-    creator: "Shopify",
+    creator: "Ziplofy",
     requiresApp: true,
   },
   {
     id: "8",
     title: "Win back customers",
     description: "Give a discount to customers who haven't placed an order at your store in the last 60 day...",
-    creator: "Shopify",
+    creator: "Ziplofy",
     requiresApp: true,
   },
   {
     id: "9",
     title: "Upsell customers after their first purchase",
     description: "Send a marketing email showcasing featured products after a customer makes their first...",
-    creator: "Shopify",
+    creator: "Ziplofy",
     requiresApp: true,
   },
 ];
@@ -92,8 +90,7 @@ const AutomationTemplatesPage: React.FC = () => {
   };
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
+    <div className="min-h-screen bg-page-background-color">
         {/* Header */}
         <div className="border-b border-gray-200 px-4 py-3">
           <div className="max-w-7xl mx-auto">
@@ -175,8 +172,7 @@ const AutomationTemplatesPage: React.FC = () => {
             ))}
           </div>
         </div>
-      </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

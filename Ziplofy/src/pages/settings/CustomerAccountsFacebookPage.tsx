@@ -28,14 +28,14 @@ const cardStyles = {
   backgroundColor: '#fff',
 };
 
-const fallbackDomains = ['https://shopify.com', 'https://example.myshopify.com'];
+const fallbackDomains = ['https://ziplofy.com', 'https://example.myziplofy.com'];
 const fallbackRedirects = [
-  'https://shopify.com/authentication/placeholder/social/facebook/callback',
-  'https://example.myshopify.com/authentication/social/facebook/callback',
+  'https://ziplofy.com/authentication/placeholder/social/facebook/callback',
+  'https://example.myziplofy.com/authentication/social/facebook/callback',
 ];
 const fallbackDeauth = [
-  'https://shopify.com/authentication/placeholder/social/facebook/revoke',
-  'https://example.myshopify.com/authentication/social/facebook/revoke',
+  'https://ziplofy.com/authentication/placeholder/social/facebook/revoke',
+  'https://example.myziplofy.com/authentication/social/facebook/revoke',
 ];
 
 const CustomerAccountsFacebookPage: React.FC = () => {

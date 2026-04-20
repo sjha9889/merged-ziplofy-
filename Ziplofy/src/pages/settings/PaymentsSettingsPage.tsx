@@ -1,7 +1,23 @@
 import React, { useState } from 'react';
 import { CreditCardIcon, PlusIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
-import { SettingsHero, SettingsPanel } from '../../components/settings/SettingsPageScaffold';
+import {
+  SETTINGS_PAGE_CONTAINER_CLASS,
+  SettingsHero,
+  SettingsPanel,
+} from '../../components/settings/SettingsPageScaffold';
+
+const btnPrimary =
+  'inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700';
+
+const btnGhost =
+  'inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-800 shadow-sm transition-colors hover:bg-slate-50';
+
+const radioStart =
+  'mt-0.5 h-4 w-4 shrink-0 border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-0';
+
+const radioInline =
+  'h-4 w-4 shrink-0 border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-0';
 
 const PaymentsSettingsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -10,116 +26,125 @@ const PaymentsSettingsPage: React.FC = () => {
 
   return (
     <div className="w-full">
-      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+      <div className={SETTINGS_PAGE_CONTAINER_CLASS}>
         <SettingsHero
           title="Payments"
           description="Configure payment providers, capture rules, and payment methods at checkout."
+          tip="Connect a provider to accept cards and wallets; capture settings control when funds settle."
         />
 
-        {/* Manual payment transactions */}
-        <SettingsPanel className="p-5 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h2 className="text-base font-semibold text-gray-900 mb-1">Transactions</h2>
-              <p className="text-sm text-gray-500 max-w-xl">
-                View manual payment confirmations (UPI, reference IDs) submitted for your store from
-                checkout.
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Transactions</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                View manual payment confirmations (UPI, reference IDs) submitted for your store from checkout.
               </p>
             </div>
+          </div>
+          <div className="flex justify-end p-5 sm:p-6">
             <button
               type="button"
               onClick={() => navigate('/settings/payments/transactions')}
-              className="inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 transition-colors shrink-0"
+              className={btnPrimary}
             >
               View transactions
-              <ArrowRightIcon className="w-4 h-4" />
+              <ArrowRightIcon className="h-4 w-4" />
             </button>
           </div>
         </SettingsPanel>
 
-        {/* Payment providers */}
-        <SettingsPanel className="p-5 sm:p-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-1">Payment providers</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Providers that enable you to accept payment methods at a rate set by the third-party. An
-            additional fee will apply to new orders once you{' '}
-            <a href="#" className="text-gray-700 hover:underline">
-              select a plan
-            </a>
-            .
-          </p>
-          <button className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 transition-colors">
-            Choose a provider
-          </button>
-        </SettingsPanel>
-
-        {/* Supported payment methods */}
-        <SettingsPanel className="p-5 sm:p-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-1">Supported payment methods</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Payment methods that are available with one of Ziplofy's approved payment providers
-          </p>
-
-          <div className="rounded-lg border border-gray-200 p-4 flex items-center justify-between gap-4 mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-9 bg-white border border-gray-200 rounded-lg flex items-center justify-center">
-                <CreditCardIcon className="w-5 h-5 text-gray-600" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-900">PayPal</p>
-                <p className="text-sm text-gray-500">
-                  Transaction fees vary by plan • Processing fees set by PayPal
-                </p>
-              </div>
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Payment providers</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Third-party providers set processing rates. Additional platform fees may apply once you{' '}
+                <a href="#" className="font-medium text-blue-600 underline decoration-blue-600/30 hover:text-blue-700">
+                  select a plan
+                </a>
+                .
+              </p>
             </div>
-            <button className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 transition-colors shrink-0">
-              Activate PayPal
+          </div>
+          <div className="p-5 sm:p-6">
+            <button type="button" className={btnGhost}>
+              Choose a provider
             </button>
           </div>
-          <button className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 transition-colors">
-            <PlusIcon className="w-4 h-4" />
-            Add payment method
-          </button>
         </SettingsPanel>
 
-        {/* Payment capture method */}
-        <SettingsPanel className="p-5 sm:p-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-1">Payment capture method</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Payments are authorized when an order is placed. Select how to{' '}
-            <a href="#" className="text-gray-700 hover:underline">
-              capture payments
-            </a>
-            :
-          </p>
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Supported payment methods</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Methods available through Ziplofy-approved payment providers.
+              </p>
+            </div>
+          </div>
+          <div className="space-y-4 p-5 sm:p-6">
+            <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-slate-50/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-9 w-12 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white shadow-sm">
+                  <CreditCardIcon className="h-5 w-5 text-slate-600" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900">PayPal</p>
+                  <p className="text-sm text-gray-500">
+                    Transaction fees vary by plan • Processing fees set by PayPal
+                  </p>
+                </div>
+              </div>
+              <button type="button" className={`${btnGhost} shrink-0`}>
+                Activate PayPal
+              </button>
+            </div>
+            <button type="button" className={btnGhost}>
+              <PlusIcon className="h-4 w-4" />
+              Add payment method
+            </button>
+          </div>
+        </SettingsPanel>
 
-          <div className="space-y-3">
-            <label className="flex items-start gap-2 cursor-pointer">
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Payment capture method</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Orders are authorized at checkout. Choose when to{' '}
+                <a href="#" className="font-medium text-blue-600 underline decoration-blue-600/30 hover:text-blue-700">
+                  capture payments
+                </a>
+                .
+              </p>
+            </div>
+          </div>
+          <div className="space-y-4 p-5 sm:p-6">
+            <label className="flex cursor-pointer items-start gap-3">
               <input
                 type="radio"
                 name="captureMethod"
                 value="auto_checkout"
                 checked={captureMethod === 'auto_checkout'}
                 onChange={(e) => setCaptureMethod(e.target.value)}
-                className="w-4 h-4 text-blue-600 focus:ring-blue-500/30 mt-0.5"
+                className={radioStart}
               />
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-900">Automatically at checkout</p>
-                <p className="text-sm text-gray-500">
-                  Capture payment when an order is placed
-                </p>
+                <p className="text-sm text-gray-500">Capture payment when an order is placed</p>
               </div>
             </label>
-            <label className="flex items-start gap-2 cursor-pointer">
+            <label className="flex cursor-pointer items-start gap-3">
               <input
                 type="radio"
                 name="captureMethod"
                 value="auto_fulfilled"
                 checked={captureMethod === 'auto_fulfilled'}
                 onChange={(e) => setCaptureMethod(e.target.value)}
-                className="w-4 h-4 text-blue-600 focus:ring-blue-500/30 mt-0.5"
+                className={radioStart}
               />
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-900">
                   Automatically when the entire order is fulfilled
                 </p>
@@ -128,16 +153,16 @@ const PaymentsSettingsPage: React.FC = () => {
                 </p>
               </div>
             </label>
-            <label className="flex items-start gap-2 cursor-pointer">
+            <label className="flex cursor-pointer items-start gap-3">
               <input
                 type="radio"
                 name="captureMethod"
                 value="manual"
                 checked={captureMethod === 'manual'}
                 onChange={(e) => setCaptureMethod(e.target.value)}
-                className="w-4 h-4 text-blue-600 focus:ring-blue-500/30 mt-0.5"
+                className={radioStart}
               />
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-900">Manually</p>
                 <p className="text-sm text-gray-500">
                   Authorize payment at checkout and capture manually
@@ -147,79 +172,91 @@ const PaymentsSettingsPage: React.FC = () => {
           </div>
         </SettingsPanel>
 
-        {/* Manual payment methods */}
-        <SettingsPanel className="p-5 sm:p-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-1">Manual payment methods</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Payments made outside your online store. Orders paid manually must be approved before being
-            fulfilled.
-          </p>
-          <button className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 transition-colors">
-            <PlusIcon className="w-4 h-4" />
-            Manual payment method
-          </button>
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Manual payment methods</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Payments taken outside your online store. Orders must be approved before fulfillment.
+              </p>
+            </div>
+          </div>
+          <div className="p-5 sm:p-6">
+            <button type="button" className={btnGhost}>
+              <PlusIcon className="h-4 w-4" />
+              Manual payment method
+            </button>
+          </div>
         </SettingsPanel>
 
-        {/* Payment method customizations */}
-        <SettingsPanel className="p-5 sm:p-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-1">Payment method customizations</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Control how payment methods appear to your customers at checkout
-          </p>
-          <button className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 transition-colors">
-            View payment method customization apps
-          </button>
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Payment method customizations</h2>
+              <p className="mt-1 text-sm text-gray-500">Control how methods appear to customers at checkout.</p>
+            </div>
+          </div>
+          <div className="p-5 sm:p-6">
+            <button type="button" className={btnGhost}>
+              View payment method customization apps
+            </button>
+          </div>
         </SettingsPanel>
 
-        {/* Gift card expiration */}
-        <SettingsPanel className="p-5 sm:p-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Gift card expiration</h2>
-          <div className="space-y-2">
-            <label className="flex items-center gap-2 cursor-pointer">
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Gift card expiration</h2>
+              <p className="mt-1 text-sm text-gray-500">Default behavior for gift card balance validity.</p>
+            </div>
+          </div>
+          <div className="space-y-3 p-5 sm:p-6">
+            <label className="flex cursor-pointer items-center gap-3">
               <input
                 type="radio"
                 name="giftCardExpiration"
                 value="never"
                 checked={giftCardExpiration === 'never'}
                 onChange={(e) => setGiftCardExpiration(e.target.value as 'never' | 'expires')}
-                className="w-4 h-4 text-blue-600 focus:ring-blue-500/30"
+                className={radioInline}
               />
               <span className="text-sm text-gray-900">Gift cards never expire</span>
             </label>
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-3">
               <input
                 type="radio"
                 name="giftCardExpiration"
                 value="expires"
                 checked={giftCardExpiration === 'expires'}
                 onChange={(e) => setGiftCardExpiration(e.target.value as 'never' | 'expires')}
-                className="w-4 h-4 text-blue-600 focus:ring-blue-500/30"
+                className={radioInline}
               />
               <span className="text-sm text-gray-900">Gift cards expire</span>
             </label>
           </div>
         </SettingsPanel>
 
-        {/* Apple Wallet passes */}
-        <SettingsPanel className="p-5 sm:p-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-base font-semibold text-gray-900 mb-1">Apple Wallet passes</h2>
-              <p className="text-sm text-gray-500 max-w-[540px]">
-                Give customers a digital Apple Wallet pass to use online or in your retail stores
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Apple Wallet passes</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Give customers a digital Apple Wallet pass to use online or in your retail stores.
               </p>
             </div>
-            <button className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+          </div>
+          <div className="flex justify-end p-5 sm:p-6">
+            <button type="button" className={btnGhost}>
               Customize
             </button>
           </div>
         </SettingsPanel>
 
-        <div className="text-center text-sm text-gray-500 mt-2">
-          <button type="button" className="text-gray-700 font-medium hover:underline">
+        <p className="text-center text-sm text-gray-500">
+          <button type="button" className="font-medium text-blue-600 underline decoration-blue-600/30 hover:text-blue-700">
             Learn more about payments
           </button>
-        </div>
+        </p>
       </div>
     </div>
   );

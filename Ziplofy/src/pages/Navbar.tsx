@@ -17,7 +17,7 @@ import { useStore } from '../contexts/store.context';
 import { useTransferTags } from '../contexts/transfer-tags.context';
 import { useVendors } from '../contexts/vendor.context';
 
-const ShopifyNavbar: React.FC = () => {
+const ZiplofyNavbar: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isAlertsOpen, setIsAlertsOpen] = useState<boolean>(false);
   const [isGuideOpen, setIsGuideOpen] = useState<boolean>(false);
@@ -294,4 +294,4 @@ const ShopifyNavbar: React.FC = () => {
   );
 };
 
-export default ShopifyNavbar;
+export default ZiplofyNavbar;

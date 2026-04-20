@@ -6,7 +6,6 @@ import CostSummarySection from '../components/purchase-orders/CostSummarySection
 import ManageCostSummaryModal from '../components/purchase-orders/ManageCostSummaryModal';
 import ShipmentSection from '../components/purchase-orders/ShipmentSection';
 import SupplierDestinationSection from '../components/purchase-orders/SupplierDestinationSection';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 import { useLocations } from '../contexts/location.context';
 import { useProducts } from '../contexts/product.context';
 import { usePurchaseOrderTags } from '../contexts/purchase-order-tags.context';
@@ -286,8 +285,7 @@ const PurchaseOrderNewPage: React.FC = () => {
   }, [navigate]);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
+    <div className="min-h-screen bg-page-background-color">
         {/* Header */}
         <div className="border-b border-gray-200 px-4 py-3">
           <div className="max-w-7xl mx-auto">
@@ -375,8 +373,7 @@ const PurchaseOrderNewPage: React.FC = () => {
             adjustmentTypeOptions={adjustmentTypeOptions}
           />
         </div>
-      </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

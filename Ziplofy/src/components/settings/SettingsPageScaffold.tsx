@@ -1,5 +1,9 @@
 import React from 'react';
 
+/** Standard max width + vertical rhythm for content inside Settings layout `<Outlet />`. */
+export const SETTINGS_PAGE_CONTAINER_CLASS =
+  'mx-auto flex w-full max-w-[1200px] flex-col gap-6';
+
 type SettingsCalloutProps = {
   variant?: 'info' | 'warning' | 'neutral';
   title?: string;
@@ -52,18 +56,18 @@ type SettingsHeroProps = {
  */
 export function SettingsHero({ title, description, tip, leading, actions }: SettingsHeroProps) {
   return (
-    <header className="rounded-2xl border border-gray-200/80 bg-gradient-to-b from-white to-blue-50/20 px-5 py-5 shadow-sm sm:px-6">
+    <header className="rounded-2xl border border-slate-200/80 bg-white px-5 py-5 shadow-sm sm:px-6">
       {leading ? <div className="mb-4">{leading}</div> : null}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 pl-3 border-l-4 border-blue-500/70">
+        <div className="min-w-0 border-l-4 border-blue-500/70 pl-3">
           <h1 className="text-2xl font-semibold tracking-tight text-gray-900 sm:text-3xl">{title}</h1>
           {description ? <p className="mt-1 text-sm text-gray-500">{description}</p> : null}
         </div>
         {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
       </div>
       {tip ? (
-        <div className="mt-4 hidden rounded-xl border border-blue-100/80 bg-blue-50/40 px-4 py-2.5 sm:block">
-          <div className="text-xs leading-relaxed text-blue-950/80">{tip}</div>
+        <div className="mt-4 hidden rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 sm:block">
+          <div className="text-xs leading-relaxed text-slate-600">{tip}</div>
         </div>
       ) : null}
     </header>

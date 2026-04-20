@@ -90,7 +90,7 @@ The Ziplofy platform uses a **Section-Subsection** RBAC model:
 #### Permission Definition (separate model)
 
 - `src/models/permission/permission-definition.model.ts` – hierarchical permission definitions (e.g. `orders.view`, `orders.edit.apply_discounts`).
-- Used by `seed.permissions.ts` for a finer-grained (Shopify-style) permission catalog.
+- Used by `seed.permissions.ts` for a finer-grained (Ziplofy-style) permission catalog.
 - **Note:** The main RBAC in the app uses the **Role.permissions** structure (section/subsection), not this permission-definition model.
 
 ### 2.2 Auth Middleware (`src/middlewares/auth.middleware.ts`)

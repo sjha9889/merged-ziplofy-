@@ -1,9 +1,7 @@
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
-
 export const BlogPostCreatePage = () => {
   return (
-    <GridBackgroundWrapper>
-      <div className="h-fit w-full rounded-md px-24 py-12 flex flex-col gap-4">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="flex h-fit w-full flex-col gap-4 rounded-md px-24 py-12">
 
         <div className="flex justify-between">
             <span className="font-bold">Add Blog Post</span>
@@ -105,6 +103,6 @@ export const BlogPostCreatePage = () => {
             </div>
         </div>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   )
 }

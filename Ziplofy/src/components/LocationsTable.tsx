@@ -17,29 +17,30 @@ interface LocationsTableProps {
   locations: Location[];
   defaultLocationId: string | null;
   onLocationClick: (locationId: string) => void;
+  onAddLocation?: () => void;
 }
 
 const LocationsTable: React.FC<LocationsTableProps> = ({
   locations,
   defaultLocationId,
   onLocationClick,
+  onAddLocation,
 }) => {
   return (
-    <>
-      <div className="rounded-lg border border-gray-200 overflow-hidden">
-        <div className="flex justify-between py-3 px-4 bg-gray-50/80 border-b border-gray-200">
-          <p className="text-xs font-medium text-gray-700">Location</p>
-          <p className="text-xs font-medium text-gray-700">Status</p>
-        </div>
-        <div className="px-4">
-          <LocationsList
-            locations={locations}
-            defaultLocationId={defaultLocationId}
-            onLocationClick={onLocationClick}
-          />
-        </div>
+    <div className="overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-inner ring-1 ring-slate-100/80">
+      <div className="grid grid-cols-[1fr_auto] gap-4 border-b border-slate-200 bg-gradient-to-r from-slate-50/95 to-slate-50/40 px-4 py-3 sm:px-5">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">Location</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">Status</p>
       </div>
-    </>
+      <div className="divide-y divide-slate-100">
+        <LocationsList
+          locations={locations}
+          defaultLocationId={defaultLocationId}
+          onLocationClick={onLocationClick}
+          onAddLocation={onAddLocation}
+        />
+      </div>
+    </div>
   );
 };
 

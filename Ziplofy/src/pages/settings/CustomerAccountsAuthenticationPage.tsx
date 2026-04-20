@@ -1,9 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeftIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
-import ToggleSwitch from '../../components/ToggleSwitch';
 import { useStore } from '../../contexts/store.context';
 import { useCustomerAccountSettings } from '../../contexts/customer-account-settings.context';
+import {
+  SETTINGS_PAGE_CONTAINER_CLASS,
+  SettingsCallout,
+  SettingsHero,
+  SettingsPanel,
+} from '../../components/settings/SettingsPageScaffold';
 
 const CustomerAccountsAuthenticationPage: React.FC = () => {
   const navigate = useNavigate();
@@ -107,51 +112,55 @@ const CustomerAccountsAuthenticationPage: React.FC = () => {
 
   const isDisabled = loading || saving || !settings;
 
+  const btnPrimary =
+    'inline-flex min-w-[100px] items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50';
+
   return (
     <div className="w-full">
-      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4 border-b border-gray-200 pb-4">
-          <div className="flex items-center gap-3">
+      <div className={SETTINGS_PAGE_CONTAINER_CLASS}>
+        <SettingsHero
+          title="Authentication"
+          description="Manage sign-in options and account access for your customers."
+          leading={
             <button
+              type="button"
               onClick={handleBack}
-              className="p-1 text-gray-600 hover:text-gray-900 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
             >
-              <ArrowLeftIcon className="w-5 h-5" />
+              <ArrowLeftIcon className="h-4 w-4" />
+              Back
             </button>
-            <h1 className="text-xl font-medium text-gray-900">
-              Authentication
-            </h1>
-          </div>
-          {settings && (
-            <button
-              onClick={handleSave}
-              disabled={!hasUnsavedChanges || isDisabled}
-              className="px-3 py-1.5 text-sm font-medium border border-gray-200 text-gray-700 min-w-[100px] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors"
-            >
-              {saving ? 'Saving...' : 'Save'}
-            </button>
-          )}
-        </div>
+          }
+          actions={
+            settings ? (
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={!hasUnsavedChanges || isDisabled}
+                className={btnPrimary}
+              >
+                {saving ? 'Saving…' : 'Save'}
+              </button>
+            ) : null
+          }
+        />
 
-        <p className="text-xs text-gray-600 mb-4">
-          Manage sign-in options and account access
-        </p>
+        {error ? (
+          <SettingsCallout variant="warning" title="Something went wrong">
+            <p className="text-sm text-gray-700">{error}</p>
+          </SettingsCallout>
+        ) : null}
 
-        {error && (
-          <div className="bg-gray-50 border border-gray-200 text-gray-700 px-4 py-3 mb-4 text-xs">
-            {error}
-          </div>
-        )}
-
-        <div className="space-y-4">
-          {/* Sign-in options */}
-          <div className="border border-gray-200 bg-white/95 p-4">
-            <h2 className="text-sm font-medium text-gray-900 mb-4">
-              Sign-in options
-            </h2>
-
-            <div className="flex items-center justify-between p-3 border border-gray-200">
+        <div className="flex flex-col gap-6">
+          <SettingsPanel className="ring-1 ring-slate-200/60">
+            <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+              <div className="border-l-4 border-blue-500/75 pl-3">
+                <h2 className="text-base font-semibold text-gray-900">Sign-in options</h2>
+                <p className="mt-1 text-sm text-gray-500">Control the default Shop sign-in experience.</p>
+              </div>
+            </div>
+            <div className="p-5 sm:p-6">
+            <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/50 p-4">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 bg-purple-400 flex items-center justify-center">
                   <div
@@ -208,17 +217,19 @@ const CustomerAccountsAuthenticationPage: React.FC = () => {
                 </div>
               </div>
             </div>
-          </div>
+            </div>
+          </SettingsPanel>
 
-          {/* Available connections */}
-          <div className="border border-gray-200 bg-white/95 p-4">
-            <h2 className="text-sm font-medium text-gray-900 mb-4">
-              Available connections
-            </h2>
-
-            <div className="space-y-3">
+          <SettingsPanel className="ring-1 ring-slate-200/60">
+            <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+              <div className="border-l-4 border-blue-500/75 pl-3">
+                <h2 className="text-base font-semibold text-gray-900">Available connections</h2>
+                <p className="mt-1 text-sm text-gray-500">Link social providers for faster customer sign-in.</p>
+              </div>
+            </div>
+            <div className="space-y-3 p-5 sm:p-6">
               {/* Google */}
-              <div className="flex items-center justify-between p-3 border border-gray-200">
+              <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="flex items-center gap-3">
                   <img
                     src="https://www.google.com/favicon.ico"
@@ -232,15 +243,16 @@ const CustomerAccountsAuthenticationPage: React.FC = () => {
                   <p className="text-sm font-medium text-gray-900">Google</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => navigate('/settings/customer-accounts/authentication/google')}
-                  className="px-3 py-1.5 text-xs font-medium border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-sm transition-colors hover:bg-slate-50"
                 >
                   Connect
                 </button>
               </div>
 
               {/* Facebook */}
-              <div className="flex items-center justify-between p-3 border border-gray-200">
+              <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
                     f
@@ -248,14 +260,15 @@ const CustomerAccountsAuthenticationPage: React.FC = () => {
                   <p className="text-sm font-medium text-gray-900">Facebook</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => navigate('/settings/customer-accounts/authentication/facebook')}
-                  className="px-3 py-1.5 text-xs font-medium border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                  className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-sm transition-colors hover:bg-slate-50"
                 >
                   Connect
                 </button>
               </div>
             </div>
-          </div>
+          </SettingsPanel>
         </div>
       </div>
     </div>

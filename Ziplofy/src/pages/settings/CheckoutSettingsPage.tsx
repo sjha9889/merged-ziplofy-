@@ -15,10 +15,30 @@ import toast from 'react-hot-toast';
 import Modal from '../../components/Modal';
 import Tabs from '../../components/Tabs';
 import ToggleSwitch from '../../components/ToggleSwitch';
+import {
+  SETTINGS_PAGE_CONTAINER_CLASS,
+  SettingsHero,
+  SettingsPanel,
+} from '../../components/settings/SettingsPageScaffold';
 import { useCheckoutSettings } from '../../contexts/checkout-settings.context';
 import { useCountries } from '../../contexts/country.context';
 import { useStore } from '../../contexts/store.context';
-import { SettingsHero } from '../../components/settings/SettingsPageScaffold';
+
+const btnPrimary =
+  'inline-flex shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-600';
+
+const radioClass =
+  'h-4 w-4 shrink-0 border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-0';
+
+const radioClassStart = `${radioClass} mt-0.5`;
+
+const checkboxClass =
+  'h-4 w-4 shrink-0 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-0';
+
+const checkboxClassStart = `${checkboxClass} mt-0.5`;
+
+const panelWarningClass =
+  'rounded-xl border border-amber-200/80 bg-amber-50/90 p-4 text-amber-950 shadow-sm';
 
 const CheckoutSettingsPage: React.FC = () => {
   const { countries, total, loading: countriesLoading, getCountries } = useCountries();
@@ -493,54 +513,63 @@ const CheckoutSettingsPage: React.FC = () => {
 
   return (
     <div className="w-full">
-      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+      <div className={SETTINGS_PAGE_CONTAINER_CLASS}>
         <SettingsHero
           title="Checkout"
           description="Manage contact, marketing, and advanced checkout preferences."
+          tip="Saved changes apply to new checkout sessions. Some options also affect order notifications."
           actions={
             isDirty ? (
               <button
                 type="button"
                 onClick={handleSave}
                 disabled={isSaving || checkoutLoading || !settings}
-                className="inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium text-white bg-blue-600 shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 transition-colors shrink-0"
+                className={btnPrimary}
               >
-                {isSaving ? 'Saving...' : 'Save changes'}
+                {isSaving ? 'Saving…' : 'Save changes'}
               </button>
             ) : undefined
           }
         />
 
-        {/* Customer contact method, Order tracking, and Checkout requirements */}
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
-          {/* Customer contact method */}
-          <div className="flex items-center gap-1 mb-1">
-            <h2 className="text-sm font-medium text-gray-900">Customer contact method</h2>
-            <InformationCircleIcon className="w-4 h-4 text-gray-500" />
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Contact &amp; checkout</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                How customers reach you, order tracking links, and sign-in requirements.
+              </p>
+            </div>
           </div>
-          <p className="text-xs text-gray-600 mb-4">
+          <div className="p-5 sm:p-6">
+          <div className="mb-6">
+          <div className="mb-3 flex items-center gap-1.5">
+            <h3 className="text-sm font-semibold text-gray-900">Customer contact method</h3>
+            <InformationCircleIcon className="h-4 w-4 text-slate-400" title="Contact method help" />
+          </div>
+          <p className="mb-4 text-sm text-gray-600">
             The contact method customers enter at checkout will receive order and shipping{' '}
-            <button className="text-gray-700 cursor-pointer underline hover:no-underline">
+            <button type="button" className="font-medium text-blue-600 underline decoration-blue-600/30 hover:text-blue-700">
               notifications
             </button>
             .
           </p>
         <div className="space-y-4">
-          <label className="flex items-start gap-3 cursor-pointer">
+          <label className="flex cursor-pointer items-start gap-3">
             <input
               type="radio"
               name="contactMethod"
               value="phone_or_email"
               checked={contactMethod === 'phone_or_email'}
               onChange={(e) => handleContactMethodChange(e.target.value as 'phone_or_email' | 'email')}
-              className="mt-1 w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500/30"
+              className={radioClassStart}
             />
             <div className="flex-1">
               <p className="text-sm font-medium text-gray-900">Phone number or email</p>
               {contactMethod === 'phone_or_email' && (
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="mt-1 text-xs text-gray-600">
                   An{' '}
-                  <button className="text-gray-700 cursor-pointer underline hover:no-underline">
+                  <button type="button" className="font-medium text-blue-600 underline decoration-blue-600/30 hover:text-blue-700">
                     SMS App
                   </button>{' '}
                   is required to send SMS updates
@@ -548,92 +577,96 @@ const CheckoutSettingsPage: React.FC = () => {
               )}
             </div>
           </label>
-          <label className="flex items-start gap-3 cursor-pointer">
+          <label className="flex cursor-pointer items-start gap-3">
             <input
               type="radio"
               name="contactMethod"
               value="email"
               checked={contactMethod === 'email'}
               onChange={(e) => handleContactMethodChange(e.target.value as 'phone_or_email' | 'email')}
-              className="mt-1 w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-400"
+              className={radioClassStart}
             />
             <p className="text-sm font-medium text-gray-900">Email</p>
           </label>
         </div>
+          </div>
 
-        {/* Divider */}
-        <div className="my-6 border-t border-gray-200" />
+        <div className="my-8 border-t border-slate-200/90" />
 
-        {/* Order tracking */}
-        <label className="flex items-start gap-3 cursor-pointer">
+        <label className="flex cursor-pointer items-start gap-3">
           <input
             type="checkbox"
             checked={showOrderTracking}
             onChange={(e) => handleShowOrderTrackingChange(e.target.checked)}
-            className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500/30"
+            className={checkboxClassStart}
           />
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-gray-900">
               Show a link for customers to track their order with{' '}
-              <button className="text-gray-700 cursor-pointer underline hover:no-underline">
+              <button type="button" className="font-medium text-blue-600 underline decoration-blue-600/30 hover:text-blue-700">
                 Ziplofy
               </button>
             </p>
-            <p className="text-xs text-gray-600 mt-1">
+            <p className="mt-1 text-xs text-gray-600">
               Customers will be able to download the app from the order status page
             </p>
           </div>
         </label>
 
-        {/* Divider */}
-        <div className="my-4 border-t border-gray-200" />
+        <div className="my-8 border-t border-slate-200/90" />
 
-        {/* Checkout requirements */}
-        <label className="flex items-start gap-3 cursor-pointer">
+        <label className="flex cursor-pointer items-start gap-3">
           <input
             type="checkbox"
             checked={requireSignIn}
             onChange={(e) => handleRequireSignInChange(e.target.checked)}
-            className="mt-1 w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-400"
+            className={checkboxClassStart}
           />
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-gray-900">
               Require customers to sign in to their account before checkout
             </p>
-            <p className="text-xs text-gray-600 mt-1">
+            <p className="mt-1 text-xs text-gray-600">
               Customers can only use email when sign-in is required
             </p>
           </div>
         </label>
 
-        {/* Warning Alert */}
         {requireSignIn && showWarningAlert && (
-          <div className="mt-4 p-3 bg-gray-50 border border-gray-200">
+          <div className={`${panelWarningClass} mt-4`}>
             <div className="flex items-start gap-2">
-              <ExclamationTriangleIcon className="w-4 h-4 text-gray-600 shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <p className="text-xs text-gray-700">
-                  Requiring a sign-in may discourage some customers from checking out and reduce your store's total orders. To manage the current sign-in experience, go to{' '}
-                  <button className="text-gray-700 cursor-pointer underline hover:no-underline font-medium">
+              <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs leading-relaxed text-amber-950/90">
+                  Requiring a sign-in may discourage some customers from checking out and reduce your store&apos;s total orders. To manage the current sign-in experience, go to{' '}
+                  <button type="button" className="font-semibold text-amber-950 underline decoration-amber-800/40 hover:no-underline">
                     customer accounts settings
                   </button>
                   .
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => setShowWarningAlert(false)}
-                className="text-gray-600 hover:text-gray-900"
+                className="shrink-0 text-amber-800/80 transition-colors hover:text-amber-950"
+                aria-label="Dismiss"
               >
-                <XMarkIcon className="w-4 h-4" />
+                <XMarkIcon className="h-4 w-4" />
               </button>
             </div>
           </div>
         )}
-      </div>
+          </div>
+        </SettingsPanel>
 
-        {/* Customer information */}
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
-          <h2 className="text-sm font-medium text-gray-900 mb-4">Customer information</h2>
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Customer information</h2>
+              <p className="mt-1 text-sm text-gray-500">Fields collected during checkout for shipping and identity.</p>
+            </div>
+          </div>
+          <div className="p-5 sm:p-6">
 
           {/* Full name */}
           <div className="mb-4">
@@ -646,7 +679,7 @@ const CheckoutSettingsPage: React.FC = () => {
                   value="last_name"
                   checked={fullNameOption === 'last_name'}
                   onChange={(e) => handleFullNameOptionChange(e.target.value as 'last_name' | 'first_last')}
-                  className="w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-400"
+                  className={radioClass}
                 />
                 <p className="text-sm text-gray-900">Only require last name</p>
               </label>
@@ -657,7 +690,7 @@ const CheckoutSettingsPage: React.FC = () => {
                   value="first_last"
                   checked={fullNameOption === 'first_last'}
                   onChange={(e) => handleFullNameOptionChange(e.target.value as 'last_name' | 'first_last')}
-                  className="w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-400"
+                  className={radioClass}
                 />
                 <p className="text-sm text-gray-900">Require first and last name</p>
               </label>
@@ -675,7 +708,7 @@ const CheckoutSettingsPage: React.FC = () => {
                   value="dont_include"
                   checked={companyNameOption === 'dont_include'}
                   onChange={(e) => handleCompanyNameOptionChange(e.target.value as 'dont_include' | 'optional' | 'required')}
-                  className="w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-400"
+                  className={radioClass}
                 />
                 <div className="flex items-center gap-2">
                   <p className="text-sm text-gray-900">Don't include</p>
@@ -691,7 +724,7 @@ const CheckoutSettingsPage: React.FC = () => {
                   value="optional"
                   checked={companyNameOption === 'optional'}
                   onChange={(e) => handleCompanyNameOptionChange(e.target.value as 'dont_include' | 'optional' | 'required')}
-                  className="w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-400"
+                  className={radioClass}
                 />
                 <p className="text-sm text-gray-900">Optional</p>
               </label>
@@ -702,7 +735,7 @@ const CheckoutSettingsPage: React.FC = () => {
                   value="required"
                   checked={companyNameOption === 'required'}
                   onChange={(e) => handleCompanyNameOptionChange(e.target.value as 'dont_include' | 'optional' | 'required')}
-                  className="w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-400"
+                  className={radioClass}
                 />
                 <p className="text-sm text-gray-900">Required</p>
               </label>
@@ -710,19 +743,21 @@ const CheckoutSettingsPage: React.FC = () => {
 
             {/* Warning Alert for Company name */}
             {companyNameOption === 'required' && showCompanyNameWarning && (
-              <div className="mt-3 p-3 bg-gray-50 border border-gray-200">
+              <div className={`${panelWarningClass} mt-3`}>
                 <div className="flex items-start gap-2">
-                  <ExclamationTriangleIcon className="w-4 h-4 text-gray-600 shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-700">
-                      Requiring a company name may prevent some customers from checking out and reduce your store's total orders
+                  <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs leading-relaxed text-amber-950/90">
+                      Requiring a company name may prevent some customers from checking out and reduce your store&apos;s total orders
                     </p>
                   </div>
                   <button
+                    type="button"
                     onClick={() => setShowCompanyNameWarning(false)}
-                    className="text-gray-600 hover:text-gray-900"
+                    className="shrink-0 text-amber-800/80 transition-colors hover:text-amber-950"
+                    aria-label="Dismiss"
                   >
-                    <XMarkIcon className="w-4 h-4" />
+                    <XMarkIcon className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -740,7 +775,7 @@ const CheckoutSettingsPage: React.FC = () => {
                   value="dont_include"
                   checked={addressLine2Option === 'dont_include'}
                   onChange={(e) => handleAddressLine2OptionChange(e.target.value as 'dont_include' | 'optional' | 'required')}
-                  className="w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-400"
+                  className={radioClass}
                 />
                 <p className="text-sm text-gray-900">Don't include</p>
               </label>
@@ -751,7 +786,7 @@ const CheckoutSettingsPage: React.FC = () => {
                   value="optional"
                   checked={addressLine2Option === 'optional'}
                   onChange={(e) => handleAddressLine2OptionChange(e.target.value as 'dont_include' | 'optional' | 'required')}
-                  className="w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-400"
+                  className={radioClass}
                 />
                 <div className="flex items-center gap-2">
                   <p className="text-sm text-gray-900">Optional</p>
@@ -767,7 +802,7 @@ const CheckoutSettingsPage: React.FC = () => {
                   value="required"
                   checked={addressLine2Option === 'required'}
                   onChange={(e) => handleAddressLine2OptionChange(e.target.value as 'dont_include' | 'optional' | 'required')}
-                  className="w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-400"
+                  className={radioClass}
                 />
                 <p className="text-sm text-gray-900">Required</p>
               </label>
@@ -775,19 +810,21 @@ const CheckoutSettingsPage: React.FC = () => {
 
             {/* Warning Alert for Address line 2 */}
             {addressLine2Option === 'required' && showAddressLine2Warning && (
-              <div className="mt-3 p-3 bg-gray-50 border border-gray-200">
+              <div className={`${panelWarningClass} mt-3`}>
                 <div className="flex items-start gap-2">
-                  <ExclamationTriangleIcon className="w-4 h-4 text-gray-600 shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-xs text-gray-700">
-                      Requiring an address line 2 may prevent some customers from checking out and reduce your store's total orders
+                  <ExclamationTriangleIcon className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs leading-relaxed text-amber-950/90">
+                      Requiring an address line 2 may prevent some customers from checking out and reduce your store&apos;s total orders
                     </p>
                   </div>
                   <button
+                    type="button"
                     onClick={() => setShowAddressLine2Warning(false)}
-                    className="text-gray-600 hover:text-gray-900"
+                    className="shrink-0 text-amber-800/80 transition-colors hover:text-amber-950"
+                    aria-label="Dismiss"
                   >
-                    <XMarkIcon className="w-4 h-4" />
+                    <XMarkIcon className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -805,7 +842,7 @@ const CheckoutSettingsPage: React.FC = () => {
                   value="dont_include"
                   checked={shippingPhoneOption === 'dont_include'}
                   onChange={(e) => handleShippingPhoneOptionChange(e.target.value as 'dont_include' | 'optional' | 'required')}
-                  className="w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-400"
+                  className={radioClass}
                 />
                 <p className="text-sm text-gray-900">Don't include</p>
               </label>
@@ -816,7 +853,7 @@ const CheckoutSettingsPage: React.FC = () => {
                   value="optional"
                   checked={shippingPhoneOption === 'optional'}
                   onChange={(e) => handleShippingPhoneOptionChange(e.target.value as 'dont_include' | 'optional' | 'required')}
-                  className="w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-400"
+                  className={radioClass}
                 />
                 <p className="text-sm text-gray-900">Optional</p>
               </label>
@@ -827,23 +864,25 @@ const CheckoutSettingsPage: React.FC = () => {
                   value="required"
                   checked={shippingPhoneOption === 'required'}
                   onChange={(e) => handleShippingPhoneOptionChange(e.target.value as 'dont_include' | 'optional' | 'required')}
-                  className="w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-400"
+                  className={radioClass}
                 />
                 <p className="text-sm text-gray-900">Required</p>
               </label>
             </div>
           </div>
-      </div>
-
-        {/* Marketing options */}
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
-          <div className="flex items-center gap-1 mb-1">
-            <h2 className="text-sm font-medium text-gray-900">Marketing options</h2>
-            <InformationCircleIcon className="w-4 h-4 text-gray-500" />
           </div>
-          <p className="text-xs text-gray-600 mb-4">
-            Display a checkbox for customers to sign up for email or SMS marketing
-          </p>
+        </SettingsPanel>
+
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Marketing options</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Email and SMS opt-in checkboxes shown during checkout.
+              </p>
+            </div>
+          </div>
+          <div className="p-5 sm:p-6">
           {/* Email Marketing Section */}
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
@@ -864,10 +903,10 @@ const CheckoutSettingsPage: React.FC = () => {
                 <div className="flex gap-3">
                   <div
                     onClick={() => handleEmailRegionOptionChange('ziplofy_recommended')}
-                    className={`flex-1 p-3 border cursor-pointer transition-colors ${
+                    className={`flex-1 cursor-pointer rounded-xl border p-3 transition-colors ${
                       emailRegionOption === 'ziplofy_recommended'
-                        ? 'border-gray-900'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-blue-600 ring-1 ring-blue-500/25'
+                        : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     <label className="flex items-start gap-2 cursor-pointer">
@@ -877,7 +916,7 @@ const CheckoutSettingsPage: React.FC = () => {
                         value="ziplofy_recommended"
                         checked={emailRegionOption === 'ziplofy_recommended'}
                         onChange={(e) => handleEmailRegionOptionChange(e.target.value as 'ziplofy_recommended' | 'custom')}
-                        className="mt-1 w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-400"
+                        className={radioClassStart}
                       />
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-900 mb-1">
@@ -892,10 +931,10 @@ const CheckoutSettingsPage: React.FC = () => {
                   </div>
                   <div
                     onClick={() => handleEmailRegionOptionChange('custom')}
-                    className={`flex-1 p-3 border cursor-pointer transition-colors ${
+                    className={`flex-1 cursor-pointer rounded-xl border p-3 transition-colors ${
                       emailRegionOption === 'custom'
-                        ? 'border-gray-900'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-blue-600 ring-1 ring-blue-500/25'
+                        : 'border-slate-200 hover:border-slate-300'
                     }`}
                   >
                     <label className="flex items-start gap-2 cursor-pointer w-full">
@@ -905,7 +944,7 @@ const CheckoutSettingsPage: React.FC = () => {
                         value="custom"
                         checked={emailRegionOption === 'custom'}
                         onChange={(e) => handleEmailRegionOptionChange(e.target.value as 'ziplofy_recommended' | 'custom')}
-                        className="mt-1 w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-400"
+                        className={radioClassStart}
                       />
                       <div className="flex-1">
                         <p className="text-sm font-medium text-gray-900 mb-1">
@@ -915,11 +954,12 @@ const CheckoutSettingsPage: React.FC = () => {
                           {selectedRegions.length === 0 ? 'None selected' : `${selectedRegions.length} selected`}
                         </p>
                         <button
+                          type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             setEditRegionsModalOpen(true);
                           }}
-                          className="text-xs text-gray-700 cursor-pointer underline hover:no-underline"
+                          className="cursor-pointer text-xs font-medium text-blue-600 underline decoration-blue-600/30 hover:text-blue-700"
                         >
                           Edit
                         </button>
@@ -946,30 +986,32 @@ const CheckoutSettingsPage: React.FC = () => {
             {smsMarketing && (
               <p className="text-xs text-gray-600">
                 To launch SMS campaigns, you need to install an{' '}
-                <button className="text-gray-700 cursor-pointer underline hover:no-underline">
+                <button type="button" className="font-medium text-blue-600 underline decoration-blue-600/30 hover:text-blue-700">
                   SMS App
                 </button>
                 .
               </p>
             )}
           </div>
-      </div>
-
-        {/* Tipping */}
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
-          <div className="flex items-center gap-1 mb-1">
-            <h2 className="text-sm font-medium text-gray-900">Tipping</h2>
-            <InformationCircleIcon className="w-4 h-4 text-gray-500" />
           </div>
-          <p className="text-xs text-gray-600 mb-4">
-            Customers can choose between 3 presets or enter a custom amount
-          </p>
-          <label className={`flex items-center gap-3 cursor-pointer ${showTipping ? 'mb-4' : ''}`}>
+        </SettingsPanel>
+
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Tipping</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Optional tip presets and visibility before customers add a tip.
+              </p>
+            </div>
+          </div>
+          <div className="p-5 sm:p-6">
+          <label className={`flex cursor-pointer items-center gap-3 ${showTipping ? 'mb-4' : ''}`}>
             <input
               type="checkbox"
               checked={showTipping}
               onChange={(e) => handleShowTippingChange(e.target.checked)}
-              className="w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-400"
+              className={checkboxClass}
             />
             <p className="text-sm font-medium text-gray-900">
               Show tipping options at checkout
@@ -987,7 +1029,7 @@ const CheckoutSettingsPage: React.FC = () => {
                       type="text"
                       value={preset1}
                       onChange={(e) => setPreset1(e.target.value)}
-                      className="w-full px-3 py-2 pr-8 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 text-sm"
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 pr-8 text-sm shadow-inner focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
                   </div>
@@ -999,7 +1041,7 @@ const CheckoutSettingsPage: React.FC = () => {
                       type="text"
                       value={preset2}
                       onChange={(e) => setPreset2(e.target.value)}
-                      className="w-full px-3 py-2 pr-8 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 text-sm"
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 pr-8 text-sm shadow-inner focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
                   </div>
@@ -1011,7 +1053,7 @@ const CheckoutSettingsPage: React.FC = () => {
                       type="text"
                       value={preset3}
                       onChange={(e) => setPreset3(e.target.value)}
-                      className="w-full px-3 py-2 pr-8 border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 text-sm"
+                      className="w-full rounded-lg border border-slate-200 px-3 py-2 pr-8 text-sm shadow-inner focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
                   </div>
@@ -1022,45 +1064,63 @@ const CheckoutSettingsPage: React.FC = () => {
 
           {/* Hide tipping options checkbox */}
           {showTipping && (
-            <label className="flex items-center gap-3 cursor-pointer">
+            <label className="flex cursor-pointer items-center gap-3">
               <input
                 type="checkbox"
                 checked={hideTippingUntilChosen}
                 onChange={(e) => handleHideTippingUntilChosenChange(e.target.checked)}
-                className="w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-400"
+                className={checkboxClass}
               />
               <p className="text-sm font-medium text-gray-900">
                 Hide tipping options until customers choose to add a tip
               </p>
             </label>
           )}
-        </div>
+          </div>
+        </SettingsPanel>
 
-        {/* Checkout language */}
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
-          <h2 className="text-sm font-medium text-gray-900 mb-3">Checkout language</h2>
-          <div className="p-3 border border-gray-200">
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Checkout language</h2>
+              <p className="mt-1 text-sm text-gray-500">Locale shown to customers during checkout (read-only for now).</p>
+            </div>
+          </div>
+          <div className="p-5 sm:p-6">
+          <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-3">
             <input
               type="text"
               value="English"
               disabled
-              className="w-full px-3 py-2 border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed text-sm"
+              className="w-full cursor-not-allowed rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-500"
             />
           </div>
-        </div>
+          </div>
+        </SettingsPanel>
 
-        {/* Advanced preferences */}
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
-          <h2 className="text-sm font-medium text-gray-900 mb-4">Advanced preferences</h2>
-
-          {/* Address collection */}
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Advanced preferences</h2>
+              <p className="mt-1 text-sm text-gray-500">Address collection and cart quantity limits.</p>
+            </div>
+          </div>
+          <div className="space-y-3 p-5 sm:p-6">
           <div
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setAddressCollectionModalOpen(true);
+              }
+            }}
             onClick={() => setAddressCollectionModalOpen(true)}
-            className="p-3 border border-gray-200 mb-3 cursor-pointer hover:bg-gray-50 transition-colors"
+            className="cursor-pointer rounded-xl border border-slate-200 p-4 transition-colors hover:border-slate-300 hover:bg-slate-50/80"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3 flex-1">
-                <MapPinIcon className="w-5 h-5 text-gray-500" />
+                <MapPinIcon className="h-5 w-5 shrink-0 text-slate-500" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-900 mb-1">Address collection</p>
                   <p className="text-xs text-gray-600">
@@ -1068,22 +1128,29 @@ const CheckoutSettingsPage: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <ChevronRightIcon className="w-4 h-4 text-gray-500" />
+              <ChevronRightIcon className="h-4 w-4 shrink-0 text-slate-400" />
             </div>
           </div>
 
-          {/* Add-to-cart limit */}
           <div
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                setAddToCartLimitModalOpen(true);
+              }
+            }}
             onClick={() => setAddToCartLimitModalOpen(true)}
-            className="p-3 border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
+            className="cursor-pointer rounded-xl border border-slate-200 p-4 transition-colors hover:border-slate-300 hover:bg-slate-50/80"
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 flex-1">
-                <ShoppingCartIcon className="w-5 h-5 text-gray-500" />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <ShoppingCartIcon className="h-5 w-5 shrink-0 text-slate-500" />
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex flex-wrap items-center gap-2">
                     <p className="text-sm font-medium text-gray-900">Add-to-cart limit</p>
-                    <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium border border-gray-200 h-5 flex items-center">
+                    <span className="flex h-5 items-center rounded border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700">
                       Recommended
                     </span>
                   </div>
@@ -1092,34 +1159,39 @@ const CheckoutSettingsPage: React.FC = () => {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <ToggleSwitch
-                  checked={addToCartLimit}
-                  onChange={handleAddToCartLimitChange}
-                />
-                <ChevronRightIcon className="w-4 h-4 text-gray-500" />
+              <div className="flex shrink-0 items-center gap-2">
+                <div onClick={(e) => e.stopPropagation()} className="inline-flex">
+                  <ToggleSwitch checked={addToCartLimit} onChange={handleAddToCartLimitChange} />
+                </div>
+                <ChevronRightIcon className="h-4 w-4 text-slate-400" />
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Checkout rules */}
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5">
-          <div className="flex items-center gap-1 mb-1">
-            <h2 className="text-sm font-medium text-gray-900">Checkout rules</h2>
-            <InformationCircleIcon className="w-4 h-4 text-gray-500" />
           </div>
-          <p className="text-xs text-gray-600 mb-3">
+        </SettingsPanel>
+
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Checkout rules</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                App-based rules for cart behavior, limits, and verification.
+              </p>
+            </div>
+          </div>
+          <div className="p-5 sm:p-6">
+          <p className="text-sm text-gray-600">
             Rules set parameters for how the cart or checkout responds to different customer scenarios. You can set product limits, perform age verification and more.
           </p>
-          <p className="text-xs text-gray-600">
+          <p className="mt-3 text-sm text-gray-600">
             There are no apps installed with rules for checkout or cart. Visit the{' '}
-            <button className="text-gray-700 cursor-pointer underline hover:no-underline">
+            <button type="button" className="font-medium text-blue-600 underline decoration-blue-600/30 hover:text-blue-700">
               Ziplofy App Store
             </button>{' '}
             to install one.
           </p>
-        </div>
+          </div>
+        </SettingsPanel>
 
       {/* Add-to-cart limit Modal */}
       <Modal

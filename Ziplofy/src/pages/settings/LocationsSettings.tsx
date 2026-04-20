@@ -1,10 +1,14 @@
 import React, { useCallback } from 'react';
+import { PlusIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
 import DefaultLocationRow from '../../components/DefaultLocationRow';
 import LocationDetailsSection from '../../components/LocationDetailsSection';
 import { useLocations } from '../../contexts/location.context';
 import { useStore } from '../../contexts/store.context';
-import { SettingsHero } from '../../components/settings/SettingsPageScaffold';
+import { SettingsHero, SettingsPanel } from '../../components/settings/SettingsPageScaffold';
+
+const btnPrimarySm =
+  'inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/30 sm:py-2';
 
 export { LocationDetailSettings } from './LocationDetailSettings';
 export { NewLocationSettings } from './NewLocationSettings';
@@ -44,25 +48,48 @@ const LocationsSettings: React.FC = () => {
         <SettingsHero
           title="Locations"
           description="Manage where you stock inventory, fulfill orders, and offer pickup or local delivery."
+          tip="The default location is used for new products and when a fulfillment location is not explicitly chosen."
+          actions={
+            <button type="button" className={btnPrimarySm} onClick={handleAddLocation}>
+              <PlusIcon className="h-4 w-4 shrink-0" aria-hidden />
+              Add location
+            </button>
+          }
         />
 
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
-          <h2 className="text-base font-semibold mb-1 text-gray-900">Default location</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            This location is used by Ziplofy and apps when no other location is specified.
-          </p>
-          {defaultLocationId && defLoc ? (
-            <DefaultLocationRow
-              name={defLoc.name}
-              addressLine={addressLine}
-              locations={locations}
-              currentStoreId={currentStore!._id}
-              defaultLocationId={defaultLocationId}
-            />
-          ) : (
-            <p className="text-sm text-gray-500">No default location set.</p>
-          )}
-        </div>
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Default location</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Used by Ziplofy and connected apps when no other location is specified.
+              </p>
+            </div>
+          </div>
+          <div className="p-5 sm:p-6">
+            {defaultLocationId && defLoc ? (
+              <DefaultLocationRow
+                name={defLoc.name}
+                addressLine={addressLine}
+                locations={locations}
+                currentStoreId={currentStore!._id}
+                defaultLocationId={defaultLocationId}
+              />
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-200/90 bg-slate-50/40 px-4 py-10 text-center sm:px-8">
+                <p className="text-sm font-semibold text-gray-900">No default location set</p>
+                <p className="mx-auto mt-2 max-w-md text-sm text-gray-500">
+                  Create a location first, then mark one as the default so new products and unnamed fulfillments use the
+                  right address.
+                </p>
+                <button type="button" className={`${btnPrimarySm} mt-6`} onClick={handleAddLocation}>
+                  <PlusIcon className="h-4 w-4 shrink-0" aria-hidden />
+                  Add your first location
+                </button>
+              </div>
+            )}
+          </div>
+        </SettingsPanel>
 
         <LocationDetailsSection
           locations={locations}

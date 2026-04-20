@@ -1,8 +1,6 @@
 import { CubeIcon, PlusIcon } from '@heroicons/react/24/outline';
 import React, { useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
-
 const PurchaseOrdersPage: React.FC = () => {
   const navigate = useNavigate();
 
@@ -11,8 +9,8 @@ const PurchaseOrdersPage: React.FC = () => {
   }, [navigate]);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="w-full text-black -m-3 p-3 min-h-full">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="-m-3 min-h-full w-full p-3 text-black">
         <div className="max-w-[1000px] mx-auto">
           <div className="p-10 rounded-xl text-center bg-white border border-gray-200">
             <div className="bg-blue-50 w-[72px] h-[72px] mx-auto mb-4 border-2 border-blue-200 rounded-full flex items-center justify-center">
@@ -32,7 +30,7 @@ const PurchaseOrdersPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowLeftIcon, TrashIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 import { useLocations } from '../contexts/location.context';
 import { useStore } from '../contexts/store.context';
 import { useTransfers } from '../contexts/transfer.context';
@@ -106,8 +105,7 @@ const NewTransferPage: React.FC = () => {
   );
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
+    <div className="min-h-screen bg-page-background-color">
         {/* Header */}
         <div className="border-b border-gray-200 px-4 py-3">
           <div className="max-w-7xl mx-auto flex items-center gap-2">
@@ -469,7 +467,6 @@ const NewTransferPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </GridBackgroundWrapper>
   );
 };
 

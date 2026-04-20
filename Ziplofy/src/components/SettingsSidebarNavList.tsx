@@ -18,7 +18,7 @@ export default function SettingsSidebarNavList({
   onChildClick,
 }: SettingsSidebarNavListProps) {
   return (
-    <ul className="p-0 m-0 list-none">
+    <ul className="m-0 list-none p-2">
       {items.map((item) => {
         const hasChildren = Array.isArray(item.children) && item.children.length > 0;
         const itemKey = item.path || item.text;

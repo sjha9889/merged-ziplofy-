@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeftIcon, ChevronDownIcon, TrashIcon } from '@heroicons/react/24/outline';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 import { usePurchaseOrders } from '../contexts/purchase-order.context';
 import { usePurchaseOrderEntries } from '../contexts/purchase-order-entry.context';
 
@@ -47,8 +46,7 @@ export default function PurchaseOrderDetailsPage() {
   }, [po]);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
+    <div className="min-h-screen bg-page-background-color">
         {/* Header */}
         <div className="border-b border-gray-200 px-4 py-3">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -347,7 +345,6 @@ export default function PurchaseOrderDetailsPage() {
             </div>
           )}
         </div>
-      </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 }

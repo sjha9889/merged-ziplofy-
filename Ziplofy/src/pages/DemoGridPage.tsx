@@ -1,16 +1,16 @@
 import React from 'react';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 
+/** Dev/demo placeholder — grid background wrapper was removed app-wide. */
 const DemoGridPage: React.FC = () => {
   return (
-    <GridBackgroundWrapper>
+    <div className="min-h-screen bg-page-background-color">
       <div className="p-6">
-        <div className="max-w-[1600px] mx-auto">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Demo Grid Page</h1>
-          <p className="text-gray-600">This page demonstrates a CSS-based grid background wrapper.</p>
+        <div className="mx-auto max-w-[1600px]">
+          <h1 className="mb-4 text-3xl font-bold text-gray-900">Demo page</h1>
+          <p className="text-gray-600">Plain admin background (no grid overlay).</p>
         </div>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

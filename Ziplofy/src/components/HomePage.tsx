@@ -1,14 +1,17 @@
-import { XMarkIcon } from '@heroicons/react/24/outline';
+import { GlobeAltIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { motion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { InlineWidget } from 'react-calendly';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { useSocket } from '../contexts/socket.context';
+import { useStore } from '../contexts/store.context';
+import { useStoreSubdomain } from '../contexts/storeSubdomain.context';
 import { useUserContext } from '../contexts/user.context';
 import { SocketEventType } from '../types/event.types';
 import CustomizeDomainCard from './CustomizeDomainCard';
 import DashboardContent from './DashboardContent';
+import DashboardUpgradeBanner from './DashboardUpgradeBanner';
 import GettingStartedPage from './GettingStartedPage';
 import OnboardingTour from './OnboardingTour';
 
@@ -20,6 +23,16 @@ export default function HomePage() {
 
   const { socket } = useSocket();
   const { loggedInUser } = useUserContext();
+  const { activeStoreId } = useStore();
+  const { storeSubdomain, getByStoreId } = useStoreSubdomain();
+
+  useEffect(() => {
+    if (activeStoreId) {
+      getByStoreId(activeStoreId);
+    }
+  }, [activeStoreId, getByStoreId]);
+
+  const storefrontHref = storeSubdomain?.url?.trim() || undefined;
 
   // Tour is now only shown when user clicks "Show Tour" button in navbar
   // Automatic first-time tour is disabled
@@ -216,47 +229,71 @@ export default function HomePage() {
       {/* Onboarding Tour */}
       {showOnboarding && <OnboardingTour onComplete={handleOnboardingComplete} />}
 
-      <div className="min-h-screen bg-page-background-color">
-        <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
-          {/* Header */}
-          <div className="mb-4">
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
-              Welcome back{userName !== 'User' ? `, ${userName}` : ''}
-            </h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Here's what's happening with your store today
-            </p>
+      <div className="min-h-[calc(100vh-48px)] w-full bg-dashboard-canvas">
+        <div className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          {/* Top: greeting + primary action */}
+          <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <h1 className="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
+                Welcome back{userName !== 'User' ? `, ${userName}` : ''}
+              </h1>
+              <p className="mt-2 text-base text-slate-500">
+                Here&apos;s what&apos;s happening with your store today.
+              </p>
+            </div>
+            {storefrontHref ? (
+              <a
+                href={storefrontHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-slate-800"
+              >
+                <GlobeAltIcon className="h-4 w-4" aria-hidden />
+                Open store
+              </a>
+            ) : null}
           </div>
 
-          {/* Tabs */}
-          <div className="flex items-center gap-1 mb-8 p-1 bg-white rounded-lg border border-gray-200 w-fit">
-            {(['dashboard', 'getting-started'] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`${
-                  activeTab === tab ? '' : 'hover:text-gray-900 hover:bg-gray-100'
-                } relative rounded-md px-4 py-2 text-sm font-medium text-gray-600 outline-sky-400 transition focus-visible:outline-2`}
-                style={{ WebkitTapHighlightColor: 'transparent' }}
-              >
-                {activeTab === tab && (
-                  <motion.span
-                    layoutId="bubble"
-                    className="absolute inset-0 z-10 bg-blue-600"
-                    style={{ borderRadius: 6 }}
-                    transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                  />
-                )}
-                <span className={`relative z-10 ${activeTab === tab ? 'text-white' : 'text-gray-600'}`}>
-                  {tab === 'dashboard' ? 'Dashboard' : 'Getting Started'}
-                </span>
-              </button>
-            ))}
+          <div className="mb-8 space-y-6">
+            <DashboardUpgradeBanner />
+
+            {/* Tabs — pill switcher */}
+            <div
+              className="inline-flex w-fit items-center gap-0.5 rounded-full border border-slate-200/90 bg-white p-1 shadow-dashboard-card"
+              role="tablist"
+              aria-label="Home sections"
+            >
+              {(['dashboard', 'getting-started'] as const).map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`${
+                    activeTab === tab ? '' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                  } relative rounded-full px-5 py-2 text-sm font-semibold outline-none transition focus-visible:ring-2 focus-visible:ring-blue-500/40`}
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                >
+                  {activeTab === tab && (
+                    <motion.span
+                      layoutId="home-tab-bubble"
+                      className="absolute inset-0 z-0 bg-blue-600 shadow-sm"
+                      style={{ borderRadius: 9999 }}
+                      transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
+                    />
+                  )}
+                  <span className={`relative z-10 ${activeTab === tab ? 'text-white' : ''}`}>
+                    {tab === 'dashboard' ? 'Dashboard' : 'Getting started'}
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Content */}
           {activeTab === 'dashboard' ? (
-            <div key="dashboard" className="flex flex-col gap-4 animate-tab-fade">
+            <div key="dashboard" className="flex flex-col gap-8 animate-tab-fade">
               <DashboardContent />
               <CustomizeDomainCard />
             </div>
