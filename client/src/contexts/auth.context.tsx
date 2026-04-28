@@ -79,6 +79,10 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, initialized]);
 
+  const getErrorMessage = (error: any, fallback: string): string => {
+    return error?.response?.data?.error || error?.response?.data?.message || error?.message || fallback;
+  };
+
   const login = async (email: string, password: string): Promise<void> => {
     try {
       const {data} = await axiosi.post<IUser>('/auth/login', { email, password });
@@ -86,8 +90,10 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data);
       toast.success('Successfully logged in!');
     } catch (error: any) {
+      const message = getErrorMessage(error, 'Login failed');
       console.error('Login error:', error);
-      toast.error(error.response?.data?.message || 'Login failed');
+      toast.error(message);
+      throw error;
     }
   };
 
@@ -98,21 +104,27 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data);
       toast.success('Account created successfully!');
     } catch (error: any) {
+      const message = getErrorMessage(error, 'Registration failed');
       console.error('Register error:', error);
-      toast.error(error.response?.data?.message || 'Registration failed');
+      toast.error(message);
       throw error;
     }
   };
 
   const googleLogin = async (googleJwtToken: string): Promise<void> => {
+    if (!googleJwtToken) {
+      throw new Error('Google credential is missing');
+    }
     try {
       const {data} = await axiosi.post<IUser>('/auth/google', { credential: googleJwtToken });
       safeLocalStorage.setItem("accessToken", data.accessToken)
       setUser(data);
       toast.success('Successfully signed in with Google!');
     } catch (error: any) {
+      const message = getErrorMessage(error, 'Google login failed');
       console.error('Google login error:', error);
-      toast.error(error.response?.data?.message || 'Google login failed');
+      toast.error(message);
+      throw error;
     }
   };
 

@@ -47,12 +47,9 @@ axiosi.interceptors.response.use(
         localStorage.removeItem('token');
       }
       
-      // Only redirect if we're not already on a login/auth page
-      const currentPath = window.location.pathname;
-      if (!currentPath.includes('/login') && !currentPath.includes('/auth')) {
-        // Optionally redirect to auth service or login page
-        // window.location.href = 'http://localhost:3000/login';
-      }
+      const baseAuthUrl = frontendEnv.authMicroserviceFrontendUrl.replace(/\/+$/, '');
+      const targetUrl = `${baseAuthUrl}?logout=true`;
+      window.location.href = targetUrl;
     }
     
     return Promise.reject(error);

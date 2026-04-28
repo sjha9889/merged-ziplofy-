@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { axiosi } from '../config/axios.config';
+import { frontendEnv } from '../config/env';
 
 interface UserContextType {
   loggedInUser: SecureUserInfo | null;
@@ -25,6 +26,12 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }:{children: React.ReactNode}) => {
   const [loggedInUser, setLoggedInUser] = useState<SecureUserInfo | null>(null);
+
+  const redirectToAuth = useCallback(() => {
+    const baseAuthUrl = frontendEnv.authMicroserviceFrontendUrl.replace(/\/+$/, '');
+    const targetUrl = `${baseAuthUrl}?logout=true`;
+    window.location.href = targetUrl;
+  }, []);
 
   // Extract token from URL parameters on app load
   useEffect(() => {
@@ -55,19 +62,19 @@ export const UserProvider = ({ children }:{children: React.ReactNode}) => {
         setLoggedInUser(null);
         localStorage.removeItem('accessToken');
         localStorage.removeItem('token'); // Fallback for any other tokens
-        
-        // Redirect to auth service
-        // window.location.href = 'http://localhost:3000/login';
+        redirectToAuth();
       }
     }
-  }, []);
+  }, [redirectToAuth]);
   
   useEffect(() => {
     const accessToken = localStorage.getItem('accessToken');
     if (accessToken && !loggedInUser) {
       fetchLoggedInUser();
+    } else if (!accessToken && !loggedInUser) {
+      redirectToAuth();
     }
-  }, [fetchLoggedInUser]);
+  }, [fetchLoggedInUser, loggedInUser, redirectToAuth]);
 
   const clearUser = useCallback(() => {
     setLoggedInUser(null);

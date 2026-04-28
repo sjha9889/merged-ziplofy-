@@ -95,6 +95,7 @@ export const googleAuth = asyncErrorHandler(async (req: Request, res: Response, 
     const { credential } = req.body as { credential: string };
 
     if (!credential) return next(new CustomError('No credential provided', 400));
+    if (!process.env.GOOGLE_CLIENT_ID) return next(new CustomError('GOOGLE_CLIENT_ID is not configured', 500));
     
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
@@ -104,6 +105,7 @@ export const googleAuth = asyncErrorHandler(async (req: Request, res: Response, 
     const payload = ticket.getPayload();
 
     if (!payload) return next(new CustomError('Invalid Google token', 401));
+    if (!payload.email) return next(new CustomError('Google account email is required', 400));
     
 
     let user: IUser | null = await User.findOne({ email: payload.email });
@@ -120,6 +122,11 @@ export const googleAuth = asyncErrorHandler(async (req: Request, res: Response, 
       });
 
       await createDefaultResourcesForNewUser(user);
+    } else if (user.provider !== 'google') {
+      await User.updateOne(
+        { _id: user._id },
+        { $set: { provider: 'google', googleId: payload.sub } }
+      );
     }
 
     const access = signAccessToken(user);
