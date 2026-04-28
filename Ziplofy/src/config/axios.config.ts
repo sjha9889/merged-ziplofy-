@@ -1,10 +1,11 @@
 import type { AxiosInstance } from "axios";
 import axios from "axios";
 import { safeLocalStorage } from "../types/local-storage";
+import { frontendEnv } from "./env";
 
 
 export const axiosi: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: frontendEnv.apiUrl,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

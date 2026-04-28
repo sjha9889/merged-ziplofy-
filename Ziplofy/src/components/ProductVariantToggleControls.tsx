@@ -1,6 +1,9 @@
 import { CubeIcon, TruckIcon } from '@heroicons/react/24/outline';
 import React from 'react';
 
+const toggleTrackClass =
+  'h-5 w-10 rounded-full bg-gray-300 transition-colors duration-200 peer-checked:bg-blue-600 after:absolute after:left-[2px] after:top-[2px] after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-transform after:duration-200 peer-checked:after:translate-x-5';
+
 interface ProductVariantToggleControlsProps {
   isPhysicalProduct: boolean;
   isInventoryTrackingEnabled: boolean;

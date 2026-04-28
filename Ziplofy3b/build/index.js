@@ -18,6 +18,7 @@ const socket_auth_middleware_1 = require("./middlewares/socket-auth.middleware")
 const amount_off_products_discount_route_1 = __importDefault(require("./routes/amount-off-products-discount.route"));
 const assigned_support_developer_route_1 = require("./routes/assigned-support-developer.route");
 const auth_route_1 = require("./routes/auth.route");
+const aws_route_1 = __importDefault(require("./routes/aws.route"));
 const category_route_1 = require("./routes/category.route");
 const client_theme_files_route_1 = require("./routes/client-theme-files.route");
 const client_theme_route_1 = require("./routes/client-theme.route");
@@ -149,7 +150,7 @@ const io = new socket_io_1.Server(server, {
     }
 });
 exports.io = io;
-const PORT = process.env.PORT;
+const PORT = Number(env_utils_1.env.PORT);
 // Middleware
 app.use((0, cors_1.default)({
     origin: config_1.config.allowedOrigins,
@@ -163,6 +164,7 @@ app.use("/uploads", express_1.default.static(path_1.default.join(process.cwd(), 
 // route middlewares
 app.use("/api/stores", store_route_1.storeRouter);
 app.use("/api/auth", auth_route_1.authRouter);
+app.use("/api/aws", aws_route_1.default);
 app.use("/api/user", user_route_1.userRouter);
 app.use("/api/themes", theme_route_1.themeRouter);
 app.use("/api/clients", client_route_1.clientRouter);
@@ -297,7 +299,7 @@ io.use(socket_auth_middleware_1.socketAuthMiddleware);
 app.use(error_middleware_1.errorMiddleware);
 // Start server
 server.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode (using ${env_utils_1.loadedEnvFile})`);
+    console.log(`🚀 Server is running on port ${PORT} in ${env_utils_1.env.NODE_ENV} mode (using ${env_utils_1.loadedEnvFile})`);
 });
 // Start BullMQ workers
 const emailWorker = (0, email_worker_1.startEmailWorker)();

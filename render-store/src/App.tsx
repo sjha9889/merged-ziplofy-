@@ -29,6 +29,7 @@ import StorefrontProductDetailPage from './pages/StorefrontProductDetailPage';
 import StorefrontProfilePage from './pages/StorefrontProfilePage';
 import StorefrontResetPasswordPage from './pages/StorefrontResetPasswordPage';
 import StorefrontSignupPage from './pages/StorefrontSignupPage';
+import StorefrontCollectionsListPage from './pages/StorefrontCollectionsListPage';
 import { BlogPage } from './pages/BlogPage';
 import { BlogDetailPage } from './pages/BlogDetailPage';
 import { ContactPage } from './pages/ContactPage';
@@ -93,7 +94,9 @@ const StorefrontRoutes: React.FC = () => (
       <Route element={<LayoutShell />}>
         <Route path="/" element={<StorefrontApp />} />
         <Route path="/products/:id" element={<StorefrontProductDetailPage />} />
-        <Route path="/category" element={<StorefrontCollectionPage />} />
+        <Route path="/products" element={<StorefrontCollectionPage />} />
+        <Route path="/collection" element={<StorefrontCollectionsListPage />} />
+        <Route path="/category" element={<Navigate to="/products" replace />} />
         <Route path="/collections/:collectionId/:urlHandle" element={<StorefrontCollectionPage />} />
         <Route path="/profile" element={<StorefrontProfilePage />} />
         <Route path="/my-orders" element={<StorefrontMyOrdersPage />} />

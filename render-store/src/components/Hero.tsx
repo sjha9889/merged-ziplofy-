@@ -1,14 +1,35 @@
 import { Link } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
 
 type HeroProps = {
-  bannerSrc: string;
+  bannerSources: string[];
+  intervalMs?: number;
 };
 
-export function Hero({ bannerSrc }: HeroProps) {
+export function Hero({ bannerSources, intervalMs = 4500 }: HeroProps) {
+  const sources = useMemo(() => bannerSources.filter(Boolean), [bannerSources]);
+  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+
+  useEffect(() => {
+    if (sources.length <= 1) return;
+
+    const timer = window.setInterval(() => {
+      setActiveBannerIndex((prev) => (prev + 1) % sources.length);
+    }, intervalMs);
+
+    return () => window.clearInterval(timer);
+  }, [sources.length, intervalMs]);
+
+  useEffect(() => {
+    setActiveBannerIndex(0);
+  }, [sources.length]);
+
+  const activeBanner = sources[activeBannerIndex] ?? '';
+
   return (
     <section className="relative w-full overflow-hidden bg-[#0b2114]">
       <div className="relative h-svh min-h-[640px] w-full">
-        <img src={bannerSrc} alt="" className="absolute inset-0 h-full w-full object-cover object-[center_35%] sm:object-center" />
+        <img src={activeBanner} alt="" className="absolute inset-0 h-full w-full object-cover object-[center_35%] sm:object-center" />
         <div
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_85%_75%_at_15%_45%,rgba(0,0,0,0.72)_0%,rgba(0,0,0,0.35)_42%,transparent_72%)]"
           aria-hidden
@@ -32,7 +53,7 @@ export function Hero({ bannerSrc }: HeroProps) {
               <span className="block text-white">perfect watch</span>
             </h1>
             <Link
-              to="/category"
+              to="/products"
               className="mt-10 inline-flex items-center justify-center rounded-md bg-white px-10 py-[15px] text-[13px] font-bold uppercase tracking-[0.18em] text-black transition hover:bg-neutral-100"
             >
               Shop now

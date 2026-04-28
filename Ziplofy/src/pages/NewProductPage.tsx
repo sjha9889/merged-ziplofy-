@@ -4,7 +4,7 @@ import {
   PlusIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import ProductBasicInformationSection from "../components/products/ProductBasicInformationSection";
@@ -15,14 +15,25 @@ import ProductPriceSection from "../components/products/ProductPriceSection";
 import ProductSearchEngineListingSection from "../components/products/ProductSearchEngineListingSection";
 import ProductShippingSection from "../components/products/ProductShippingSection";
 import ProductStatusSection from "../components/products/ProductStatusSection";
+import { useAwsUpload } from "../contexts/aws-upload.context";
 import { useCategories } from "../contexts/category.context";
 import { useProducts } from "../contexts/product.context";
 import { useStore } from "../contexts/store.context";
+
+type SelectedProductImage = {
+  file: File;
+  previewUrl: string;
+};
+
 const NewProductPage: React.FC = () => {
   const { categories, fetchBaseCategories } = useCategories();
   const { createProduct, loading: productLoading } = useProducts();
   const { activeStoreId } = useStore();
+  const { uploadImageWithSignedUrl } = useAwsUpload();
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<SelectedProductImage[]>([]);
+  const selectedImagesRef = useRef<SelectedProductImage[]>([]);
   
   const [formData, setFormData] = useState({
     // Basic Information
@@ -70,6 +81,16 @@ const NewProductPage: React.FC = () => {
     fetchBaseCategories();
   }, [fetchBaseCategories]);
 
+  useEffect(() => {
+    selectedImagesRef.current = selectedImages;
+  }, [selectedImages]);
+
+  useEffect(() => {
+    return () => {
+      selectedImagesRef.current.forEach((image) => URL.revokeObjectURL(image.previewUrl));
+    };
+  }, []);
+
   const handleInputChange = useCallback((field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -83,7 +104,21 @@ const NewProductPage: React.FC = () => {
       return;
     }
 
+    setIsSubmitting(true);
     try {
+      let uploadedImageUrls: string[] = [];
+      if (selectedImages.length > 0) {
+        const uploadToastId = toast.loading(`Uploading ${selectedImages.length} image${selectedImages.length > 1 ? 's' : ''}...`);
+        const uploadedImages = await Promise.all(
+          selectedImages.map((image) =>
+            uploadImageWithSignedUrl(image.file, { folder: `${activeStoreId}/product-image` })
+          )
+        );
+        console.log("uploadedImages", uploadedImages);
+        uploadedImageUrls = uploadedImages.map((image) => image.objectUrl);
+        toast.success('Images uploaded', { id: uploadToastId });
+      };
+
       // Calculate profit and margin
       const price = parseFloat(formData.price) || 0;
       const cost = parseFloat(formData.cost) || 0;
@@ -123,7 +158,7 @@ const NewProductPage: React.FC = () => {
         status: formData.status,
         onlineStorePublishing: true,
         pointOfSalePublishing: false,
-        images: formData.images.filter(img => img.trim() !== ''),
+        images: uploadedImageUrls,
         productType: formData.productType,
         vendor: formData.vendor,
         tagIds: formData.tags || []
@@ -164,33 +199,45 @@ const NewProductPage: React.FC = () => {
         urlHandle: "",
         images: [] as string[]
       });
+      selectedImages.forEach((image) => URL.revokeObjectURL(image.previewUrl));
+      setSelectedImages([]);
     } catch (error: any) {
       console.error('Error creating product:', error);
       alert(`Error creating product: ${error.message || 'Unknown error'}`);
       toast.error('Error creating product');
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [activeStoreId, formData, createProduct, navigate]);
+  }, [activeStoreId, formData, createProduct, navigate, selectedImages, uploadImageWithSignedUrl]);
 
   // Image management functions
-  const addImage = useCallback(() => {
-    setFormData(prev => ({
-      ...prev,
-      images: [...prev.images, '']
-    }));
-  }, []);
+  const addImageFiles = useCallback((files: File[]) => {
+    const validFiles = files.filter((file) => file.type.startsWith('image/'));
+    const rejectedFilesCount = files.length - validFiles.length;
 
-  const updateImage = useCallback((index: number, url: string) => {
-    setFormData(prev => ({
+    if (rejectedFilesCount > 0) {
+      toast.error(`Skipped ${rejectedFilesCount} non-image file${rejectedFilesCount > 1 ? 's' : ''}`);
+    }
+
+    if (!validFiles.length) return;
+
+    setSelectedImages((prev) => [
       ...prev,
-      images: prev.images.map((img, i) => i === index ? url : img)
-    }));
+      ...validFiles.map((file) => ({
+        file,
+        previewUrl: URL.createObjectURL(file),
+      })),
+    ]);
   }, []);
 
   const removeImage = useCallback((index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }));
+    setSelectedImages((prev) => {
+      const imageToRemove = prev[index];
+      if (imageToRemove) {
+        URL.revokeObjectURL(imageToRemove.previewUrl);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
   }, []);
 
   // Variant management functions
@@ -293,10 +340,10 @@ const NewProductPage: React.FC = () => {
 
           {/* Product Images Sub-section */}
           <ProductImagesSection
-            images={formData.images}
-            onAddImage={addImage}
-            onUpdateImage={updateImage}
+            images={selectedImages.map((image) => image.previewUrl)}
+            onAddImageFiles={addImageFiles}
             onRemoveImage={removeImage}
+            disabled={isSubmitting || productLoading}
           />
 
           {/* Status Section */}
@@ -455,10 +502,10 @@ const NewProductPage: React.FC = () => {
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={productLoading || !activeStoreId}
+            disabled={productLoading || isSubmitting || !activeStoreId}
             className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {productLoading ? 'Creating product...' : 'Add product'}
+            {isSubmitting || productLoading ? 'Creating product...' : 'Add product'}
           </button>
         </div>
       </div>

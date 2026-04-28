@@ -26,7 +26,7 @@ export function ExploreSwisswristSection({ images }: ExploreSwisswristSectionPro
 
         <div className="mt-8 flex justify-center sm:mt-10">
           <a
-            href="/category"
+            href="/products"
             className="inline-flex min-w-[200px] items-center justify-center rounded-lg bg-black px-10 py-3.5 text-[13px] font-semibold uppercase tracking-[0.2em] text-white shadow-[0_2px_8px_rgba(0,0,0,0.12)] transition hover:bg-neutral-900"
           >
             Display All

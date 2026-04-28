@@ -17,19 +17,78 @@ type RestCountry = {
   currencies?: Record<string, { name?: string; symbol?: string }>;
 };
 
+type FallbackCountry = {
+  name: string;
+  iso2: string;
+  iso3: string;
+  numeric_code?: string;
+  region?: string;
+  subregion?: string;
+  emoji?: string;
+  currency?: string;
+};
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function fetchWithRetry<T>(url: string, label: string, attempts = 4): Promise<T> {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`Failed to download ${label}: ${res.status} ${res.statusText}`);
+      }
+      return (await res.json()) as T;
+    } catch (error) {
+      lastError = error;
+      if (attempt < attempts) {
+        const backoffMs = attempt * 1000;
+        console.warn(`${label} fetch attempt ${attempt}/${attempts} failed. Retrying in ${backoffMs}ms...`);
+        await wait(backoffMs);
+      }
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error(`Failed to download ${label}`);
+}
+
 async function fetchAllCountries(): Promise<RestCountry[]> {
-  const url = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,ccn3,region,subregion,flag,currencies';
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to download countries: ${res.status} ${res.statusText}`);
-  return (await res.json()) as RestCountry[];
+  const primaryUrl = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,ccn3,region,subregion,flag,currencies';
+  try {
+    return await fetchWithRetry<RestCountry[]>(primaryUrl, 'countries');
+  } catch (primaryError) {
+    console.warn('Primary countries API failed, using fallback source...');
+    const fallbackUrl =
+      'https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/master/json/countries.json';
+    const fallback = await fetchWithRetry<FallbackCountry[]>(fallbackUrl, 'countries fallback');
+
+    return fallback
+      .filter((c) => Boolean(c.iso2) && Boolean(c.iso3) && Boolean(c.name))
+      .map((c) => {
+        const currencyCode = (c.currency || '').toUpperCase();
+        return {
+          name: { common: c.name, official: c.name },
+          cca2: c.iso2.toUpperCase(),
+          cca3: c.iso3.toUpperCase(),
+          ccn3: (c.numeric_code || '').toString(),
+          region: c.region || '',
+          subregion: c.subregion || '',
+          flag: c.emoji || '',
+          currencies: currencyCode
+            ? {
+                [currencyCode]: {},
+              }
+            : undefined,
+        } as RestCountry;
+      });
+  }
 }
 
 async function fetchAllCurrencies(): Promise<Record<string, string>> {
   // Returns object like { "USD": "United States Dollar", ... }
   const url = 'https://openexchangerates.org/api/currencies.json';
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Failed to download currencies: ${res.status} ${res.statusText}`);
-  return (await res.json()) as Record<string, string>;
+  return fetchWithRetry<Record<string, string>>(url, 'currencies');
 }
 
 async function seedCurrenciesAndCountries() {
@@ -104,7 +163,7 @@ async function seedCurrenciesAndCountries() {
 
     if (ops.length === 0) {
       console.log('No countries to seed.');
-      process.exit(0);
+      return;
     }
 
     const result = await Country.bulkWrite(ops as any, { ordered: false });
@@ -113,13 +172,24 @@ async function seedCurrenciesAndCountries() {
       modified: result.modifiedCount,
       matched: result.matchedCount,
     });
-    process.exit(0);
   } catch (err) {
     console.error('Error seeding countries:', err);
-    process.exit(1);
+    throw err;
+  } finally {
+    // Ensure connection closes cleanly on both success and failure.
+    if (mongoose.connection.readyState !== 0) {
+      await mongoose.disconnect();
+      console.log('MongoDB disconnected');
+    }
   }
 }
 
-seedCurrenciesAndCountries();
+seedCurrenciesAndCountries()
+  .then(() => {
+    process.exitCode = 0;
+  })
+  .catch(() => {
+    process.exitCode = 1;
+  });
 
 

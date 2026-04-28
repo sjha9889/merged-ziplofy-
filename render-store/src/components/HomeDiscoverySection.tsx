@@ -72,7 +72,7 @@ function BannerColumn({ image, className }: { image: string; className?: string 
         </div>
         <div className="flex justify-center pb-1">
           <a
-            href="/category"
+            href="/products"
             className="inline-flex w-max items-center justify-center rounded-[4px] border border-white/40 bg-black/20 px-5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-black/35"
           >
             Shop now

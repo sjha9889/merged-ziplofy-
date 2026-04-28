@@ -28,7 +28,7 @@ export function WishlistPage() {
               <tr className="wishlist-row">
                 <td data-label="Product">
                   <div className="wishlist-product">
-                    <Link to="/category" className="wishlist-product-link">
+                    <Link to="/products" className="wishlist-product-link">
                       <img src="/assets/img/watch-1.jpg" alt="Product" className="wishlist-product-img" />
                       <div className="wishlist-product-details">
                         <span className="wishlist-product-name">Add items from the shop to your wishlist</span>
@@ -46,7 +46,7 @@ export function WishlistPage() {
           </table>
         </div>
         <div className="wishlist-empty-msg">
-          <p>Your wishlist is empty. <Link to="/category">Continue shopping</Link></p>
+          <p>Your wishlist is empty. <Link to="/products">Continue shopping</Link></p>
         </div>
       </div>
     </main>

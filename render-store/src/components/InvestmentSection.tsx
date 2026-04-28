@@ -20,7 +20,7 @@ export function InvestmentSection({ image }: InvestmentSectionProps) {
             guaranteed, excellence delivered.
           </p>
           <a
-            href="/category"
+            href="/products"
             className="mt-11 inline-flex items-center justify-center bg-black px-12 py-4 text-[13px] font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-neutral-900 sm:text-[14px]"
             style={{ borderRadius: 0 }}
           >

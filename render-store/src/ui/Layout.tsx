@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useStorefront } from '../contexts/store.context';
 import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 import { useStorefrontCart } from '../contexts/storefront-cart.context';
@@ -10,7 +10,6 @@ import { SwissWristFooter } from '../components/SwissWristFooter';
 
 export function Layout({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
-  const location = useLocation();
   const { storeFrontMeta } = useStorefront();
   const { user, logout } = useStorefrontAuth();
   const { items, guestItems, isGuest } = useStorefrontCart();
@@ -26,7 +25,6 @@ export function Layout({ children }: { children: ReactNode }) {
   }, []);
 
   const storeName = storeFrontMeta?.name || 'Swisswrist';
-  const isHome = location.pathname === '/';
 
   const handleLogout = () => {
     logout();
@@ -39,7 +37,6 @@ export function Layout({ children }: { children: ReactNode }) {
         storeName={storeName}
         user={user}
         totalItems={totalItems}
-        variant={isHome ? 'hero' : 'default'}
         onOpenCart={() => setCartOpen(true)}
         onLogout={handleLogout}
       />

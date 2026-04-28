@@ -85,7 +85,7 @@ function NewArrivalPromo({ image }: { image: string }) {
         </div>
         <div className="flex justify-center pb-2">
           <a
-            href="/category"
+            href="/products"
             className="inline-flex items-center justify-center rounded-md border-2 px-8 py-2.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-white/10"
             style={{ borderColor: promoGold }}
           >

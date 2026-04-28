@@ -16,6 +16,7 @@ import { ProductTagsProvider } from "./contexts/product-tags.context";
 import { SocketProvider } from "./contexts/socket.context";
 import { StoreProvider } from "./contexts/store.context";
 import { UserProvider } from "./contexts/user.context";
+import { AwsUploadProvider } from "./contexts/aws-upload.context";
 import Navbar from "./pages/Navbar";
 import { CategoryProvider } from "./contexts/category.context";
 import { NotificationOverridesProvider } from "./contexts/notification-overrides.context";
@@ -445,6 +446,7 @@ const App: React.FC = () => {
       <AmountOffProductsDiscountProvider>
       <CategoryProvider>
       <PackagingProvider>
+      <AwsUploadProvider>
       <CustomerTimelineProvider>
       <CustomerAddressProvider>
       <StoreProvider>
@@ -634,6 +636,7 @@ const App: React.FC = () => {
       
       </CustomerAddressProvider>
       </CustomerTimelineProvider>
+      </AwsUploadProvider>
       </PackagingProvider>
       </CategoryProvider>
       </AmountOffProductsDiscountProvider>

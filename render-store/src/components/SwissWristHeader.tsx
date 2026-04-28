@@ -11,7 +11,6 @@ type SwissWristHeaderProps = {
   storeName: string;
   user: HeaderUser;
   totalItems: number;
-  variant?: 'default' | 'hero';
   onOpenCart: () => void;
   onLogout: () => void;
 };
@@ -20,21 +19,11 @@ export function SwissWristHeader({
   storeName,
   user,
   totalItems,
-  variant = 'default',
   onOpenCart,
   onLogout,
 }: SwissWristHeaderProps) {
   const [open, setOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-
-  useEffect(() => {
-    if (variant !== 'hero') return;
-    const onScroll = () => setScrolled(window.scrollY > 36);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [variant]);
 
   useEffect(() => {
     const onDocClick = () => setMenuOpen(false);
@@ -42,35 +31,15 @@ export function SwissWristHeader({
     return () => document.removeEventListener('click', onDocClick);
   }, [menuOpen]);
 
-  const heroTransparent = variant === 'hero' && !scrolled && !open;
-  const headerSurface = heroTransparent
-    ? 'border-b border-white/20 bg-transparent'
-    : 'border-b border-neutral-900 bg-black';
-  const positionClass = variant === 'hero' ? 'fixed left-0 right-0 top-0 z-[60]' : 'sticky top-0 z-50';
-  const mobilePanelClass = heroTransparent
-    ? 'border-b border-white/15 bg-[#0b2114]/97 backdrop-blur-md md:border-0 md:bg-transparent md:backdrop-blur-none'
-    : 'border-b border-neutral-800 bg-black md:border-0 md:bg-transparent';
+  const headerSurface = 'border-b border-neutral-900 bg-black';
+  const positionClass = 'sticky top-0 z-50';
+  const mobilePanelClass = 'border-b border-neutral-800 bg-black md:border-0 md:bg-transparent';
 
   return (
     <header className={`${positionClass} ${headerSurface} transition-colors duration-300`}>
       <div className="mx-auto flex min-h-[72px] max-w-[1440px] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:h-[76px] lg:px-10">
         <Link to="/" className="z-20 flex shrink-0 items-center gap-2 sm:gap-3" onClick={() => setOpen(false)}>
-          {variant === 'hero' ? (
-            <img src={logoMark} alt={storeName} className="h-12 w-auto object-contain sm:h-[56px]" width={210} height={56} />
-          ) : (
-            <>
-              <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-[#f0d78c] via-[#c9a050] to-[#7a5c20] shadow-[inset_0_2px_4px_rgba(255,255,255,0.35)] ring-1 ring-black/20">
-                <svg className="h-7 w-7 text-[#2a1a08]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
-                  <circle cx="12" cy="12" r="9" />
-                  <path d="M12 12V7M12 12l4 2.5" strokeLinecap="round" />
-                  <circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none" />
-                </svg>
-              </span>
-              <span className="text-[11px] font-semibold uppercase leading-none tracking-[0.36em] text-white">
-                {storeName}
-              </span>
-            </>
-          )}
+          <img src={logoMark} alt={storeName} className="h-12 w-auto object-contain sm:h-[56px]" width={210} height={56} />
         </Link>
 
         <nav
@@ -82,14 +51,11 @@ export function SwissWristHeader({
           <NavLink to="/" className="whitespace-nowrap py-3 text-center text-[15px] font-medium text-white transition hover:text-white/80 md:py-0" end>
             Home
           </NavLink>
-          <NavLink to="/category" className="whitespace-nowrap py-3 text-center text-[15px] font-medium text-white transition hover:text-white/80 md:py-0">
-            Product
+          <NavLink to="/products" className="whitespace-nowrap py-3 text-center text-[15px] font-medium text-white transition hover:text-white/80 md:py-0">
+            Products
           </NavLink>
-          <NavLink to="/wishlist" className="whitespace-nowrap py-3 text-center text-[15px] font-medium text-white transition hover:text-white/80 md:py-0">
+          <NavLink to="/collection" className="whitespace-nowrap py-3 text-center text-[15px] font-medium text-white transition hover:text-white/80 md:py-0">
             Collection
-          </NavLink>
-          <NavLink to="/blog" className="whitespace-nowrap py-3 text-center text-[15px] font-medium text-white transition hover:text-white/80 md:py-0">
-            Blog
           </NavLink>
         </nav>
 

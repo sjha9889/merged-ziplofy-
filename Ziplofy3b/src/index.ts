@@ -12,6 +12,7 @@ import { socketAuthMiddleware } from './middlewares/socket-auth.middleware';
 import amountOffProductsDiscountRouter from './routes/amount-off-products-discount.route';
 import { assignedSupportDeveloperRouter } from './routes/assigned-support-developer.route';
 import { authRouter } from './routes/auth.route';
+import awsRouter from './routes/aws.route';
 import { categoryRouter } from './routes/category.route';
 import { clientThemeFilesRouter } from './routes/client-theme-files.route';
 import { clientThemeRouter } from './routes/client-theme.route';
@@ -54,7 +55,7 @@ import { userRouter } from './routes/user.route';
 import { vendorRouter } from './routes/vendor.route';
 import { registerSocketHandlers } from './socket';
 import './utils/env.utils';
-import { loadedEnvFile, validateEnv } from './utils/env.utils';
+import { env, loadedEnvFile, validateEnv } from './utils/env.utils';
 // Ensure Mongoose registers dependent models used via refs (e.g., Supplier)
 import { getAllThemesPublic } from './controllers/theme.controller';
 import './models/supplier/supplier.model';
@@ -153,7 +154,7 @@ const io = new SocketIOServer(server, {
 // Export io instance to make it globally accessible
 export { io };
 
-const PORT = process.env.PORT;
+const PORT = Number(env.PORT);
 
 // Middleware
 app.use(cors({
@@ -177,6 +178,7 @@ app.use(
 // route middlewares
 app.use("/api/stores", storeRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/aws", awsRouter);
 app.use("/api/user", userRouter);
 app.use("/api/themes", themeRouter);
 app.use("/api/clients", clientRouter);
@@ -317,7 +319,7 @@ app.use(errorMiddleware);
 
 // Start server
 server.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode (using ${loadedEnvFile})`);
+  console.log(`🚀 Server is running on port ${PORT} in ${env.NODE_ENV} mode (using ${loadedEnvFile})`);
 });
 
 // Start BullMQ workers

@@ -14,8 +14,12 @@ import { TestimonialsSection } from '../components/TestimonialsSection';
 import { InstagramGallerySection } from '../components/InstagramGallerySection';
 import { buildCatalog } from '../data/catalog';
 import { assets, hublotImages, omegaImages, rolexImages } from '../data/images';
+import banner1 from '../assets/banners/banner-1.png';
+import banner2 from '../assets/banners/banner-2.png';
+import banner3 from '../assets/banners/banner-3.png';
 
 const catalog = buildCatalog(rolexImages, omegaImages, hublotImages);
+const heroBanners = [assets.heroScene, banner1, banner2, banner3];
 
 const instagramGridImages = [
   catalog.hublot[4].image,
@@ -121,7 +125,7 @@ export default function StorefrontApp() {
   return (
     <div className="min-h-svh bg-[#f7f6f4]">
       <main>
-        <Hero bannerSrc={assets.heroScene} />
+        <Hero bannerSources={heroBanners} />
         <HomeDiscoverySection catalog={catalogWithRealIds} />
         <ExploreSwisswristSection images={exploreSwisswristImages} />
         <NewArrivalsSection promoImage={catalog.hublot[4].image} products={newArrivalProductsWithRealIds} />

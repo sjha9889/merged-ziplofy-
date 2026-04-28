@@ -12,6 +12,8 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.env.development
+.env.production
 
 # Logs
 logs
@@ -22,6 +24,7 @@ pids
 *.pid
 *.seed
 *.pid.lock
+uploads/
 
 # Coverage directory used by tools like istanbul
 coverage/

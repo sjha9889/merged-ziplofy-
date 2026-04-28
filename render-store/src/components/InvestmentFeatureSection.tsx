@@ -25,7 +25,7 @@ export function InvestmentFeatureSection({ image }: InvestmentFeatureSectionProp
               excellence delivered.
             </p>
             <a
-              href="/category"
+              href="/products"
               className="mt-8 inline-flex items-center justify-center rounded-[6px] bg-black px-5 py-3 text-[15px] font-medium uppercase tracking-tight text-white hover:bg-neutral-900"
             >
               Explore Catalogue
