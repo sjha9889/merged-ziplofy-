@@ -26,16 +26,16 @@ export function StorefrontListingCard({ product }: Props) {
       </button>
 
       <Link to={`/products/${product._id}`} className="block">
-        <div className="relative h-[290px] overflow-hidden bg-[#f7f7f7] p-6">
+        <div className="relative h-[290px] overflow-hidden bg-[#f7f7f7]">
           <img
             src={image}
             alt={product.title}
-            className="absolute inset-0 h-full w-full object-contain p-6 transition-opacity duration-300 group-hover:opacity-0"
+            className="absolute inset-0 h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-0"
           />
           <img
             src={hoverImage}
             alt=""
-            className="absolute inset-0 h-full w-full object-contain p-6 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+            className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
           />
         </div>
 
