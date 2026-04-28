@@ -2,12 +2,17 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getVariantsByProductIdPublic = exports.updateVariantById = exports.getVariantsByProductId = void 0;
 const product_variants_model_1 = require("../models/product/product-variants.model");
+const product_model_1 = require("../models/product/product.model");
 const error_utils_1 = require("../utils/error.utils");
 // GET variants by product id
 exports.getVariantsByProductId = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const { productId } = req.params;
     if (!productId) {
         throw new error_utils_1.CustomError("productId is required", 400);
+    }
+    const product = await product_model_1.Product.findOne({ _id: productId, isDeleted: { $ne: true } }).select("_id");
+    if (!product) {
+        throw new error_utils_1.CustomError("Product not found", 404);
     }
     const variants = await product_variants_model_1.ProductVariant.find({ productId, depricated: false })
         .populate({ path: 'package', model: 'Packaging' })
@@ -46,6 +51,10 @@ exports.getVariantsByProductIdPublic = (0, error_utils_1.asyncErrorHandler)(asyn
     const { productId } = req.params;
     if (!productId) {
         throw new error_utils_1.CustomError("productId is required", 400);
+    }
+    const product = await product_model_1.Product.findOne({ _id: productId, isDeleted: { $ne: true } }).select("_id");
+    if (!product) {
+        throw new error_utils_1.CustomError("Product not found", 404);
     }
     const variants = await product_variants_model_1.ProductVariant.find({ productId, depricated: false })
         .select({

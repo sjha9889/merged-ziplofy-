@@ -843,7 +843,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
                               <img
                                 src={image || 'https://via.placeholder.com/96'}
                                 alt=""
-                                className="h-full w-full object-contain p-1"
+                                className="h-full w-full object-cover"
                               />
                             </button>
                             <div className="min-w-0 flex-1 text-left">

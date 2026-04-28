@@ -773,7 +773,7 @@ export const QuickBuyNowCheckoutModal: React.FC<QuickBuyNowCheckoutModalProps> =
           >
             <div className="px-6 pt-4 pb-3 flex gap-3 border-b border-gray-100">
               <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0 bg-white">
-                <img src={img} alt="" className="w-full h-full object-contain" />
+                <img src={img} alt="" className="w-full h-full object-cover" />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-gray-900 line-clamp-2">{line.productTitle}</p>

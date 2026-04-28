@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import AddOptionValuesModal from '../components/AddOptionValuesModal';
 import AddProductVariantsModal from '../components/AddProductVariantsModal';
 import ConfirmDeleteVariantModal from '../components/ConfirmDeleteVariantModal';
+import ConfirmDeleteProductModal from '../components/ConfirmDeleteProductModal';
 import DeleteVariantDimensionModal from '../components/DeleteVariantDimensionModal';
 import ProductBasicInformation from '../components/ProductBasicInformation';
 import ProductDetailsHeader from '../components/ProductDetailsHeader';
@@ -20,8 +21,9 @@ import { useStore } from '../contexts/store.context';
 
 const ProductDetailsPage: React.FC = () => {
   const { id } = useParams();
-  const { products, addVariantsToProduct, deleteVariantFromProduct, addOptionToProduct, fetchProductsByStoreId } =
+  const { products, addVariantsToProduct, deleteVariantFromProduct, addOptionToProduct, deleteProduct, fetchProductsByStoreId } =
     useProducts();
+  const navigate = useNavigate();
   const { activeStoreId } = useStore();
   const { fetchVariantsByProductId, variants, loading } = useProductVariants();
 
@@ -47,6 +49,8 @@ const ProductDetailsPage: React.FC = () => {
   const [selectedOptionName, setSelectedOptionName] = useState('');
   const [newOptionValues, setNewOptionValues] = useState<string[]>(['']);
   const [submittingOption, setSubmittingOption] = useState(false);
+  const [deleteProductOpen, setDeleteProductOpen] = useState(false);
+  const [deletingProduct, setDeletingProduct] = useState(false);
 
   const handleOpenAddVariants = useCallback(() => {
     setAddVariantsOpen(true);
@@ -80,6 +84,14 @@ const ProductDetailsPage: React.FC = () => {
 
   const handleOpenAddOption = useCallback(() => {
     setAddOptionOpen(true);
+  }, []);
+
+  const handleOpenDeleteProduct = useCallback(() => {
+    setDeleteProductOpen(true);
+  }, []);
+
+  const handleCloseDeleteProduct = useCallback(() => {
+    setDeleteProductOpen(false);
   }, []);
 
   const handleCloseAddOption = useCallback(() => {
@@ -179,6 +191,20 @@ const ProductDetailsPage: React.FC = () => {
     }
   }, [id, selectedOptionName, newOptionValues, addOptionToProduct, fetchVariantsByProductId, handleCloseAddOption]);
 
+  const handleConfirmDeleteProduct = useCallback(async () => {
+    if (!product) return;
+    try {
+      setDeletingProduct(true);
+      await deleteProduct(product._id);
+      setDeleteProductOpen(false);
+      navigate('/products');
+    } catch (error) {
+      console.error('Failed to delete product:', error);
+    } finally {
+      setDeletingProduct(false);
+    }
+  }, [product, deleteProduct, navigate]);
+
   const updateNewOptionValue = useCallback((index: number, value: string) => {
     setNewOptionValues((prev) => {
       const next = [...prev];
@@ -217,6 +243,7 @@ const ProductDetailsPage: React.FC = () => {
           onAddVariants={handleOpenAddVariants}
           onDeleteVariant={handleOpenDeleteVariant}
           onAddOption={handleOpenAddOption}
+          onDeleteProduct={handleOpenDeleteProduct}
         />
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 xl:gap-8">
@@ -281,6 +308,14 @@ const ProductDetailsPage: React.FC = () => {
         onUpdateNewOptionValue={updateNewOptionValue}
         onAddNewOptionValue={addNewOptionValue}
         onRemoveNewOptionValue={removeNewOptionValue}
+      />
+
+      <ConfirmDeleteProductModal
+        isOpen={deleteProductOpen}
+        productTitle={product.title}
+        deletingProduct={deletingProduct}
+        onClose={handleCloseDeleteProduct}
+        onConfirm={handleConfirmDeleteProduct}
       />
     </div>
   );

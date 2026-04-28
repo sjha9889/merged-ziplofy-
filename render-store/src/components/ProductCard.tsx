@@ -16,17 +16,17 @@ export function ProductCard({ id, image, name, brand, priceInPaisa }: SwissWrist
   return (
     <Link
       to={`/products/${id}`}
-      className="group flex h-full flex-col overflow-hidden rounded-[14px] border border-[#E0E0E0] bg-white transition hover:border-neutral-300"
+      className="group flex flex-col overflow-hidden rounded-[14px] border border-[#E0E0E0] bg-white transition hover:border-neutral-300"
     >
-      <div className="flex min-h-[200px] flex-1 items-center justify-center bg-white px-5 py-8 sm:min-h-[220px] sm:px-6 sm:py-10">
+      <div className="flex min-h-[200px] items-center justify-center overflow-hidden bg-white sm:min-h-[220px]">
         <img
           src={image}
           alt=""
-          className="max-h-[200px] w-full object-contain object-center transition-transform duration-300 group-hover:scale-[1.02] sm:max-h-[220px]"
+          className="h-full w-full object-contain object-center transition-transform duration-300 group-hover:scale-[1.02]"
         />
       </div>
 
-      <div className="flex flex-1 flex-col px-4 pb-4 pt-1 sm:px-5">
+      <div className="flex flex-col px-4 pb-4 pt-1 sm:px-5">
         <p className="text-[15px] font-bold tabular-nums leading-none text-black">{formatINR(priceInPaisa)}</p>
         <p className="mt-2.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3498db]">
           {brand.toUpperCase()}

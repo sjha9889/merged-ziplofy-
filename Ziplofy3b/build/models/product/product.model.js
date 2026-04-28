@@ -240,6 +240,12 @@ const productSchema = new mongoose_1.Schema({
             message: 'At least one product image is required'
         }
     },
+    // Soft delete flag
+    isDeleted: {
+        type: Boolean,
+        default: false,
+        index: true,
+    },
     // removed themeTemplate
 }, {
     timestamps: true,
@@ -258,5 +264,6 @@ productSchema.index({ tagIds: 1 });
 productSchema.index({ price: 1 });
 productSchema.index({ createdAt: -1 });
 productSchema.index({ updatedAt: -1 });
+productSchema.index({ storeId: 1, isDeleted: 1 });
 // Export the Product model
 exports.Product = mongoose_1.default.model("Product", productSchema);

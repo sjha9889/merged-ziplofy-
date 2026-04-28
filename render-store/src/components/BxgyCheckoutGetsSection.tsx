@@ -170,7 +170,7 @@ export function BxgyCheckoutGetsSection({
                   <img
                     src={gi.productImage || PLACEHOLDER_IMG}
                     alt=""
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="flex-1 min-w-0">

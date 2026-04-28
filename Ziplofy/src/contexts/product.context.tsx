@@ -84,6 +84,7 @@ export interface Product {
     updatedAt: string;
   }[];
   imageUrls?: string[];
+  isDeleted?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -222,6 +223,7 @@ interface ProductContextType {
   clearProducts: () => void;
   addVariantsToProduct: (productId: string, variants: Array<{ optionName: string; values: string[] }>) => Promise<{ _id: string }[]>;
   deleteVariantFromProduct: (productId: string, dimensionName: string) => Promise<void>;
+  deleteProduct: (productId: string) => Promise<void>;
   addOptionToProduct: (productId: string, optionName: string, values: string[]) => Promise<{ _id: string }[]>;
   searchProductForTransfer: (args: SearchProductsForTransferArgs) => Promise<ProductSearchResponse>;
   searchProductsWithVariants: (args: SearchProductsWithVariantsArgs) => Promise<ProductSearchResponse>;
@@ -318,6 +320,25 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // No return value - this function just performs the deletion
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to delete variant dimension';
+      setError(msg);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const deleteProduct = useCallback(async (productId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await axiosi.delete<{ success: boolean; data?: { _id: string; isDeleted: boolean }; message?: string }>(
+        `/products/${productId}`
+      );
+      const { success } = res.data;
+      if (!success) throw new Error('Failed to delete product');
+      setProducts((prev) => prev.filter((product) => product._id !== productId));
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to delete product';
       setError(msg);
       throw err;
     } finally {
@@ -448,6 +469,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       clearProducts,
       addVariantsToProduct,
       deleteVariantFromProduct,
+      deleteProduct,
       addOptionToProduct,
       searchProductForTransfer,
       searchProductsWithVariants,
@@ -465,6 +487,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       clearProducts,
       addVariantsToProduct,
       deleteVariantFromProduct,
+      deleteProduct,
       addOptionToProduct,
       searchProductForTransfer,
       searchProductsWithVariants,

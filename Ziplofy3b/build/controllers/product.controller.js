@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.searchProductsWithVariantAndDestination = exports.searchProductsWithVariants = exports.searchProductsBasic = exports.searchProductsWithAvailability = exports.addOptionToProduct = exports.deleteVariantsFromProduct = exports.addVariantsToProduct = exports.getProductByIdPublic = exports.getProductsByStoreIdPublic = exports.getProductsByStoreId = exports.createProduct = void 0;
+exports.softDeleteProductById = exports.searchProductsWithVariantAndDestination = exports.searchProductsWithVariants = exports.searchProductsBasic = exports.searchProductsWithAvailability = exports.addOptionToProduct = exports.deleteVariantsFromProduct = exports.addVariantsToProduct = exports.getProductByIdPublic = exports.getProductsByStoreIdPublic = exports.getProductsByStoreId = exports.createProduct = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const inventory_level_model_1 = require("../models/inventory-level/inventory-level.model");
 const location_model_1 = require("../models/location/location.model");
@@ -193,7 +193,7 @@ exports.getProductsByStoreId = (0, error_utils_1.asyncErrorHandler)(async (req, 
     if (!storeId) {
         throw new error_utils_1.CustomError("storeId is required", 400);
     }
-    const products = await product_model_1.Product.find({ storeId })
+    const products = await product_model_1.Product.find({ storeId, isDeleted: { $ne: true } })
         .populate({ path: 'category' })
         .populate({ path: 'package', model: 'Packaging' })
         .populate({ path: 'tagIds', model: 'ProductTags' })
@@ -223,7 +223,7 @@ exports.getProductsByStoreIdPublic = (0, error_utils_1.asyncErrorHandler)(async 
     const skip = (pageNum - 1) * limitNum;
     // Get total count and products with pagination
     const [products, total] = await Promise.all([
-        product_model_1.Product.find({ status: "active", storeId })
+        product_model_1.Product.find({ status: "active", storeId, isDeleted: { $ne: true } })
             .populate({ path: 'category', select: 'name' })
             .populate({ path: 'vendor', model: 'Vendor', select: 'name' })
             .select({
@@ -243,7 +243,7 @@ exports.getProductsByStoreIdPublic = (0, error_utils_1.asyncErrorHandler)(async 
             .skip(skip)
             .limit(limitNum)
             .lean(),
-        product_model_1.Product.countDocuments({ status: "active", storeId })
+        product_model_1.Product.countDocuments({ status: "active", storeId, isDeleted: { $ne: true } })
     ]);
     // ===== DISCOUNT LOGIC START =====
     const now = new Date();
@@ -427,7 +427,7 @@ exports.getProductByIdPublic = (0, error_utils_1.asyncErrorHandler)(async (req, 
     if (!productId || !mongoose_1.default.isValidObjectId(productId)) {
         throw new error_utils_1.CustomError("Valid product ID is required", 400);
     }
-    const product = await product_model_1.Product.findOne({ _id: productId, status: "active" })
+    const product = await product_model_1.Product.findOne({ _id: productId, status: "active", isDeleted: { $ne: true } })
         .populate({ path: "category", select: "name" })
         .populate({ path: "vendor", model: "Vendor", select: "name" })
         .select({
@@ -478,7 +478,7 @@ exports.addVariantsToProduct = (0, error_utils_1.asyncErrorHandler)(async (req, 
     if (validOptions.length === 0) {
         throw new error_utils_1.CustomError('Variants payload must include at least one option with non-empty values', 400);
     }
-    const product = await product_model_1.Product.findById(id);
+    const product = await product_model_1.Product.findOne({ _id: id, isDeleted: { $ne: true } });
     if (!product) {
         throw new error_utils_1.CustomError("Product not found", 404);
     }
@@ -646,7 +646,7 @@ exports.deleteVariantsFromProduct = (0, error_utils_1.asyncErrorHandler)(async (
     // ========================================
     // STEP 2: FIND PRODUCT AND VALIDATE
     // ========================================
-    const product = await product_model_1.Product.findById(id);
+    const product = await product_model_1.Product.findOne({ _id: id, isDeleted: { $ne: true } });
     if (!product) {
         throw new error_utils_1.CustomError("Product not found", 404);
     }
@@ -902,7 +902,7 @@ exports.addOptionToProduct = (0, error_utils_1.asyncErrorHandler)(async (req, re
     // STEP 2: FIND PRODUCT AND VALIDATE
     // ========================================
     // Find the product by ID to ensure it exists
-    const product = await product_model_1.Product.findById(id);
+    const product = await product_model_1.Product.findOne({ _id: id, isDeleted: { $ne: true } });
     if (!product) {
         throw new error_utils_1.CustomError("Product not found", 404);
     }
@@ -1196,6 +1196,7 @@ exports.searchProductsWithAvailability = (0, error_utils_1.asyncErrorHandler)(as
     const [products, total] = await Promise.all([
         product_model_1.Product.find({
             storeId,
+            isDeleted: { $ne: true },
             $or: [
                 { title: rx },
                 { sku: rx },
@@ -1214,6 +1215,7 @@ exports.searchProductsWithAvailability = (0, error_utils_1.asyncErrorHandler)(as
             .lean(),
         product_model_1.Product.countDocuments({
             storeId,
+            isDeleted: { $ne: true },
             $or: [
                 { title: rx },
                 { sku: rx },
@@ -1311,7 +1313,7 @@ exports.searchProductsBasic = (0, error_utils_1.asyncErrorHandler)(async (req, r
         return res.status(200).json({ success: true, data: [] });
     }
     const rx = new RegExp(q.trim(), 'i');
-    const filter = { $or: [{ title: rx }] };
+    const filter = { $or: [{ title: rx }], isDeleted: { $ne: true } };
     if (storeId && mongoose_1.default.isValidObjectId(storeId))
         filter.storeId = storeId;
     const products = await product_model_1.Product.find(filter)
@@ -1334,7 +1336,7 @@ exports.searchProductsWithVariants = (0, error_utils_1.asyncErrorHandler)(async 
     const pageNum = Math.max(1, parseInt(String(page), 10) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(String(limit), 10) || 20));
     const skip = (pageNum - 1) * limitNum;
-    const filter = { storeId };
+    const filter = { storeId, isDeleted: { $ne: true } };
     if (q && q.trim()) {
         const rx = new RegExp(q.trim(), 'i');
         filter.$or = [{ title: rx }, { sku: rx }];
@@ -1443,6 +1445,7 @@ exports.searchProductsWithVariantAndDestination = (0, error_utils_1.asyncErrorHa
     const [products, total] = await Promise.all([
         product_model_1.Product.find({
             storeId,
+            isDeleted: { $ne: true },
             $or: [{ title: rx }, { sku: rx }],
         })
             .sort({ createdAt: -1 })
@@ -1450,7 +1453,7 @@ exports.searchProductsWithVariantAndDestination = (0, error_utils_1.asyncErrorHa
             .limit(limitNum)
             .select({ title: 1, sku: 1, imageUrls: 1 })
             .lean(),
-        product_model_1.Product.countDocuments({ storeId, $or: [{ title: rx }, { sku: rx }] }),
+        product_model_1.Product.countDocuments({ storeId, isDeleted: { $ne: true }, $or: [{ title: rx }, { sku: rx }] }),
     ]);
     if (products.length === 0) {
         return res.status(200).json({
@@ -1505,5 +1508,21 @@ exports.searchProductsWithVariantAndDestination = (0, error_utils_1.asyncErrorHa
         success: true,
         data,
         pagination: { page: pageNum, limit: limitNum, total, hasNext: skip + products.length < total },
+    });
+});
+// Soft delete product
+exports.softDeleteProductById = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
+    const { id } = req.params;
+    if (!id || !mongoose_1.default.isValidObjectId(id)) {
+        throw new error_utils_1.CustomError("Valid product id is required", 400);
+    }
+    const product = await product_model_1.Product.findOneAndUpdate({ _id: id, isDeleted: { $ne: true } }, { $set: { isDeleted: true } }, { new: true });
+    if (!product) {
+        throw new error_utils_1.CustomError("Product not found", 404);
+    }
+    res.status(200).json({
+        success: true,
+        data: { _id: product._id, isDeleted: true },
+        message: "Product deleted successfully",
     });
 });

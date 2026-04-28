@@ -34,8 +34,8 @@ export function NewArrivalsSection({ promoImage= elegantGoldChronograph, product
                 className="group relative flex min-h-[305px] flex-col rounded-[22px] border bg-white px-5 pb-6 pt-4 transition"
                 style={{ borderColor: cardBorder }}
               >
-                <div className="flex h-[138px] items-start justify-center">
-                  <img src={p.image} alt="" className="max-h-[132px] w-full max-w-[168px] object-contain object-center" />
+                <div className="h-[138px] overflow-hidden rounded-[12px] bg-[#f7f7f7]">
+                  <img src={p.image} alt="" className="h-full w-full object-cover object-center" />
                 </div>
 
                 <div className="mt-4 pr-12 text-left">

@@ -130,6 +130,7 @@ exports.searchProductsInCollection = (0, error_utils_1.asyncErrorHandler)(async 
     }
     const filter = {
         _id: { $in: productIds },
+        isDeleted: { $ne: true },
         $or: [
             { title: rx },
             { sku: rx },

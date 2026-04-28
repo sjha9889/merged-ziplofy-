@@ -11,6 +11,7 @@ import {
   searchProductsWithAvailability,
   searchProductsWithVariantAndDestination,
   searchProductsWithVariants,
+  softDeleteProductById,
 } from "../controllers/product.controller";
 import { protect } from "../middlewares/auth.middleware";
 
@@ -27,6 +28,9 @@ productRouter.use(protect);
 
 // Create product
 productRouter.post("/", createProduct);
+
+// Soft delete product
+productRouter.delete("/:id", softDeleteProductById);
 
 // Get products by store id
 productRouter.get("/store/:storeId", getProductsByStoreId);

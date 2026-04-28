@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { ProductVariant } from "../models/product/product-variants.model";
+import { Product } from "../models/product/product.model";
 import { asyncErrorHandler, CustomError } from "../utils/error.utils";
 
 // GET variants by product id
@@ -7,6 +8,11 @@ export const getVariantsByProductId = asyncErrorHandler(async (req: Request, res
   const { productId } = req.params;
   if (!productId) {
     throw new CustomError("productId is required", 400);
+  }
+
+  const product = await Product.findOne({ _id: productId, isDeleted: { $ne: true } }).select("_id");
+  if (!product) {
+    throw new CustomError("Product not found", 404);
   }
 
   const variants = await ProductVariant.find({ productId, depricated: false })
@@ -57,6 +63,11 @@ export const getVariantsByProductIdPublic = asyncErrorHandler(async (req: Reques
   const { productId } = req.params;
   if (!productId) {
     throw new CustomError("productId is required", 400);
+  }
+
+  const product = await Product.findOne({ _id: productId, isDeleted: { $ne: true } }).select("_id");
+  if (!product) {
+    throw new CustomError("Product not found", 404);
   }
 
   const variants = await ProductVariant.find({ productId, depricated: false })

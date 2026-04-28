@@ -202,7 +202,7 @@ export const getProductsByStoreId = asyncErrorHandler(async (req: Request, res: 
     throw new CustomError("storeId is required", 400);
   }
 
-  const products = await Product.find({ storeId })
+  const products = await Product.find({ storeId, isDeleted: { $ne: true } })
     .populate({ path: 'category' })
     .populate({ path: 'package', model: 'Packaging' })
     .populate({ path: 'tagIds', model: 'ProductTags' })
@@ -238,7 +238,7 @@ export const getProductsByStoreIdPublic = asyncErrorHandler(async (req: Request,
 
   // Get total count and products with pagination
   const [products, total] = await Promise.all([
-    Product.find({status:"active",storeId})
+    Product.find({status:"active",storeId, isDeleted: { $ne: true }})
       .populate({ path: 'category', select: 'name' })
       .populate({ path: 'vendor', model: 'Vendor', select: 'name' })
       .select({
@@ -258,7 +258,7 @@ export const getProductsByStoreIdPublic = asyncErrorHandler(async (req: Request,
       .skip(skip)
       .limit(limitNum)
       .lean(),
-    Product.countDocuments({status:"active",storeId})
+    Product.countDocuments({status:"active",storeId, isDeleted: { $ne: true }})
   ]);
 
   // ===== DISCOUNT LOGIC START =====
@@ -475,7 +475,7 @@ export const getProductByIdPublic = asyncErrorHandler(async (req: Request, res: 
     throw new CustomError("Valid product ID is required", 400);
   }
 
-  const product = await Product.findOne({ _id: productId, status: "active" })
+  const product = await Product.findOne({ _id: productId, status: "active", isDeleted: { $ne: true } })
     .populate({ path: "category", select: "name" })
     .populate({ path: "vendor", model: "Vendor", select: "name" })
     .select({
@@ -532,7 +532,7 @@ export const addVariantsToProduct = asyncErrorHandler(async (req: Request, res: 
     throw new CustomError('Variants payload must include at least one option with non-empty values', 400);
   }
 
-  const product = await Product.findById(id);
+  const product = await Product.findOne({ _id: id, isDeleted: { $ne: true } });
   if (!product) {
     throw new CustomError("Product not found", 404);
   }
@@ -721,7 +721,7 @@ export const deleteVariantsFromProduct = asyncErrorHandler(async (req: Request, 
   // ========================================
   // STEP 2: FIND PRODUCT AND VALIDATE
   // ========================================
-  const product = await Product.findById(id);
+  const product = await Product.findOne({ _id: id, isDeleted: { $ne: true } });
   if (!product) {
     throw new CustomError("Product not found", 404);
   }
@@ -1007,7 +1007,7 @@ export const addOptionToProduct = asyncErrorHandler(async (req: Request, res: Re
   // STEP 2: FIND PRODUCT AND VALIDATE
   // ========================================
   // Find the product by ID to ensure it exists
-  const product = await Product.findById(id);
+  const product = await Product.findOne({ _id: id, isDeleted: { $ne: true } });
   if (!product) {
     throw new CustomError("Product not found", 404);
   }
@@ -1351,6 +1351,7 @@ export const searchProductsWithAvailability = asyncErrorHandler(async (req: Requ
   const [products, total] = await Promise.all([
     Product.find({
       storeId,
+      isDeleted: { $ne: true },
       $or: [
         { title: rx },
         { sku: rx },
@@ -1369,6 +1370,7 @@ export const searchProductsWithAvailability = asyncErrorHandler(async (req: Requ
       .lean(),
     Product.countDocuments({
       storeId,
+      isDeleted: { $ne: true },
       $or: [
         { title: rx },
         { sku: rx },
@@ -1473,7 +1475,7 @@ export const searchProductsBasic = asyncErrorHandler(async (req: Request, res: R
     return res.status(200).json({ success: true, data: [] });
   }
   const rx = new RegExp(q.trim(), 'i');
-  const filter: any = { $or: [{ title: rx }] };
+  const filter: any = { $or: [{ title: rx }], isDeleted: { $ne: true } };
   if (storeId && mongoose.isValidObjectId(storeId)) filter.storeId = storeId;
 
   const products = await Product.find(filter)
@@ -1508,7 +1510,7 @@ export const searchProductsWithVariants = asyncErrorHandler(async (req: Request,
   const limitNum = Math.min(100, Math.max(1, parseInt(String(limit), 10) || 20));
   const skip = (pageNum - 1) * limitNum;
 
-  const filter: Record<string, unknown> = { storeId };
+  const filter: Record<string, unknown> = { storeId, isDeleted: { $ne: true } };
   if (q && q.trim()) {
     const rx = new RegExp(q.trim(), 'i');
     filter.$or = [{ title: rx }, { sku: rx }];
@@ -1633,6 +1635,7 @@ export const searchProductsWithVariantAndDestination = asyncErrorHandler(async (
   const [products, total] = await Promise.all([
     Product.find({
       storeId,
+      isDeleted: { $ne: true },
       $or: [ { title: rx }, { sku: rx } ],
     })
       .sort({ createdAt: -1 })
@@ -1640,7 +1643,7 @@ export const searchProductsWithVariantAndDestination = asyncErrorHandler(async (
       .limit(limitNum)
       .select({ title: 1, sku: 1, imageUrls: 1 })
       .lean(),
-    Product.countDocuments({ storeId, $or: [ { title: rx }, { sku: rx } ] }),
+    Product.countDocuments({ storeId, isDeleted: { $ne: true }, $or: [ { title: rx }, { sku: rx } ] }),
   ]);
 
   if (products.length === 0) {
@@ -1700,6 +1703,30 @@ export const searchProductsWithVariantAndDestination = asyncErrorHandler(async (
     success: true,
     data,
     pagination: { page: pageNum, limit: limitNum, total, hasNext: skip + products.length < total },
+  });
+});
+
+// Soft delete product
+export const softDeleteProductById = asyncErrorHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!id || !mongoose.isValidObjectId(id)) {
+    throw new CustomError("Valid product id is required", 400);
+  }
+
+  const product = await Product.findOneAndUpdate(
+    { _id: id, isDeleted: { $ne: true } },
+    { $set: { isDeleted: true } },
+    { new: true }
+  );
+
+  if (!product) {
+    throw new CustomError("Product not found", 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    data: { _id: product._id, isDeleted: true },
+    message: "Product deleted successfully",
   });
 });
 

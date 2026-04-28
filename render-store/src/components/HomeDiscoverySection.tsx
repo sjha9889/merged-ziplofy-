@@ -1,6 +1,7 @@
 import type { SwissWristProduct } from '../types/swisswrist-product';
-import { ProductCard } from './ProductCard';
 import { assets } from '../data/images';
+import type { StorefrontProductItem } from '../contexts/product.context';
+import { ProductCard } from './ProductCard';
 
 type CatalogSlice = {
   rolex: SwissWristProduct[];
@@ -10,11 +11,13 @@ type CatalogSlice = {
 
 type HomeDiscoverySectionProps = {
   catalog: CatalogSlice;
+  products: StorefrontProductItem[];
+  loading?: boolean;
 };
 
 const contentMax = 'max-w-[1320px]';
 
-export function HomeDiscoverySection({ catalog }: HomeDiscoverySectionProps) {
+export function HomeDiscoverySection({ catalog, products, loading = false }: HomeDiscoverySectionProps) {
   const { rolex, omega } = catalog;
   const leftBanner = assets.elegantRoseGoldMacro;
   const rightBanner = assets.elegantGreenChronograph;
@@ -24,17 +27,12 @@ export function HomeDiscoverySection({ catalog }: HomeDiscoverySectionProps) {
     omega[5]?.image ?? leftBanner,
     rolex[7]?.image ?? rightBanner,
   ];
-  const rowProducts = ([omega[2], rolex[0], omega[7], omega[9]].filter(Boolean) as SwissWristProduct[]).map((p) => ({
-    ...p,
-    brand: 'Girard Perregaux',
-    name: 'Laureato 81015 11 001 11A',
-    priceInPaisa: 230000,
-  }));
+  const rowProducts = products.slice(0, 4);
 
   const gridRowH = 'h-[320px] md:h-[340px]';
 
   return (
-    <section className="bg-[#ECECEC] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 ">
+    <section className="bg-white px-4 py-5 sm:px-6 sm:py-6 lg:px-8 ">
       <div className={`mx-auto ${contentMax}`}>
         <div className="grid grid-cols-1 gap-1.5 md:grid-cols-[1fr_2.25fr_1fr]">
           <BannerColumn image={leftBanner} className={gridRowH} />
@@ -49,9 +47,26 @@ export function HomeDiscoverySection({ catalog }: HomeDiscoverySectionProps) {
         </div>
 
         <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
-          {rowProducts.map((p) => (
-            <ProductCard key={p.id} {...p} />
-          ))}
+          {loading ? (
+            <div className="col-span-full rounded-[14px] border border-[#E0E0E0] bg-white p-6 text-center text-sm text-neutral-600">
+              Loading products...
+            </div>
+          ) : rowProducts.length === 0 ? (
+            <div className="col-span-full rounded-[14px] border border-[#E0E0E0] bg-white p-6 text-center text-sm text-neutral-600">
+              No products available.
+            </div>
+          ) : (
+            rowProducts.map((product) => (
+              <ProductCard
+                key={product._id}
+                id={product._id}
+                image={product.imageUrls?.[0] || '/assets/img/watch-1.jpg'}
+                name={product.title || 'Laureato 81015 11 001 11A'}
+                brand={product.vendor?.name || 'Girard Perregaux'}
+                priceInPaisa={product.price}
+              />
+            ))
+          )}
         </div>
       </div>
     </section>

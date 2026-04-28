@@ -17,6 +17,7 @@ interface ProductDetailsHeaderProps {
   onAddVariants: () => void;
   onDeleteVariant: () => void;
   onAddOption: () => void;
+  onDeleteProduct: () => void;
 }
 
 const ProductDetailsHeader: React.FC<ProductDetailsHeaderProps> = ({
@@ -25,6 +26,7 @@ const ProductDetailsHeader: React.FC<ProductDetailsHeaderProps> = ({
   onAddVariants,
   onDeleteVariant,
   onAddOption,
+  onDeleteProduct,
 }) => {
   const navigate = useNavigate();
   const title = product.title || 'Untitled product';
@@ -107,6 +109,14 @@ const ProductDetailsHeader: React.FC<ProductDetailsHeaderProps> = ({
             >
               <PlusIcon className="h-4 w-4" aria-hidden />
               Add variants
+            </button>
+            <button
+              type="button"
+              onClick={onDeleteProduct}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 shadow-sm transition-colors hover:bg-red-100"
+            >
+              <TrashIcon className="h-4 w-4" aria-hidden />
+              Delete product
             </button>
             <button
               type="button"

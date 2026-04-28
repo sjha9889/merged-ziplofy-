@@ -93,7 +93,7 @@ export default function StorefrontApp() {
   const { user } = useStorefrontAuth();
   const { getCartByCustomerId } = useStorefrontCart();
   const { fetchCollectionsByStoreId } = useStorefrontCollections();
-  const { products, fetchProductsByStoreId } = useStorefrontProducts();
+  const { products, loading: productsLoading, fetchProductsByStoreId } = useStorefrontProducts();
 
   useEffect(() => {
     if (storeFrontMeta?.storeId) {
@@ -126,7 +126,7 @@ export default function StorefrontApp() {
     <div className="min-h-svh bg-[#f7f6f4]">
       <main>
         <Hero bannerSources={heroBanners} />
-        <HomeDiscoverySection catalog={catalogWithRealIds} />
+        <HomeDiscoverySection catalog={catalogWithRealIds} products={products} loading={productsLoading} />
         <ExploreSwisswristSection images={exploreSwisswristImages} />
         <NewArrivalsSection promoImage={catalog.hublot[4].image} products={newArrivalProductsWithRealIds} />
         <InvestmentSection image={assets.heroScene} />
