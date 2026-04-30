@@ -130,7 +130,7 @@ export const ProductVariantProvider: React.FC<{ children: React.ReactNode }> = (
     try {
       setLoading(true);
       setError(null);
-      const res = await axiosi.put<{ success: boolean; data: ProductVariant; message?: string }>(
+      const res = await axiosi.patch<{ success: boolean; data: ProductVariant; message?: string }>(
         `/product-variants/${variantId}`,
         update,
       );

@@ -230,6 +230,7 @@ exports.updateProductById = (0, error_utils_1.asyncErrorHandler)(async (req, res
         "vendor",
         "tagIds",
         "imageUrls",
+        "isDeleted",
     ];
     for (const field of allowedFields) {
         if (Object.prototype.hasOwnProperty.call(body, field)) {
@@ -247,7 +248,7 @@ exports.updateProductById = (0, error_utils_1.asyncErrorHandler)(async (req, res
     if (Object.keys(updatePayload).length === 0) {
         throw new error_utils_1.CustomError("No valid fields provided to update", 400);
     }
-    const updatedProduct = await product_model_1.Product.findOneAndUpdate({ _id: id, isDeleted: { $ne: true } }, { $set: updatePayload }, { new: true, runValidators: true })
+    const updatedProduct = await product_model_1.Product.findOneAndUpdate({ _id: id }, { $set: updatePayload }, { new: true, runValidators: true })
         .populate({ path: "category" })
         .populate({ path: "package", model: "Packaging" })
         .populate({ path: "tagIds", model: "ProductTags" })
@@ -268,7 +269,7 @@ exports.getProductsByStoreId = (0, error_utils_1.asyncErrorHandler)(async (req, 
     if (!storeId) {
         throw new error_utils_1.CustomError("storeId is required", 400);
     }
-    const products = await product_model_1.Product.find({ storeId, isDeleted: { $ne: true } })
+    const products = await product_model_1.Product.find({ storeId })
         .populate({ path: 'category' })
         .populate({ path: 'package', model: 'Packaging' })
         .populate({ path: 'tagIds', model: 'ProductTags' })
@@ -502,7 +503,7 @@ exports.getProductById = (0, error_utils_1.asyncErrorHandler)(async (req, res) =
     if (!id || !mongoose_1.default.isValidObjectId(id)) {
         throw new error_utils_1.CustomError("Valid product ID is required", 400);
     }
-    const product = await product_model_1.Product.findOne({ _id: id, isDeleted: { $ne: true } })
+    const product = await product_model_1.Product.findOne({ _id: id })
         .populate("category")
         .populate("package")
         .populate("tagIds")

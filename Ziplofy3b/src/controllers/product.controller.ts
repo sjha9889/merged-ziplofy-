@@ -240,6 +240,7 @@ export const updateProductById = asyncErrorHandler(async (req: Request, res: Res
     "vendor",
     "tagIds",
     "imageUrls",
+    "isDeleted",
   ] as const;
 
   for (const field of allowedFields) {
@@ -263,7 +264,7 @@ export const updateProductById = asyncErrorHandler(async (req: Request, res: Res
   }
 
   const updatedProduct = await Product.findOneAndUpdate(
-    { _id: id, isDeleted: { $ne: true } },
+    { _id: id },
     { $set: updatePayload },
     { new: true, runValidators: true }
   )
@@ -291,7 +292,7 @@ export const getProductsByStoreId = asyncErrorHandler(async (req: Request, res: 
     throw new CustomError("storeId is required", 400);
   }
 
-  const products = await Product.find({ storeId, isDeleted: { $ne: true } })
+  const products = await Product.find({ storeId })
     .populate({ path: 'category' })
     .populate({ path: 'package', model: 'Packaging' })
     .populate({ path: 'tagIds', model: 'ProductTags' })
@@ -564,7 +565,7 @@ export const getProductById = asyncErrorHandler(async (req: Request, res: Respon
     throw new CustomError("Valid product ID is required", 400);
   }
 
-  const product = await Product.findOne({ _id: id, isDeleted: { $ne: true } })
+  const product = await Product.findOne({ _id: id })
     .populate("category")
     .populate("package")
     .populate("tagIds")

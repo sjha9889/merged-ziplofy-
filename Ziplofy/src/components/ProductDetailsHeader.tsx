@@ -18,6 +18,7 @@ interface ProductDetailsHeaderProps {
   product: Product;
   variantsCount: number;
   onDeleteProduct: () => void;
+  onUndeleteProduct: () => void;
   onSaveBasicInfo: (payload: { title: string; description: string }) => Promise<void>;
   isSavingBasicInfo: boolean;
 }
@@ -26,6 +27,7 @@ const ProductDetailsHeader: React.FC<ProductDetailsHeaderProps> = ({
   product,
   variantsCount,
   onDeleteProduct,
+  onUndeleteProduct,
   onSaveBasicInfo,
   isSavingBasicInfo,
 }) => {
@@ -84,14 +86,24 @@ const ProductDetailsHeader: React.FC<ProductDetailsHeaderProps> = ({
           <ArrowLeftIcon className="h-4 w-4" aria-hidden />
           Products
         </button>
-        <button
-          type="button"
-          onClick={onDeleteProduct}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2 text-sm font-semibold text-red-700 shadow-sm transition-colors hover:bg-red-100"
-        >
-          <TrashIcon className="h-4 w-4" aria-hidden />
-          Delete product
-        </button>
+        {product.isDeleted ? (
+          <button
+            type="button"
+            onClick={onUndeleteProduct}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-sm font-semibold text-emerald-700 shadow-sm transition-colors hover:bg-emerald-100"
+          >
+            Un-delete product
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onDeleteProduct}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2 text-sm font-semibold text-red-700 shadow-sm transition-colors hover:bg-red-100"
+          >
+            <TrashIcon className="h-4 w-4" aria-hidden />
+            Delete product
+          </button>
+        )}
       </div>
 
       <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-sm">
@@ -181,6 +193,11 @@ const ProductDetailsHeader: React.FC<ProductDetailsHeaderProps> = ({
               >
                 {product.status === 'active' ? 'Active' : product.status || 'Draft'}
               </span>
+              {product.isDeleted ? (
+                <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-red-100 text-red-800">
+                  Deleted
+                </span>
+              ) : null}
               {product.onlineStorePublishing ? (
                 <span className="rounded-full border border-gray-200 bg-white px-2.5 py-0.5 text-xs font-medium text-gray-700">
                   Online store

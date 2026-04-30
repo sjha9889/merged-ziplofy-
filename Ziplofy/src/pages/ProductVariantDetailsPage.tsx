@@ -5,13 +5,15 @@ import {
   TrashIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { useParams } from 'react-router-dom';
 import ProductNotFound from '../components/ProductNotFound';
 import ProductVariantBasicInformation from '../components/ProductVariantBasicInformation';
 import ProductVariantDetailsHeader from '../components/ProductVariantDetailsHeader';
 import ProductVariantToggleControls from '../components/ProductVariantToggleControls';
 import VariantNotFound from '../components/VariantNotFound';
+import { useAwsUpload } from '../contexts/aws-upload.context';
 import { usePackaging } from '../contexts/packaging.context';
 import { useProductVariants } from '../contexts/product-variant.context';
 import { useProducts } from '../contexts/product.context';
@@ -21,8 +23,11 @@ const ProductVariantDetailsPage: React.FC = () => {
   const { id, variantId } = useParams();
   const { activeProduct, activeProductLoading, fetchProductById, clearActiveProduct } = useProducts();
   const { activeVariant, activeVariantLoading, fetchProductVariantDetailsById, clearActiveVariant, updateVariant } = useProductVariants();
+  const { uploadImageWithSignedUrl } = useAwsUpload();
   const { packagings, loading: packagingsLoading, fetchPackagingsByStoreId } = usePackaging();
   const { activeStoreId } = useStore();
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingVariantImages, setUploadingVariantImages] = useState(false);
 
   const product = useMemo(() => (activeProduct?._id === id ? activeProduct : null), [activeProduct, id]);
   const variant = useMemo(() => {
@@ -99,26 +104,39 @@ const ProductVariantDetailsPage: React.FC = () => {
   }, [formData.price, formData.cost]);
 
   // Image management functions
-  const addImage = useCallback(() => {
-    setFormData(prev => ({
-      ...prev,
-      images: [...prev.images, '']
-    }));
-  }, []);
-
-  const updateImage = useCallback((index: number, url: string) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.map((img, i) => i === index ? url : img)
-    }));
-  }, []);
-
   const removeImage = useCallback((index: number) => {
     setFormData(prev => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index)
     }));
   }, []);
+
+  const handleUploadVariantImages = useCallback(async (files: FileList | null) => {
+    const selected = Array.from(files || []).filter((file) => file.type.startsWith('image/'));
+    if (selected.length === 0) return;
+    const folderStoreId = activeStoreId || product?.storeId || 'variant';
+
+    try {
+      setUploadingVariantImages(true);
+      const uploadToast = toast.loading(
+        `Uploading ${selected.length} image${selected.length > 1 ? 's' : ''}...`
+      );
+      const uploaded = await Promise.all(
+        selected.map((file) => uploadImageWithSignedUrl(file, { folder: `${folderStoreId}/variant-image` }))
+      );
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, ...uploaded.map((item) => item.objectUrl)],
+      }));
+      toast.success('Images uploaded', { id: uploadToast });
+    } catch (error: any) {
+      const message = error?.message || 'Failed to upload images';
+      toast.error(message);
+    } finally {
+      setUploadingVariantImages(false);
+      if (uploadInputRef.current) uploadInputRef.current.value = '';
+    }
+  }, [activeStoreId, product?.storeId, uploadImageWithSignedUrl]);
 
   // Initialize form data when variant changes
   useEffect(() => {
@@ -299,8 +317,9 @@ const ProductVariantDetailsPage: React.FC = () => {
   }
 
   return (
-    <div className="w-full pb-8">
-      <div className="w-full space-y-6">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8">
+      <div className="space-y-6">
         {/* Header */}
         <ProductVariantDetailsHeader
           product={product}
@@ -317,8 +336,8 @@ const ProductVariantDetailsPage: React.FC = () => {
           onSaveChanges={handleSaveToggleChanges}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 xl:gap-8">
+          <div className="space-y-6 xl:col-span-2">
             {/* Basic Variant Information */}
             <ProductVariantBasicInformation
               variant={variant}
@@ -335,31 +354,35 @@ const ProductVariantDetailsPage: React.FC = () => {
             />
 
             {/* Pricing Information */}
-            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-base font-semibold text-gray-900">
-                  Pricing Information
-                </h2>
+            <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm">
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-sm font-semibold text-gray-900">Pricing</h2>
+                  <p className="mt-0.5 text-xs text-gray-500">Price, cost, and margin</p>
+                </div>
                 {!editingSegments.pricing ? (
                   <button
                     onClick={() => handleEditSegment('pricing')}
-                    className="p-1 text-gray-600 hover:bg-gray-50 rounded transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50"
                   >
                     <PencilIcon className="w-4 h-4" />
+                    Edit
                   </button>
                 ) : (
-                  <div className="flex gap-1">
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleSaveSegment('pricing')}
-                      className="p-1 text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700"
                     >
                       <CheckIcon className="w-4 h-4" />
+                      Save
                     </button>
                     <button
                       onClick={() => handleCancelSegment('pricing')}
-                      className="p-1 text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50"
                     >
                       <XMarkIcon className="w-4 h-4" />
+                      Cancel
                     </button>
                   </div>
                 )}
@@ -540,7 +563,7 @@ const ProductVariantDetailsPage: React.FC = () => {
             </div>
 
             {/* Inventory & Status */}
-            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+            <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm">
               <h2 className="text-base font-semibold text-gray-900 mb-4">
                 Inventory & Status
               </h2>
@@ -565,7 +588,7 @@ const ProductVariantDetailsPage: React.FC = () => {
             </div>
 
             {/* Option Values */}
-            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+            <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm">
               <h2 className="text-base font-semibold text-gray-900 mb-4">
                 Option Values
               </h2>
@@ -582,31 +605,37 @@ const ProductVariantDetailsPage: React.FC = () => {
             </div>
 
             {/* Images */}
-            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-base font-semibold text-gray-900">
-                  Images
-                </h2>
+            <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm">
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-sm font-semibold text-gray-900">Media</h2>
+                  <p className="mt-0.5 text-xs text-gray-500">
+                    {(variant.images?.length || 0)} image{(variant.images?.length || 0) === 1 ? '' : 's'}
+                  </p>
+                </div>
                 {!editingSegments.images ? (
                   <button
                     onClick={() => handleEditSegment('images')}
-                    className="p-1 text-gray-600 hover:bg-gray-50 rounded transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50"
                   >
                     <PencilIcon className="w-4 h-4" />
+                    Edit
                   </button>
                 ) : (
-                  <div className="flex gap-1">
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleSaveSegment('images')}
-                      className="p-1 text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700"
                     >
                       <CheckIcon className="w-4 h-4" />
+                      Save
                     </button>
                     <button
                       onClick={() => handleCancelSegment('images')}
-                      className="p-1 text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50"
                     >
                       <XMarkIcon className="w-4 h-4" />
+                      Cancel
                     </button>
                   </div>
                 )}
@@ -614,63 +643,57 @@ const ProductVariantDetailsPage: React.FC = () => {
               
               {editingSegments.images ? (
                 <div>
-                  {/* Add Image Button */}
-                  <button
-                    onClick={addImage}
-                    className="border border-gray-200 text-gray-700 px-3 py-1.5 rounded text-sm font-medium hover:bg-gray-50 transition-colors flex items-center gap-1.5 mb-4"
-                  >
-                    <PlusIcon className="w-4 h-4" />
-                    Add Image
-                  </button>
+                  <input
+                    ref={uploadInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => handleUploadVariantImages(e.target.files)}
+                  />
+                  {/* Upload Image Button */}
+                  <div className="mb-4 flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => uploadInputRef.current?.click()}
+                      disabled={uploadingVariantImages}
+                      className="border border-blue-200 bg-blue-50 text-blue-700 px-3 py-1.5 rounded text-sm font-medium hover:bg-blue-100 transition-colors flex items-center gap-1.5 disabled:opacity-60"
+                    >
+                      <PlusIcon className="w-4 h-4" />
+                      {uploadingVariantImages ? 'Uploading...' : 'Upload images'}
+                    </button>
+                  </div>
                   
-                  {/* Image Input Fields */}
+                  {/* Image tiles */}
                   {formData.images.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                       {formData.images.map((imageUrl, index) => (
-                        <div key={index} className="border border-gray-200 rounded p-4">
-                          <div className="flex justify-between items-center mb-3">
-                            <p className="text-xs text-gray-600">
-                              Image {index + 1}
-                            </p>
-                            <button
-                              onClick={() => removeImage(index)}
-                              className="p-1 text-gray-600 hover:bg-gray-50 rounded transition-colors"
-                            >
-                              <TrashIcon className="w-4 h-4" />
-                            </button>
-                          </div>
-                          
-                          {/* Image URL Input */}
-                          <input
-                            type="text"
-                            className="w-full px-3 py-1.5 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors mb-3"
-                            placeholder="Enter image URL"
-                            value={imageUrl}
-                            onChange={(e) => updateImage(index, e.target.value)}
+                        <div
+                          key={index}
+                          className="relative aspect-square overflow-hidden rounded-xl border border-gray-200 bg-gray-50 shadow-sm ring-1 ring-black/[0.03]"
+                        >
+                          <img
+                            src={imageUrl}
+                            alt={`Variant image ${index + 1}`}
+                            className="block h-full w-full object-cover"
+                            onError={(e: any) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
                           />
-                          
-                          {/* Image Preview */}
-                          {imageUrl.trim() ? (
-                            <img
-                              src={imageUrl}
-                              alt={`Preview ${index + 1}`}
-                              className="w-full h-36 object-cover rounded border border-gray-200"
-                              onError={(e: any) => {
-                                e.currentTarget.style.display = 'none';
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-36 border-2 border-dashed border-gray-300 rounded flex items-center justify-center text-gray-500">
-                              <p className="text-sm">No image preview</p>
-                            </div>
-                          )}
+                          <button
+                            onClick={() => removeImage(index)}
+                            className="absolute right-1.5 top-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-red-600 shadow-sm hover:bg-white"
+                            aria-label="Remove image"
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </button>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <div className="text-center py-6">
                       <p className="text-sm text-gray-600">
-                        No images added yet. Click "Add Image" to get started.
+                        No images added yet. Click "Upload images" to get started.
                       </p>
                     </div>
                   )}
@@ -706,31 +729,35 @@ const ProductVariantDetailsPage: React.FC = () => {
 
             {/* Shipping Information (shown only for physical products) */}
             {formData.isPhysicalProduct && (
-            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-base font-semibold text-gray-900">
-                  Shipping Information
-                </h2>
+            <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm">
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <div>
+                  <h2 className="text-sm font-semibold text-gray-900">Shipping</h2>
+                  <p className="mt-0.5 text-xs text-gray-500">Physical product fulfillment</p>
+                </div>
                 {!editingSegments.package ? (
                   <button
                     onClick={() => handleEditSegment('package')}
-                    className="p-1 text-gray-600 hover:bg-gray-50 rounded transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50"
                   >
                     <PencilIcon className="w-4 h-4" />
+                    Edit
                   </button>
                 ) : (
-                  <div className="flex gap-1">
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleSaveSegment('package')}
-                      className="p-1 text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700"
                     >
                       <CheckIcon className="w-4 h-4" />
+                      Save
                     </button>
                     <button
                       onClick={() => handleCancelSegment('package')}
-                      className="p-1 text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50"
                     >
                       <XMarkIcon className="w-4 h-4" />
+                      Cancel
                     </button>
                   </div>
                 )}
@@ -828,8 +855,9 @@ const ProductVariantDetailsPage: React.FC = () => {
           </div>
 
           {/* Right Sidebar */}
-          <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+          <div className="xl:col-span-1">
+            <div className="space-y-6 xl:sticky xl:top-6">
+            <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm">
               <h2 className="text-base font-semibold text-gray-900 mb-4">
                 Variant ID & References
               </h2>
@@ -855,7 +883,7 @@ const ProductVariantDetailsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+            <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm">
               <h2 className="text-base font-semibold text-gray-900 mb-4">
                 Status & Flags
               </h2>
@@ -881,15 +909,6 @@ const ProductVariantDetailsPage: React.FC = () => {
                 
                 <div>
                   <p className="text-xs text-gray-600 mb-1.5">
-                    Continue Selling When Out of Stock
-                  </p>
-                  <p className="text-sm text-gray-900">
-                    {variant.outOfStockContinueSelling ? 'Yes' : 'No'}
-                  </p>
-                </div>
-                
-                <div>
-                  <p className="text-xs text-gray-600 mb-1.5">
                     Charge Tax
                   </p>
                   <p className="text-sm text-gray-900">
@@ -899,7 +918,7 @@ const ProductVariantDetailsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+            <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm">
               <h2 className="text-base font-semibold text-gray-900 mb-4">
                 Financial Summary
               </h2>
@@ -960,7 +979,7 @@ const ProductVariantDetailsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+            <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm">
               <h2 className="text-base font-semibold text-gray-900 mb-4">
                 Timeline
               </h2>
@@ -991,8 +1010,10 @@ const ProductVariantDetailsPage: React.FC = () => {
                 </div>
               </div>
             </div>
+            </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

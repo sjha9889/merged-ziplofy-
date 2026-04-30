@@ -7,12 +7,13 @@ import ProductTableRow from "./ProductTableRow";
 interface ProductsTableProps {
   products: Product[];
   viewMode?: "list" | "grid";
+  onUndeleteProduct?: (product: Product) => void;
 }
 
 type SortField = 'price' | 'quantity' | 'updatedAt' | null;
 type SortDirection = 'asc' | 'desc';
 
-const ProductsTable: React.FC<ProductsTableProps> = ({ products, viewMode = "list" }) => {
+const ProductsTable: React.FC<ProductsTableProps> = ({ products, viewMode = "list", onUndeleteProduct }) => {
   const navigate = useNavigate();
   const [sortField, setSortField] = useState<SortField>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -113,11 +114,17 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ products, viewMode = "lis
                   )}
                 </div>
               </th>
+              <th className="px-4 py-3 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
             {sortedProducts.map((product) => (
-              <ProductTableRow key={product._id} product={product} onRowClick={handleRowClick} />
+              <ProductTableRow
+                key={product._id}
+                product={product}
+                onRowClick={handleRowClick}
+                onUndeleteProduct={onUndeleteProduct}
+              />
             ))}
           </tbody>
         </table>

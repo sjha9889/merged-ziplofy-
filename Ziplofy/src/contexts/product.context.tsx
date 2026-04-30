@@ -191,6 +191,7 @@ export interface CreateProductPayload {
   onlineStorePublishing: boolean;
   pointOfSalePublishing: boolean;
   imageUrls?: string[];
+  isDeleted?: boolean;
   productType: string;
   vendor: string;
   tagIds: string[];
@@ -393,10 +394,16 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const res = await axiosi.delete<{ success: boolean; data?: { _id: string; isDeleted: boolean }; message?: string }>(
         `/products/${productId}`
       );
-      const { success } = res.data;
+      const { success, data } = res.data;
       if (!success) throw new Error('Failed to delete product');
-      setProducts((prev) => prev.filter((product) => product._id !== productId));
-      setActiveProduct((prev) => (prev && prev._id === productId ? null : prev));
+      setProducts((prev) =>
+        prev.map((product) =>
+          product._id === productId ? { ...product, isDeleted: data?.isDeleted ?? true } : product
+        )
+      );
+      setActiveProduct((prev) =>
+        prev && prev._id === productId ? { ...prev, isDeleted: data?.isDeleted ?? true } : prev
+      );
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to delete product';
       setError(msg);

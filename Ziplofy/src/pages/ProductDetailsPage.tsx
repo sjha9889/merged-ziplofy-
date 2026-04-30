@@ -5,6 +5,7 @@ import AddOptionValuesModal from '../components/AddOptionValuesModal';
 import AddProductVariantsModal from '../components/AddProductVariantsModal';
 import ConfirmDeleteVariantModal from '../components/ConfirmDeleteVariantModal';
 import ConfirmDeleteProductModal from '../components/ConfirmDeleteProductModal';
+import ConfirmUndeleteProductModal from '../components/ConfirmUndeleteProductModal';
 import DeleteVariantDimensionModal from '../components/DeleteVariantDimensionModal';
 import ProductBasicInformation from '../components/ProductBasicInformation';
 import ProductDetailsHeader from '../components/ProductDetailsHeader';
@@ -78,6 +79,8 @@ const ProductDetailsPage: React.FC = () => {
   const [submittingOption, setSubmittingOption] = useState(false);
   const [deleteProductOpen, setDeleteProductOpen] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState(false);
+  const [undeleteProductOpen, setUndeleteProductOpen] = useState(false);
+  const [undeletingProduct, setUndeletingProduct] = useState(false);
   const [savingBasicInfo, setSavingBasicInfo] = useState(false);
   const [savingProductBasicCard, setSavingProductBasicCard] = useState(false);
   const [savingPricingCard, setSavingPricingCard] = useState(false);
@@ -125,6 +128,14 @@ const ProductDetailsPage: React.FC = () => {
 
   const handleCloseDeleteProduct = useCallback(() => {
     setDeleteProductOpen(false);
+  }, []);
+
+  const handleOpenUndeleteProduct = useCallback(() => {
+    setUndeleteProductOpen(true);
+  }, []);
+
+  const handleCloseUndeleteProduct = useCallback(() => {
+    setUndeleteProductOpen(false);
   }, []);
 
   const handleCloseAddOption = useCallback(() => {
@@ -237,6 +248,24 @@ const ProductDetailsPage: React.FC = () => {
       setDeletingProduct(false);
     }
   }, [product, deleteProduct, navigate]);
+
+  const handleConfirmUndeleteProduct = useCallback(async () => {
+    if (!product) return;
+    try {
+      setUndeletingProduct(true);
+      await updateProduct(product._id, { isDeleted: false });
+      toast.success('Product restored');
+      setUndeleteProductOpen(false);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to un-delete product';
+      toast.error(message);
+    } finally {
+      setUndeletingProduct(false);
+    }
+  }, [product, updateProduct]);
 
   const handleSaveBasicInfo = useCallback(
     async (payload: { title: string; description: string }) => {
@@ -482,6 +511,7 @@ const ProductDetailsPage: React.FC = () => {
           product={product}
           variantsCount={variants.length}
           onDeleteProduct={handleOpenDeleteProduct}
+          onUndeleteProduct={handleOpenUndeleteProduct}
           onSaveBasicInfo={handleSaveBasicInfo}
           isSavingBasicInfo={savingBasicInfo}
         />
@@ -583,6 +613,13 @@ const ProductDetailsPage: React.FC = () => {
         deletingProduct={deletingProduct}
         onClose={handleCloseDeleteProduct}
         onConfirm={handleConfirmDeleteProduct}
+      />
+      <ConfirmUndeleteProductModal
+        isOpen={undeleteProductOpen}
+        productTitle={product.title}
+        undeletingProduct={undeletingProduct}
+        onClose={handleCloseUndeleteProduct}
+        onConfirm={handleConfirmUndeleteProduct}
       />
     </div>
   );

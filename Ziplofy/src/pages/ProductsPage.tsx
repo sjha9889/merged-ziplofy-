@@ -1,19 +1,23 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { toast } from "react-hot-toast";
+import ConfirmUndeleteProductModal from "../components/ConfirmUndeleteProductModal";
 import ProductsPageEmptyState from "../components/products/ProductsPageEmptyState";
 import ProductsPageFilters from "../components/products/ProductsPageFilters";
 import ProductsPageHeader from "../components/products/ProductsPageHeader";
 import ProductsTable from "../components/products/ProductsTable";
-import { useProducts } from "../contexts/product.context";
+import { Product, useProducts } from "../contexts/product.context";
 import { useStore } from "../contexts/store.context";
 
 type FilterTab = "All" | "Active" | "Draft";
 
 const ProductsPage: React.FC = () => {
-  const { products, fetchProductsByStoreId } = useProducts();
+  const { products, fetchProductsByStoreId, updateProduct } = useProducts();
   const { activeStoreId } = useStore();
   const [activeTab, setActiveTab] = useState<FilterTab>("All");
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"list" | "grid">("list");
+  const [restoreCandidate, setRestoreCandidate] = useState<Product | null>(null);
+  const [restoringProduct, setRestoringProduct] = useState(false);
 
   useEffect(() => {
     if (activeStoreId) {
@@ -48,6 +52,32 @@ const ProductsPage: React.FC = () => {
     });
   }, [products, activeTab, search]);
 
+  const handleOpenUndeleteModal = (product: Product) => {
+    setRestoreCandidate(product);
+  };
+
+  const handleCloseUndeleteModal = () => {
+    setRestoreCandidate(null);
+  };
+
+  const handleConfirmUndelete = async () => {
+    if (!restoreCandidate) return;
+    try {
+      setRestoringProduct(true);
+      await updateProduct(restoreCandidate._id, { isDeleted: false });
+      toast.success("Product restored");
+      setRestoreCandidate(null);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to un-delete product";
+      toast.error(message);
+    } finally {
+      setRestoringProduct(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-page-background-color">
       <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
@@ -68,10 +98,21 @@ const ProductsPage: React.FC = () => {
               <ProductsPageEmptyState />
             </div>
           ) : (
-            <ProductsTable products={filteredProducts} viewMode={viewMode} />
+            <ProductsTable
+              products={filteredProducts}
+              viewMode={viewMode}
+              onUndeleteProduct={handleOpenUndeleteModal}
+            />
           )}
         </div>
       </div>
+      <ConfirmUndeleteProductModal
+        isOpen={Boolean(restoreCandidate)}
+        productTitle={restoreCandidate?.title || ""}
+        undeletingProduct={restoringProduct}
+        onClose={handleCloseUndeleteModal}
+        onConfirm={handleConfirmUndelete}
+      />
     </div>
   );
 };

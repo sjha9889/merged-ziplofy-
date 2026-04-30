@@ -74,6 +74,14 @@ const OrderDetailsPage: React.FC = () => {
     return [customer.firstName, customer.lastName].filter(Boolean).join(' ').trim() || customer.email || '—';
   };
 
+  const getProductIdFromItem = (item: any): string | null => {
+    const productRef = item?.productVariantId?.productId;
+    if (!productRef) return null;
+    if (typeof productRef === 'string') return productRef;
+    if (typeof productRef === 'object' && typeof productRef._id === 'string') return productRef._id;
+    return null;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-page-background-color flex items-center justify-center">
@@ -171,13 +179,19 @@ const OrderDetailsPage: React.FC = () => {
                 {order.items?.map((item) => {
                   const variant = item.productVariantId;
                   const product = variant?.productId;
+                  const productId = getProductIdFromItem(item);
                   const name = product?.title || 'Product';
                   const image = variant?.images?.[0] || product?.imageUrls?.[0] || undefined;
                   const sku = variant?.sku || '—';
                   return (
                     <div
                       key={item._id}
-                      className="flex gap-4 p-3 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-blue-50/30 transition-colors"
+                      onClick={() => {
+                        if (productId) window.open(`/products/${productId}`, '_blank', 'noopener,noreferrer');
+                      }}
+                      className={`flex gap-4 p-3 rounded-xl border border-gray-100 transition-colors ${
+                        productId ? 'cursor-pointer hover:border-blue-200 hover:bg-blue-50/30' : ''
+                      }`}
                     >
                       <div className="w-20 h-20 bg-page-background-color rounded-xl shrink-0 overflow-hidden border border-gray-200/80">
                         {image ? (

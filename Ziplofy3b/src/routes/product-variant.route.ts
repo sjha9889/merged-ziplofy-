@@ -21,5 +21,5 @@ productVariantRouter.get("/product/:productId", getVariantsByProductId);
 // GET single variant by id
 productVariantRouter.get("/:id", getVariantById);
 
-// PUT update variant by id
-productVariantRouter.put("/:id", updateVariantById);
+// PATCH update variant by id
+productVariantRouter.patch("/:id", updateVariantById);
