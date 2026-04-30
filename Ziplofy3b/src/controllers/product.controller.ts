@@ -556,6 +556,31 @@ export const getProductsByStoreIdPublic = asyncErrorHandler(async (req: Request,
   });
 });
 
+// GET /products/:id - get single product details (protected)
+export const getProductById = asyncErrorHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  if (!id || !mongoose.isValidObjectId(id)) {
+    throw new CustomError("Valid product ID is required", 400);
+  }
+
+  const product = await Product.findOne({ _id: id, isDeleted: { $ne: true } })
+    .populate("category")
+    .populate("package")
+    .populate("tagIds")
+    .populate("vendor")
+    .populate("productType");
+
+  if (!product) {
+    throw new CustomError("Product not found", 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    data: product,
+  });
+});
+
 // Get product details by ID (public route)
 export const getProductByIdPublic = asyncErrorHandler(async (req: Request, res: Response) => {
   const { productId } = req.params;

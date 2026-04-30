@@ -30,6 +30,16 @@ interface UploadImageWithSignedUrlResult {
   key: string;
 }
 
+interface DeleteImagesResult {
+  deletedKeys: string[];
+  deletedCount: number;
+}
+
+interface DeleteImagesPayload {
+  imageUrls?: string[];
+  imageKeys?: string[];
+}
+
 interface AwsUploadContextType {
   loading: boolean;
   error: string | null;
@@ -46,6 +56,7 @@ interface AwsUploadContextType {
     file: File,
     options?: { folder?: string; expiresInSeconds?: number }
   ) => Promise<UploadImageWithSignedUrlResult>;
+  deleteImagesFromS3: (payload: DeleteImagesPayload) => Promise<DeleteImagesResult>;
   clearError: () => void;
 }
 
@@ -134,6 +145,34 @@ export const AwsUploadProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     [generateImageUploadSignedUrl, uploadFileToSignedUrl]
   );
 
+  const deleteImagesFromS3 = useCallback(async (payload: DeleteImagesPayload): Promise<DeleteImagesResult> => {
+    const imageUrls = Array.isArray(payload?.imageUrls) ? payload.imageUrls : [];
+    const imageKeys = Array.isArray(payload?.imageKeys) ? payload.imageKeys : [];
+    if (imageUrls.length === 0 && imageKeys.length === 0) {
+      return { deletedKeys: [], deletedCount: 0 };
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await axiosi.post<ApiResponse<DeleteImagesResult>>('/aws/delete-images', {
+        imageUrls,
+        imageKeys,
+      });
+      const { success, data, message } = res.data;
+      if (!success || !data) {
+        throw new Error(message || 'Failed to delete images');
+      }
+      return data;
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to delete images';
+      setError(msg);
+      throw new Error(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const clearError = useCallback(() => setError(null), []);
 
   const value = useMemo<AwsUploadContextType>(
@@ -144,6 +183,7 @@ export const AwsUploadProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       generateImageUploadSignedUrl,
       uploadFileToSignedUrl,
       uploadImageWithSignedUrl,
+      deleteImagesFromS3,
       clearError,
     }),
     [
@@ -153,6 +193,7 @@ export const AwsUploadProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       generateImageUploadSignedUrl,
       uploadFileToSignedUrl,
       uploadImageWithSignedUrl,
+      deleteImagesFromS3,
       clearError,
     ]
   );

@@ -35,3 +35,5 @@ exports.productRouter.get("/search-basic", product_controller_1.searchProductsBa
 exports.productRouter.get("/search-with-variants", product_controller_1.searchProductsWithVariants);
 // search products with variant and destination availability
 exports.productRouter.get("/search-product-with-variant-and-destination", product_controller_1.searchProductsWithVariantAndDestination);
+// Get single product by id (keep after specific GET routes)
+exports.productRouter.get("/:id", product_controller_1.getProductById);

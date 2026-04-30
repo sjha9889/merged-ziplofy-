@@ -216,14 +216,18 @@ export interface SearchProductsWithDestinationArgs extends SearchProductsWithVar
 
 interface ProductContextType {
   products: Product[];
+  activeProduct: Product | null;
   loading: boolean;
+  activeProductLoading: boolean;
   error: string | null;
   transferProductSearchResult: ProductSearchWithVariantsItem[];
   transferProductSearchPagination: ProductSearchPagination | null;
   createProduct: (payload: CreateProductPayload) => Promise<Product>;
   updateProduct: (productId: string, payload: UpdateProductPayload) => Promise<Product>;
   fetchProductsByStoreId: (storeId: string) => Promise<void>;
+  fetchProductById: (productId: string) => Promise<Product>;
   clearProducts: () => void;
+  clearActiveProduct: () => void;
   addVariantsToProduct: (productId: string, variants: Array<{ optionName: string; values: string[] }>) => Promise<{ _id: string }[]>;
   deleteVariantFromProduct: (productId: string, dimensionName: string) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
@@ -238,7 +242,9 @@ const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [activeProduct, setActiveProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [activeProductLoading, setActiveProductLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [transferProductSearchResult, setTransferProductSearchResult] = useState<ProductSearchWithVariantsItem[]>([]);
   const [transferProductSearchPagination, setTransferProductSearchPagination] = useState<ProductSearchPagination | null>(null);
@@ -270,6 +276,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const { success, data } = res.data;
       if (!success) throw new Error('Failed to update product');
       setProducts((prev) => prev.map((product) => (product._id === productId ? data : product)));
+      setActiveProduct((prev) => (prev && prev._id === productId ? data : prev));
       return data;
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to update product';
@@ -296,10 +303,41 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, []);
 
+  const fetchProductById = useCallback(async (productId: string): Promise<Product> => {
+    try {
+      setActiveProductLoading(true);
+      setError(null);
+      const res = await axiosi.get<CreateProductResponse>(`/products/${productId}`);
+      const { success, data } = res.data;
+      if (!success) throw new Error('Failed to fetch product details');
+      setActiveProduct(data);
+      setProducts((prev) => {
+        const exists = prev.some((product) => product._id === data._id);
+        if (exists) {
+          return prev.map((product) => (product._id === data._id ? data : product));
+        }
+        return [data, ...prev];
+      });
+      return data;
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to fetch product details';
+      setError(msg);
+      setActiveProduct(null);
+      throw new Error(msg);
+    } finally {
+      setActiveProductLoading(false);
+    }
+  }, []);
+
   const clearProducts = useCallback(() => {
     setProducts([]);
     setError(null);
     setLoading(false);
+  }, []);
+
+  const clearActiveProduct = useCallback(() => {
+    setActiveProduct(null);
+    setActiveProductLoading(false);
   }, []);
 
   const addVariantsToProduct = useCallback(async (
@@ -358,6 +396,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const { success } = res.data;
       if (!success) throw new Error('Failed to delete product');
       setProducts((prev) => prev.filter((product) => product._id !== productId));
+      setActiveProduct((prev) => (prev && prev._id === productId ? null : prev));
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to delete product';
       setError(msg);
@@ -481,14 +520,18 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const value = useMemo<ProductContextType>(
     () => ({
       products,
+      activeProduct,
       loading,
+      activeProductLoading,
       error,
       transferProductSearchResult,
       transferProductSearchPagination,
       createProduct,
       updateProduct,
       fetchProductsByStoreId,
+      fetchProductById,
       clearProducts,
+      clearActiveProduct,
       addVariantsToProduct,
       deleteVariantFromProduct,
       deleteProduct,
@@ -500,14 +543,18 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }),
     [
       products,
+      activeProduct,
       loading,
+      activeProductLoading,
       error,
       transferProductSearchResult,
       transferProductSearchPagination,
       createProduct,
       updateProduct,
       fetchProductsByStoreId,
+      fetchProductById,
       clearProducts,
+      clearActiveProduct,
       addVariantsToProduct,
       deleteVariantFromProduct,
       deleteProduct,

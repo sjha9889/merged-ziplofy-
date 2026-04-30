@@ -3,6 +3,7 @@ import {
   addOptionToProduct,
   addVariantsToProduct,
   createProduct,
+  getProductById,
   deleteVariantsFromProduct,
   getProductByIdPublic,
   getProductsByStoreId,
@@ -62,4 +63,7 @@ productRouter.get("/search-with-variants", searchProductsWithVariants);
 
 // search products with variant and destination availability
 productRouter.get("/search-product-with-variant-and-destination", searchProductsWithVariantAndDestination);
+
+// Get single product by id (keep after specific GET routes)
+productRouter.get("/:id", getProductById);
 

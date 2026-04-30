@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import AddOptionValuesModal from '../components/AddOptionValuesModal';
@@ -16,25 +16,51 @@ import ProductPricing from '../components/ProductPricing';
 import ProductShippingInformation from '../components/ProductShippingInformation';
 import ProductStatusDetails from '../components/ProductStatusDetails';
 import ProductVariantsList from '../components/ProductVariantsList';
+import { useAwsUpload } from '../contexts/aws-upload.context';
 import { useProductVariants } from '../contexts/product-variant.context';
 import { useProducts } from '../contexts/product.context';
 import { useStore } from '../contexts/store.context';
 
+const extractS3KeyFromUrl = (imageUrl: string): string | null => {
+  try {
+    const parsed = new URL(imageUrl);
+    const key = decodeURIComponent(parsed.pathname.replace(/^\/+/, ''));
+    return key || null;
+  } catch {
+    return null;
+  }
+};
+
 const ProductDetailsPage: React.FC = () => {
   const { id } = useParams();
-  const { products, addVariantsToProduct, deleteVariantFromProduct, addOptionToProduct, deleteProduct, fetchProductsByStoreId, updateProduct } =
+  const {
+    activeProduct,
+    activeProductLoading,
+    addVariantsToProduct,
+    deleteVariantFromProduct,
+    addOptionToProduct,
+    deleteProduct,
+    fetchProductById,
+    clearActiveProduct,
+    updateProduct,
+  } =
     useProducts();
   const navigate = useNavigate();
   const { activeStoreId } = useStore();
+  const { uploadImageWithSignedUrl, deleteImagesFromS3 } = useAwsUpload();
   const { fetchVariantsByProductId, variants, loading } = useProductVariants();
-
-  const product = useMemo(() => products.find((p) => p._id === id), [products, id]);
+  const product = activeProduct;
 
   useEffect(() => {
-    if (activeStoreId && id && products.length === 0) {
-      fetchProductsByStoreId(activeStoreId);
+    if (id) {
+      fetchProductById(id).catch(() => {
+        // errors handled by context and not-found state
+      });
     }
-  }, [activeStoreId, id, products.length, fetchProductsByStoreId]);
+    return () => {
+      clearActiveProduct();
+    };
+  }, [id, fetchProductById, clearActiveProduct]);
 
   const [addVariantsOpen, setAddVariantsOpen] = useState(false);
   const [variantsForm, setVariantsForm] = useState<Array<{ optionName: string; values: string[] }>>([
@@ -57,6 +83,7 @@ const ProductDetailsPage: React.FC = () => {
   const [savingPricingCard, setSavingPricingCard] = useState(false);
   const [savingOrganizationCard, setSavingOrganizationCard] = useState(false);
   const [savingShippingCard, setSavingShippingCard] = useState(false);
+  const [savingMediaCard, setSavingMediaCard] = useState(false);
 
   const handleOpenAddVariants = useCallback(() => {
     setAddVariantsOpen(true);
@@ -359,6 +386,62 @@ const ProductDetailsPage: React.FC = () => {
     [product, updateProduct]
   );
 
+  const handleSaveMediaCard = useCallback(
+    async (payload: { retainedImageUrls: string[]; newImageFiles: File[] }) => {
+      if (!product) return;
+      if (payload.retainedImageUrls.length + payload.newImageFiles.length === 0) {
+        toast.error('At least one image is required');
+        throw new Error('At least one image is required');
+      }
+
+      try {
+        setSavingMediaCard(true);
+        const folderStoreId = activeStoreId || product.storeId;
+        const existingUrls = Array.isArray(product.imageUrls) ? product.imageUrls : [];
+        const removedImageUrls = existingUrls.filter((url) => !payload.retainedImageUrls.includes(url));
+        const removedImageKeys = removedImageUrls
+          .map((url) => extractS3KeyFromUrl(url))
+          .filter((key): key is string => Boolean(key));
+
+        if (removedImageUrls.length > 0) {
+          const deleteToast = toast.loading(
+            `Deleting ${removedImageUrls.length} image${removedImageUrls.length > 1 ? 's' : ''}...`
+          );
+          await deleteImagesFromS3({ imageKeys: removedImageKeys, imageUrls: removedImageUrls });
+          toast.success('Removed images deleted', { id: deleteToast });
+        }
+
+        let uploadedUrls: string[] = [];
+        if (payload.newImageFiles.length > 0) {
+          const uploadToast = toast.loading(
+            `Uploading ${payload.newImageFiles.length} image${payload.newImageFiles.length > 1 ? 's' : ''}...`
+          );
+          const uploaded = await Promise.all(
+            payload.newImageFiles.map((file) =>
+              uploadImageWithSignedUrl(file, { folder: `${folderStoreId}/product-image` })
+            )
+          );
+          uploadedUrls = uploaded.map((item) => item.objectUrl);
+          toast.success('Images uploaded', { id: uploadToast });
+        }
+
+        const finalImageUrls = [...payload.retainedImageUrls, ...uploadedUrls];
+        await updateProduct(product._id, { imageUrls: finalImageUrls });
+        toast.success('Media updated');
+      } catch (error: any) {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          'Failed to update media';
+        toast.error(message);
+        throw error;
+      } finally {
+        setSavingMediaCard(false);
+      }
+    },
+    [product, activeStoreId, deleteImagesFromS3, uploadImageWithSignedUrl, updateProduct]
+  );
+
   const updateNewOptionValue = useCallback((index: number, value: string) => {
     setNewOptionValues((prev) => {
       const next = [...prev];
@@ -384,6 +467,10 @@ const ProductDetailsPage: React.FC = () => {
     }
   }, [id, fetchVariantsByProductId]);
 
+  if (activeProductLoading) {
+    return null;
+  }
+
   if (!product) {
     return <ProductNotFound />;
   }
@@ -401,7 +488,11 @@ const ProductDetailsPage: React.FC = () => {
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 xl:gap-8">
           <div className="space-y-6 xl:col-span-2">
-            <ProductImagesGallery imageUrls={product.imageUrls || []} />
+            <ProductImagesGallery
+              imageUrls={product.imageUrls || []}
+              onSave={handleSaveMediaCard}
+              isSaving={savingMediaCard}
+            />
             <ProductBasicInformation
               product={product}
               onSave={handleSaveProductBasicCard}

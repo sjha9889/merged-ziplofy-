@@ -1,7 +1,7 @@
 import { randomUUID } from 'crypto';
 import path from 'path';
 import { Request, Response } from 'express';
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { DeleteObjectsCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { asyncErrorHandler, CustomError } from '../utils/error.utils';
 import { env } from '../utils/env.utils';
@@ -35,6 +35,16 @@ const sanitizeFilename = (value: string): string =>
     .replace(/[^a-z0-9._-]/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '');
+
+const extractS3KeyFromUrl = (imageUrl: string): string | null => {
+  try {
+    const parsed = new URL(imageUrl);
+    const key = decodeURIComponent(parsed.pathname.replace(/^\/+/, ''));
+    return key || null;
+  } catch {
+    return null;
+  }
+};
 
 export const generateImageUploadSignedUrl = asyncErrorHandler(async (req: Request, res: Response) => {
   const awsRegion = env.AWS_REGION;
@@ -84,6 +94,71 @@ export const generateImageUploadSignedUrl = asyncErrorHandler(async (req: Reques
       contentType: fileType,
       expiresInSeconds: safeExpires,
       objectUrl,
+    },
+  });
+});
+
+export const deleteImagesFromS3 = asyncErrorHandler(async (req: Request, res: Response) => {
+  const awsBucket = env.AWS_S3_BUCKET_NAME;
+  const { imageUrls, imageKeys } = req.body as { imageUrls?: string[]; imageKeys?: string[] };
+
+  const normalizedImageKeys = Array.isArray(imageKeys)
+    ? imageKeys
+        .map((key) => (typeof key === 'string' ? key.trim() : ''))
+        .filter(Boolean)
+    : [];
+
+  const normalizedImageUrls = Array.isArray(imageUrls)
+    ? imageUrls
+        .map((url) => (typeof url === 'string' ? url.trim() : ''))
+        .filter(Boolean)
+    : [];
+
+  if (normalizedImageKeys.length === 0 && normalizedImageUrls.length === 0) {
+    throw new CustomError('Provide a non-empty imageKeys or imageUrls array', 400);
+  }
+
+  const parsedKeysFromUrls = normalizedImageUrls
+    .map((url) => extractS3KeyFromUrl(url))
+    .filter((key): key is string => Boolean(key));
+  const keys = Array.from(new Set([...normalizedImageKeys, ...parsedKeysFromUrls]));
+
+  if (keys.length === 0) {
+    throw new CustomError('No valid S3 image keys found from payload', 400);
+  }
+
+  const deleteCommand = new DeleteObjectsCommand({
+    Bucket: awsBucket,
+    Delete: {
+      Objects: keys.map((key) => ({ Key: key })),
+      Quiet: false,
+    },
+  });
+
+  const deleteResult = await s3Client.send(deleteCommand);
+  const deletedKeys = (deleteResult.Deleted || []).map((item) => item.Key).filter(Boolean);
+  const failedDeletes = (deleteResult.Errors || []).map((err) => ({
+    key: err.Key,
+    code: err.Code,
+    message: err.Message,
+  }));
+
+  if (failedDeletes.length > 0) {
+    const details = failedDeletes
+      .map((item) => `${item.key || 'unknown-key'} [${item.code || 'UNKNOWN'}: ${item.message || 'No message'}]`)
+      .join(', ');
+    throw new CustomError(
+      `Failed to delete one or more images from S3: ${details}`,
+      500
+    );
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: 'Images deleted from S3',
+    data: {
+      deletedKeys,
+      deletedCount: deletedKeys.length,
     },
   });
 });

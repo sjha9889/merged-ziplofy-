@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.softDeleteProductById = exports.searchProductsWithVariantAndDestination = exports.searchProductsWithVariants = exports.searchProductsBasic = exports.searchProductsWithAvailability = exports.addOptionToProduct = exports.deleteVariantsFromProduct = exports.addVariantsToProduct = exports.getProductByIdPublic = exports.getProductsByStoreIdPublic = exports.getProductsByStoreId = exports.updateProductById = exports.createProduct = void 0;
+exports.softDeleteProductById = exports.searchProductsWithVariantAndDestination = exports.searchProductsWithVariants = exports.searchProductsBasic = exports.searchProductsWithAvailability = exports.addOptionToProduct = exports.deleteVariantsFromProduct = exports.addVariantsToProduct = exports.getProductByIdPublic = exports.getProductById = exports.getProductsByStoreIdPublic = exports.getProductsByStoreId = exports.updateProductById = exports.createProduct = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const inventory_level_model_1 = require("../models/inventory-level/inventory-level.model");
 const location_model_1 = require("../models/location/location.model");
@@ -494,6 +494,26 @@ exports.getProductsByStoreIdPublic = (0, error_utils_1.asyncErrorHandler)(async 
         },
         // Store-wide order discount (applies to whole order, not specific products)
         orderDiscount: bestOrderDiscount
+    });
+});
+// GET /products/:id - get single product details (protected)
+exports.getProductById = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
+    const { id } = req.params;
+    if (!id || !mongoose_1.default.isValidObjectId(id)) {
+        throw new error_utils_1.CustomError("Valid product ID is required", 400);
+    }
+    const product = await product_model_1.Product.findOne({ _id: id, isDeleted: { $ne: true } })
+        .populate("category")
+        .populate("package")
+        .populate("tagIds")
+        .populate("vendor")
+        .populate("productType");
+    if (!product) {
+        throw new error_utils_1.CustomError("Product not found", 404);
+    }
+    res.status(200).json({
+        success: true,
+        data: product,
     });
 });
 // Get product details by ID (public route)
