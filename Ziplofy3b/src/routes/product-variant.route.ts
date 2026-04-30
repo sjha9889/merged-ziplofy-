@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+    getVariantById,
     getVariantsByProductId,
     getVariantsByProductIdPublic,
     updateVariantById
@@ -16,6 +17,9 @@ productVariantRouter.use(protect);
 
 // GET variants by product id
 productVariantRouter.get("/product/:productId", getVariantsByProductId);
+
+// GET single variant by id
+productVariantRouter.get("/:id", getVariantById);
 
 // PUT update variant by id
 productVariantRouter.put("/:id", updateVariantById);

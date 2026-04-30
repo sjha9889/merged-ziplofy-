@@ -29,12 +29,21 @@ interface VariantsResponse {
   count: number;
 }
 
+interface VariantByIdResponse {
+  success: boolean;
+  data: StorefrontProductVariant;
+}
+
 interface StorefrontProductVariantContextType {
   variants: StorefrontProductVariant[];
+  activeVariant: StorefrontProductVariant | null;
   count: number;
   loading: boolean;
+  activeVariantLoading: boolean;
   error: string | null;
   fetchVariantsByProductId: (productId: string) => Promise<StorefrontProductVariant[]>;
+  fetchProductVariantDetailsById: (variantId: string, productId?: string) => Promise<StorefrontProductVariant | null>;
+  clearActiveVariant: () => void;
   clear: () => void;
 }
 
@@ -42,8 +51,10 @@ const StorefrontProductVariantContext = createContext<StorefrontProductVariantCo
 
 export const StorefrontProductVariantProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [variants, setVariants] = useState<StorefrontProductVariant[]>([]);
+  const [activeVariant, setActiveVariant] = useState<StorefrontProductVariant | null>(null);
   const [count, setCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
+  const [activeVariantLoading, setActiveVariantLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchVariantsByProductId = useCallback(async (productId: string) => {
@@ -64,19 +75,51 @@ export const StorefrontProductVariantProvider: React.FC<{ children: React.ReactN
     }
   }, []);
 
+  const fetchProductVariantDetailsById = useCallback(async (variantId: string, productId?: string) => {
+    try {
+      setActiveVariantLoading(true);
+      setError(null);
+      const res = await axiosi.get<VariantByIdResponse>(`/product-variants/public/${variantId}`, {
+        params: productId ? { productId } : undefined,
+      });
+      if (!res.data.success) throw new Error("Failed to fetch product variant details");
+      const variant = res.data.data || null;
+      setActiveVariant(variant);
+      return variant;
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string }; message?: string }; message?: string })?.response?.data?.message ?? (err as { message?: string })?.message ?? "Failed to fetch product variant details";
+      setError(msg);
+      setActiveVariant(null);
+      return null;
+    } finally {
+      setActiveVariantLoading(false);
+    }
+  }, []);
+
+  const clearActiveVariant = useCallback(() => {
+    setActiveVariant(null);
+    setActiveVariantLoading(false);
+  }, []);
+
   const clear = useCallback(() => {
     setVariants([]);
+    setActiveVariant(null);
     setCount(0);
     setError(null);
     setLoading(false);
+    setActiveVariantLoading(false);
   }, []);
 
   const value: StorefrontProductVariantContextType = {
     variants,
+    activeVariant,
     count,
     loading,
+    activeVariantLoading,
     error,
     fetchVariantsByProductId,
+    fetchProductVariantDetailsById,
+    clearActiveVariant,
     clear,
   };
 

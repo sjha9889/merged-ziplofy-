@@ -6,7 +6,7 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import ProductNotFound from '../components/ProductNotFound';
 import ProductVariantBasicInformation from '../components/ProductVariantBasicInformation';
 import ProductVariantDetailsHeader from '../components/ProductVariantDetailsHeader';
@@ -19,14 +19,18 @@ import { useStore } from '../contexts/store.context';
 
 const ProductVariantDetailsPage: React.FC = () => {
   const { id, variantId } = useParams();
-  const navigate = useNavigate();
-  const { products } = useProducts();
-  const { fetchVariantsByProductId, variants, loading, updateVariant } = useProductVariants();
+  const { activeProduct, activeProductLoading, fetchProductById, clearActiveProduct } = useProducts();
+  const { activeVariant, activeVariantLoading, fetchProductVariantDetailsById, clearActiveVariant, updateVariant } = useProductVariants();
   const { packagings, loading: packagingsLoading, fetchPackagingsByStoreId } = usePackaging();
   const { activeStoreId } = useStore();
 
-  const product = useMemo(() => products.find(p => p._id === id), [products, id]);
-  const variant = useMemo(() => variants.find(v => v._id === variantId), [variants, variantId]);
+  const product = useMemo(() => (activeProduct?._id === id ? activeProduct : null), [activeProduct, id]);
+  const variant = useMemo(() => {
+    if (!activeVariant || !variantId || !id) return null;
+    if (activeVariant._id !== variantId) return null;
+    if (String(activeVariant.productId) !== String(id)) return null;
+    return activeVariant;
+  }, [activeVariant, variantId, id]);
 
   // Segment-based edit states
   const [editingSegments, setEditingSegments] = useState({
@@ -257,16 +261,34 @@ const ProductVariantDetailsPage: React.FC = () => {
   }, [variant, formData.isPhysicalProduct, formData.isInventoryTrackingEnabled, updateVariant]);
 
   useEffect(() => {
-    if (id) {
-      fetchVariantsByProductId(id);
-    }
-  }, [id, fetchVariantsByProductId]);
+    if (!id) return;
+    fetchProductById(id).catch(() => {
+      // handled by page not-found state
+    });
+    return () => {
+      clearActiveProduct();
+    };
+  }, [id, fetchProductById, clearActiveProduct]);
+
+  useEffect(() => {
+    if (!variantId) return;
+    fetchProductVariantDetailsById(variantId, id).catch(() => {
+      // handled by page not-found state
+    });
+    return () => {
+      clearActiveVariant();
+    };
+  }, [variantId, id, fetchProductVariantDetailsById, clearActiveVariant]);
 
   useEffect(() => {
     if (activeStoreId) {
       fetchPackagingsByStoreId(activeStoreId);
     }
   }, [activeStoreId, fetchPackagingsByStoreId]);
+
+  if (activeProductLoading || activeVariantLoading) {
+    return null;
+  }
 
   if (!product) {
     return <ProductNotFound />;
