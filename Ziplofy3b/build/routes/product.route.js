@@ -13,6 +13,8 @@ exports.productRouter.get("/public/:productId", product_controller_1.getProductB
 exports.productRouter.use(auth_middleware_1.protect);
 // Create product
 exports.productRouter.post("/", product_controller_1.createProduct);
+// Partial update product
+exports.productRouter.patch("/:id", product_controller_1.updateProductById);
 // Soft delete product
 exports.productRouter.delete("/:id", product_controller_1.softDeleteProductById);
 // Get products by store id

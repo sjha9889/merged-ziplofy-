@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.softDeleteProductById = exports.searchProductsWithVariantAndDestination = exports.searchProductsWithVariants = exports.searchProductsBasic = exports.searchProductsWithAvailability = exports.addOptionToProduct = exports.deleteVariantsFromProduct = exports.addVariantsToProduct = exports.getProductByIdPublic = exports.getProductsByStoreIdPublic = exports.getProductsByStoreId = exports.createProduct = void 0;
+exports.softDeleteProductById = exports.searchProductsWithVariantAndDestination = exports.searchProductsWithVariants = exports.searchProductsBasic = exports.searchProductsWithAvailability = exports.addOptionToProduct = exports.deleteVariantsFromProduct = exports.addVariantsToProduct = exports.getProductByIdPublic = exports.getProductsByStoreIdPublic = exports.getProductsByStoreId = exports.updateProductById = exports.createProduct = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const inventory_level_model_1 = require("../models/inventory-level/inventory-level.model");
 const location_model_1 = require("../models/location/location.model");
@@ -185,6 +185,81 @@ exports.createProduct = (0, error_utils_1.asyncErrorHandler)(async (req, res) =>
         success: true,
         data: populatedProduct || product,
         message: "Product created successfully",
+    });
+});
+// PATCH /products/:id - partial update product
+exports.updateProductById = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
+    const { id } = req.params;
+    if (!id || !mongoose_1.default.isValidObjectId(id)) {
+        throw new error_utils_1.CustomError("Valid product id is required", 400);
+    }
+    const body = req.body;
+    const updatePayload = {};
+    const allowedFields = [
+        "title",
+        "description",
+        "category",
+        "price",
+        "compareAtPrice",
+        "chargeTax",
+        "cost",
+        "profit",
+        "marginPercent",
+        "unitPriceTotalAmount",
+        "unitPriceTotalAmountMetric",
+        "unitPriceBaseMeasure",
+        "unitPriceBaseMeasureMetric",
+        "inventoryTrackingEnabled",
+        "continueSellingWhenOutOfStock",
+        "sku",
+        "barcode",
+        "isPhysicalProduct",
+        "package",
+        "productWeight",
+        "productWeightUnit",
+        "countryOfOrigin",
+        "harmonizedSystemCode",
+        "variants",
+        "pageTitle",
+        "metaDescription",
+        "urlHandle",
+        "status",
+        "onlineStorePublishing",
+        "pointOfSalePublishing",
+        "productType",
+        "vendor",
+        "tagIds",
+        "imageUrls",
+    ];
+    for (const field of allowedFields) {
+        if (Object.prototype.hasOwnProperty.call(body, field)) {
+            updatePayload[field] = body[field];
+        }
+    }
+    // Backward compatibility with existing client payload naming
+    if (Object.prototype.hasOwnProperty.call(body, "images")) {
+        updatePayload.imageUrls = body.images ?? [];
+    }
+    // Keep weight units normalized
+    if (updatePayload.productWeightUnit === "grams") {
+        updatePayload.productWeightUnit = "g";
+    }
+    if (Object.keys(updatePayload).length === 0) {
+        throw new error_utils_1.CustomError("No valid fields provided to update", 400);
+    }
+    const updatedProduct = await product_model_1.Product.findOneAndUpdate({ _id: id, isDeleted: { $ne: true } }, { $set: updatePayload }, { new: true, runValidators: true })
+        .populate({ path: "category" })
+        .populate({ path: "package", model: "Packaging" })
+        .populate({ path: "tagIds", model: "ProductTags" })
+        .populate({ path: "vendor", model: "Vendor" })
+        .populate({ path: "productType", model: "ProductType" });
+    if (!updatedProduct) {
+        throw new error_utils_1.CustomError("Product not found", 404);
+    }
+    res.status(200).json({
+        success: true,
+        data: updatedProduct,
+        message: "Product updated successfully",
     });
 });
 // Get products by store id

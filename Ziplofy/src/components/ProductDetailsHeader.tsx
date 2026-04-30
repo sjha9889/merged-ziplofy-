@@ -1,46 +1,98 @@
 import {
   ArrowLeftIcon,
+  CheckIcon,
   ChevronRightIcon,
   CubeIcon,
   HomeIcon,
-  PlusIcon,
+  PencilSquareIcon,
   Squares2X2Icon,
   TrashIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Product } from '../contexts/product.context';
+import ProductDescriptionInput from './products/ProductDescriptionInput';
 
 interface ProductDetailsHeaderProps {
   product: Product;
   variantsCount: number;
-  onAddVariants: () => void;
-  onDeleteVariant: () => void;
-  onAddOption: () => void;
   onDeleteProduct: () => void;
+  onSaveBasicInfo: (payload: { title: string; description: string }) => Promise<void>;
+  isSavingBasicInfo: boolean;
 }
 
 const ProductDetailsHeader: React.FC<ProductDetailsHeaderProps> = ({
   product,
   variantsCount,
-  onAddVariants,
-  onDeleteVariant,
-  onAddOption,
   onDeleteProduct,
+  onSaveBasicInfo,
+  isSavingBasicInfo,
 }) => {
   const navigate = useNavigate();
   const title = product.title || 'Untitled product';
+  const descriptionPreview = product.description
+    ? product.description.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+    : '';
+  const [isEditingBasicInfo, setIsEditingBasicInfo] = useState(false);
+  const [draftTitle, setDraftTitle] = useState(title);
+  const [draftDescription, setDraftDescription] = useState(product.description || '');
+  const [editError, setEditError] = useState('');
+
+  useEffect(() => {
+    if (!isEditingBasicInfo) {
+      setDraftTitle(title);
+      setDraftDescription(product.description || '');
+    }
+  }, [title, product.description, isEditingBasicInfo]);
+
+  const handleStartEdit = () => {
+    setEditError('');
+    setDraftTitle(title);
+    setDraftDescription(product.description || '');
+    setIsEditingBasicInfo(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditError('');
+    setDraftTitle(title);
+    setDraftDescription(product.description || '');
+    setIsEditingBasicInfo(false);
+  };
+
+  const handleSaveBasicInfo = async () => {
+    if (!draftTitle.trim()) {
+      setEditError('Title is required');
+      return;
+    }
+    await onSaveBasicInfo({
+      title: draftTitle.trim(),
+      description: draftDescription,
+    });
+    setEditError('');
+    setIsEditingBasicInfo(false);
+  };
 
   return (
     <header className="mb-8 space-y-5">
-      <button
-        type="button"
-        onClick={() => navigate('/products')}
-        className="inline-flex items-center gap-2 rounded-xl border border-gray-200/80 bg-white px-3 py-2 text-sm font-medium text-gray-600 shadow-sm transition-colors hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
-      >
-        <ArrowLeftIcon className="h-4 w-4" aria-hidden />
-        Products
-      </button>
+      <div className="flex items-start justify-between gap-3">
+        <button
+          type="button"
+          onClick={() => navigate('/products')}
+          className="inline-flex items-center gap-2 rounded-xl border border-gray-200/80 bg-white px-3 py-2 text-sm font-medium text-gray-600 shadow-sm transition-colors hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+        >
+          <ArrowLeftIcon className="h-4 w-4" aria-hidden />
+          Products
+        </button>
+        <button
+          type="button"
+          onClick={onDeleteProduct}
+          className="inline-flex items-center justify-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2 text-sm font-semibold text-red-700 shadow-sm transition-colors hover:bg-red-100"
+        >
+          <TrashIcon className="h-4 w-4" aria-hidden />
+          Delete product
+        </button>
+      </div>
 
       <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-sm">
         <button
@@ -57,13 +109,64 @@ const ProductDetailsHeader: React.FC<ProductDetailsHeaderProps> = ({
         </span>
       </nav>
 
-      <div className="rounded-2xl border border-gray-200/80 bg-gradient-to-b from-white to-blue-50/25 p-5 shadow-sm sm:p-6">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-          <div className="min-w-0 border-l-4 border-blue-500/70 pl-4">
-            <h1 className="text-2xl font-semibold tracking-tight text-gray-900 sm:text-3xl">{title}</h1>
-            {product.description ? (
-              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-gray-600 line-clamp-3">
-                {product.description}
+      <div className="rounded-2xl border border-gray-200/80 bg-linear-to-b from-white to-blue-50/25 p-5 shadow-sm sm:p-6">
+        <div className="min-w-0 border-l-4 border-blue-500/70 pl-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <h1 className="text-2xl font-semibold tracking-tight text-gray-900 sm:text-3xl">{title}</h1>
+              {!isEditingBasicInfo ? (
+                <button
+                  type="button"
+                  onClick={handleStartEdit}
+                  className="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  <PencilSquareIcon className="h-4 w-4" aria-hidden />
+                  Edit
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    disabled={isSavingBasicInfo}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    <XMarkIcon className="h-4 w-4" aria-hidden />
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSaveBasicInfo}
+                    disabled={isSavingBasicInfo}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    <CheckIcon className="h-4 w-4" aria-hidden />
+                    {isSavingBasicInfo ? 'Saving...' : 'Save'}
+                  </button>
+                </div>
+              )}
+            </div>
+            {isEditingBasicInfo ? (
+              <div className="mt-3 space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Title</label>
+                  <input
+                    type="text"
+                    value={draftTitle}
+                    onChange={(e) => setDraftTitle(e.target.value)}
+                    className="w-full max-w-3xl px-3 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                    placeholder="Enter product title"
+                  />
+                </div>
+                <ProductDescriptionInput
+                  value={draftDescription}
+                  onChange={setDraftDescription}
+                  placeholder="Describe your product..."
+                />
+                {editError ? <p className="text-xs text-red-600">{editError}</p> : null}
+              </div>
+            ) : descriptionPreview ? (
+              <p className="mt-2 max-w-4xl text-sm leading-relaxed text-gray-600 line-clamp-3">
+                {descriptionPreview}
               </p>
             ) : (
               <p className="mt-2 text-sm text-gray-400">No description</p>
@@ -99,45 +202,9 @@ const ProductDetailsHeader: React.FC<ProductDetailsHeaderProps> = ({
                 </span>
               ) : null}
             </div>
-          </div>
-
-          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap lg:flex-col xl:flex-row lg:items-stretch">
-            <button
-              type="button"
-              onClick={onAddVariants}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
-            >
-              <PlusIcon className="h-4 w-4" aria-hidden />
-              Add variants
-            </button>
-            <button
-              type="button"
-              onClick={onDeleteProduct}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 shadow-sm transition-colors hover:bg-red-100"
-            >
-              <TrashIcon className="h-4 w-4" aria-hidden />
-              Delete product
-            </button>
-            <button
-              type="button"
-              onClick={onDeleteVariant}
-              disabled={!product?.variants || product.variants.length === 0}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <TrashIcon className="h-4 w-4 text-gray-500" aria-hidden />
-              Delete variant
-            </button>
-            <button
-              type="button"
-              onClick={onAddOption}
-              disabled={!product?.variants || product.variants.length === 0 || variantsCount <= 1}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Add option
-            </button>
-          </div>
         </div>
       </div>
+
     </header>
   );
 };

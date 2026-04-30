@@ -12,6 +12,7 @@ import {
   searchProductsWithVariantAndDestination,
   searchProductsWithVariants,
   softDeleteProductById,
+  updateProductById,
 } from "../controllers/product.controller";
 import { protect } from "../middlewares/auth.middleware";
 
@@ -28,6 +29,9 @@ productRouter.use(protect);
 
 // Create product
 productRouter.post("/", createProduct);
+
+// Partial update product
+productRouter.patch("/:id", updateProductById);
 
 // Soft delete product
 productRouter.delete("/:id", softDeleteProductById);

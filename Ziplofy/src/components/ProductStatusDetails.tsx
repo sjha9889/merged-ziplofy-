@@ -1,4 +1,4 @@
-import { CalendarDaysIcon, CubeIcon, SignalIcon } from '@heroicons/react/24/outline';
+import { CalendarDaysIcon, CubeIcon } from '@heroicons/react/24/outline';
 import React from 'react';
 import { Product } from '../contexts/product.context';
 
@@ -63,17 +63,6 @@ const ProductStatusDetails: React.FC<ProductStatusDetailsProps> = ({ product }) 
             </div>
           </div>
 
-          <div className="flex items-start gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3 shadow-sm">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-50">
-              <SignalIcon className="h-4 w-4 text-amber-600" aria-hidden />
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">Overselling</p>
-              <p className="mt-1 text-sm font-semibold text-gray-900">
-                {product.continueSellingWhenOutOfStock ? 'Continue when out of stock' : 'Stop when out of stock'}
-              </p>
-            </div>
-          </div>
         </div>
 
         <div className="space-y-2 border-t border-gray-100 pt-4">

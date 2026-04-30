@@ -50,22 +50,6 @@ const ProductTableRow: React.FC<ProductTableRowProps> = ({ product, onRowClick }
         </span>
       </td>
       <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-500">{new Date(product.updatedAt).toLocaleString()}</td>
-      <td
-        className="px-4 py-3 whitespace-nowrap"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          type="button"
-          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
-          aria-label="More actions"
-        >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <circle cx="8" cy="3" r="1.5" />
-            <circle cx="8" cy="8" r="1.5" />
-            <circle cx="8" cy="13" r="1.5" />
-          </svg>
-        </button>
-      </td>
     </tr>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import AddOptionValuesModal from '../components/AddOptionValuesModal';
 import AddProductVariantsModal from '../components/AddProductVariantsModal';
@@ -21,7 +22,7 @@ import { useStore } from '../contexts/store.context';
 
 const ProductDetailsPage: React.FC = () => {
   const { id } = useParams();
-  const { products, addVariantsToProduct, deleteVariantFromProduct, addOptionToProduct, deleteProduct, fetchProductsByStoreId } =
+  const { products, addVariantsToProduct, deleteVariantFromProduct, addOptionToProduct, deleteProduct, fetchProductsByStoreId, updateProduct } =
     useProducts();
   const navigate = useNavigate();
   const { activeStoreId } = useStore();
@@ -51,6 +52,11 @@ const ProductDetailsPage: React.FC = () => {
   const [submittingOption, setSubmittingOption] = useState(false);
   const [deleteProductOpen, setDeleteProductOpen] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState(false);
+  const [savingBasicInfo, setSavingBasicInfo] = useState(false);
+  const [savingProductBasicCard, setSavingProductBasicCard] = useState(false);
+  const [savingPricingCard, setSavingPricingCard] = useState(false);
+  const [savingOrganizationCard, setSavingOrganizationCard] = useState(false);
+  const [savingShippingCard, setSavingShippingCard] = useState(false);
 
   const handleOpenAddVariants = useCallback(() => {
     setAddVariantsOpen(true);
@@ -205,6 +211,154 @@ const ProductDetailsPage: React.FC = () => {
     }
   }, [product, deleteProduct, navigate]);
 
+  const handleSaveBasicInfo = useCallback(
+    async (payload: { title: string; description: string }) => {
+      if (!product) return;
+      try {
+        setSavingBasicInfo(true);
+        await updateProduct(product._id, {
+          title: payload.title,
+          description: payload.description,
+        });
+        toast.success('Product details updated');
+      } catch (error: any) {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          'Failed to update product details';
+        toast.error(message);
+        throw error;
+      } finally {
+        setSavingBasicInfo(false);
+      }
+    },
+    [product, updateProduct]
+  );
+
+  const handleSaveProductBasicCard = useCallback(
+    async (payload: { category: string; sku: string; barcode: string }) => {
+      if (!product) return;
+      try {
+        setSavingProductBasicCard(true);
+        await updateProduct(product._id, {
+          category: payload.category,
+          sku: payload.sku,
+          barcode: payload.barcode,
+        });
+        toast.success('Basic information updated');
+      } catch (error: any) {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          'Failed to update basic information';
+        toast.error(message);
+        throw error;
+      } finally {
+        setSavingProductBasicCard(false);
+      }
+    },
+    [product, updateProduct]
+  );
+
+  const handleSavePricingCard = useCallback(
+    async (payload: {
+      price: number;
+      compareAtPrice?: number;
+      cost: number;
+      profit: number;
+      marginPercent: number;
+      unitPriceTotalAmount?: number;
+      unitPriceTotalAmountMetric?: string;
+      unitPriceBaseMeasure?: number;
+      unitPriceBaseMeasureMetric?: string;
+    }) => {
+      if (!product) return;
+      try {
+        setSavingPricingCard(true);
+        await updateProduct(product._id, {
+          price: payload.price,
+          compareAtPrice: payload.compareAtPrice,
+          cost: payload.cost,
+          profit: payload.profit,
+          marginPercent: payload.marginPercent,
+          unitPriceTotalAmount: payload.unitPriceTotalAmount,
+          unitPriceTotalAmountMetric: payload.unitPriceTotalAmountMetric,
+          unitPriceBaseMeasure: payload.unitPriceBaseMeasure,
+          unitPriceBaseMeasureMetric: payload.unitPriceBaseMeasureMetric,
+        });
+        toast.success('Pricing updated');
+      } catch (error: any) {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          'Failed to update pricing';
+        toast.error(message);
+        throw error;
+      } finally {
+        setSavingPricingCard(false);
+      }
+    },
+    [product, updateProduct]
+  );
+
+  const handleSaveOrganizationCard = useCallback(
+    async (payload: { productType: string; vendor: string; tagIds: string[] }) => {
+      if (!product) return;
+      try {
+        setSavingOrganizationCard(true);
+        await updateProduct(product._id, {
+          productType: payload.productType,
+          vendor: payload.vendor,
+          tagIds: payload.tagIds,
+        });
+        toast.success('Organization updated');
+      } catch (error: any) {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          'Failed to update organization';
+        toast.error(message);
+        throw error;
+      } finally {
+        setSavingOrganizationCard(false);
+      }
+    },
+    [product, updateProduct]
+  );
+
+  const handleSaveShippingCard = useCallback(
+    async (payload: {
+      package?: string;
+      productWeight?: number;
+      productWeightUnit?: string;
+      countryOfOrigin?: string;
+      harmonizedSystemCode?: string;
+    }) => {
+      if (!product) return;
+      try {
+        setSavingShippingCard(true);
+        await updateProduct(product._id, {
+          package: payload.package,
+          productWeight: payload.productWeight,
+          productWeightUnit: payload.productWeightUnit,
+          countryOfOrigin: payload.countryOfOrigin,
+          harmonizedSystemCode: payload.harmonizedSystemCode,
+        });
+        toast.success('Shipping information updated');
+      } catch (error: any) {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          'Failed to update shipping information';
+        toast.error(message);
+        throw error;
+      } finally {
+        setSavingShippingCard(false);
+      }
+    },
+    [product, updateProduct]
+  );
+
   const updateNewOptionValue = useCallback((index: number, value: string) => {
     setNewOptionValues((prev) => {
       const next = [...prev];
@@ -240,20 +394,42 @@ const ProductDetailsPage: React.FC = () => {
         <ProductDetailsHeader
           product={product}
           variantsCount={variants.length}
-          onAddVariants={handleOpenAddVariants}
-          onDeleteVariant={handleOpenDeleteVariant}
-          onAddOption={handleOpenAddOption}
           onDeleteProduct={handleOpenDeleteProduct}
+          onSaveBasicInfo={handleSaveBasicInfo}
+          isSavingBasicInfo={savingBasicInfo}
         />
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 xl:gap-8">
           <div className="space-y-6 xl:col-span-2">
             <ProductImagesGallery imageUrls={product.imageUrls || []} />
-            <ProductBasicInformation product={product} />
-            <ProductPricing product={product} />
-            <ProductOrganization product={product} />
-            <ProductShippingInformation product={product} />
-            <ProductOptions product={product} />
+            <ProductBasicInformation
+              product={product}
+              onSave={handleSaveProductBasicCard}
+              isSaving={savingProductBasicCard}
+            />
+            <ProductPricing
+              product={product}
+              onSave={handleSavePricingCard}
+              isSaving={savingPricingCard}
+            />
+            <ProductOrganization
+              product={product}
+              activeStoreId={activeStoreId}
+              onSave={handleSaveOrganizationCard}
+              isSaving={savingOrganizationCard}
+            />
+            <ProductShippingInformation
+              product={product}
+              activeStoreId={activeStoreId}
+              onSave={handleSaveShippingCard}
+              isSaving={savingShippingCard}
+            />
+            <ProductOptions
+              product={product}
+              onAddVariants={handleOpenAddVariants}
+              onAddOption={handleOpenAddOption}
+              onDeleteVariantDimension={handleOpenDeleteVariant}
+            />
             <ProductVariantsList variants={variants} productId={id || ''} loading={loading} />
           </div>
 

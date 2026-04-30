@@ -98,9 +98,38 @@ const NewProductPage: React.FC = () => {
     }));
   }, []);
 
+  const getErrorMessage = useCallback((error: any): string => {
+    const apiMessage =
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      error?.response?.data?.details?.message ||
+      error?.response?.data?.data?.message;
+
+    if (typeof apiMessage === "string" && apiMessage.trim()) {
+      return apiMessage;
+    }
+
+    if (Array.isArray(error?.response?.data?.errors) && error.response.data.errors.length > 0) {
+      const firstError = error.response.data.errors[0];
+      if (typeof firstError === "string") return firstError;
+      if (typeof firstError?.message === "string") return firstError.message;
+    }
+
+    if (typeof error?.message === "string" && error.message.trim()) {
+      return error.message;
+    }
+
+    return "Failed to create product";
+  }, []);
+
   const handleSubmit = useCallback(async () => {
     if (!activeStoreId) {
       alert('Please select a store first');
+      return;
+    }
+
+    if (formData.physicalProduct && formData.hsCode.trim() !== "" && !/^\d{6}$/.test(formData.hsCode.trim())) {
+      toast.error("HS code must be exactly 6 digits");
       return;
     }
 
@@ -203,12 +232,12 @@ const NewProductPage: React.FC = () => {
       setSelectedImages([]);
     } catch (error: any) {
       console.error('Error creating product:', error);
-      alert(`Error creating product: ${error.message || 'Unknown error'}`);
-      toast.error('Error creating product');
+      const message = getErrorMessage(error);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
-  }, [activeStoreId, formData, createProduct, navigate, selectedImages, uploadImageWithSignedUrl]);
+  }, [activeStoreId, formData, createProduct, navigate, selectedImages, uploadImageWithSignedUrl, getErrorMessage]);
 
   // Image management functions
   const addImageFiles = useCallback((files: File[]) => {
@@ -388,11 +417,9 @@ const NewProductPage: React.FC = () => {
             inventoryTrackingEnabled={formData.inventoryTrackingEnabled}
             sku={formData.sku}
             barcode={formData.barcode}
-            continueSellingWhenOutOfStock={formData.continueSellingWhenOutOfStock}
             onInventoryTrackingEnabledChange={(checked) => handleInputChange('inventoryTrackingEnabled', checked)}
             onSkuChange={(value) => handleInputChange('sku', value)}
             onBarcodeChange={(value) => handleInputChange('barcode', value)}
-            onContinueSellingWhenOutOfStockChange={(checked) => handleInputChange('continueSellingWhenOutOfStock', checked)}
           />
 
           {/* Shipping Section */}

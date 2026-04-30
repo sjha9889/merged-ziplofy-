@@ -113,7 +113,6 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ products, viewMode = "lis
                   )}
                 </div>
               </th>
-              <th className="px-4 py-3" />
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">

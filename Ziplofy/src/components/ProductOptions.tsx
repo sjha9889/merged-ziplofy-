@@ -1,12 +1,28 @@
-import { AdjustmentsHorizontalIcon } from '@heroicons/react/24/outline';
-import React from 'react';
+import {
+  AdjustmentsHorizontalIcon,
+  PencilSquareIcon,
+  PlusIcon,
+  TrashIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
+import React, { useState } from 'react';
 import { Product } from '../contexts/product.context';
 
 interface ProductOptionsProps {
   product: Product;
+  onAddVariants: () => void;
+  onAddOption: () => void;
+  onDeleteVariantDimension: () => void;
 }
 
-const ProductOptions: React.FC<ProductOptionsProps> = ({ product }) => {
+const ProductOptions: React.FC<ProductOptionsProps> = ({
+  product,
+  onAddVariants,
+  onAddOption,
+  onDeleteVariantDimension,
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+
   if (!product.variants || product.variants.length === 0) {
     return null;
   }
@@ -20,6 +36,53 @@ const ProductOptions: React.FC<ProductOptionsProps> = ({ product }) => {
         <div>
           <h2 className="text-sm font-semibold text-gray-900">Options</h2>
           <p className="text-xs text-gray-500">Dimensions customers choose from</p>
+        </div>
+        <div className="ml-auto">
+          {!isEditing ? (
+            <button
+              type="button"
+              onClick={() => setIsEditing(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+            >
+              <PencilSquareIcon className="h-4 w-4" aria-hidden />
+              Edit
+            </button>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={onAddVariants}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700"
+              >
+                <PlusIcon className="h-4 w-4" aria-hidden />
+                Add variants
+              </button>
+              <button
+                type="button"
+                onClick={onAddOption}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700"
+              >
+                <PlusIcon className="h-4 w-4" aria-hidden />
+                Add option
+              </button>
+              <button
+                type="button"
+                onClick={onDeleteVariantDimension}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition-colors hover:bg-red-100"
+              >
+                <TrashIcon className="h-4 w-4" aria-hidden />
+                Delete variant
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+              >
+                <XMarkIcon className="h-4 w-4" aria-hidden />
+                Done
+              </button>
+            </div>
+          )}
         </div>
       </div>
       <div className="grid grid-cols-1 gap-3 p-5 sm:grid-cols-2">

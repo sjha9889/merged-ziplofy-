@@ -195,6 +195,95 @@ export const createProduct = asyncErrorHandler(async (req: Request, res: Respons
   });
 });
 
+// PATCH /products/:id - partial update product
+export const updateProductById = asyncErrorHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!id || !mongoose.isValidObjectId(id)) {
+    throw new CustomError("Valid product id is required", 400);
+  }
+
+  const body = req.body as Partial<IProduct> & Record<string, any>;
+  const updatePayload: Record<string, any> = {};
+
+  const allowedFields = [
+    "title",
+    "description",
+    "category",
+    "price",
+    "compareAtPrice",
+    "chargeTax",
+    "cost",
+    "profit",
+    "marginPercent",
+    "unitPriceTotalAmount",
+    "unitPriceTotalAmountMetric",
+    "unitPriceBaseMeasure",
+    "unitPriceBaseMeasureMetric",
+    "inventoryTrackingEnabled",
+    "continueSellingWhenOutOfStock",
+    "sku",
+    "barcode",
+    "isPhysicalProduct",
+    "package",
+    "productWeight",
+    "productWeightUnit",
+    "countryOfOrigin",
+    "harmonizedSystemCode",
+    "variants",
+    "pageTitle",
+    "metaDescription",
+    "urlHandle",
+    "status",
+    "onlineStorePublishing",
+    "pointOfSalePublishing",
+    "productType",
+    "vendor",
+    "tagIds",
+    "imageUrls",
+  ] as const;
+
+  for (const field of allowedFields) {
+    if (Object.prototype.hasOwnProperty.call(body, field)) {
+      updatePayload[field] = body[field];
+    }
+  }
+
+  // Backward compatibility with existing client payload naming
+  if (Object.prototype.hasOwnProperty.call(body, "images")) {
+    updatePayload.imageUrls = body.images ?? [];
+  }
+
+  // Keep weight units normalized
+  if (updatePayload.productWeightUnit === "grams") {
+    updatePayload.productWeightUnit = "g";
+  }
+
+  if (Object.keys(updatePayload).length === 0) {
+    throw new CustomError("No valid fields provided to update", 400);
+  }
+
+  const updatedProduct = await Product.findOneAndUpdate(
+    { _id: id, isDeleted: { $ne: true } },
+    { $set: updatePayload },
+    { new: true, runValidators: true }
+  )
+    .populate({ path: "category" })
+    .populate({ path: "package", model: "Packaging" })
+    .populate({ path: "tagIds", model: "ProductTags" })
+    .populate({ path: "vendor", model: "Vendor" })
+    .populate({ path: "productType", model: "ProductType" });
+
+  if (!updatedProduct) {
+    throw new CustomError("Product not found", 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    data: updatedProduct,
+    message: "Product updated successfully",
+  });
+});
+
 // Get products by store id
 export const getProductsByStoreId = asyncErrorHandler(async (req: Request, res: Response) => {
   const { storeId } = req.params;

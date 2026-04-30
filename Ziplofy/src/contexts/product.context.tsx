@@ -196,6 +196,8 @@ export interface CreateProductPayload {
   tagIds: string[];
 }
 
+export type UpdateProductPayload = Partial<CreateProductPayload>;
+
 export interface SearchProductsWithVariantsArgs {
   storeId: string;
   q?: string;
@@ -219,6 +221,7 @@ interface ProductContextType {
   transferProductSearchResult: ProductSearchWithVariantsItem[];
   transferProductSearchPagination: ProductSearchPagination | null;
   createProduct: (payload: CreateProductPayload) => Promise<Product>;
+  updateProduct: (productId: string, payload: UpdateProductPayload) => Promise<Product>;
   fetchProductsByStoreId: (storeId: string) => Promise<void>;
   clearProducts: () => void;
   addVariantsToProduct: (productId: string, variants: Array<{ optionName: string; values: string[] }>) => Promise<{ _id: string }[]>;
@@ -253,7 +256,25 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to create product';
       setError(msg);
-      throw err;
+      throw new Error(msg);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const updateProduct = useCallback(async (productId: string, payload: UpdateProductPayload) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await axiosi.patch<CreateProductResponse>(`/products/${productId}`, payload);
+      const { success, data } = res.data;
+      if (!success) throw new Error('Failed to update product');
+      setProducts((prev) => prev.map((product) => (product._id === productId ? data : product)));
+      return data;
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to update product';
+      setError(msg);
+      throw new Error(msg);
     } finally {
       setLoading(false);
     }
@@ -465,6 +486,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       transferProductSearchResult,
       transferProductSearchPagination,
       createProduct,
+      updateProduct,
       fetchProductsByStoreId,
       clearProducts,
       addVariantsToProduct,
@@ -483,6 +505,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       transferProductSearchResult,
       transferProductSearchPagination,
       createProduct,
+      updateProduct,
       fetchProductsByStoreId,
       clearProducts,
       addVariantsToProduct,
