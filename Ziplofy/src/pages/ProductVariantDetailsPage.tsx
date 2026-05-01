@@ -38,6 +38,7 @@ const ProductVariantDetailsPage: React.FC = () => {
   const { activeStoreId } = useStore();
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const [uploadingVariantImages, setUploadingVariantImages] = useState(false);
+  const [isImageDragOver, setIsImageDragOver] = useState(false);
 
   const product = useMemo(() => (activeProduct?._id === id ? activeProduct : null), [activeProduct, id]);
   const variant = useMemo(() => {
@@ -147,6 +148,25 @@ const ProductVariantDetailsPage: React.FC = () => {
       if (uploadInputRef.current) uploadInputRef.current.value = '';
     }
   }, [activeStoreId, product?.storeId, uploadImageWithSignedUrl]);
+
+  const handleImageDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    if (!editingSegments.images) return;
+    event.preventDefault();
+    setIsImageDragOver(true);
+  }, [editingSegments.images]);
+
+  const handleImageDragLeave = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    if (!editingSegments.images) return;
+    event.preventDefault();
+    setIsImageDragOver(false);
+  }, [editingSegments.images]);
+
+  const handleImageDrop = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    if (!editingSegments.images) return;
+    event.preventDefault();
+    setIsImageDragOver(false);
+    handleUploadVariantImages(event.dataTransfer.files);
+  }, [editingSegments.images, handleUploadVariantImages]);
 
   // Initialize form data when variant changes
   useEffect(() => {
@@ -676,7 +696,14 @@ const ProductVariantDetailsPage: React.FC = () => {
               </div>
               
               {editingSegments.images ? (
-                <div>
+                <div
+                  className={`rounded-xl transition-colors ${
+                    isImageDragOver ? 'bg-blue-50/60' : ''
+                  }`}
+                  onDragOver={handleImageDragOver}
+                  onDragLeave={handleImageDragLeave}
+                  onDrop={handleImageDrop}
+                >
                   <input
                     ref={uploadInputRef}
                     type="file"
@@ -697,6 +724,7 @@ const ProductVariantDetailsPage: React.FC = () => {
                       {uploadingVariantImages ? 'Uploading...' : 'Upload images'}
                     </button>
                   </div>
+                  <p className="mb-4 text-xs text-gray-500">or drag and drop images here</p>
                   
                   {/* Image tiles */}
                   {formData.images.length > 0 ? (
