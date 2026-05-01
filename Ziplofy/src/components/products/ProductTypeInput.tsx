@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "react-hot-toast";
 import { ProductType, useProductType } from "../../contexts/product-type.context";
 import ProductTypeMenu from "./ProductTypeMenu";
 
@@ -75,8 +76,18 @@ const ProductTypeInput: React.FC<ProductTypeInputProps> = ({
 
   const handleCreateProductType = useCallback(async () => {
     if (!activeStoreId) return;
-    const created = await createProductType({ storeId: activeStoreId, name: debouncedProductTypeQuery });
-    handleProductTypeSelect(created);
+    try {
+      const created = await createProductType({ storeId: activeStoreId, name: debouncedProductTypeQuery });
+      handleProductTypeSelect(created);
+      toast.success("Product type created");
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Failed to create product type";
+      toast.error(message);
+    }
   }, [activeStoreId, debouncedProductTypeQuery, createProductType, handleProductTypeSelect]);
 
   const queryExists = useMemo(() => {
@@ -95,7 +106,7 @@ const ProductTypeInput: React.FC<ProductTypeInputProps> = ({
         onChange={handleInputChange}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        className="w-full px-3 py-2 border border-gray-200 rounded text-base focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+        className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-base transition-colors focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
       />
       {productTypeMenuOpen && (
         <ProductTypeMenu

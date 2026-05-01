@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "react-hot-toast";
 import ProductTagsMenu from "./ProductTagsMenu";
 import { useProductTags } from "../../contexts/product-tags.context";
 
@@ -69,8 +70,18 @@ const ProductTagsInput: React.FC<ProductTagsInputProps> = ({
 
   const handleCreateTag = useCallback(async () => {
     if (!activeStoreId) return;
-    const created = await addProductTag(activeStoreId, debouncedProductTagsQuery);
-    handleTagSelect(created._id);
+    try {
+      const created = await addProductTag(activeStoreId, debouncedProductTagsQuery);
+      handleTagSelect(created._id);
+      toast.success("Product tag created");
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Failed to create product tag";
+      toast.error(message);
+    }
   }, [activeStoreId, debouncedProductTagsQuery, addProductTag, handleTagSelect]);
 
   const queryExists = useMemo(() => {
@@ -78,7 +89,7 @@ const ProductTagsInput: React.FC<ProductTagsInputProps> = ({
   }, [debouncedProductTagsQuery, productTags]);
 
   return (
-    <div className="mt-4 relative">
+    <div className="relative">
       <label className="block text-sm font-medium text-gray-700 mb-2">
         Product Tags
       </label>
@@ -89,10 +100,10 @@ const ProductTagsInput: React.FC<ProductTagsInputProps> = ({
         onChange={handleInputChange}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        className="w-full px-3 py-2 border border-gray-200 rounded text-base focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+        className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-base transition-colors focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
       />
       {selectedTags.length > 0 && (
-        <p className="mt-1 text-sm text-gray-500">{selectedTags.length} selected</p>
+        <p className="mt-2 text-sm text-gray-500">{selectedTags.length} selected</p>
       )}
       {productTagsMenuOpen && (
         <ProductTagsMenu

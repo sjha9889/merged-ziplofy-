@@ -31,12 +31,12 @@ const ProductOrganizationSection: React.FC<ProductOrganizationSectionProps> = ({
   }, [tags, onTagsChange]);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
-      <h2 className="text-base font-semibold text-gray-900 mb-4">
+    <div className="bg-white rounded-xl border border-gray-200/80 p-7 shadow-sm">
+      <h2 className="text-base font-semibold text-gray-900 mb-5">
         Product Organization
       </h2>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="space-y-5">
         <ProductTypeInput
           selectedProductTypeId={productType}
           activeStoreId={activeStoreId}
@@ -48,17 +48,19 @@ const ProductOrganizationSection: React.FC<ProductOrganizationSectionProps> = ({
           onVendorChange={onVendorChange}
         />
       </div>
-        
-      <ProductTagsInput
-        selectedTags={tags}
-        activeStoreId={activeStoreId}
-        onTagsChange={onTagsChange}
-      />
-      <SelectedTagsList
-        tagIds={tags}
-        productTags={productTags}
-        onTagRemove={handleTagRemove}
-      />
+
+      <div className="mt-6">
+        <ProductTagsInput
+          selectedTags={tags}
+          activeStoreId={activeStoreId}
+          onTagsChange={onTagsChange}
+        />
+        <SelectedTagsList
+          tagIds={tags}
+          productTags={productTags}
+          onTagRemove={handleTagRemove}
+        />
+      </div>
     </div>
   );
 };

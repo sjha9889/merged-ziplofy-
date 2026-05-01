@@ -341,13 +341,23 @@ const NewProductPage: React.FC = () => {
             <ArrowLeftIcon className="w-4 h-4" />
             Back to Products
           </button>
-          <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100">
-              <CubeIcon className="h-4 w-4 text-gray-700" />
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100">
+                <CubeIcon className="h-4 w-4 text-gray-700" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Add product</h1>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Add product</h1>
-            </div>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={productLoading || isSubmitting || !activeStoreId}
+              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSubmitting || productLoading ? 'Creating product...' : 'Add product'}
+            </button>
           </div>
         </div>
 
@@ -495,17 +505,6 @@ const NewProductPage: React.FC = () => {
               onMetaDescriptionChange={(value) => handleInputChange('metaDescription', value)}
               onUrlHandleChange={(value) => handleInputChange('urlHandle', value)}
             />
-
-            <div className="flex justify-end pt-1 pb-2">
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={productLoading || isSubmitting || !activeStoreId}
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {isSubmitting || productLoading ? 'Creating product...' : 'Add product'}
-              </button>
-            </div>
           </div>
 
           <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
@@ -513,18 +512,6 @@ const NewProductPage: React.FC = () => {
               status={formData.status}
               onChange={(status) => handleInputChange('status', status)}
             />
-
-            <div className="rounded-xl border border-gray-200/80 bg-white p-6 shadow-sm">
-              <h2 className="mb-3 text-base font-semibold text-gray-900">Publishing</h2>
-              <div className="flex flex-wrap gap-2">
-                <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
-                  Online Store
-                </span>
-                <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
-                  Point of Sale
-                </span>
-              </div>
-            </div>
 
             <ProductOrganizationSection
               productType={formData.productType}
@@ -535,6 +522,15 @@ const NewProductPage: React.FC = () => {
               onTagsChange={(tags) => handleInputChange('tags', tags)}
               activeStoreId={activeStoreId}
             />
+
+            <div className="rounded-xl border border-gray-200/80 bg-white p-6 shadow-sm">
+              <h2 className="mb-3 text-base font-semibold text-gray-900">Publishing</h2>
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
+                  Online Store
+                </span>
+              </div>
+            </div>
           </aside>
         </div>
       </div>
