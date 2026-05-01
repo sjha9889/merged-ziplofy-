@@ -45,12 +45,12 @@ const ProductAdditionalDisplayPrices: React.FC<ProductAdditionalDisplayPricesPro
   }, [onCostChange]);
 
   return (
-    <div className="mt-4">
-      <h3 className="text-sm font-medium text-gray-600 mb-3">
-        Additional Display Prices
+    <div className="mt-6 border-t border-gray-100 pt-5">
+      <h3 className="mb-3 text-sm font-medium text-gray-700">
+        Additional pricing details
       </h3>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="space-y-4">
         <CompareAtPriceInput
           value={compareAtPrice}
           onChange={onCompareAtPriceChange}
@@ -75,7 +75,7 @@ const ProductAdditionalDisplayPrices: React.FC<ProductAdditionalDisplayPricesPro
       />
 
       {/* Cost, Profit, and Margin Fields */}
-      <div className="mt-4">
+      <div className="mt-4 rounded-lg border border-gray-100 bg-gray-50/60 p-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-2">
@@ -88,7 +88,7 @@ const ProductAdditionalDisplayPrices: React.FC<ProductAdditionalDisplayPricesPro
                 value={cost}
                 onChange={handleCostChange}
                 placeholder="0.00"
-                className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded text-base focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                className="w-full rounded-lg border border-gray-200 py-2 pl-8 pr-3 text-base transition-colors focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
               />
             </div>
           </div>
@@ -101,7 +101,7 @@ const ProductAdditionalDisplayPrices: React.FC<ProductAdditionalDisplayPricesPro
               type="text"
               value={`₹${profit.toFixed(2)}`}
               readOnly
-              className={`w-full px-3 py-2 border border-gray-200 rounded text-base bg-gray-50 font-medium ${
+              className={`w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-base font-medium ${
                 profit >= 0 ? 'text-green-500' : 'text-red-500'
               }`}
             />
@@ -115,7 +115,7 @@ const ProductAdditionalDisplayPrices: React.FC<ProductAdditionalDisplayPricesPro
               type="text"
               value={`${margin.toFixed(2)}%`}
               readOnly
-              className={`w-full px-3 py-2 border border-gray-200 rounded text-base bg-gray-50 font-medium ${
+              className={`w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-base font-medium ${
                 margin >= 0 ? 'text-green-500' : 'text-red-500'
               }`}
             />
