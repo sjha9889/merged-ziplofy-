@@ -31,43 +31,48 @@ export const createProduct = asyncErrorHandler(async (req: Request, res: Respons
   // Shipping fields are optional; keep the controller lean and rely on schema defaults
 
   // 1) Create the base Product document first; variants (combinations) are created separately below
-  const product = await Product.create({
-    title: body.title,
-    storeId: body.storeId as any,
-    description: body.description,
-    category: body.category,
-    price: body.price,
-    compareAtPrice: body.compareAtPrice,
-    chargeTax: body.chargeTax ?? true,
-    cost: body.cost ?? 0,
-    profit: body.profit ?? 0,
-    marginPercent: body.marginPercent ?? 0,
-    unitPriceTotalAmount: body.unitPriceTotalAmount,
-    unitPriceTotalAmountMetric: body.unitPriceTotalAmountMetric,
-    unitPriceBaseMeasure: body.unitPriceBaseMeasure,
-    unitPriceBaseMeasureMetric: body.unitPriceBaseMeasureMetric,
-    inventoryTrackingEnabled: body.inventoryTrackingEnabled ?? true,
-    continueSellingWhenOutOfStock: body.continueSellingWhenOutOfStock ?? false,
-    sku: body.sku,
-    barcode: body.barcode,
-    isPhysicalProduct: body.isPhysicalProduct ?? true,
-    package: body.package,
-    productWeight: body.productWeight,
-    productWeightUnit: body.productWeightUnit,
-    countryOfOrigin: body.countryOfOrigin,
-    harmonizedSystemCode: body.harmonizedSystemCode,
-    variants: body.variants ?? [], // [{ optionName, values }]
-    pageTitle: body.pageTitle,
-    metaDescription: body.metaDescription,
-    urlHandle: body.urlHandle,
-    status: body.status ?? 'draft',
-    onlineStorePublishing: body.onlineStorePublishing ?? true,
-    pointOfSalePublishing: body.pointOfSalePublishing ?? false,
-    productType: body.productType,
-    vendor: body.vendor,
-    tagIds: body.tagIds ?? [],
-    imageUrls: body.imageUrls ?? [],
-  });
+  let product: IProduct;
+  try {
+    product = await Product.create({
+      title: body.title,
+      storeId: body.storeId as any,
+      description: body.description,
+      category: body.category,
+      price: body.price,
+      compareAtPrice: body.compareAtPrice,
+      chargeTax: body.chargeTax ?? true,
+      cost: body.cost ?? 0,
+      profit: body.profit ?? 0,
+      marginPercent: body.marginPercent ?? 0,
+      unitPriceTotalAmount: body.unitPriceTotalAmount,
+      unitPriceTotalAmountMetric: body.unitPriceTotalAmountMetric,
+      unitPriceBaseMeasure: body.unitPriceBaseMeasure,
+      unitPriceBaseMeasureMetric: body.unitPriceBaseMeasureMetric,
+      inventoryTrackingEnabled: body.inventoryTrackingEnabled ?? true,
+      continueSellingWhenOutOfStock: body.continueSellingWhenOutOfStock ?? false,
+      sku: body.sku,
+      barcode: body.barcode,
+      isPhysicalProduct: body.isPhysicalProduct ?? true,
+      package: body.package,
+      productWeight: body.productWeight,
+      productWeightUnit: body.productWeightUnit,
+      countryOfOrigin: body.countryOfOrigin,
+      harmonizedSystemCode: body.harmonizedSystemCode,
+      variants: body.variants ?? [], // [{ optionName, values }]
+      pageTitle: body.pageTitle,
+      metaDescription: body.metaDescription,
+      urlHandle: body.urlHandle,
+      status: body.status ?? 'draft',
+      onlineStorePublishing: body.onlineStorePublishing ?? true,
+      pointOfSalePublishing: body.pointOfSalePublishing ?? false,
+      productType: body.productType,
+      vendor: body.vendor,
+      tagIds: body.tagIds ?? [],
+      imageUrls: body.imageUrls ?? [],
+    });
+  } catch (error) {
+    throw new CustomError("We couldn't create the product. Please verify the product details and try again.", 400);
+  }
 
   // 2) Generate ProductVariant docs
   // If variant dimensions are provided (e.g., color/size), create the cartesian combinations.
@@ -81,6 +86,9 @@ export const createProduct = asyncErrorHandler(async (req: Request, res: Respons
     const optionDefs = body.variants
       .filter((opt) => opt && Array.isArray(opt.values) && opt.values.length > 0)
       .map((opt) => ({ name: opt.optionName, values: opt.values }));
+    if (optionDefs.length === 0) {
+      throw new CustomError("Please add at least one valid option value for each variant option.", 400);
+    }
     const combos = optionDefs.reduce<string[][]>((acc, opt) => {
       if (acc.length === 0) return opt.values.map((v) => [v]);
       const next: string[][] = [];
@@ -89,6 +97,9 @@ export const createProduct = asyncErrorHandler(async (req: Request, res: Respons
       }
       return next;
     }, []);
+    if (combos.length === 0) {
+      throw new CustomError("Unable to generate variants from the provided options. Please review option values.", 400);
+    }
     variantDocs = combos.map((vals, idx) => {
       // Map the Nth value in the combo back to the Nth option name (e.g., Color->Red, Size->M)
       const optionValues = new Map<string, string>();
@@ -158,12 +169,22 @@ export const createProduct = asyncErrorHandler(async (req: Request, res: Respons
 
   // 3) Persist variants, then initialize inventory levels across all store locations
   if (variantDocs.length > 0) {
-    const createdVariants: any[] = await ProductVariant.insertMany(variantDocs);
+    let createdVariants: any[] = [];
+    try {
+      createdVariants = await ProductVariant.insertMany(variantDocs);
+    } catch (error) {
+      throw new CustomError("Product was created, but creating its variants failed. Please try again.", 500);
+    }
 
     // Always create inventory levels for all variants across all locations
-    const locations = await LocationModel.find({ storeId: body.storeId }).select('_id');
+    let locations: Array<{ _id: mongoose.Types.ObjectId }> = [];
+    try {
+      locations = await LocationModel.find({ storeId: body.storeId }).select('_id');
+    } catch (error) {
+      throw new CustomError("Product variants were created, but loading store locations failed. Please try again.", 500);
+    }
     if (locations.length === 0) {
-      throw new CustomError("No locations found for this store", 404);
+      throw new CustomError("No inventory locations are configured for this store. Add a location and retry.", 404);
     }
     const inventoryLevelDocs = createdVariants.flatMap(variant => (
       locations.map(loc => ({
@@ -176,16 +197,25 @@ export const createProduct = asyncErrorHandler(async (req: Request, res: Respons
         incoming: 0,
       }))
     ));
-    await InventoryLevelModel.insertMany(inventoryLevelDocs);
+    try {
+      await InventoryLevelModel.insertMany(inventoryLevelDocs);
+    } catch (error) {
+      throw new CustomError("Product was created, but initializing inventory failed. Please try again.", 500);
+    }
   }
 
   // 4) Return the created product (populated) so the client has useful display data
-  const populatedProduct = await Product.findById(product._id)
-    .populate({ path: 'category' })
-    .populate({ path: 'package', model: 'Packaging' })
-    .populate({ path: 'tagIds', model: 'ProductTags' })
-    .populate({ path: 'vendor', model: 'Vendor' })
-    .populate({ path: 'productType', model: 'ProductType' });
+  let populatedProduct: IProduct | null = null;
+  try {
+    populatedProduct = await Product.findById(product._id)
+      .populate({ path: 'category' })
+      .populate({ path: 'package', model: 'Packaging' })
+      .populate({ path: 'tagIds', model: 'ProductTags' })
+      .populate({ path: 'vendor', model: 'Vendor' })
+      .populate({ path: 'productType', model: 'ProductType' });
+  } catch (error) {
+    throw new CustomError("Product was created, but loading the final product details failed. Please refresh.", 500);
+  }
 
   // 5) Send success response with created product payload
   res.status(201).json({

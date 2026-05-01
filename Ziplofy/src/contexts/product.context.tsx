@@ -93,13 +93,18 @@ export interface Product {
 interface CreateProductResponse {
   success: boolean;
   data: Product;
-  message: string;
+  message?: string;
+  error?: string;
+  details?: { message?: string };
 }
 
 interface GetProductsByStoreResponse {
   success: boolean;
   data: Product[];
   count: number;
+  message?: string;
+  error?: string;
+  details?: { message?: string };
 }
 
 // Search products + variants availability (matches server response)
@@ -250,6 +255,16 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [transferProductSearchResult, setTransferProductSearchResult] = useState<ProductSearchWithVariantsItem[]>([]);
   const [transferProductSearchPagination, setTransferProductSearchPagination] = useState<ProductSearchPagination | null>(null);
 
+  const extractApiErrorMessage = useCallback((err: any, fallback: string) => {
+    const apiMessage =
+      err?.response?.data?.message ||
+      err?.response?.data?.error ||
+      err?.response?.data?.details?.message;
+    if (typeof apiMessage === 'string' && apiMessage.trim()) return apiMessage;
+    if (typeof err?.message === 'string' && err.message.trim()) return err.message;
+    return fallback;
+  }, []);
+
   const createProduct = useCallback(async (payload: CreateProductPayload) => {
     try {
       setLoading(true);
@@ -261,13 +276,13 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setProducts(prev => [data, ...prev]);
       return data;
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to create product';
+      const msg = extractApiErrorMessage(err, 'Failed to create product');
       setError(msg);
       throw new Error(msg);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [extractApiErrorMessage]);
 
   const updateProduct = useCallback(async (productId: string, payload: UpdateProductPayload) => {
     try {
@@ -280,13 +295,13 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setActiveProduct((prev) => (prev && prev._id === productId ? data : prev));
       return data;
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to update product';
+      const msg = extractApiErrorMessage(err, 'Failed to update product');
       setError(msg);
       throw new Error(msg);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [extractApiErrorMessage]);
 
   const fetchProductsByStoreId = useCallback(async (storeId: string) => {
     try {
@@ -297,12 +312,12 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (!success) throw new Error('Failed to fetch products');
       setProducts(data);
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to fetch products';
+      const msg = extractApiErrorMessage(err, 'Failed to fetch products');
       setError(msg);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [extractApiErrorMessage]);
 
   const fetchProductById = useCallback(async (productId: string): Promise<Product> => {
     try {
@@ -321,14 +336,14 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       });
       return data;
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to fetch product details';
+      const msg = extractApiErrorMessage(err, 'Failed to fetch product details');
       setError(msg);
       setActiveProduct(null);
       throw new Error(msg);
     } finally {
       setActiveProductLoading(false);
     }
-  }, []);
+  }, [extractApiErrorMessage]);
 
   const clearProducts = useCallback(() => {
     setProducts([]);
@@ -356,13 +371,13 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (!success) throw new Error('Failed to add variants');
       return data as { _id: string }[];
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to add variants';
+      const msg = extractApiErrorMessage(err, 'Failed to add variants');
       setError(msg);
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [extractApiErrorMessage]);
 
   const deleteVariantFromProduct = useCallback(async (
     productId: string,
@@ -379,13 +394,13 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (!success) throw new Error('Failed to delete variant dimension');
       // No return value - this function just performs the deletion
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to delete variant dimension';
+      const msg = extractApiErrorMessage(err, 'Failed to delete variant dimension');
       setError(msg);
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [extractApiErrorMessage]);
 
   const deleteProduct = useCallback(async (productId: string) => {
     try {
@@ -405,13 +420,13 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         prev && prev._id === productId ? { ...prev, isDeleted: data?.isDeleted ?? true } : prev
       );
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to delete product';
+      const msg = extractApiErrorMessage(err, 'Failed to delete product');
       setError(msg);
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [extractApiErrorMessage]);
 
   const addOptionToProduct = useCallback(async (
     productId: string,
@@ -429,13 +444,13 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (!success) throw new Error('Failed to add option values');
       return data as { _id: string }[];
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to add option values';
+      const msg = extractApiErrorMessage(err, 'Failed to add option values');
       setError(msg);
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [extractApiErrorMessage]);
 
   const searchProductForTransfer = useCallback(async (args: SearchProductsForTransferArgs): Promise<ProductSearchResponse> => {
     const { storeId, q = '', originLocationId, destinationLocationId, page = 1, limit = 20 } = args;
@@ -460,13 +475,13 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setTransferProductSearchPagination(res.data.pagination || null);
       return res.data;
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to search products';
+      const msg = extractApiErrorMessage(err, 'Failed to search products');
       setError(msg);
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [extractApiErrorMessage]);
 
   const searchBasic = useCallback(async (args: { q: string; storeId?: string }) => {
     const { q, storeId } = args;
@@ -479,13 +494,13 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       );
       return res.data.data || [];
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to search products';
+      const msg = extractApiErrorMessage(err, 'Failed to search products');
       setError(msg);
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [extractApiErrorMessage]);
 
   const searchProductsWithVariants = useCallback(async (args: SearchProductsWithVariantsArgs): Promise<ProductSearchResponse> => {
     const { storeId, q = '', page = 1, limit = 20 } = args;
@@ -497,13 +512,13 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       });
       return res.data;
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to search products with variants';
+      const msg = extractApiErrorMessage(err, 'Failed to search products with variants');
       setError(msg);
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [extractApiErrorMessage]);
 
   const searchProductWithVariantAndDestination = useCallback(async (args: SearchProductsWithDestinationArgs) => {
     const { storeId, q = '', destinationLocationId, page = 1, limit = 20 } = args;
@@ -516,13 +531,13 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
       );
       return res.data;
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to search products with destination availability';
+      const msg = extractApiErrorMessage(err, 'Failed to search products with destination availability');
       setError(msg);
       throw err;
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [extractApiErrorMessage]);
 
   const value = useMemo<ProductContextType>(
     () => ({
