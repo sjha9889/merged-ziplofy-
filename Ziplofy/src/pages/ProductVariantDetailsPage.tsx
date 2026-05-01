@@ -19,11 +19,21 @@ import { useProductVariants } from '../contexts/product-variant.context';
 import { useProducts } from '../contexts/product.context';
 import { useStore } from '../contexts/store.context';
 
+const extractS3KeyFromUrl = (imageUrl: string): string | null => {
+  try {
+    const parsed = new URL(imageUrl);
+    const key = decodeURIComponent(parsed.pathname.replace(/^\/+/, ''));
+    return key || null;
+  } catch {
+    return null;
+  }
+};
+
 const ProductVariantDetailsPage: React.FC = () => {
   const { id, variantId } = useParams();
   const { activeProduct, activeProductLoading, fetchProductById, clearActiveProduct } = useProducts();
   const { activeVariant, activeVariantLoading, fetchProductVariantDetailsById, clearActiveVariant, updateVariant } = useProductVariants();
-  const { uploadImageWithSignedUrl } = useAwsUpload();
+  const { uploadImageWithSignedUrl, deleteImagesFromS3 } = useAwsUpload();
   const { packagings, loading: packagingsLoading, fetchPackagingsByStoreId } = usePackaging();
   const { activeStoreId } = useStore();
   const uploadInputRef = useRef<HTMLInputElement>(null);
@@ -230,13 +240,37 @@ const ProductVariantDetailsPage: React.FC = () => {
           };
           break;
       }
+
+      if (segment === 'images') {
+        const existingImages = Array.isArray(variant.images) ? variant.images : [];
+        const nextImages = Array.isArray(updateData.images) ? updateData.images : [];
+        const removedImageUrls = existingImages.filter((img) => !nextImages.includes(img));
+        if (removedImageUrls.length > 0) {
+          const deleteToast = toast.loading(
+            `Deleting ${removedImageUrls.length} image${removedImageUrls.length > 1 ? 's' : ''}...`
+          );
+          const removedImageKeys = removedImageUrls
+            .map((url) => extractS3KeyFromUrl(url))
+            .filter((key): key is string => Boolean(key));
+          await deleteImagesFromS3({
+            imageUrls: removedImageUrls,
+            imageKeys: removedImageKeys,
+          });
+          toast.success('Removed images deleted', { id: deleteToast });
+        }
+      }
       
       await updateVariant(variant._id, updateData);
       setEditingSegments(prev => ({ ...prev, [segment]: false }));
+      if (segment === 'images') {
+        toast.success('Media updated');
+      }
     } catch (error) {
       console.error('Error updating variant:', error);
+      const message = (error as any)?.message || 'Failed to update variant';
+      toast.error(message);
     }
-  }, [variant, formData, calculateProfitAndMargin, updateVariant]);
+  }, [variant, formData, calculateProfitAndMargin, deleteImagesFromS3, updateVariant]);
 
   const handleCancelSegment = useCallback((segment: 'basic' | 'pricing' | 'inventory' | 'package' | 'images') => {
     // Reset form data to original variant data

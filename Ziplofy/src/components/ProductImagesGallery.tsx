@@ -6,7 +6,7 @@ import {
   TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 interface ProductImagesGalleryProps {
   imageUrls: string[];
@@ -21,6 +21,16 @@ const ProductImagesGallery: React.FC<ProductImagesGalleryProps> = ({ imageUrls, 
   const [retainedImageUrls, setRetainedImageUrls] = useState<string[]>(urls);
   const [newImageFiles, setNewImageFiles] = useState<File[]>([]);
   const [editError, setEditError] = useState('');
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [failedRetainedImages, setFailedRetainedImages] = useState<Record<string, boolean>>({});
+  const displayImageUrls = isEditing ? retainedImageUrls : urls;
+
+  useEffect(() => {
+    if (!isEditing) {
+      setRetainedImageUrls(urls);
+      setFailedRetainedImages({});
+    }
+  }, [urls, isEditing]);
 
   const newImagePreviews = useMemo(
     () =>
@@ -35,6 +45,7 @@ const ProductImagesGallery: React.FC<ProductImagesGalleryProps> = ({ imageUrls, 
     setEditError('');
     setRetainedImageUrls(urls);
     setNewImageFiles([]);
+    setFailedRetainedImages({});
     setIsEditing(true);
   };
 
@@ -42,6 +53,7 @@ const ProductImagesGallery: React.FC<ProductImagesGalleryProps> = ({ imageUrls, 
     setEditError('');
     setRetainedImageUrls(urls);
     setNewImageFiles([]);
+    setFailedRetainedImages({});
     setIsEditing(false);
   };
 
@@ -50,6 +62,27 @@ const ProductImagesGallery: React.FC<ProductImagesGalleryProps> = ({ imageUrls, 
     if (files.length === 0) return;
     setNewImageFiles((prev) => [...prev, ...files]);
     event.target.value = '';
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    if (!isEditing) return;
+    event.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    if (!isEditing) return;
+    event.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    if (!isEditing) return;
+    event.preventDefault();
+    setIsDragOver(false);
+    const files = Array.from(event.dataTransfer.files || []).filter((file) => file.type.startsWith('image/'));
+    if (files.length === 0) return;
+    setNewImageFiles((prev) => [...prev, ...files]);
   };
 
   const handleRemoveExistingImage = (imageUrl: string) => {
@@ -67,6 +100,7 @@ const ProductImagesGallery: React.FC<ProductImagesGalleryProps> = ({ imageUrls, 
     }
     await onSave({ retainedImageUrls, newImageFiles });
     setEditError('');
+    setNewImageFiles([]);
     setIsEditing(false);
   };
 
@@ -122,7 +156,14 @@ const ProductImagesGallery: React.FC<ProductImagesGalleryProps> = ({ imageUrls, 
           <p className="mt-1 max-w-xs text-xs text-gray-500">Add images when editing this product in your catalog workflow.</p>
         </div>
       ) : (
-        <div className="p-5">
+        <div
+          className={`p-5 transition-colors ${
+            isEditing && isDragOver ? 'bg-blue-50/50' : ''
+          }`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
           {isEditing ? (
             <div className="mb-3">
               <input
@@ -141,10 +182,11 @@ const ProductImagesGallery: React.FC<ProductImagesGalleryProps> = ({ imageUrls, 
                 <PlusIcon className="h-4 w-4" aria-hidden />
                 Add images
               </button>
+              <p className="mt-2 text-xs text-gray-500">or drag and drop images here</p>
             </div>
           ) : null}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-            {retainedImageUrls.map((url, idx) => (
+            {displayImageUrls.map((url, idx) => (
               <div
                 key={`${url}-${idx}`}
                 className="relative aspect-square overflow-hidden rounded-xl border border-gray-200 bg-gray-50 shadow-sm ring-1 ring-black/[0.03]"
@@ -152,11 +194,17 @@ const ProductImagesGallery: React.FC<ProductImagesGalleryProps> = ({ imageUrls, 
                 <img
                   src={url}
                   alt={`Product ${idx + 1}`}
-                  className="block h-full w-full object-cover"
+                  className="block h-full w-full object-contain bg-gray-100"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
+                    setFailedRetainedImages((prev) => ({ ...prev, [url]: true }));
                   }}
                 />
+                {failedRetainedImages[url] ? (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50">
+                    <PhotoIcon className="h-7 w-7 text-gray-300" aria-hidden />
+                    <span className="mt-1 text-[11px] font-medium text-gray-500">Preview unavailable</span>
+                  </div>
+                ) : null}
                 {isEditing ? (
                   <button
                     type="button"
@@ -169,12 +217,16 @@ const ProductImagesGallery: React.FC<ProductImagesGalleryProps> = ({ imageUrls, 
                 ) : null}
               </div>
             ))}
-            {newImagePreviews.map((preview, idx) => (
+            {isEditing && newImagePreviews.map((preview, idx) => (
               <div
                 key={`${preview.file.name}-${idx}`}
                 className="relative aspect-square overflow-hidden rounded-xl border border-blue-200 bg-blue-50/40 shadow-sm ring-1 ring-black/[0.03]"
               >
-                <img src={preview.previewUrl} alt={`New upload ${idx + 1}`} className="block h-full w-full object-cover" />
+                <img
+                  src={preview.previewUrl}
+                  alt={`New upload ${idx + 1}`}
+                  className="block h-full w-full object-contain bg-gray-100"
+                />
                 <button
                   type="button"
                   onClick={() => handleRemoveNewImage(idx)}
