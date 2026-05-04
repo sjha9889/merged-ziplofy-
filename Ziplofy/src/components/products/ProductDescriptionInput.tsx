@@ -74,6 +74,38 @@ const BG_PRESETS = [
   "#f3f4f6",
 ];
 
+const DESCRIPTION_TEMPLATES: Array<{
+  id: string;
+  name: string;
+  useCase: string;
+  html: string;
+}> = [
+  {
+    id: "features-first",
+    name: "Features-first",
+    useCase: "Best for gadgets, accessories, and tools.",
+    html: `<h2>Product Overview</h2><p>Write 1-2 lines explaining what this product does and why it matters.</p><h3>Key Features</h3><ul><li><strong>Feature 1:</strong> Add the main benefit in plain language.</li><li><strong>Feature 2:</strong> Mention speed, quality, durability, or comfort.</li><li><strong>Feature 3:</strong> Include what makes this different from alternatives.</li></ul><h3>Specifications</h3><ul><li><strong>Material:</strong> Add material details.</li><li><strong>Dimensions:</strong> Add size/fit information.</li><li><strong>Compatibility:</strong> List supported devices or use-cases.</li></ul><h3>What's in the Box</h3><ul><li>Main product</li><li>Accessory / cable / manual</li></ul>`,
+  },
+  {
+    id: "fashion-beauty",
+    name: "Fashion & beauty",
+    useCase: "Best for apparel, skincare, and personal care.",
+    html: `<h2>Style & Feel</h2><p>Describe the look, feel, and overall vibe customers can expect.</p><h3>Why You'll Love It</h3><ul><li>Highlight comfort, texture, or skin-friendly finish.</li><li>Mention standout design details or ingredients.</li><li>Explain where/when customers can use it.</li></ul><h3>Fit / Usage Details</h3><ul><li><strong>Fit or Type:</strong> Describe true-to-size, regular fit, etc.</li><li><strong>Care:</strong> Add wash/care/storage instructions.</li><li><strong>Suitable for:</strong> Mention skin type, season, or occasion.</li></ul><h3>Ingredients / Fabric</h3><p>List key ingredients or fabric composition and benefits.</p>`,
+  },
+  {
+    id: "home-lifestyle",
+    name: "Home & lifestyle",
+    useCase: "Best for kitchen, decor, and daily-use items.",
+    html: `<h2>Make Everyday Better</h2><p>Introduce how this product improves daily routines at home.</p><h3>Highlights</h3><ul><li>Describe practical daily benefit #1.</li><li>Describe practical daily benefit #2.</li><li>Mention design, finish, or space-saving advantage.</li></ul><h3>How to Use</h3><ol><li>Step 1: Start/setup instructions.</li><li>Step 2: Usage instructions for best results.</li><li>Step 3: Care/maintenance notes.</li></ol><h3>Product Details</h3><ul><li><strong>Size:</strong> Add dimensions.</li><li><strong>Material:</strong> Add build material.</li><li><strong>Ideal for:</strong> Mention room or lifestyle scenario.</li></ul>`,
+  },
+  {
+    id: "story-led-premium",
+    name: "Story-led premium",
+    useCase: "Best for handcrafted, luxury, and niche brands.",
+    html: `<h2>Crafted with Purpose</h2><p>Tell the product story in 2-3 lines: inspiration, maker story, or unique process.</p><h3>Signature Benefits</h3><ul><li>Benefit tied to craftsmanship or premium quality.</li><li>Benefit tied to performance and longevity.</li><li>Benefit tied to uniqueness and brand identity.</li></ul><h3>Design & Build</h3><p>Explain materials, finishes, and special production details.</p><h3>Perfect For</h3><ul><li>Gift buyers</li><li>Enthusiasts / collectors</li><li>Customers who value high-end quality</li></ul><h3>Care Guide</h3><p>Add simple care steps to help customers keep the product in top condition.</p>`,
+  },
+];
+
 function getBlockPreviewClass(
   kind: "paragraph" | "blockquote" | 1 | 2 | 3 | 4 | 5 | 6
 ): string {
@@ -113,6 +145,7 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
   const [isColorMenuOpen, setIsColorMenuOpen] = useState(false);
   const [isLinkPopoverOpen, setIsLinkPopoverOpen] = useState(false);
   const [isTableMenuOpen, setIsTableMenuOpen] = useState(false);
+  const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false);
   const [linkDraft, setLinkDraft] = useState("https://");
   const [colorTab, setColorTab] = useState<"text" | "background">("text");
   const alignMenuRef = useRef<HTMLDivElement | null>(null);
@@ -121,6 +154,7 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
   const colorMenuRef = useRef<HTMLDivElement | null>(null);
   const linkPopoverRef = useRef<HTMLDivElement | null>(null);
   const tableMenuRef = useRef<HTMLDivElement | null>(null);
+  const templateMenuRef = useRef<HTMLDivElement | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -201,6 +235,7 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
     setIsColorMenuOpen(false);
     setIsLinkPopoverOpen(false);
     setIsTableMenuOpen(false);
+    setIsTemplateMenuOpen(false);
   }, []);
 
   useEffect(() => {
@@ -210,7 +245,8 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
       !isMoreMenuOpen &&
       !isColorMenuOpen &&
       !isLinkPopoverOpen &&
-      !isTableMenuOpen
+      !isTableMenuOpen &&
+      !isTemplateMenuOpen
     )
       return;
     const handleClickOutside = (event: MouseEvent) => {
@@ -221,6 +257,7 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
       if (colorMenuRef.current?.contains(t)) return;
       if (linkPopoverRef.current?.contains(t)) return;
       if (tableMenuRef.current?.contains(t)) return;
+      if (templateMenuRef.current?.contains(t)) return;
       closeAllMenus();
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -232,6 +269,7 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
     isColorMenuOpen,
     isLinkPopoverOpen,
     isTableMenuOpen,
+    isTemplateMenuOpen,
     closeAllMenus,
   ]);
 
@@ -245,6 +283,15 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
     setIsColorMenuOpen(false);
     setIsMoreMenuOpen(false);
     setIsTableMenuOpen(false);
+    setIsTemplateMenuOpen(false);
+  };
+
+  const applyDescriptionTemplate = (templateHtml: string) => {
+    if (!editor) return;
+    editor.commands.setContent(templateHtml);
+    setHtmlValue(templateHtml);
+    setIsHtmlMode(false);
+    closeAllMenus();
   };
 
   const applyLink = () => {
@@ -367,14 +414,44 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
       </label>
       <div className="relative overflow-visible rounded-lg border border-gray-200 bg-white shadow-sm">
         <div className="relative z-20 flex flex-wrap items-center gap-0.5 border-b border-gray-200/90 bg-gray-50/95 px-2 py-1.5">
-          <button
-            type="button"
-            className={`${ICON_BTN} text-gray-400`}
-            title="Assistant (coming soon)"
-            disabled
-          >
-            <SparklesIcon className="h-5 w-5" aria-hidden />
-          </button>
+          <div className="relative" ref={templateMenuRef}>
+            <button
+              type="button"
+              className={`${ICON_BTN} ${isTemplateMenuOpen ? ICON_BTN_ACTIVE : ""}`}
+              title="Insert template"
+              onClick={() => {
+                setIsTemplateMenuOpen((o) => !o);
+                setIsBlockMenuOpen(false);
+                setIsAlignMenuOpen(false);
+                setIsColorMenuOpen(false);
+                setIsMoreMenuOpen(false);
+                setIsLinkPopoverOpen(false);
+                setIsTableMenuOpen(false);
+              }}
+            >
+              <SparklesIcon className="h-5 w-5" aria-hidden />
+            </button>
+            {isTemplateMenuOpen ? (
+              <div className={`${MENU_PANEL} w-96 p-2`}>
+                <p className="px-2 pb-1 pt-0.5 text-xs font-medium text-gray-500">
+                  Choose a template to start faster
+                </p>
+                <div className="max-h-96 space-y-1 overflow-y-auto">
+                  {DESCRIPTION_TEMPLATES.map((template) => (
+                    <button
+                      key={template.id}
+                      type="button"
+                      onClick={() => applyDescriptionTemplate(template.html)}
+                      className="w-full rounded-md border border-transparent px-3 py-2.5 text-left hover:border-gray-200 hover:bg-gray-50"
+                    >
+                      <p className="text-sm font-semibold text-gray-900">{template.name}</p>
+                      <p className="mt-0.5 text-xs text-gray-600">{template.useCase}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
 
           <ToolbarDivider />
 
@@ -386,6 +463,7 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
                 setIsAlignMenuOpen(false);
                 setIsMoreMenuOpen(false);
                 setIsColorMenuOpen(false);
+                setIsTemplateMenuOpen(false);
               }}
               className={DROPDOWN_BTN}
               title="Text style"
@@ -446,6 +524,7 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
                 setIsBlockMenuOpen(false);
                 setIsAlignMenuOpen(false);
                 setIsMoreMenuOpen(false);
+                setIsTemplateMenuOpen(false);
               }}
               className={`${DROPDOWN_BTN} min-w-0 gap-0.5 px-1.5`}
               title="Text & highlight color"
@@ -552,6 +631,7 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
                 setIsBlockMenuOpen(false);
                 setIsMoreMenuOpen(false);
                 setIsColorMenuOpen(false);
+                setIsTemplateMenuOpen(false);
               }}
               className={DROPDOWN_BTN}
               title="Alignment"
@@ -677,6 +757,7 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
                 setIsAlignMenuOpen(false);
                 setIsColorMenuOpen(false);
                 setIsMoreMenuOpen(false);
+                setIsTemplateMenuOpen(false);
               }}
               disabled={!editor}
               title="Table"
@@ -787,6 +868,7 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
                 setIsBlockMenuOpen(false);
                 setIsAlignMenuOpen(false);
                 setIsColorMenuOpen(false);
+                setIsTemplateMenuOpen(false);
               }}
               className={ICON_BTN}
               title="More"
