@@ -36,6 +36,7 @@ import Youtube from "@tiptap/extension-youtube";
 import type { Editor } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import ResizableImage from "./ResizableImageExtension";
 
 interface ProductDescriptionInputProps {
   value: string;
@@ -153,6 +154,7 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
   const [videoEmbedDraft, setVideoEmbedDraft] = useState("");
   const [colorTab, setColorTab] = useState<"text" | "background">("text");
   const alignMenuRef = useRef<HTMLDivElement | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
   const blockMenuRef = useRef<HTMLDivElement | null>(null);
   const moreMenuRef = useRef<HTMLDivElement | null>(null);
   const colorMenuRef = useRef<HTMLDivElement | null>(null);
@@ -172,6 +174,7 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
       TaskList,
       TaskItem.configure({ nested: true }),
       HorizontalRule,
+      ResizableImage,
       Table.configure({
         resizable: true,
       }),
@@ -203,7 +206,7 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
     editorProps: {
       attributes: {
         class:
-          "min-h-[220px] max-w-none px-4 py-3 text-sm leading-6 text-gray-900 focus:outline-none [&_.selectedCell]:relative [&_.selectedCell]:bg-blue-50/70 [&_.selectedCell]:after:pointer-events-none [&_.selectedCell]:after:absolute [&_.selectedCell]:after:inset-0 [&_.selectedCell]:after:border [&_.selectedCell]:after:border-blue-300 [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-3 [&_blockquote]:text-gray-700 [&_code]:rounded [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_h1]:my-3 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:leading-tight [&_h2]:my-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:leading-snug [&_h3]:my-2 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:leading-snug [&_iframe]:my-3 [&_iframe]:block [&_iframe]:w-full [&_iframe]:max-w-full [&_iframe]:aspect-video [&_iframe]:rounded-lg [&_iframe]:border [&_iframe]:border-gray-200 [&_iframe]:bg-black [&_iframe]:shadow-sm [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-gray-900 [&_pre]:p-3 [&_pre]:text-gray-100 [&_table]:my-3 [&_table]:w-full [&_table]:table-fixed [&_table]:border-collapse [&_td]:border [&_td]:border-gray-300 [&_td]:px-2 [&_td]:py-1.5 [&_td]:align-top [&_th]:border [&_th]:border-gray-300 [&_th]:bg-gray-50 [&_th]:px-2 [&_th]:py-1.5 [&_th]:text-left [&_th]:font-semibold [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6",
+          "min-h-[220px] max-w-none px-4 py-3 text-sm leading-6 text-gray-900 focus:outline-none [&_.selectedCell]:relative [&_.selectedCell]:bg-blue-50/70 [&_.selectedCell]:after:pointer-events-none [&_.selectedCell]:after:absolute [&_.selectedCell]:after:inset-0 [&_.selectedCell]:after:border [&_.selectedCell]:after:border-blue-300 [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-3 [&_blockquote]:text-gray-700 [&_code]:rounded [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_h1]:my-3 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:leading-tight [&_h2]:my-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:leading-snug [&_h3]:my-2 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:leading-snug [&_iframe]:my-3 [&_iframe]:block [&_iframe]:w-full [&_iframe]:max-w-full [&_iframe]:aspect-video [&_iframe]:rounded-lg [&_iframe]:border [&_iframe]:border-gray-200 [&_iframe]:bg-black [&_iframe]:shadow-sm [&_img]:my-3 [&_img]:block [&_img]:max-w-full [&_img]:rounded-lg [&_img]:border [&_img]:border-gray-200 [&_img]:shadow-sm [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-gray-900 [&_pre]:p-3 [&_pre]:text-gray-100 [&_table]:my-3 [&_table]:w-full [&_table]:table-fixed [&_table]:border-collapse [&_td]:border [&_td]:border-gray-300 [&_td]:px-2 [&_td]:py-1.5 [&_td]:align-top [&_th]:border [&_th]:border-gray-300 [&_th]:bg-gray-50 [&_th]:px-2 [&_th]:py-1.5 [&_th]:text-left [&_th]:font-semibold [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6",
       },
     },
     onUpdate: ({ editor: currentEditor }) => {
@@ -357,6 +360,43 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
     setVideoEmbedDraft("");
   };
 
+  const handlePickImage = () => {
+    imageInputRef.current?.click();
+  };
+
+  const handleImageFileSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !editor) return;
+    if (!file.type.startsWith("image/")) return;
+
+    const dataReader = new FileReader();
+    dataReader.onload = () => {
+      const dataUrl = dataReader.result as string;
+      const probe = new window.Image();
+      probe.onload = () => {
+        const maxStartWidth = 640;
+        const naturalW = probe.naturalWidth || maxStartWidth;
+        const naturalH = probe.naturalHeight || 360;
+        const ratio = naturalH / naturalW;
+        const startW = Math.min(maxStartWidth, naturalW);
+        const startH = Math.max(80, Math.round(startW * ratio));
+
+        editor
+          .chain()
+          .focus()
+          .setImage({
+            src: dataUrl,
+            width: `${startW}px`,
+            height: `${startH}px`,
+          })
+          .run();
+      };
+      probe.src = dataUrl;
+    };
+    dataReader.readAsDataURL(file);
+  };
+
   const applyLink = () => {
     if (!editor) return;
     const url = linkDraft.trim();
@@ -476,6 +516,13 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
         Description
       </label>
       <div className="relative overflow-visible rounded-lg border border-gray-200 bg-white shadow-sm">
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleImageFileSelection}
+        />
         <div className="relative z-20 flex flex-wrap items-center gap-0.5 border-b border-gray-200/90 bg-gray-50/95 px-2 py-1.5">
           <div className="relative" ref={templateMenuRef}>
             <button
@@ -797,8 +844,9 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
           <button
             type="button"
             className={ICON_BTN}
-            disabled
-            title="Images (coming soon)"
+            onClick={handlePickImage}
+            disabled={!editor}
+            title="Insert image"
           >
             <PhotoIcon className="h-5 w-5" aria-hidden />
           </button>
