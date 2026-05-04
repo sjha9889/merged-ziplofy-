@@ -42,7 +42,7 @@ const ThemeSectionHeader: React.FC<{
   title: string;
   description: string;
 }> = ({ icon: Icon, title, description }) => (
-  <div className="flex items-start gap-3 border-b border-gray-100 bg-gradient-to-r from-gray-50/90 to-white px-5 py-4">
+  <div className="flex items-start gap-3 border-b border-gray-100 bg-linear-to-r from-gray-50/90 to-white px-5 py-4">
     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50">
       <Icon className="h-5 w-5 text-blue-600" aria-hidden />
     </div>
@@ -490,12 +490,11 @@ const AllThemes: React.FC = () => {
     (rt: any) => !(rt.isCustomTheme || rt._id?.startsWith('custom-'))
   );
   const customDrafts = customThemes.filter((ct: any) => ct.status === 'draft');
-  const customPublished = customThemes.filter((ct: any) => ct.status !== 'draft'); // published or legacy (no status)
   const showingCount = installedMarketplaceOnly.length + customThemes.length + filteredThemes.length;
 
   return (
     <div className="w-full space-y-6 pb-8">
-      <header className="rounded-2xl border border-gray-200/80 bg-gradient-to-b from-white to-blue-50/20 px-5 py-5 shadow-sm sm:px-6">
+      <header className="rounded-2xl border border-gray-200/80 bg-linear-to-b from-white to-blue-50/20 px-5 py-5 shadow-sm sm:px-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 pl-3 border-l-4 border-blue-500/70">
             <div className="flex flex-wrap items-center gap-2 gap-y-1">
@@ -524,21 +523,18 @@ const AllThemes: React.FC = () => {
                 <RectangleStackIcon className="h-5 w-5" aria-hidden />
               </div>
               <div className="themes-stat-card">
-                <AddIcon className="themes-stat-icon" />
+                <PlusIcon className="themes-stat-icon h-5 w-5" aria-hidden />
                 <div>
                   <span className="themes-stat-value">{customThemesCount}</span>
                   <span className="themes-stat-label">CUSTOM THEMES</span>
                 </div>
               </div>
               <div className="themes-stat-card">
-                <FilterIcon className="themes-stat-icon" style={{ transform: 'rotate(90deg)' }} />
+                <FunnelIcon className="themes-stat-icon h-5 w-5" style={{ transform: 'rotate(90deg)' }} aria-hidden />
                 <div>
                   <span className="themes-stat-value">{showingCount}</span>
                   <span className="themes-stat-label">SHOWING</span>
                 </div>
-              <div>
-                <p className="text-xl font-bold leading-tight text-gray-900">{showingCount}</p>
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">Visible now</p>
               </div>
             </div>
           </div>
@@ -552,7 +548,7 @@ const AllThemes: React.FC = () => {
       </header>
 
       <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
-        <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/90 to-white px-5 py-4">
+        <div className="border-b border-gray-100 bg-linear-to-r from-gray-50/90 to-white px-5 py-4">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50">
               <MagnifyingGlassIcon className="h-5 w-5 text-blue-600" aria-hidden />
@@ -626,12 +622,6 @@ const AllThemes: React.FC = () => {
 
         {/* Installed Themes - Section 1 (marketplace only; custom themes appear only in Your creations) */}
         {Array.isArray(installedThemes) && installedMarketplaceOnly.length > 0 && (
-          <React.Fragment>
-            <h2 className="themes-section-title" style={{ marginBottom: 16 }}>Installed themes</h2>
-          <div className={`themes-layout ${viewMode} themes-section-body`}>
-            {installedMarketplaceOnly.map((it: any) => {
-        {/* Installed Themes - Section 1 */}
-        {Array.isArray(installedThemes) && installedThemes.length > 0 && (
           <section className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
             <ThemeSectionHeader
               icon={CheckCircleIcon}
@@ -640,7 +630,7 @@ const AllThemes: React.FC = () => {
             />
             <div className="bg-gray-50/30 p-4 sm:p-5">
           <div className={`themes-layout ${viewMode}`}>
-            {installedThemes.map((it: any) => {
+            {installedMarketplaceOnly.map((it: any) => {
               const t = it; // The theme data is directly in it, not nested under themeId
               const isCustomTheme = false; // Installed section shows only marketplace themes
               const actualThemeId = isCustomTheme && t.customThemeId ? t.customThemeId : t._id;
@@ -749,16 +739,10 @@ const AllThemes: React.FC = () => {
           </section>
         )}
 
-        {/* Recent Installations - Section 2 (marketplace only; custom themes only in Your creations) */}
+        {/* Recent Installations - Section 2 (marketplace only) */}
         {recentInstallationsMarketplaceOnly.length > 0 && (
-          <React.Fragment>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="themes-section-title">Recently Installed</h2>
-              <div className="flex items-center gap-3">
-        {/* Recent Installations - Section 2 */}
-        {recentInstallations.length > 0 && (
           <section className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
-            <div className="flex flex-col gap-3 border-b border-gray-100 bg-gradient-to-r from-gray-50/90 to-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 border-b border-gray-100 bg-linear-to-r from-gray-50/90 to-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex min-w-0 items-start gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50">
                   <ClockIcon className="h-5 w-5 text-blue-600" aria-hidden />
@@ -806,11 +790,9 @@ const AllThemes: React.FC = () => {
           )}
           <div className={`themes-layout ${viewMode} themes-section-body`}>
             {recentInstallationsMarketplaceOnly.map((rt: any) => {
-          <div className={`themes-layout ${viewMode}`}>
-            {recentInstallations.map((rt: any) => {
               const isCustomTheme = rt.isCustomTheme || rt._id?.startsWith('custom-');
               const actualThemeId = isCustomTheme && rt.customThemeId ? rt.customThemeId : rt._id;
-              
+
               return (
                 <div key={rt._id} className="theme-card" style={{ position: 'relative' }}>
                   {selectionMode && (
@@ -878,7 +860,7 @@ const AllThemes: React.FC = () => {
           </div>
             </div>
           </section>
-      )}
+        )}
 
       {/* Drafts - themes saved but not yet published */}
       {customDrafts.length > 0 && (
@@ -980,14 +962,7 @@ const AllThemes: React.FC = () => {
         </React.Fragment>
       )}
 
-        {/* Custom Themes (published) */}
-        {customPublished.length > 0 && (
-          <React.Fragment>
-            <h2 className="themes-section-title" style={{ marginBottom: 16, marginTop: 24 }}>Custom Themes</h2>
-        <>
-          <div className={`themes-layout ${viewMode} themes-section-body`}>
-            {customPublished.map((ct) => {
-        {/* Custom Themes (saved locally) — always show block for orientation */}
+        {/* Custom themes — Your creations (always show for orientation) */}
         <section className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
           <ThemeSectionHeader
             icon={SparklesIcon}

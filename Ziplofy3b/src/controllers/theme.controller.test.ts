@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { getThemes } from './theme.controller';
 
 vi.mock('../models/theme.model', () => ({
@@ -14,6 +14,7 @@ import { Theme } from '../models/theme.model';
 describe('theme.controller - getThemes', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
+  let mockNext: NextFunction;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -22,6 +23,7 @@ describe('theme.controller - getThemes', () => {
       status: vi.fn().mockReturnThis(),
       json: vi.fn(),
     };
+    mockNext = vi.fn();
   });
 
   it('builds filter from query and returns paginated result', async () => {
@@ -41,7 +43,7 @@ describe('theme.controller - getThemes', () => {
 
     (mockReq as any).query = { page: '1', limit: '10', search: 'foo', category: 'ecommerce' };
 
-    await getThemes(mockReq as Request, mockRes as Response);
+    await getThemes(mockReq as Request, mockRes as Response, mockNext);
 
     expect(Theme.find).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -76,7 +78,7 @@ describe('theme.controller - getThemes', () => {
     });
     (Theme.countDocuments as ReturnType<typeof vi.fn>).mockResolvedValue(0);
 
-    await getThemes(mockReq as Request, mockRes as Response);
+    await getThemes(mockReq as Request, mockRes as Response, mockNext);
 
     expect(Theme.find).toHaveBeenCalledWith({ isActive: true });
     expect(mockRes.json).toHaveBeenCalledWith(

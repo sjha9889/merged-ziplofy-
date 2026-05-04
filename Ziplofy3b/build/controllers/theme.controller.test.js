@@ -12,6 +12,7 @@ const theme_model_1 = require("../models/theme.model");
 (0, vitest_1.describe)('theme.controller - getThemes', () => {
     let mockReq;
     let mockRes;
+    let mockNext;
     (0, vitest_1.beforeEach)(() => {
         vitest_1.vi.clearAllMocks();
         mockReq = { query: {} };
@@ -19,6 +20,7 @@ const theme_model_1 = require("../models/theme.model");
             status: vitest_1.vi.fn().mockReturnThis(),
             json: vitest_1.vi.fn(),
         };
+        mockNext = vitest_1.vi.fn();
     });
     (0, vitest_1.it)('builds filter from query and returns paginated result', async () => {
         const mockThemes = [{ _id: 't1', name: 'Theme 1' }];
@@ -35,7 +37,7 @@ const theme_model_1 = require("../models/theme.model");
         });
         theme_model_1.Theme.countDocuments.mockResolvedValue(1);
         mockReq.query = { page: '1', limit: '10', search: 'foo', category: 'ecommerce' };
-        await (0, theme_controller_1.getThemes)(mockReq, mockRes);
+        await (0, theme_controller_1.getThemes)(mockReq, mockRes, mockNext);
         (0, vitest_1.expect)(theme_model_1.Theme.find).toHaveBeenCalledWith(vitest_1.expect.objectContaining({
             isActive: true,
             $text: { $search: 'foo' },
@@ -63,7 +65,7 @@ const theme_model_1 = require("../models/theme.model");
             }),
         });
         theme_model_1.Theme.countDocuments.mockResolvedValue(0);
-        await (0, theme_controller_1.getThemes)(mockReq, mockRes);
+        await (0, theme_controller_1.getThemes)(mockReq, mockRes, mockNext);
         (0, vitest_1.expect)(theme_model_1.Theme.find).toHaveBeenCalledWith({ isActive: true });
         (0, vitest_1.expect)(mockRes.json).toHaveBeenCalledWith(vitest_1.expect.objectContaining({
             success: true,
