@@ -40,7 +40,8 @@ const OrderDetailsPage: React.FC = () => {
     fetchOrder();
   }, [fetchOrder]);
 
-  const formatCurrency = (amount: number) => `$${Number(amount).toFixed(2)}`;
+  const formatCurrency = (amount: number) =>
+    `₹${Number(amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

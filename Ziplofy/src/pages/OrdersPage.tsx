@@ -130,7 +130,7 @@ const OrdersPage: React.FC = () => {
               <div>
                 <p className="text-sm font-medium text-gray-500">Total revenue</p>
                 <p className="mt-1 text-2xl font-bold text-gray-900">
-                  ${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  ₹{totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
               </div>
               <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">

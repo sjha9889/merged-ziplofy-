@@ -132,7 +132,7 @@ const MarketingPage: React.FC = () => {
             />
             <StatCard
               title="Sales attributed to marketing"
-              value="$45,230"
+              value="₹45,230"
               icon={<CreditCardIcon className="w-5 h-5 text-green-600" />}
             />
             <StatCard
@@ -147,7 +147,7 @@ const MarketingPage: React.FC = () => {
             />
             <StatCard
               title="AOV attributed to marketing"
-              value="$132.15"
+              value="₹132.15"
               icon={<CreditCardIcon className="w-5 h-5 text-blue-600" />}
             />
           </div>

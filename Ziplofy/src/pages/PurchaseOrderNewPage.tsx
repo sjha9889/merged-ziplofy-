@@ -123,12 +123,6 @@ const PurchaseOrderNewPage: React.FC = () => {
 
   const currencyOptions = useMemo(() => [
     { value: 'INR', label: 'INR' },
-    { value: 'USD', label: 'USD' },
-    { value: 'EUR', label: 'EUR' },
-    { value: 'GBP', label: 'GBP' },
-    { value: 'JPY', label: 'JPY' },
-    { value: 'AUD', label: 'AUD' },
-    { value: 'CAD', label: 'CAD' },
   ], []);
 
   const carrierOptions = useMemo(() => [

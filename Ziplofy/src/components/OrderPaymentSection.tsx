@@ -40,7 +40,7 @@ const OrderPaymentSection: React.FC<OrderPaymentSectionProps> = ({
   onEditPaymentDue,
 }) => {
   const formatCurrency = (amount: number) => {
-    return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const handleEditPaymentDue = useCallback(() => {

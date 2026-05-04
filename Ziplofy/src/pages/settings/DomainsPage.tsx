@@ -86,7 +86,7 @@ const DomainsPage: React.FC = () => {
         <div className="p-4 rounded-xl bg-white border border-gray-200/80 shadow-sm flex items-start gap-3">
           <InformationCircleIcon className="w-4 h-4 text-gray-600 shrink-0 mt-0.5" />
           <p className="text-sm text-gray-500">
-            Connect or buy a custom domain below and get a $20 USD subscription discount on your next bill.{' '}
+            Connect or buy a custom domain below and get a ₹1,600 subscription discount on your next bill.{' '}
             <button
               type="button"
               onClick={(e) => {

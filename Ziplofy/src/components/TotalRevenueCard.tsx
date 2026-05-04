@@ -15,11 +15,11 @@ const cardShell =
 const TotalRevenueCard: React.FC<TotalRevenueCardProps> = ({
   totalRevenue = 0,
   lastMonth = 0,
-  currency = '$',
+  currency = '₹',
   percentageChange = 0,
 }) => {
   const formatCurrency = (amount: number) => {
-    return `${currency}${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `${currency}${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   return (

@@ -22,7 +22,7 @@ interface OrderItemProps {
 
 const OrderItem: React.FC<OrderItemProps> = ({ order, onView }) => {
   const formatCurrency = (amount: number) => {
-    return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   const formatDate = (dateString: string) => {
