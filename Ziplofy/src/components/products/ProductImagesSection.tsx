@@ -96,17 +96,11 @@ const ProductImagesSection: React.FC<ProductImagesSectionProps> = ({
         onChange={handleFileSelection}
       />
 
-      {images.length > 0 ? (
-        <div className="mb-4">
-          <ProductImageList images={images} onRemoveImage={onRemoveImage} />
-        </div>
-      ) : null}
-
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`flex min-h-[200px] flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-12 transition-colors ${
+        className={`flex min-h-[220px] flex-col rounded-lg border-2 border-dashed px-4 py-4 transition-colors ${
           disabled
             ? "cursor-not-allowed border-gray-200 bg-gray-50/50 opacity-60"
             : isDragOver
@@ -114,6 +108,15 @@ const ProductImagesSection: React.FC<ProductImagesSectionProps> = ({
               : "border-gray-200 bg-white"
         }`}
       >
+        {images.length > 0 ? (
+          <div className="mb-4 max-h-[300px] w-full overflow-y-auto pr-1">
+            <ProductImageList images={images} onRemoveImage={onRemoveImage} />
+          </div>
+        ) : (
+          <div className="flex flex-1 items-center justify-center" />
+        )}
+
+        <div className="mt-auto flex w-full flex-col items-center justify-center pb-2 pt-1">
         <button
           type="button"
           onClick={handlePickImages}
@@ -125,6 +128,7 @@ const ProductImagesSection: React.FC<ProductImagesSectionProps> = ({
         <p className="mt-4 max-w-md text-center text-sm text-gray-500">
           Accepts images, videos, or 3D models
         </p>
+        </div>
       </div>
     </>
   );
