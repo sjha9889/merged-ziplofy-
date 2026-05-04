@@ -140,6 +140,11 @@
   margin-top: 32px;
 }
 
+/* KPI card margin - Hire Developer Requests page only */
+.dev-requests-container .kpi-card {
+  margin: 10px;
+}
+
 .stat-card {
   display: flex;
   align-items: center;

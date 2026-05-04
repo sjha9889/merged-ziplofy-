@@ -9,6 +9,7 @@ export interface CustomThemeItem {
   html: string;
   css: string;
   themePath: string;
+  status?: 'draft' | 'published';
   createdBy: {
     _id: string;
     name?: string;
@@ -35,8 +36,8 @@ interface CustomThemesContextType {
   loading: boolean;
   error: string | null;
   fetchAll: () => Promise<void>;
-  createTheme: (name: string, html: string, css: string, thumbnail?: Blob) => Promise<CustomThemeItem | null>;
-  updateTheme: (id: string, name: string, html: string, css: string, thumbnail?: Blob) => Promise<CustomThemeItem | null>;
+  createTheme: (name: string, html: string, css: string, thumbnail?: Blob, status?: 'draft' | 'published') => Promise<CustomThemeItem | null>;
+  updateTheme: (id: string, name: string, html: string, css: string, thumbnail?: Blob, status?: 'draft' | 'published') => Promise<CustomThemeItem | null>;
   deleteTheme: (id: string) => Promise<boolean>;
   installTheme: (customThemeId: string, storeId: string) => Promise<boolean>;
   uninstallTheme: (customThemeId: string, storeId: string) => Promise<boolean>;
@@ -55,15 +56,8 @@ export const CustomThemesProvider: React.FC<{ children: React.ReactNode }> = ({ 
     try {
       const { data } = await axiosi.get<FetchCustomThemesResponse>('/custom-themes');
       if (data.success) {
-        // Filter out any themes with invalid IDs (shouldn't happen, but just in case)
-        const validThemes = (data.data || []).filter((theme) => {
-          const isValid = /^[0-9a-fA-F]{24}$/.test(theme._id);
-          if (!isValid) {
-            console.warn(`Theme "${theme.name}" has invalid ID format: ${theme._id}. Skipping.`);
-          }
-          return isValid;
-        });
-        setCustomThemes(validThemes);
+        // Show all themes returned by the API - backend is the source of truth
+        setCustomThemes(data.data || []);
       } else {
         setCustomThemes([]);
       }
@@ -75,7 +69,7 @@ export const CustomThemesProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, []);
 
-  const createTheme = useCallback(async (name: string, html: string, css: string, thumbnail?: Blob): Promise<CustomThemeItem | null> => {
+  const createTheme = useCallback(async (name: string, html: string, css: string, thumbnail?: Blob, status?: 'draft' | 'published'): Promise<CustomThemeItem | null> => {
     setLoading(true);
     setError(null);
     try {
@@ -166,6 +160,9 @@ export const CustomThemesProvider: React.FC<{ children: React.ReactNode }> = ({ 
       if (thumbnail) {
         formData.append('thumbnail', thumbnail, 'thumbnail.png');
       }
+      if (status) {
+        formData.append('status', status);
+      }
       
       const { data } = await axiosi.post<CreateCustomThemeResponse>('/custom-themes', formData, {
         headers: {
@@ -211,7 +208,7 @@ export const CustomThemesProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, [fetchAll]);
 
-  const updateTheme = useCallback(async (id: string, name: string, html: string, css: string, thumbnail?: Blob): Promise<CustomThemeItem | null> => {
+  const updateTheme = useCallback(async (id: string, name: string, html: string, css: string, thumbnail?: Blob, status?: 'draft' | 'published'): Promise<CustomThemeItem | null> => {
     setLoading(true);
     setError(null);
     try {
@@ -231,6 +228,9 @@ export const CustomThemesProvider: React.FC<{ children: React.ReactNode }> = ({ 
       formData.append('zipFile', zipBlob, `${name.replace(/[^a-zA-Z0-9]/g, '_')}.zip`);
       if (thumbnail) {
         formData.append('thumbnail', thumbnail, 'thumbnail.png');
+      }
+      if (status) {
+        formData.append('status', status);
       }
       
       const { data } = await axiosi.put<CreateCustomThemeResponse>(`/custom-themes/${id}`, formData, {

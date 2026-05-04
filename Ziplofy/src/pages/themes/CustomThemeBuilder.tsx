@@ -7,10 +7,84 @@ import ElementorTutorial from '../../components/ElementorTutorial';
 import html2canvas from 'html2canvas';
 import { safeLocalStorage } from '../../types/local-storage';
 import { Monitor, Tablet, Smartphone } from 'lucide-react';
+import toast from 'react-hot-toast';
 import './CustomThemeBuilder.css';
+import { normalizeStyleManagerCSSValue, sanitizeComponentStylesFromGrapes } from './visualElementorThemeUtils';
+import { injectThemeStylesIntoFrame } from './visualElementorStyleInjection';
+
+/** StyleManager pushes computed layout on select; writing these to the model overrides theme flex/grid (collapsed header, hero gaps). */
+const STYLE_MANAGER_LAYOUT_BLOCK = new Set([
+  'width',
+  'height',
+  'min-width',
+  'max-width',
+  'min-height',
+  'max-height',
+  'display',
+  'position',
+  'top',
+  'right',
+  'bottom',
+  'left',
+  'inset',
+  'float',
+  'clear',
+  'flex',
+  'flex-direction',
+  'flex-wrap',
+  'flex-grow',
+  'flex-shrink',
+  'flex-basis',
+  'align-items',
+  'align-content',
+  'align-self',
+  'justify-content',
+  'justify-items',
+  'justify-self',
+  'gap',
+  'row-gap',
+  'column-gap',
+  'grid',
+  'grid-template-columns',
+  'grid-template-rows',
+  'grid-template-areas',
+  'grid-area',
+  'grid-column',
+  'grid-row',
+  'margin',
+  'margin-top',
+  'margin-right',
+  'margin-bottom',
+  'margin-left',
+  'padding',
+  'padding-top',
+  'padding-right',
+  'padding-bottom',
+  'padding-left',
+  'overflow',
+  'overflow-x',
+  'overflow-y',
+  'box-sizing',
+  'z-index',
+  'vertical-align',
+  'object-fit',
+  'object-position',
+  'transform',
+  'transform-origin',
+  'pointer-events',
+  'cursor',
+]);
+
+function isStyleManagerLayoutNoise(propName: string): boolean {
+  const k = String(propName)
+    .replace(/([A-Z])/g, '-$1')
+    .toLowerCase();
+  if (STYLE_MANAGER_LAYOUT_BLOCK.has(k)) return true;
+  return /^margin-|^padding-|^flex-|^align-|^justify-|^grid-|^min-|^max-|^overflow-|^object-|^transform|^inset|^gap-|^row-|^column-/.test(k);
+}
 
 const CustomThemeBuilder: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { activeStoreId: contextActiveStoreId } = useStore();
   const editorRef = useRef<HTMLDivElement | null>(null);
@@ -963,26 +1037,24 @@ const CustomThemeBuilder: React.FC = () => {
     }
   };
 
-  // Add beforeunload warning if theme is not published
+  // Warn when closing/navigating away with unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Show warning if theme hasn't been published
-      if (!isPublished) {
-        // Modern browsers ignore custom messages, but we can still trigger the dialog
+      if (hasUnsavedChanges) {
         e.preventDefault();
-        // Chrome requires returnValue to be set
         e.returnValue = '';
-        // Return a message (though most browsers will show their own)
-        return 'Your theme is not yet published. Do you still want to close the tab?';
       }
     };
-
     window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, [isPublished]);
+  const handleBackClick = useCallback(() => {
+    if (hasUnsavedChanges && !window.confirm('You have unsaved changes. Do you really want to exit? Your progress may be lost.')) {
+      return;
+    }
+    navigate('/themes/all-themes');
+  }, [hasUnsavedChanges, navigate]);
 
   useEffect(() => {
     pagesRef.current = pages;
@@ -1985,56 +2057,26 @@ const CustomThemeBuilder: React.FC = () => {
           }
         }
         
-        // Method 3: Inject CSS directly into canvas iframe (most reliable - ALWAYS do this)
-        // Use multiple timeouts to ensure iframe is ready
+        // Method 3: Full iframe injection (matches BasicElementor / loadThemeContentIntoEditor):
+        // slider fix (hide non-first slides — JS often does not run in canvas), preserve text, selection, pointer-events, theme CSS
+        const baseUrlForImports = themeId
+          ? `${window.location.origin}/api/custom-themes/${encodeURIComponent(themeId)}/files/`
+          : '';
         [100, 300, 500].forEach((delay) => {
-        setTimeout(() => {
-          try {
-            const canvas = editor.Canvas;
-            if (canvas) {
-              const frame = canvas.getFrameEl();
-              if (frame && frame.contentDocument) {
-                const doc = frame.contentDocument;
-                const head = doc.head || doc.getElementsByTagName('head')[0];
-                if (head) {
-                    // Remove ALL existing theme styles (clear old CSS)
-                    const existingStyles = head.querySelectorAll('#ziplofy-theme-styles, style[data-ziplofy-theme]');
-                    existingStyles.forEach((style: Element) => style.remove());
-                  
-                  // Add new style element
-                  const styleEl = doc.createElement('style');
-                  styleEl.id = 'ziplofy-theme-styles';
-                    styleEl.setAttribute('data-ziplofy-theme', 'true');
-                  styleEl.textContent = cssContent;
-                  head.appendChild(styleEl);
-                    console.log(`✅ CSS injected directly into canvas iframe (attempt at ${delay}ms):`, {
-                      cssLength: cssContent.length,
-                      styleElementExists: !!head.querySelector('#ziplofy-theme-styles')
-                    });
-                  
-                  // Also add link tags for @import statements (for better browser support)
-                  const importMatches = cssContent.matchAll(/@import\s+url\(['"]?([^'")]+)['"]?\)/gi);
-                  for (const match of importMatches) {
-                    const importUrl = match[1];
-                    // Check if link already exists
-                    const existingLink = Array.from(head.querySelectorAll('link[rel="stylesheet"]'))
-                      .find((link: any) => link.href === importUrl);
-                    if (!existingLink && importUrl) {
-                      const linkEl = doc.createElement('link');
-                      linkEl.rel = 'stylesheet';
-                      linkEl.href = importUrl;
-                      linkEl.crossOrigin = 'anonymous'; // Don't send credentials for external resources
-                      head.appendChild(linkEl);
-                    }
-                  }
-                }
+          setTimeout(() => {
+            try {
+              const ok = injectThemeStylesIntoFrame(editor, {
+                styleBlockContent: cssContent,
+                stylesheetUrls: [],
+                baseUrl: baseUrlForImports,
+              });
+              if (ok) {
+                console.log(`✅ Theme + builder fixes injected into canvas iframe (${delay}ms)`);
               }
-            }
-          } catch (iframeErr) {
+            } catch (iframeErr) {
               if (delay === 500) {
-                // Only log error on final attempt
-            console.warn('Failed to inject CSS into iframe:', iframeErr);
-          }
+                console.warn('Failed to inject theme styles into iframe:', iframeErr);
+              }
             }
           }, delay);
         });
@@ -3469,6 +3511,7 @@ ${linkStylesheetTag}  <style>
     if (editorInstance.current) return;
     
     let destroyed = false;
+    let editorForThisEffect: any = null;
     const cleanupFns: Array<() => void> = [];
     const registerCleanup = (fn: () => void) => {
       cleanupFns.push(fn);
@@ -3541,6 +3584,13 @@ ${linkStylesheetTag}  <style>
             ],
           },
           storageManager: { type: null as any },
+          // Fix: Color picker must append to body so it's not clipped by overflow:hidden on style panel
+          colorPicker: {
+            appendTo: 'body',
+            showInput: true,
+            flat: false, // Use dropdown mode (not inline)
+            disabled: false,
+          },
           selectorManager: { 
             componentFirst: true,
             escapeName: (name: string) => {
@@ -3682,6 +3732,7 @@ ${linkStylesheetTag}  <style>
         });
 
         editorInstance.current = editor;
+        editorForThisEffect = editor;
         console.log('✅ Editor instance created and stored', {
           hasEditor: !!editor,
           hasComponents: !!editor.Components,
@@ -3889,7 +3940,57 @@ ${linkStylesheetTag}  <style>
         // This is critical when editing existing themes
         // Use a flag to prevent multiple executions
         let loadHandlerExecuted = false;
-        editor.on('load', () => {
+        const runIfEditorReady = (fn: () => void) => {
+          editor.on('load', fn);
+          // If GrapesJS is already ready (eg. StrictMode mount/unmount), run immediately
+          try {
+            const model = editor.getModel?.();
+            const ready = Boolean(model?.get?.('ready'));
+            if (ready) fn();
+          } catch {}
+        };
+
+        // #region agent log
+        // Probe color flips directly in iframe text nodes (independent from select handlers)
+        try {
+          const colorState = new Map<string, string>();
+          const sampleHeroTextColors = () => {
+            try {
+              const frame = editor?.Canvas?.getFrameEl?.();
+              const doc = frame?.contentDocument;
+              if (!doc) return;
+              const nodes = Array.from(
+                doc.querySelectorAll('.hero-slider-container h1, .hero-slider-container h2, .hero-slider-container h3, .hero-slider-container p, .hero-slider-container a, .hero-slide-caption h1, .hero-slide-caption h2, .hero-slide-caption h3, .hero-slide-caption p, .hero-slide-caption a')
+              ) as HTMLElement[];
+              for (const el of nodes.slice(0, 40)) {
+                const cs = doc.defaultView?.getComputedStyle(el);
+                const color = cs?.color || '';
+                const fill = cs?.getPropertyValue?.('-webkit-text-fill-color') || '';
+                const key = `${el.tagName.toLowerCase()}#${el.id || ''}.${String(el.className || '').slice(0, 40)}`;
+                const current = `${color}|${fill}`;
+                const prev = colorState.get(key);
+                colorState.set(key, current);
+                const becameBlack =
+                  prev !== current &&
+                  (color === 'rgb(0, 0, 0)' || fill === 'rgb(0, 0, 0)') &&
+                  prev !== 'rgb(0, 0, 0)|rgb(0, 0, 0)';
+                if (becameBlack) {
+                  const body = doc.body as HTMLElement | null;
+                  const bodyCs = body ? doc.defaultView?.getComputedStyle(body) : null;
+                  const selectedEl = doc.querySelector('.gjs-selected, .gjs-comp-selected') as HTMLElement | null;
+                  const selCs = selectedEl ? doc.defaultView?.getComputedStyle(selectedEl) : null;
+                  fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-3',hypothesisId:'H23',location:'CustomThemeBuilder.tsx:iframe:text-color-watch',message:'hero text color transitioned to black',data:{tag:el.tagName.toLowerCase(),className:(el.className||'').toString().slice(0,120),id:el.id||'',prevColor:prev||'',inlineColor:el.style?.color||'',inlineTextFill:el.style?.getPropertyValue?.('-webkit-text-fill-color')||'',computedColor:color,computedTextFill:fill,parentColor:el.parentElement ? doc.defaultView?.getComputedStyle(el.parentElement)?.color : ''},timestamp:Date.now()})}).catch(()=>{});
+                  fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-4',hypothesisId:'H24',location:'CustomThemeBuilder.tsx:iframe:text-color-watch:context',message:'black transition context',data:{bodyClass:body?.className||'',bodyColor:bodyCs?.color||'',bodyTextFill:bodyCs?.getPropertyValue?.('-webkit-text-fill-color')||'',selectedTag:selectedEl?.tagName?.toLowerCase()||'',selectedClass:selectedEl?.className||'',selectedColor:selCs?.color||'',selectedTextFill:selCs?.getPropertyValue?.('-webkit-text-fill-color')||''},timestamp:Date.now()})}).catch(()=>{});
+                }
+              }
+            } catch {}
+          };
+          const interval = window.setInterval(sampleHeroTextColors, 400);
+          registerCleanup(() => window.clearInterval(interval));
+        } catch {}
+        // #endregion agent log
+
+        runIfEditorReady(() => {
           if (loadHandlerExecuted || destroyed) return; // Prevent multiple executions
           loadHandlerExecuted = true;
           
@@ -5392,13 +5493,13 @@ ${linkStylesheetTag}  <style>
             }, true);
           } catch {}
         };
-        editor.on('load', () => {
+        runIfEditorReady(() => {
           [300, 800, 1500].forEach((d) => setTimeout(setupCarouselButtons, d));
         });
         editor.on('component:add', () => { setTimeout(setupCarouselButtons, 200); });
 
         // Ensure wrapper is droppable and all components are editable
-        editor.on('load', () => {
+        runIfEditorReady(() => {
           try {
             const wrapper = editor.getWrapper();
             if (wrapper) {
@@ -6222,6 +6323,7 @@ ${linkStylesheetTag}  <style>
         let lastSelectedComponentId: string | null = null;
         let isSelectingComponent = false; // Flag to prevent selection loops
         let isDraggingBlock = false; // Flag to prevent processing during drag
+        let lastSelectedColorSnapshot: { cid: string; tag: string; inlineColor: string; inlineTextFill: string; computedColor: string; computedTextFill: string } | null = null;
         let componentAddTimeout: ReturnType<typeof setTimeout> | null = null;
         let pendingComponents: Set<any> = new Set(); // Batch component additions
         let cachedStylePanel: HTMLElement | null = null;
@@ -6373,6 +6475,161 @@ ${linkStylesheetTag}  <style>
         // Handle Alt+Click to select parent component
         editor.on('component:selected', (component: any) => {
           try {
+            try {
+              const wrap = editor.getWrapper?.();
+              const selTag = (component?.get?.('tagName') || '').toLowerCase();
+              const isHeavySelection = component === wrap || selTag === 'body';
+              rootContainerRef.current?.classList.toggle('ziplofy-wrapper-or-body-selected', Boolean(isHeavySelection));
+              if (isHeavySelection) {
+                try {
+                  const currentStyles = component?.getStyle?.() || {};
+                  if (currentStyles.color || currentStyles['-webkit-text-fill-color']) {
+                    const nextStyles = { ...currentStyles };
+                    delete nextStyles.color;
+                    delete nextStyles['-webkit-text-fill-color'];
+                    component.setStyle?.(nextStyles);
+                    fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-5',hypothesisId:'H25',location:'CustomThemeBuilder.tsx:component:selected:heavy-cleanup',message:'removed wrapper/body color noise',data:{tag:selTag,removedColor:Boolean(currentStyles.color),removedTextFill:Boolean(currentStyles['-webkit-text-fill-color'])},timestamp:Date.now()})}).catch(()=>{});
+                  }
+                } catch {}
+              }
+              // #region agent log
+              try {
+                const selEl = component?.getEl?.() as HTMLElement | null;
+                if (selEl && /hero-slide|hero-slide-overlay|hero-slide-title/i.test(String(selEl.className || ''))) {
+                  fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-16',hypothesisId:'H36',location:'CustomThemeBuilder.tsx:component:selected:no-global-hero-fallback',message:'selected hero node without forced global color fallback',data:{selectedClass:String(selEl.className || '').slice(0,120)},timestamp:Date.now()})}).catch(()=>{});
+                }
+              } catch {}
+              // #endregion agent log
+              // Clear poisoned hero title model/rule styles injected by StyleManager sync.
+              try {
+                const selEl = component?.getEl?.() as HTMLElement | null;
+                const isHeroTitle = Boolean(selEl) && /hero-slide-title/.test(String(selEl?.className || ''));
+                if (isHeroTitle) {
+                  const style = component?.getStyle?.() || {};
+                  const next = { ...style };
+                  // Hero title must keep theme-driven gradient paint; any explicit model color can poison it.
+                  const hadModelColor = Object.prototype.hasOwnProperty.call(next, 'color');
+                  const badModelColor =
+                    hadModelColor ||
+                    /^(rgb\(0,\s*0,\s*0\)|rgba\(0,\s*0,\s*0[^)]*\)|black|#000(?:000)?(?:ff)?)$/i.test(String(next.color || '').trim());
+                  // Transparent fill is valid for gradient clipped text — never strip it from hero title.
+                  const badModelFill =
+                    /^(transparent|rgba\(0,\s*0,\s*0,\s*0\)|rgba\(0,\s*0,\s*0,\s*0\.0+\))$/i.test(String(next['-webkit-text-fill-color'] || '').trim()) &&
+                    !isHeroTitle;
+                  if (badModelColor) delete next.color;
+                  if (badModelFill) delete next['-webkit-text-fill-color'];
+                  if (badModelColor || badModelFill) component.setStyle?.(next);
+
+                  const classes = component?.getClasses?.() || [];
+                  const componentClass = classes.find((c: string) => c && !c.startsWith('gjs-')) || '';
+                  if (componentClass && editor?.CssComposer) {
+                    const rule = editor.CssComposer.getRule(`.${componentClass}`);
+                    if (rule) {
+                      const rs = { ...(rule.get('style') || {}) };
+                      const hadRuleColor = Object.prototype.hasOwnProperty.call(rs, 'color');
+                      const badRuleColor =
+                        hadRuleColor ||
+                        /^(rgb\(0,\s*0,\s*0\)|rgba\(0,\s*0,\s*0[^)]*\)|black|#000(?:000)?(?:ff)?)$/i.test(String(rs.color || '').trim());
+                      const badRuleFill =
+                        /^(transparent|rgba\(0,\s*0,\s*0,\s*0\)|rgba\(0,\s*0,\s*0,\s*0\.0+\))$/i.test(String(rs['-webkit-text-fill-color'] || '').trim()) &&
+                        !isHeroTitle;
+                      if (badRuleColor) delete rs.color;
+                      if (badRuleFill) delete rs['-webkit-text-fill-color'];
+                      if (badRuleColor || badRuleFill) rule.set('style', rs);
+                      if (badRuleColor || badRuleFill || badModelColor || badModelFill) {
+                        fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-10',hypothesisId:'H30',location:'CustomThemeBuilder.tsx:component:selected:hero-poison-cleanup',message:'removed poisoned hero title styles',data:{badModelColor,badModelFill,badRuleColor,badRuleFill,componentClass},timestamp:Date.now()})}).catch(()=>{});
+                        // #region agent log
+                        try {
+                          const titleEl = component?.getEl?.() as HTMLElement | null;
+                          const titleCs = titleEl ? window.getComputedStyle(titleEl) : null;
+                          fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-13',hypothesisId:'H33',location:'CustomThemeBuilder.tsx:component:selected:cleanup-impact',message:'hero poison cleanup post-style snapshot',data:{badModelColor,badModelFill,badRuleColor,badRuleFill,titleColor:titleCs?.color||'',titleTextFill:titleCs?.getPropertyValue?.('-webkit-text-fill-color')||'',titleBgImage:titleCs?.backgroundImage||'',titleBgClip:titleCs?.getPropertyValue?.('-webkit-background-clip')||titleCs?.getPropertyValue?.('background-clip')||''},timestamp:Date.now()})}).catch(()=>{});
+                        } catch {}
+                        // #endregion agent log
+                      }
+                    }
+                  }
+                }
+              } catch {}
+              // #region agent log
+              try {
+                const el = component?.getEl?.() as HTMLElement | null;
+                const cs = el ? window.getComputedStyle(el) : null;
+                const cid = String(component?.cid || component?.getId?.() || '');
+                lastSelectedColorSnapshot = {
+                  cid,
+                  tag: String(component?.get?.('tagName') || ''),
+                  inlineColor: el?.style?.color || '',
+                  inlineTextFill: el?.style?.getPropertyValue?.('-webkit-text-fill-color') || '',
+                  computedColor: cs?.color || '',
+                  computedTextFill: cs?.getPropertyValue?.('-webkit-text-fill-color') || '',
+                };
+                fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass',hypothesisId:'H16',location:'CustomThemeBuilder.tsx:component:selected:colorSnapshot',message:'selected component color snapshot',data:lastSelectedColorSnapshot,timestamp:Date.now()})}).catch(()=>{});
+                if (/^(h1|h2|h3|h4|h5|h6|p|span|a)$/i.test(lastSelectedColorSnapshot.tag)) {
+                  fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-9',hypothesisId:'H29',location:'CustomThemeBuilder.tsx:component:selected:visualState',message:'selected text visual state',data:{tag:lastSelectedColorSnapshot.tag,className:(el?.className||'').toString().slice(0,120),opacity:cs?.opacity||'',filter:cs?.filter||'',mixBlendMode:cs?.mixBlendMode||'',textShadow:cs?.textShadow||'',transform:cs?.transform||'',parentOpacity:el?.parentElement?window.getComputedStyle(el.parentElement).opacity:'',parentFilter:el?.parentElement?window.getComputedStyle(el.parentElement).filter:''},timestamp:Date.now()})}).catch(()=>{});
+                }
+                if (
+                  /^(h1|h2|h3|h4|h5|h6|p|span|a)$/i.test(lastSelectedColorSnapshot.tag) &&
+                  lastSelectedColorSnapshot.computedTextFill === 'rgba(0, 0, 0, 0)'
+                ) {
+                  fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-6',hypothesisId:'H26',location:'CustomThemeBuilder.tsx:component:selected:textFillContext',message:'selected text has transparent text fill',data:{tag:lastSelectedColorSnapshot.tag,className:(el?.className||'').toString().slice(0,120),computedColor:cs?.color||'',computedTextFill:cs?.getPropertyValue?.('-webkit-text-fill-color')||'',backgroundClip:cs?.getPropertyValue?.('background-clip')||'',webkitBackgroundClip:cs?.getPropertyValue?.('-webkit-background-clip')||'',backgroundImage:cs?.backgroundImage||''},timestamp:Date.now()})}).catch(()=>{});
+                }
+                // Keep original gradient style whenever possible; only apply temporary readability fallback
+                // when selected hero text truly flips to black in canvas.
+                if (el && /hero-slide-title|hero-slide-caption/i.test(String(el.className || ''))) {
+                  const isTransparentTextFillNow = lastSelectedColorSnapshot.computedTextFill === 'rgba(0, 0, 0, 0)';
+                  const isGradientClipText =
+                    /text/i.test(cs?.getPropertyValue?.('-webkit-background-clip') || cs?.getPropertyValue?.('background-clip') || '') &&
+                    /gradient/i.test(String(cs?.backgroundImage || ''));
+                  // computedColor is often black for gradient text (fill paints the gradient); do not treat that alone as broken.
+                  const isBlackNow =
+                    lastSelectedColorSnapshot.computedTextFill === 'rgb(0, 0, 0)' ||
+                    (lastSelectedColorSnapshot.computedColor === 'rgb(0, 0, 0)' && !isTransparentTextFillNow && !isGradientClipText);
+                  if (isTransparentTextFillNow && isGradientClipText) {
+                    // #region agent log
+                    fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-17',hypothesisId:'H37',location:'CustomThemeBuilder.tsx:component:selected:skip-transparent-fill-fallback',message:'transparent text fill detected; skipping white fallback to preserve gradient text',data:{tag:lastSelectedColorSnapshot.tag,className:String(el.className || '').slice(0,120),computedColor:lastSelectedColorSnapshot.computedColor,computedTextFill:lastSelectedColorSnapshot.computedTextFill},timestamp:Date.now()})}).catch(()=>{});
+                    fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-20',hypothesisId:'H40',location:'CustomThemeBuilder.tsx:component:selected:gradient-color-transparent',message:'gradient clip text detected; no inline color override applied',data:{tag:lastSelectedColorSnapshot.tag,className:String(el.className || '').slice(0,120)},timestamp:Date.now()})}).catch(()=>{});
+                    // #endregion agent log
+                  } else if (isBlackNow) {
+                    if (!el.hasAttribute('data-ziplofy-temp-text-fix')) {
+                      el.setAttribute('data-ziplofy-temp-text-fix', '1');
+                      el.setAttribute('data-ziplofy-prev-color', el.style.getPropertyValue('color') || '');
+                      el.setAttribute('data-ziplofy-prev-text-fill', el.style.getPropertyValue('-webkit-text-fill-color') || '');
+                    }
+                    el.style.setProperty('color', '#ffffff', 'important');
+                    el.style.setProperty('-webkit-text-fill-color', '#ffffff', 'important');
+                    fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-7',hypothesisId:'H27',location:'CustomThemeBuilder.tsx:component:selected:heroTextFallback',message:'applied temporary hero text readability fallback',data:{reason:'black',tag:lastSelectedColorSnapshot.tag,className:String(el.className || '').slice(0,120),computedColor:lastSelectedColorSnapshot.computedColor,computedTextFill:lastSelectedColorSnapshot.computedTextFill},timestamp:Date.now()})}).catch(()=>{});
+                  } else if (el.hasAttribute('data-ziplofy-temp-text-fix')) {
+                    const prevColor = el.getAttribute('data-ziplofy-prev-color') || '';
+                    const prevTextFill = el.getAttribute('data-ziplofy-prev-text-fill') || '';
+                    if (prevColor) el.style.setProperty('color', prevColor);
+                    else el.style.removeProperty('color');
+                    if (prevTextFill) el.style.setProperty('-webkit-text-fill-color', prevTextFill);
+                    else el.style.removeProperty('-webkit-text-fill-color');
+                    el.removeAttribute('data-ziplofy-temp-text-fix');
+                    el.removeAttribute('data-ziplofy-prev-color');
+                    el.removeAttribute('data-ziplofy-prev-text-fill');
+                  }
+                }
+                const isTextTag = /^(h1|h2|h3|h4|h5|h6|p|span|a|li|button|label|strong|em)$/i.test(lastSelectedColorSnapshot.tag);
+                if (
+                  isTextTag &&
+                  (lastSelectedColorSnapshot.computedColor === 'rgb(0, 0, 0)' ||
+                    lastSelectedColorSnapshot.computedTextFill === 'rgb(0, 0, 0)')
+                ) {
+                  const parent = el?.parentElement || null;
+                  const parentCs = parent ? window.getComputedStyle(parent) : null;
+                  const modelStyle = component?.getStyle?.() || {};
+                  const classes = component?.getClasses?.() || [];
+                  const componentClass = classes.find((c: string) => c && !c.startsWith('gjs-')) || '';
+                  const rule = componentClass && editor?.CssComposer
+                    ? editor.CssComposer.getRule(`.${componentClass}`)
+                    : null;
+                  const ruleStyle = rule?.get?.('style') || {};
+                  fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-2',hypothesisId:'H20',location:'CustomThemeBuilder.tsx:component:selected:blackSource',message:'black text source snapshot',data:{cid,tag:lastSelectedColorSnapshot.tag,classes:classes.slice(0,8),modelColor:modelStyle?.color||'',modelTextFill:modelStyle?.['-webkit-text-fill-color']||'',ruleColor:ruleStyle?.color||'',ruleTextFill:ruleStyle?.['-webkit-text-fill-color']||'',parentColor:parentCs?.color||'',parentTextFill:parentCs?.getPropertyValue?.('-webkit-text-fill-color')||''},timestamp:Date.now()})}).catch(()=>{});
+                }
+              } catch {}
+              // #endregion agent log
+            } catch {}
             // Prevent selection loops - if we're already processing a selection, skip
             if (isSelectingComponent) {
               return;
@@ -7146,6 +7403,20 @@ ${linkStylesheetTag}  <style>
               
               // OPTIMIZED: Single render call with debouncing
               debouncedStyleUpdate(component, 50);
+
+              // StyleManager sync on select can push computed styles as bad px (line-height/font-size); fix model + view
+              requestAnimationFrame(() => {
+                try {
+                  const c = editor.getSelected?.();
+                  if (c) sanitizeComponentStylesFromGrapes(c);
+                } catch (_) {}
+              });
+              setTimeout(() => {
+                try {
+                  const c = editor.getSelected?.();
+                  if (c) sanitizeComponentStylesFromGrapes(c);
+                } catch (_) {}
+              }, 80);
               
               // Reset selection flag after a short delay
                 setTimeout(() => {
@@ -7160,6 +7431,72 @@ ${linkStylesheetTag}  <style>
         
         // Handle component deselection - ensure Style Manager stays visible
         editor.on('component:deselected', () => {
+          rootContainerRef.current?.classList.remove('ziplofy-wrapper-or-body-selected');
+          // cleanup any temporary selection readability fallback
+          try {
+            const frame = editor?.Canvas?.getFrameEl?.();
+            const doc = frame?.contentDocument;
+            const fixedNodes = doc?.querySelectorAll?.('[data-ziplofy-temp-text-fix="1"]') || [];
+            // #region agent log
+            try {
+              const firstFixed = (fixedNodes?.[0] as HTMLElement | undefined) || null;
+              const fixedCs = firstFixed ? window.getComputedStyle(firstFixed) : null;
+              fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-14',hypothesisId:'H34',location:'CustomThemeBuilder.tsx:component:deselected:restore-begin',message:'restoring temporary readability fallback nodes',data:{fixedNodeCount:Number(fixedNodes?.length||0),firstTag:firstFixed?.tagName?.toLowerCase?.()||'',firstClass:String(firstFixed?.className||'').slice(0,120),firstColor:fixedCs?.color||'',firstTextFill:fixedCs?.getPropertyValue?.('-webkit-text-fill-color')||''},timestamp:Date.now()})}).catch(()=>{});
+            } catch {}
+            // #endregion agent log
+            fixedNodes.forEach((n: any) => {
+              const el = n as HTMLElement;
+              const prevColor = el.getAttribute('data-ziplofy-prev-color') || '';
+              const prevTextFill = el.getAttribute('data-ziplofy-prev-text-fill') || '';
+              if (prevColor) el.style.setProperty('color', prevColor);
+              else el.style.removeProperty('color');
+              if (prevTextFill) el.style.setProperty('-webkit-text-fill-color', prevTextFill);
+              else el.style.removeProperty('-webkit-text-fill-color');
+              el.removeAttribute('data-ziplofy-temp-text-fix');
+              el.removeAttribute('data-ziplofy-prev-color');
+              el.removeAttribute('data-ziplofy-prev-text-fill');
+            });
+            // Repair malformed gradient URLs that appear as url(.../linear-gradient(...))
+            // after selection transitions. This keeps gradient text visible on deselect.
+            const heroTitles = doc?.querySelectorAll?.('.hero-slide-title, .hero-slide-subtitle') || [];
+            heroTitles.forEach((n: any) => {
+              try {
+                const el = n as HTMLElement;
+                const cs = window.getComputedStyle(el);
+                const bg = String(cs.backgroundImage || '');
+                const markerIdx = bg.toLowerCase().indexOf('/linear-gradient(');
+                if (markerIdx < 0) return;
+                const start = markerIdx + 1;
+                const end = bg.lastIndexOf(')');
+                if (end <= start) return;
+                const encodedGradient = bg.slice(start, end).replace(/["']$/, '');
+                const decoded = decodeURIComponent(encodedGradient);
+                if (!/^linear-gradient\(/i.test(decoded)) return;
+                el.style.setProperty('background-image', decoded, 'important');
+                el.style.setProperty('-webkit-background-clip', 'text', 'important');
+                el.style.setProperty('background-clip', 'text', 'important');
+                el.style.setProperty('-webkit-text-fill-color', 'transparent', 'important');
+                // #region agent log
+                fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-18',hypothesisId:'H38',location:'CustomThemeBuilder.tsx:component:deselected:repair-gradient-url',message:'repaired malformed gradient url on hero title',data:{className:String(el.className||'').slice(0,120),before:bg,after:decoded},timestamp:Date.now()})}).catch(()=>{});
+                // #endregion agent log
+              } catch {}
+            });
+            // #region agent log
+            fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-19',hypothesisId:'H39',location:'CustomThemeBuilder.tsx:component:deselected:gradient-color-transparent',message:'no forced color override on deselect gradient pass',data:{heroTitleCount:Number(heroTitles?.length||0)},timestamp:Date.now()})}).catch(()=>{});
+            // #endregion agent log
+            // #region agent log
+            try {
+              const firstTitle = doc?.querySelector?.('.hero-slide-title') as HTMLElement | null;
+              const titleCs = firstTitle ? window.getComputedStyle(firstTitle) : null;
+              fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-15',hypothesisId:'H35',location:'CustomThemeBuilder.tsx:component:deselected:restore-end',message:'hero title style after fallback restore',data:{titleColor:titleCs?.color||'',titleTextFill:titleCs?.getPropertyValue?.('-webkit-text-fill-color')||'',titleBgImage:titleCs?.backgroundImage||'',titleBgClip:titleCs?.getPropertyValue?.('-webkit-background-clip')||titleCs?.getPropertyValue?.('background-clip')||''},timestamp:Date.now()})}).catch(()=>{});
+            } catch {}
+            // #endregion agent log
+          } catch {}
+          // #region agent log
+          try {
+            fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass',hypothesisId:'H19',location:'CustomThemeBuilder.tsx:component:deselected:colorSnapshot',message:'last selected snapshot before deselect clear',data:lastSelectedColorSnapshot||{},timestamp:Date.now()})}).catch(()=>{});
+          } catch {}
+          // #endregion agent log
           // Clear cached component ID when deselected
           lastSelectedComponentId = null;
           setLinksPanelData(null);
@@ -7187,107 +7524,174 @@ ${linkStylesheetTag}  <style>
           }
         });
         
-        editor.on('style:property:update', (property: any, value: any, component: any) => {
-          if (!saving) {
-            setHasUnsavedChanges(true);
-          }
+        editor.on('style:property:update', (data: any) => {
           try {
-            const selected = component || editor.getSelected();
-            if (selected) {
-              // Ensure component is stylable
-            selected.set({ stylable: true }, { silent: true });
-              
-              // CRITICAL: Special handling for wrapper/body element
-              const isWrapper = selected === editor.getWrapper();
-              if (isWrapper) {
-                // Ensure wrapper has the class
-                const classes = selected.getClasses();
-                if (!classes.includes('gjs-wrapper-body')) {
-                  selected.addClass('gjs-wrapper-body');
-                }
-                
-                // For wrapper, ALWAYS use CSS rules, not inline styles
-                if (property && value !== undefined && editor.CssComposer) {
-                  const rule = editor.CssComposer.getRule('.gjs-wrapper-body') || 
-                              editor.CssComposer.add('.gjs-wrapper-body');
-                  
-                  if (rule) {
-                    const currentStyles = rule.get('style') || {};
-                    currentStyles[property] = value;
-                    rule.set('style', currentStyles);
-                    
-                    console.log(`✓ Wrapper ${property} set via CSS rule:`, value);
-                  }
-                }
-              } else {
-                // For other components, ensure styles are properly applied
-                if (property && value !== undefined) {
-                  // Use addStyle method which works with avoidInlineStyle
-                  if (typeof selected.addStyle === 'function') {
-                selected.addStyle(property, value);
-                  } else {
-                    // Fallback: set style directly
-                    const currentStyles = selected.getStyle() || {};
-                    currentStyles[property] = value;
-                    selected.setStyle(currentStyles);
-                  }
-                  
-                  // CRITICAL: Ensure component has a selector/class for CSS rules
-                  // Since avoidInlineStyle is true, we need to use CSS rules
-                  if (editor.CssComposer) {
-                    // Get or create a selector for this component
-                    const componentId = selected.cid || selected.getId?.();
-                    if (componentId) {
-                      // Ensure component has a class for CSS targeting
-                      const classes = selected.getClasses();
-                      let componentClass = classes.find((c: string) => c && !c.startsWith('gjs-'));
-                      
-                      if (!componentClass) {
-                        // Generate a class name based on component type and ID
-                        const tagName = selected.get('tagName')?.toLowerCase() || 'div';
-                        componentClass = `gjs-comp-${componentId}`;
-                        selected.addClass(componentClass);
-                      }
-                      
-                      // Get or create CSS rule for this component
-                      const selector = `.${componentClass}`;
-                      let rule = editor.CssComposer.getRule(selector);
-                      
-                      if (!rule) {
-                        rule = editor.CssComposer.add(selector);
-                      }
-                      
+            // GrapesJS passes a single data object; extract property name and value
+            const prop = data?.property ?? data;
+            const propName = typeof prop === 'string' ? prop : (prop?.get?.('property') ?? prop?.getName?.());
+            const value = (prop && prop.getFullValue ? prop.getFullValue() : undefined) ?? (prop && prop.getValue ? prop.getValue() : undefined) ?? data?.value;
+            const component = data?.component ?? editor.getSelected();
+
+            if (!propName || value === undefined || value === null) return;
+
+            // Block default black/empty color sync noise on select-deselect.
+            // These values are emitted by StyleManager during focus transitions and can override theme text colors.
+            const blackColorPattern = /^(rgb\(0,\s*0,\s*0\)|rgba\(0,\s*0,\s*0[^)]*\)|rgb\(0\s+0\s+0(?:\s*\/\s*[\d.]+)?\)|black|#000(?:000)?(?:ff)?)$/i;
+            const colorPropName = String(propName).trim().toLowerCase();
+            const rawColorValue = String(value).trim();
+            const isColorProp = colorPropName === 'color' || colorPropName === '-webkit-text-fill-color';
+            const isDefaultBlack = isColorProp && blackColorPattern.test(rawColorValue);
+            const isEmptyColorReset = isColorProp && rawColorValue === '';
+            // #region agent log
+            if (propName === 'color' || propName === '-webkit-text-fill-color') {
+              fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass',hypothesisId:'H17',location:'CustomThemeBuilder.tsx:style:property:update:color',message:'style property color update candidate',data:{propName,raw:String(value),isDefaultBlack,isEmptyColorReset},timestamp:Date.now()})}).catch(()=>{});
+              if (isDefaultBlack || isEmptyColorReset) {
+                const selectedForColor = component || editor.getSelected?.();
+                const selEl = selectedForColor?.getEl?.() as HTMLElement | null;
+                const selCs = selEl ? window.getComputedStyle(selEl) : null;
+                fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-2',hypothesisId:'H21',location:'CustomThemeBuilder.tsx:style:property:update:blockedColor',message:'blocked color write snapshot',data:{propName,raw:rawColorValue,computedColor:selCs?.color||'',computedTextFill:selCs?.getPropertyValue?.('-webkit-text-fill-color')||'',tag:selectedForColor?.get?.('tagName')||''},timestamp:Date.now()})}).catch(()=>{});
+                try {
+                  const isHeroTitle = /hero-slide-title/.test(String(selEl?.className || ''));
+                  if (isHeroTitle) {
+                    const st = selectedForColor?.getStyle?.() || {};
+                    const ns = { ...st };
+                    delete ns.color;
+                    // Keep -webkit-text-fill-color on hero title — transparent is required for gradient text.
+                    selectedForColor?.setStyle?.(ns);
+
+                    const classes = selectedForColor?.getClasses?.() || [];
+                    const componentClass = classes.find((c: string) => c && !c.startsWith('gjs-')) || '';
+                    if (componentClass && editor?.CssComposer) {
+                      const rule = editor.CssComposer.getRule(`.${componentClass}`);
                       if (rule) {
-                        const ruleStyles = rule.get('style') || {};
-                        ruleStyles[property] = value;
-                        rule.set('style', ruleStyles);
+                        const rs = { ...(rule.get('style') || {}) };
+                        delete rs.color;
+                        rule.set('style', rs);
                       }
                     }
+                    fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-10',hypothesisId:'H30',location:'CustomThemeBuilder.tsx:style:property:update:hero-poison-cleanup',message:'cleaned hero title poison in blocked color path',data:{propName,raw:rawColorValue,componentClass},timestamp:Date.now()})}).catch(()=>{});
+                  }
+                } catch {}
+              }
+            }
+            // #endregion agent log
+            if (isDefaultBlack || isEmptyColorReset) return;
+
+            const normalizedVal = normalizeStyleManagerCSSValue(propName, String(value));
+            if (normalizedVal === null) return;
+
+            if (isStyleManagerLayoutNoise(propName)) {
+              return;
+            }
+
+            if (!saving) {
+              setHasUnsavedChanges(true);
+            }
+
+            const selected = component || editor.getSelected();
+            if (!selected) return;
+            const selectedElForColor = selected?.getEl?.() as HTMLElement | null;
+            const isHeroTitleSelected = /hero-slide-title/.test(String(selectedElForColor?.className || ''));
+            if (isColorProp && isHeroTitleSelected) {
+              // Hero title color must be theme-derived (gradient). Ignore all direct color writes from StyleManager.
+              fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-21',hypothesisId:'H41',location:'CustomThemeBuilder.tsx:style:property:update:skip-hero-title-color',message:'skipped hero title color write to preserve gradient text',data:{propName,raw:rawColorValue},timestamp:Date.now()})}).catch(()=>{});
+              return;
+            }
+            const selectedTag = String(selected?.get?.('tagName') || '').toLowerCase();
+            const isWrapperOrBodySelected = selected === editor.getWrapper() || selectedTag === 'body';
+            if (isWrapperOrBodySelected && isColorProp) {
+              fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-5',hypothesisId:'H25',location:'CustomThemeBuilder.tsx:style:property:update:skip-wrapper-color',message:'skip wrapper/body color mutation',data:{propName,raw:rawColorValue,selectedTag},timestamp:Date.now()})}).catch(()=>{});
+              return;
+            }
+
+            selected.set({ stylable: true }, { silent: true });
+
+            const propVal = normalizedVal;
+
+            // CRITICAL: Special handling for wrapper/body element
+            const isWrapper = selected === editor.getWrapper();
+            if (isWrapper) {
+              const classes = selected.getClasses();
+              if (!classes.includes('gjs-wrapper-body')) {
+                selected.addClass('gjs-wrapper-body');
+              }
+              if (editor.CssComposer) {
+                const rule = editor.CssComposer.getRule('.gjs-wrapper-body') || editor.CssComposer.add('.gjs-wrapper-body');
+                if (rule) {
+                  const currentStyles = rule.get('style') || {};
+                  currentStyles[propName] = propVal;
+                  rule.set('style', currentStyles);
+                }
+              }
+            } else {
+              if (typeof selected.addStyle === 'function') {
+                selected.addStyle({ [propName]: propVal });
+              } else {
+                const currentStyles = selected.getStyle() || {};
+                currentStyles[propName] = propVal;
+                selected.setStyle(currentStyles);
+              }
+              if (editor.CssComposer) {
+                const componentId = selected.cid || selected.getId?.();
+                if (componentId) {
+                  const classes = selected.getClasses();
+                  let componentClass = classes.find((c: string) => c && !c.startsWith('gjs-'));
+                  if (!componentClass) {
+                    componentClass = `gjs-comp-${componentId}`;
+                    selected.addClass(componentClass);
+                  }
+                  const selector = `.${componentClass}`;
+                  let rule = editor.CssComposer.getRule(selector);
+                  if (!rule) rule = editor.CssComposer.add(selector);
+                  if (rule) {
+                    const ruleStyles = rule.get('style') || {};
+                    ruleStyles[propName] = propVal;
+                    rule.set('style', ruleStyles);
                   }
                 }
               }
-              
-              // Force component to update its view and canvas
-              requestAnimationFrame(() => {
-                try {
-              const el = selected.getEl?.();
-              if (el) {
-                    // Update component view
-                if (selected.view?.updateStyle) {
-                  selected.view.updateStyle();
-                }
-                    // Trigger component style change
-                selected.trigger('change:style');
-                    // Force canvas refresh to show changes
-                editor.refresh();
-                    // Also trigger component update
-                    selected.trigger('component:update');
-              }
-                } catch (e) {
-                  console.warn('Error updating component view:', e);
-                }
-              });
             }
+
+            requestAnimationFrame(() => {
+              try {
+                const el = selected.getEl?.();
+                if (el) {
+                  if (selected.view?.updateStyle) selected.view.updateStyle();
+                  selected.trigger('change:style');
+                  editor.refresh();
+                  selected.trigger('component:update');
+                  const cssProp = propName.replace(/([A-Z])/g, '-$1').toLowerCase();
+                  // Only force !important inline for text/paint — StyleManager sync on select often
+                  // pushes computed layout (width, flex, display) and nukes theme flex rows (header collapse).
+                  const INLINE_IMPORTANT_OK = new Set([
+                    'color',
+                    'background-color',
+                    'font-size',
+                    'line-height',
+                    'font-family',
+                    'font-weight',
+                    'font-style',
+                    'letter-spacing',
+                    'text-align',
+                    'text-decoration',
+                    'text-transform',
+                    '-webkit-text-fill-color',
+                    'opacity',
+                    'caret-color',
+                  ]);
+                  if (INLINE_IMPORTANT_OK.has(cssProp)) {
+                    el.style.setProperty(cssProp, propVal, 'important');
+                  } else if (
+                    /^(width|height|min-|max-|display|flex|grid|margin|padding|position|top|right|bottom|left|float|gap|align|justify|overflow|box-sizing|vertical-align|object-fit)/.test(
+                      cssProp
+                    )
+                  ) {
+                  }
+                }
+              } catch (e) {
+                console.warn('Error updating component view:', e);
+              }
+            });
           } catch (e) {
             console.warn('Style property update error:', e);
           }
@@ -7513,13 +7917,36 @@ ${linkStylesheetTag}  <style>
             const selected = component || editor.getSelected();
             if (selected && property && value !== undefined) {
               selected.set({ stylable: true }, { silent: true });
+              const propKey = String(property);
+              const blackColorPattern = /^(rgb\(0,\s*0,\s*0\)|rgba\(0,\s*0,\s*0[^)]*\)|rgb\(0\s+0\s+0(?:\s*\/\s*[\d.]+)?\)|black|#000(?:000)?(?:ff)?)$/i;
+              const colorPropKey = propKey.trim().toLowerCase();
+              const rawColorValue = String(value).trim();
+              const isColorProp = colorPropKey === 'color' || colorPropKey === '-webkit-text-fill-color';
+              const isDefaultBlack = isColorProp && blackColorPattern.test(rawColorValue);
+              const isEmptyColorReset = isColorProp && rawColorValue === '';
+              // #region agent log
+              if (propKey === 'color' || propKey === '-webkit-text-fill-color') {
+                fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass',hypothesisId:'H18',location:'CustomThemeBuilder.tsx:style:custom:color',message:'style custom color update candidate',data:{property:propKey,raw:String(value),isDefaultBlack,isEmptyColorReset},timestamp:Date.now()})}).catch(()=>{});
+              }
+              // #endregion agent log
+              if (isDefaultBlack || isEmptyColorReset) return;
+              const selectedTag = String(selected?.get?.('tagName') || '').toLowerCase();
+              const isWrapperOrBodySelected = selected === editor.getWrapper() || selectedTag === 'body';
+              if (isWrapperOrBodySelected && isColorProp) {
+                fetch('http://127.0.0.1:7524/ingest/80cc1e14-e0cc-49d1-bb1b-2091c52c2ee1',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'5dd1c3'},body:JSON.stringify({sessionId:'5dd1c3',runId:'black-text-pass-5',hypothesisId:'H25',location:'CustomThemeBuilder.tsx:style:custom:skip-wrapper-color',message:'skip wrapper/body color mutation (custom)',data:{property:propKey,raw:rawColorValue,selectedTag},timestamp:Date.now()})}).catch(()=>{});
+                return;
+              }
+              const normalized = normalizeStyleManagerCSSValue(String(property), String(value));
+              if (normalized === null) return;
+              if (isStyleManagerLayoutNoise(String(property))) return;
+              const safeVal = normalized;
               
               // Apply style using addStyle
               if (typeof selected.addStyle === 'function') {
-                selected.addStyle(property, value);
+                selected.addStyle(property, safeVal);
               } else {
                 const currentStyles = selected.getStyle() || {};
-                currentStyles[property] = value;
+                currentStyles[property] = safeVal;
                 selected.setStyle(currentStyles);
               }
               
@@ -7543,7 +7970,7 @@ ${linkStylesheetTag}  <style>
                   
                   if (rule) {
                     const ruleStyles = rule.get('style') || {};
-                    ruleStyles[property] = value;
+                    ruleStyles[property] = safeVal;
                     rule.set('style', ruleStyles);
                   }
                 }
@@ -8389,7 +8816,10 @@ ${linkStylesheetTag}  <style>
         // This is a workaround since we can't access the observer variable directly
       }
       
-      if (editorInstance.current) {
+      // Important: in React 18 StrictMode, an earlier effect cleanup can run
+      // after a new effect has already created a fresh editor. Only destroy
+      // the instance created by THIS effect.
+      if (editorInstance.current && editorInstance.current === editorForThisEffect) {
         try {
           editorInstance.current.destroy();
         } catch {}
@@ -8741,7 +9171,7 @@ ${linkStylesheetTag}  <style>
       // 2. We're NOT editing an installed theme (installed themes don't exist in custom-themes collection)
       if (isValidObjectId && !isEditingInstalledTheme) {
         try {
-        const updated = await updateTheme(id, name, exportHtml, combinedCss, thumbnailBlob);
+        const updated = await updateTheme(id, name, exportHtml, combinedCss, thumbnailBlob, applyAfterSave ? 'published' : 'draft');
         if (!updated) {
             console.warn('Update returned empty result; will create a new theme instead.');
             didCreateInstead = true;
@@ -8782,14 +9212,15 @@ ${linkStylesheetTag}  <style>
           window.history.replaceState({}, '', newUrl.toString());
         }
 
-        const created = await createTheme(name, exportHtml, combinedCss, thumbnailBlob);
+        const created = await createTheme(name, exportHtml, combinedCss, thumbnailBlob, applyAfterSave ? 'published' : 'draft');
         if (!created) {
           throw new Error('Failed to create theme');
         }
         savedThemeId = created._id;
-        const newUrl = new URL(window.location.href);
-        newUrl.searchParams.set('id', savedThemeId);
-        window.history.replaceState({}, '', newUrl.toString());
+        // Use setSearchParams so React Router updates - id will be available on next Save (update, not create)
+        const nextParams = new URLSearchParams(searchParams);
+        nextParams.set('id', savedThemeId);
+        setSearchParams(nextParams, { replace: true });
         
         // Clear any old localStorage data after successful creation
         clearOldLocalStorageData();
@@ -8816,8 +9247,9 @@ ${linkStylesheetTag}  <style>
         // Auto-hide the message after 3 seconds
         setTimeout(() => setPublishSuccess(false), 3000);
       } else {
-        // Theme was saved but not published
+        // Theme was saved as draft
         setHasUnsavedChanges(false);
+        toast.success('Draft saved! You can continue editing or publish later.');
       }
     } catch (e: any) {
       setSaving(false);
@@ -8839,7 +9271,7 @@ ${linkStylesheetTag}  <style>
       
       alert(errorMessage);
     }
-  }, [createTheme, getPagesSnapshotWithCurrent, id, name, updateTheme, buildMultiPageHtmlDocument, commitCurrentPage, currentPageId, applyPageToEditor]);
+  }, [createTheme, getPagesSnapshotWithCurrent, id, name, updateTheme, buildMultiPageHtmlDocument, commitCurrentPage, currentPageId, applyPageToEditor, searchParams, setSearchParams]);
 
   const previewTheme = useCallback(() => {
     try {
@@ -9839,6 +10271,71 @@ ${linkStylesheetTag}  <style>
     // Note: Panel visibility is now managed by unified useEffect above
   }, [activeSidebarSection]);
 
+  // Fix: Spectrum's click handler does not fire on swatch; programmatically show picker (capture phase to run first)
+  useEffect(() => {
+    if (activeSidebarSection !== 'style') return;
+    const onCapture = (e: MouseEvent) => {
+      const t = e.target as HTMLElement;
+      const panel = document.getElementById('style-panel');
+      if (!panel || !panel.contains(t)) return;
+      const onSwatch = t.closest('.gjs-field-color-picker, .sp-replacer, .sp-preview');
+      if (!onSwatch || t.closest('input, textarea')) return;
+      const fieldColor = onSwatch.closest('.gjs-field-color, [data-colorp-c]');
+      const boundEl = fieldColor?.querySelector('.gjs-field-color-picker') || (t.closest('.sp-replacer')?.previousElementSibling) || (onSwatch.classList.contains('gjs-field-color-picker') ? onSwatch : null);
+      const el = boundEl as HTMLElement | null;
+      if (!el) return;
+      const $ = (editorInstance.current as any)?.$ ?? (window as any).Backbone?.$;
+      if (!$ || typeof $.fn?.spectrum !== 'function') return;
+      const sp = document.querySelector('.sp-container');
+      if (!sp?.classList.contains('sp-hidden')) return;
+      try {
+        $(el).spectrum('show');
+        e.stopPropagation();
+        e.preventDefault();
+        requestAnimationFrame(() => requestAnimationFrame(() => repositionColorPicker()));
+      } catch (_) {}
+    };
+    document.addEventListener('click', onCapture, true);
+    return () => document.removeEventListener('click', onCapture, true);
+  }, [activeSidebarSection]);
+
+  // Reposition Spectrum picker to stay within the left sidebar (340px)
+  const repositionColorPicker = () => {
+    const sp = document.querySelector('.sp-container') as HTMLElement | null;
+    if (!sp || sp.classList.contains('sp-hidden')) return;
+    const leftPanel = document.querySelector('.builder-left-panel') as HTMLElement | null;
+    const sidebarWidth = leftPanel ? leftPanel.getBoundingClientRect().width : 340;
+    const pad = 16;
+    const maxRight = sidebarWidth - pad;
+    const rect = sp.getBoundingClientRect();
+    if (rect.right > maxRight) {
+      const newLeft = maxRight - rect.width;
+      sp.style.left = `${Math.max(pad, newLeft)}px`;
+    }
+    if (rect.bottom > window.innerHeight - pad) {
+      sp.style.top = `${window.innerHeight - rect.height - pad}px`;
+    }
+  };
+
+  // Observe Spectrum picker visibility and reposition when it opens (container created lazily by GrapesJS)
+  useEffect(() => {
+    let obs: MutationObserver | null = null;
+    const tryObserve = () => {
+      const sp = document.querySelector('.sp-container');
+      if (!sp) return false;
+      obs = new MutationObserver(() => {
+        if (!sp.classList.contains('sp-hidden')) repositionColorPicker();
+      });
+      obs.observe(sp, { attributes: true, attributeFilter: ['class'] });
+      return true;
+    };
+    if (tryObserve()) {
+      return () => { obs?.disconnect(); };
+    }
+    const id = setInterval(() => { if (tryObserve()) clearInterval(id); }, 500);
+    return () => { clearInterval(id); obs?.disconnect(); };
+  }, []);
+
   // Function to enrich layer items with element information
   const enrichLayerItems = (editor: any, layersPanel: HTMLElement) => {
     try {
@@ -10371,7 +10868,7 @@ ${linkStylesheetTag}  <style>
       {/* Top Bar - WordPress Elementor Style */}
       <div className="elementor-top-bar">
         <div className="elementor-top-bar-left">
-          <div className="elementor-top-bar-icon" onClick={() => navigate('/themes/all-themes')} title="Back to Themes">☰</div>
+          <div className="elementor-top-bar-icon" onClick={handleBackClick} title="Back to Themes">☰</div>
           
           {/* Editable Theme Name */}
           <div style={{ 
@@ -10982,6 +11479,25 @@ ${linkStylesheetTag}  <style>
             title="Preview"
           >
             Preview
+          </button>
+          <button
+            className="elementor-save-draft-btn"
+            onClick={() => saveToLocal(false)}
+            disabled={saving}
+            title="Save progress as draft"
+            style={{
+              padding: '8px 16px',
+              background: 'rgba(0, 0, 0, 0.06)',
+              border: '1px solid rgba(0, 0, 0, 0.15)',
+              borderRadius: '6px',
+              color: '#374151',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: saving ? 'not-allowed' : 'pointer',
+              opacity: saving ? 0.6 : 1,
+            }}
+          >
+            {saving ? 'Saving...' : 'Save'}
           </button>
           <button
             className="elementor-publish-btn"

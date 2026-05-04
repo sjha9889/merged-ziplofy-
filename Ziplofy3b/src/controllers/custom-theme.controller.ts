@@ -54,7 +54,8 @@ export const createCustomTheme = asyncErrorHandler(
       throw new CustomError((req as any).fileValidationError, 413);
     }
     
-    const { name } = req.body;
+    const { name, status: statusParam } = req.body;
+    const status = statusParam === 'published' ? 'published' : 'draft';
     const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
     const zipFile = files?.zipFile?.[0];
     const thumbnailFile = files?.thumbnail?.[0];
@@ -150,6 +151,7 @@ export const createCustomTheme = asyncErrorHandler(
     // HTML/CSS are stored on disk and will be read from files when needed
     const customTheme = await CustomTheme.create({
       name,
+      status,
       // html and css are not stored in DB - they're on disk
       themePath: themeDirs.themeDirName,
       directories: {
@@ -280,7 +282,8 @@ export const updateCustomTheme = asyncErrorHandler(
     }
     
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, status: statusParam } = req.body;
+    const status = statusParam === 'published' ? 'published' : undefined;
     const files = req.files as { [fieldname: string]: Express.Multer.File[] } | undefined;
     const zipFile = files?.zipFile?.[0];
     const thumbnailFile = files?.thumbnail?.[0];
@@ -321,9 +324,36 @@ export const updateCustomTheme = asyncErrorHandler(
       throw new CustomError("Custom theme not found", 404);
     }
 
+    // #region agent log
+    fetch('http://127.0.0.1:7524/ingest/69f9ae5f-958d-4035-a412-e98057382aad', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Debug-Session-Id': '025aee',
+      },
+      body: JSON.stringify({
+        sessionId: '025aee',
+        runId: 'initial',
+        hypothesisId: 'H1',
+        location: 'custom-theme.controller.ts:updateCustomTheme:before-mutate',
+        message: 'updateCustomTheme loaded theme before mutations',
+        data: {
+          id: customTheme._id?.toString?.(),
+          status: customTheme.status,
+          thumbnail: customTheme.thumbnail,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion agent log
+
     // Update name if provided
     if (name) {
       customTheme.name = name;
+    }
+    // Update status if provided
+    if (status) {
+      customTheme.status = status;
     }
 
     // If zip file is provided, extract and update HTML/CSS
@@ -409,12 +439,66 @@ export const updateCustomTheme = asyncErrorHandler(
       };
     }
 
+    // #region agent log
+    fetch('http://127.0.0.1:7524/ingest/69f9ae5f-958d-4035-a412-e98057382aad', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Debug-Session-Id': '025aee',
+      },
+      body: JSON.stringify({
+        sessionId: '025aee',
+        runId: 'initial',
+        hypothesisId: 'H2',
+        location: 'custom-theme.controller.ts:updateCustomTheme:before-save',
+        message: 'updateCustomTheme theme before save',
+        data: {
+          id: customTheme._id?.toString?.(),
+          status: customTheme.status,
+          thumbnail: customTheme.thumbnail,
+          hasThumbnailFile: Boolean(thumbnailFile),
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion agent log
+
     customTheme.updatedAt = new Date();
     await customTheme.save();
 
-    const themeResponse = await CustomTheme.findById(customTheme._id)
+    const themeDoc = await CustomTheme.findById(customTheme._id)
       .populate("createdBy", "name email")
       .select("-directories -html -css");
+
+    // Shape response and ensure thumbnailUrl is present (like getCustomThemes)
+    const themeResponse: any = themeDoc ? themeDoc.toObject() : null;
+    if (themeResponse?.thumbnail?.filename && themeResponse?.themePath) {
+      themeResponse.thumbnailUrl = `${req.protocol}://${req.get("host")}/uploads/custom themes/${themeResponse.themePath}/thumbnail/${themeResponse.thumbnail.filename}`;
+    }
+
+    // #region agent log
+    fetch('http://127.0.0.1:7524/ingest/69f9ae5f-958d-4035-a412-e98057382aad', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Debug-Session-Id': '025aee',
+      },
+      body: JSON.stringify({
+        sessionId: '025aee',
+        runId: 'post-fix',
+        hypothesisId: 'H3',
+        location: 'custom-theme.controller.ts:updateCustomTheme:after-load-response',
+        message: 'updateCustomTheme shaped response from DB after save',
+        data: {
+          id: themeResponse?._id?.toString?.(),
+          status: themeResponse?.status,
+          thumbnail: themeResponse?.thumbnail,
+          thumbnailUrl: themeResponse?.thumbnailUrl,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion agent log
 
     res.status(200).json({
       success: true,

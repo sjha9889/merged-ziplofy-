@@ -2083,17 +2083,50 @@
   min-height: 40px !important;
 }
 
+/* Spectrum color picker dropdown - appended to body, constrained to left sidebar */
+.sp-container {
+  z-index: 100001 !important;
+  position: fixed !important;
+  display: block !important;
+  visibility: visible !important;
+  max-width: 308px !important; /* fit within builder-left-panel (340px) minus padding */
+  box-sizing: border-box !important;
+}
+.sp-container.sp-hidden {
+  display: none !important;
+}
+/* Ensure the color picker input (hex field) inside dropdown is editable */
+.sp-container .sp-input {
+  cursor: text !important;
+  pointer-events: auto !important;
+  background: #fff !important;
+  border: 1px solid rgba(126, 96, 224, 0.3) !important;
+  padding: 6px 10px !important;
+  min-width: 80px !important;
+}
+/* Color picker trigger - ensure clicks open the dropdown */
+#style-panel .gjs-field-color-picker,
+#style-panel .sp-replacer,
+#style-panel .sp-preview,
+#style-panel .sp-dd {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
 /* Color picker styling - builder theme */
 #style-panel .gjs-field-color,
 #style-panel .sp-replacer {
   border: 1px solid rgba(var(--ziplofy-yellow-rgb), 0.35) !important;
   border-radius: 8px !important;
-  overflow: hidden !important;
+  overflow: visible !important;
   height: 40px !important;
   display: flex !important;
   align-items: stretch !important;
   background: #ffffff !important;
   transition: all 0.2s ease !important;
+  cursor: pointer !important;
 }
 
 #style-panel .gjs-field-color:hover,
@@ -2104,6 +2137,8 @@
 #style-panel .gjs-field-color-picker,
 #style-panel .sp-preview {
   width: 40px !important;
+  min-width: 40px !important;
+  flex-shrink: 0 !important;
   height: 100% !important;
   border: none !important;
   border-right: 1px solid rgba(126, 96, 224, 0.12) !important;
@@ -2205,26 +2240,47 @@
   padding: 24px !important;
 }
 
+/* GrapesJS canvas (host): solid outlines — dashed reads as vertical “grid” lines on wide/tall hovers */
 .gjs-selected {
-  outline: 2px solid #000000 !important;
-  outline-offset: 2px;
+  outline: 2px solid #2563eb !important;
+  outline-offset: 2px !important;
+}
+
+/* Host canvas (rare): ancestor chrome — same “stacked rails” as iframe selected-parent */
+.gjs-selected-parent {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 /* Clear visual drop target & placeholder */
 .gjs-placeholder {
-  outline: 2px dashed rgba(0, 0, 0, 0.2) !important;
+  outline: 2px solid rgba(37, 99, 235, 0.35) !important;
   min-height: 40px !important;
   background: rgba(0, 0, 0, 0.02) !important;
 }
 
 .gjs-highlighter {
-  outline: 2px dashed #000000 !important;
-  outline-offset: 0 !important;
+  outline: 2px solid rgba(37, 99, 235, 0.55) !important;
+  outline-offset: 1px !important;
+  border-radius: 2px !important;
+}
+
+/* Wrapper/body: host highlighter matches full canvas — only left/right edges read as “rails” */
+.custom-theme-builder-root.ziplofy-wrapper-or-body-selected .gjs-highlighter {
+  opacity: 0 !important;
+}
+
+/* Component type chip (e.g. “Div”) — keep readable */
+.gjs-toolbar,
+.gjs-com-badge {
+  font-size: 11px !important;
+  border-radius: 4px !important;
 }
 
 /* While dragging a block over the canvas wrapper */
 [data-drop-target="canvas-wrapper"].dropping {
-  outline: 2px dashed rgba(0, 0, 0, 0.3) !important;
+  outline: 2px solid rgba(37, 99, 235, 0.4) !important;
   background: rgba(0, 0, 0, 0.01) !important;
 }
 
@@ -2488,9 +2544,10 @@
   align-items: stretch !important;
   height: 40px !important;
   border-radius: 8px !important;
-  overflow: hidden !important;
+  overflow: visible !important;
   border: 1px solid rgba(126, 96, 224, 0.22) !important;
   background: #ffffff !important;
+  cursor: pointer !important;
 }
 
 #style-panel .gjs-field-color .gjs-field-color-picker {
@@ -2508,11 +2565,18 @@
   align-items: center !important;
 }
 
+/* Color field hex input - keep editable for manual color entry */
 #style-panel .gjs-field-color input {
   border: none !important;
   background: transparent !important;
-  height: auto !important;
-  padding: 0 !important;
+  min-height: 24px !important;
+  height: 24px !important;
+  padding: 0 8px !important;
+  flex: 1 !important;
+  min-width: 60px !important;
+  cursor: text !important;
+  pointer-events: auto !important;
+  font-size: 12px !important;
 }
 
 /* All radio button groups */
