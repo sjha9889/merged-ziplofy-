@@ -12,6 +12,7 @@ import {
   PlayCircleIcon,
   SparklesIcon,
   TableCellsIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import CharacterCount from "@tiptap/extension-character-count";
 import { Color } from "@tiptap/extension-color";
@@ -31,6 +32,7 @@ import TaskList from "@tiptap/extension-task-list";
 import TextAlign from "@tiptap/extension-text-align";
 import { TextStyle } from "@tiptap/extension-text-style";
 import Underline from "@tiptap/extension-underline";
+import Youtube from "@tiptap/extension-youtube";
 import type { Editor } from "@tiptap/core";
 import { EditorContent, useEditor } from "@tiptap/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -146,7 +148,9 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
   const [isLinkPopoverOpen, setIsLinkPopoverOpen] = useState(false);
   const [isTableMenuOpen, setIsTableMenuOpen] = useState(false);
   const [isTemplateMenuOpen, setIsTemplateMenuOpen] = useState(false);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   const [linkDraft, setLinkDraft] = useState("https://");
+  const [videoEmbedDraft, setVideoEmbedDraft] = useState("");
   const [colorTab, setColorTab] = useState<"text" | "background">("text");
   const alignMenuRef = useRef<HTMLDivElement | null>(null);
   const blockMenuRef = useRef<HTMLDivElement | null>(null);
@@ -174,6 +178,11 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
       TableRow,
       TableHeader,
       TableCell,
+      Youtube.configure({
+        controls: true,
+        nocookie: true,
+        allowFullscreen: true,
+      }),
       TextAlign.configure({
         types: ["heading", "paragraph"],
       }),
@@ -194,7 +203,7 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
     editorProps: {
       attributes: {
         class:
-          "min-h-[220px] max-w-none px-4 py-3 text-sm leading-6 text-gray-900 focus:outline-none [&_.selectedCell]:relative [&_.selectedCell]:bg-blue-50/70 [&_.selectedCell]:after:pointer-events-none [&_.selectedCell]:after:absolute [&_.selectedCell]:after:inset-0 [&_.selectedCell]:after:border [&_.selectedCell]:after:border-blue-300 [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-3 [&_blockquote]:text-gray-700 [&_code]:rounded [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_h1]:my-3 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:leading-tight [&_h2]:my-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:leading-snug [&_h3]:my-2 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:leading-snug [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-gray-900 [&_pre]:p-3 [&_pre]:text-gray-100 [&_table]:my-3 [&_table]:w-full [&_table]:table-fixed [&_table]:border-collapse [&_td]:border [&_td]:border-gray-300 [&_td]:px-2 [&_td]:py-1.5 [&_td]:align-top [&_th]:border [&_th]:border-gray-300 [&_th]:bg-gray-50 [&_th]:px-2 [&_th]:py-1.5 [&_th]:text-left [&_th]:font-semibold [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6",
+          "min-h-[220px] max-w-none px-4 py-3 text-sm leading-6 text-gray-900 focus:outline-none [&_.selectedCell]:relative [&_.selectedCell]:bg-blue-50/70 [&_.selectedCell]:after:pointer-events-none [&_.selectedCell]:after:absolute [&_.selectedCell]:after:inset-0 [&_.selectedCell]:after:border [&_.selectedCell]:after:border-blue-300 [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-3 [&_blockquote]:text-gray-700 [&_code]:rounded [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_h1]:my-3 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:leading-tight [&_h2]:my-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:leading-snug [&_h3]:my-2 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:leading-snug [&_iframe]:my-3 [&_iframe]:block [&_iframe]:w-full [&_iframe]:max-w-full [&_iframe]:aspect-video [&_iframe]:rounded-lg [&_iframe]:border [&_iframe]:border-gray-200 [&_iframe]:bg-black [&_iframe]:shadow-sm [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-gray-900 [&_pre]:p-3 [&_pre]:text-gray-100 [&_table]:my-3 [&_table]:w-full [&_table]:table-fixed [&_table]:border-collapse [&_td]:border [&_td]:border-gray-300 [&_td]:px-2 [&_td]:py-1.5 [&_td]:align-top [&_th]:border [&_th]:border-gray-300 [&_th]:bg-gray-50 [&_th]:px-2 [&_th]:py-1.5 [&_th]:text-left [&_th]:font-semibold [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6",
       },
     },
     onUpdate: ({ editor: currentEditor }) => {
@@ -292,6 +301,60 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
     setHtmlValue(templateHtml);
     setIsHtmlMode(false);
     closeAllMenus();
+  };
+
+  const openVideoModal = () => {
+    setIsVideoModalOpen(true);
+    setIsBlockMenuOpen(false);
+    setIsAlignMenuOpen(false);
+    setIsColorMenuOpen(false);
+    setIsMoreMenuOpen(false);
+    setIsLinkPopoverOpen(false);
+    setIsTableMenuOpen(false);
+    setIsTemplateMenuOpen(false);
+  };
+
+  const handleInsertVideo = () => {
+    const snippet = videoEmbedDraft.trim();
+    if (!editor || !snippet) return;
+    const iframeSrcMatch = snippet.match(/src=["']([^"']+)["']/i);
+    const pastedValue = iframeSrcMatch?.[1] || snippet;
+
+    // Accept iframe embed snippets or plain YouTube links.
+    const toWatchUrl = (input: string) => {
+      try {
+        const url = new URL(input);
+        if (url.hostname.includes("youtu.be")) {
+          const id = url.pathname.replace("/", "");
+          return id ? `https://www.youtube.com/watch?v=${id}` : input;
+        }
+        if (url.pathname.includes("/embed/")) {
+          const id = url.pathname.split("/embed/")[1]?.split("/")[0];
+          return id ? `https://www.youtube.com/watch?v=${id}` : input;
+        }
+        return input;
+      } catch {
+        return input;
+      }
+    };
+
+    const candidateUrl = toWatchUrl(pastedValue);
+    const isYouTubeUrl =
+      candidateUrl.includes("youtube.com") || candidateUrl.includes("youtu.be");
+
+    if (!isYouTubeUrl) return;
+
+    editor
+      .chain()
+      .focus()
+      .setYoutubeVideo({
+        src: candidateUrl,
+        width: 640,
+        height: 360,
+      })
+      .run();
+    setIsVideoModalOpen(false);
+    setVideoEmbedDraft("");
   };
 
   const applyLink = () => {
@@ -742,8 +805,8 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
           <button
             type="button"
             className={ICON_BTN}
-            disabled
-            title="Video (coming soon)"
+            onClick={openVideoModal}
+            title="Insert video"
           >
             <PlayCircleIcon className="h-5 w-5" aria-hidden />
           </button>
@@ -975,6 +1038,55 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
           )}
         </div>
       </div>
+
+      {isVideoModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+          <div className="w-full max-w-2xl overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
+            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+              <h4 className="text-2xl font-semibold text-gray-900">Insert video</h4>
+              <button
+                type="button"
+                onClick={() => setIsVideoModalOpen(false)}
+                className="rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+                aria-label="Close"
+              >
+                <XMarkIcon className="h-6 w-6" />
+              </button>
+            </div>
+            <div className="px-6 py-5">
+              <p className="mb-3 text-base text-gray-900">
+                Insert a video by pasting the embed snippet in the box below.
+              </p>
+              <textarea
+                value={videoEmbedDraft}
+                onChange={(e) => setVideoEmbedDraft(e.target.value)}
+                placeholder='<iframe ...></iframe>'
+                className="h-28 w-full resize-none rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 focus:border-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500"
+              />
+              <p className="mt-2 text-sm text-gray-500">
+                The embed snippet usually starts with "&lt;iframe ...&gt;"
+              </p>
+            </div>
+            <div className="flex justify-end gap-3 border-t border-gray-200 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setIsVideoModalOpen(false)}
+                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleInsertVideo}
+                disabled={!videoEmbedDraft.trim()}
+                className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-black disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Insert video
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };
