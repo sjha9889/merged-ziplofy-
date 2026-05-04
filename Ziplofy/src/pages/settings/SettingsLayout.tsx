@@ -20,13 +20,18 @@ const SettingsLayout: React.FC = () => {
   }, [navigate]);
 
   return (
-    <div style={{ minHeight: `calc(100vh - ${NAVBAR_HEIGHT}px)` }}>
+    <div
+      className="bg-page-background-color"
+      style={{ minHeight: `calc(100vh - ${NAVBAR_HEIGHT}px)` }}
+    >
       <SettingsSidebar currentPath={currentPath} onNavigate={handleNavigate} onBack={handleBack} />
       <main
-        className="overflow-y-auto w-full"
+        className="min-h-[calc(100vh-48px)] w-full overflow-y-auto"
         style={{ paddingLeft: `${SETTINGS_SIDEBAR_WIDTH}px` }}
       >
-        <Outlet />
+        <div className="mx-auto w-full max-w-[1280px] px-4 py-5 sm:px-6 lg:px-8">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

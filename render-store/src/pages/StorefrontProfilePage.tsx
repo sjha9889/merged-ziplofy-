@@ -1,16 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { FaStar } from 'react-icons/fa';
-import { FiCalendar, FiChevronRight, FiEdit2, FiLogOut, FiMail, FiMapPin, FiPackage, FiPhone, FiPlus, FiSettings, FiShoppingBag, FiStar, FiTrash2, FiUser, FiX } from 'react-icons/fi';
-import { HiShieldCheck } from 'react-icons/hi';
-import { useNavigate } from 'react-router-dom';
+import { FiCalendar, FiEdit2, FiLogOut, FiMail, FiMapPin, FiPackage, FiPhone, FiPlus, FiSettings, FiShoppingBag, FiStar, FiTrash2, FiUser, FiX } from 'react-icons/fi';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import StorefrontNavbar from '../components/StorefrontNavbar';
 import { useStorefrontCountries } from '../contexts/storefront-country.context';
 import type { CustomerAddress } from '../contexts/customer-address-storefront.context';
 import { useCustomerAddresses } from '../contexts/customer-address-storefront.context';
 import { useStorefrontAuth } from '../contexts/storefront-auth.context';
-
-const NAVBAR_HEIGHT = 64;
 
 type TabType = 'profile' | 'addresses' | 'preferences';
 
@@ -298,90 +294,52 @@ const StorefrontProfilePage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <StorefrontNavbar showBack />
+    <main className="account-page">
+      <div className="account-inner">
+        <nav className="account-breadcrumb" aria-label="Breadcrumb">
+          <Link to="/">Home</Link>
+          <span className="account-breadcrumb-sep">•</span>
+          <span className="account-breadcrumb-current">User Dashboard</span>
+          <span className="account-breadcrumb-sep">•</span>
+          <span className="account-breadcrumb-current">
+            {activeTab === 'profile' ? 'My Profile' : activeTab === 'addresses' ? 'My Address' : 'Preferences'}
+          </span>
+        </nav>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" style={{ paddingTop: `${NAVBAR_HEIGHT + 32}px`, paddingBottom: '48px' }}>
-        {/* Profile Header */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center text-white text-2xl font-semibold flex-shrink-0">
-              {user.firstName.charAt(0).toUpperCase()}{user.lastName.charAt(0).toUpperCase()}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-2xl font-semibold text-gray-900">{user.firstName} {user.lastName}</h1>
-                {user.isVerified && (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-green-50 text-green-700 text-xs font-medium">
-                    <HiShieldCheck className="w-3.5 h-3.5" />
-                    Verified
-                  </span>
-                )}
-              </div>
-              <p className="text-gray-500 text-sm mt-1">{user.email}</p>
-              <p className="text-gray-400 text-xs mt-2">Member since {formatDate(user.createdAt)}</p>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            >
-              <FiLogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Logout</span>
-            </button>
-          </div>
-        </div>
+        <div className="account-layout">
+          <aside className="account-sidebar">
+            <nav className="account-nav" aria-label="Account navigation">
+              {sidebarItems.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActiveTab(item.id)}
+                  className={`account-nav-item ${activeTab === item.id ? 'active' : ''}`}
+                >
+                  <item.icon className="w-5 h-5" style={{ width: 20, height: 20 }} />
+                  {item.label}
+                </button>
+              ))}
+              {quickLinks.map((link, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={link.onClick}
+                  className="account-nav-item"
+                >
+                  <link.icon className="w-5 h-5" style={{ width: 20, height: 20 }} />
+                  {link.label}
+                </button>
+              ))}
+              <button type="button" onClick={handleLogout} className="account-nav-item" id="account-logout-btn">
+                <FiLogOut style={{ width: 20, height: 20 }} />
+                Log Out
+              </button>
+            </nav>
+          </aside>
 
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Sidebar */}
-          <div className="lg:w-64 flex-shrink-0">
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-              <nav className="p-2">
-                {sidebarItems.map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveTab(item.id)}
-                    className={`relative w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                      activeTab === item.id
-                        ? ''
-                        : 'text-gray-600 hover:bg-gray-50'
-                    }`}
-                    style={{ WebkitTapHighlightColor: 'transparent' }}
-                  >
-                    {activeTab === item.id && (
-                      <motion.span
-                        layoutId="activeTab"
-                        className="absolute inset-0 bg-gray-900 rounded-xl"
-                        transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                      />
-                    )}
-                    <item.icon className={`relative z-10 w-4 h-4 ${activeTab === item.id ? 'text-white' : ''}`} />
-                    <span className={`relative z-10 ${activeTab === item.id ? 'text-white' : ''}`}>{item.label}</span>
-                  </button>
-                ))}
-              </nav>
-              
-              <div className="border-t border-gray-100 p-2 mt-2">
-                {quickLinks.map((link, index) => (
-                  <button
-                    key={index}
-                    onClick={link.onClick}
-                    className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-                  >
-                    <span className="flex items-center gap-3">
-                      <link.icon className="w-4 h-4" />
-                      {link.label}
-                    </span>
-                    <FiChevronRight className="w-4 h-4" />
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Main Content */}
-          <div className="flex-1 min-w-0">
+          <div className="account-content flex-1 min-w-0">
             <AnimatePresence mode="wait">
-            {/* Profile Tab */}
             {activeTab === 'profile' && (
               <motion.div
                 key="profile"
@@ -389,9 +347,9 @@ const StorefrontProfilePage: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="space-y-6"
+                className="account-panel"
               >
-                {/* Personal Information */}
+                <h1 className="account-content-title">My Profile</h1>
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                   <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                     <h2 className="font-semibold text-gray-900">Personal Information</h2>
@@ -514,7 +472,6 @@ const StorefrontProfilePage: React.FC = () => {
               </motion.div>
             )}
 
-            {/* Addresses Tab */}
             {activeTab === 'addresses' && (
               <motion.div
                 key="addresses"
@@ -522,8 +479,10 @@ const StorefrontProfilePage: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+                className="account-panel account-panel-address"
               >
+                <h1 className="account-content-title">My Address</h1>
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                   <h2 className="font-semibold text-gray-900">Saved Addresses</h2>
                   <button
@@ -631,10 +590,10 @@ const StorefrontProfilePage: React.FC = () => {
                     </div>
                   )}
                 </div>
+                </div>
               </motion.div>
             )}
 
-            {/* Preferences Tab */}
             {activeTab === 'preferences' && (
               <motion.div
                 key="preferences"
@@ -642,8 +601,10 @@ const StorefrontProfilePage: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+                className="account-panel"
               >
+                <h1 className="account-content-title">Preferences</h1>
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                   <h2 className="font-semibold text-gray-900">Communication Preferences</h2>
                   {!isEditingPreferences && (
@@ -746,6 +707,7 @@ const StorefrontProfilePage: React.FC = () => {
                       </div>
                     </div>
                   )}
+                </div>
                 </div>
               </motion.div>
             )}
@@ -995,7 +957,7 @@ const StorefrontProfilePage: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </main>
   );
 };
 

@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model } from 'mongoose';
+import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export type CheckoutContactMethod = 'phone_or_email' | 'email';
 export type CheckoutEmailRegionMode = 'ziplofy_recommended' | 'custom';

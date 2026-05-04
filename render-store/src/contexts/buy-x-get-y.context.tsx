@@ -66,35 +66,6 @@ interface BuyXGetYCheckResponse {
   message: string;
 }
 
-interface BuyXGetYValidateCodeResponse {
-  success: boolean;
-  message: string;
-  data: {
-    id: string;
-    discountCode: string;
-    method: string;
-    title?: string;
-    discountedValue: 'free' | 'amount' | 'percentage';
-    discountedAmount?: number;
-    discountedPercentage?: number;
-    customerGetsAnyItemsFrom?: string;
-    customerGetsQuantity: number;
-    maxUsesPerOrder: number | null;
-    totalDiscountAmount: number;
-    getsItems: BuyXGetYGetsItem[];
-    discountSummary: string;
-    getsCollectionIds?: string[];
-    getsCollectionNames?: string[];
-    combinations: {
-      productDiscounts: boolean;
-      orderDiscounts: boolean;
-      shippingDiscounts: boolean;
-    };
-    cartTotal: number;
-    totalQuantity: number;
-  } | null;
-}
-
 interface BuyXGetYContextType {
   // State
   eligibleDiscounts: BuyXGetYDiscount[];
@@ -111,12 +82,9 @@ interface BuyXGetYContextType {
 
   // Actions (customerId optional for guest checkout)
   fetchEligibleDiscounts: (storeId: string, customerId: string | null, cartItems: BuyXGetYCartItem[]) => Promise<void>;
-  validateDiscountCode: (storeId: string, customerId: string | null, cartItems: BuyXGetYCartItem[], discountCode: string) => Promise<BuyXGetYDiscount | null>;
   applyAutomaticDiscount: (discount: BuyXGetYDiscount) => void;
   setSelectedGetsItems: (items: BuyXGetYGetsItem[] | null) => void;
   clearAppliedAutomaticDiscount: () => void;
-  clearDiscounts: () => void;
-  clearDiscountCodeResult: () => void;
 }
 
 // Create Context
@@ -138,7 +106,7 @@ export const BuyXGetYProvider: React.FC<BuyXGetYProviderProps> = ({ children }) 
   const [discountCodeResult, setDiscountCodeResult] = useState<BuyXGetYDiscount | null>(null);
   const [appliedAutomaticDiscount, setAppliedAutomaticDiscount] = useState<BuyXGetYDiscount | null>(null);
   const [selectedGetsItems, setSelectedGetsItemsState] = useState<BuyXGetYGetsItem[] | null>(null);
-  const [discountCodeLoading, setDiscountCodeLoading] = useState<boolean>(false);
+  const [discountCodeLoading] = useState<boolean>(false);
   const [discountCodeError, setDiscountCodeError] = useState<string | null>(null);
 
   const setSelectedGetsItems = useCallback((items: BuyXGetYGetsItem[] | null) => {
@@ -190,67 +158,6 @@ export const BuyXGetYProvider: React.FC<BuyXGetYProviderProps> = ({ children }) 
     }
   }, []);
 
-  // Validate discount code (customerId optional for guest checkout)
-  const validateDiscountCode = useCallback(async (
-    storeId: string,
-    customerId: string | null,
-    cartItems: BuyXGetYCartItem[],
-    discountCode: string
-  ): Promise<BuyXGetYDiscount | null> => {
-    try {
-      setDiscountCodeLoading(true);
-      setDiscountCodeError(null);
-      setDiscountCodeResult(null);
-
-      const response = await axiosi.post<BuyXGetYValidateCodeResponse>(
-        '/storefront/discounts/buy-x-get-y/validate-code',
-        {
-          storeId,
-          ...(customerId && { customerId }),
-          cartItems,
-          discountCode: discountCode.trim(),
-        }
-      );
-
-      if (response.data.success && response.data.data) {
-        const data = response.data.data;
-        const discount: BuyXGetYDiscount = {
-          id: data.id,
-          method: data.method,
-          discountCode: data.discountCode,
-          title: data.title,
-          discountedValue: data.discountedValue,
-          discountedAmount: data.discountedAmount,
-          discountedPercentage: data.discountedPercentage,
-          customerGetsAnyItemsFrom: data.customerGetsAnyItemsFrom,
-          customerGetsQuantity: data.customerGetsQuantity,
-          maxUsesPerOrder: data.maxUsesPerOrder,
-          totalDiscountAmount: data.totalDiscountAmount,
-          getsItems: data.getsItems || [],
-          discountSummary: data.discountSummary,
-          message: response.data.message,
-          combinations: data.combinations,
-          getsCollectionIds: data.getsCollectionIds,
-          getsCollectionNames: data.getsCollectionNames,
-        };
-        setDiscountCodeResult(discount);
-        setAppliedAutomaticDiscount(null);
-        setSelectedGetsItemsState(null);
-        return discount;
-      } else {
-        setDiscountCodeError(response.data.message || 'Invalid discount code');
-        return null;
-      }
-    } catch (err: any) {
-      console.error('Error validating Buy X Get Y discount code:', err);
-      setDiscountCodeError(err.response?.data?.message || 'Failed to validate discount code');
-      setDiscountCodeResult(null);
-      return null;
-    } finally {
-      setDiscountCodeLoading(false);
-    }
-  }, []);
-
   const applyAutomaticDiscount = useCallback((discount: BuyXGetYDiscount) => {
     setAppliedAutomaticDiscount(discount);
     setDiscountCodeResult(null);
@@ -261,25 +168,6 @@ export const BuyXGetYProvider: React.FC<BuyXGetYProviderProps> = ({ children }) 
   const clearAppliedAutomaticDiscount = useCallback(() => {
     setAppliedAutomaticDiscount(null);
     setSelectedGetsItemsState(null);
-  }, []);
-
-  // Clear discount code result
-  const clearDiscountCodeResult = useCallback(() => {
-    setDiscountCodeResult(null);
-    setDiscountCodeError(null);
-    setSelectedGetsItemsState(null);
-  }, []);
-
-  // Clear all discounts
-  const clearDiscounts = useCallback(() => {
-    setEligibleDiscounts([]);
-    setCartTotal(0);
-    setTotalQuantity(0);
-    setError(null);
-    setDiscountCodeResult(null);
-    setAppliedAutomaticDiscount(null);
-    setSelectedGetsItemsState(null);
-    setDiscountCodeError(null);
   }, []);
 
   // Context value
@@ -295,12 +183,9 @@ export const BuyXGetYProvider: React.FC<BuyXGetYProviderProps> = ({ children }) 
     discountCodeLoading,
     discountCodeError,
     fetchEligibleDiscounts,
-    validateDiscountCode,
     applyAutomaticDiscount,
     setSelectedGetsItems,
     clearAppliedAutomaticDiscount,
-    clearDiscounts,
-    clearDiscountCodeResult,
   };
 
   return (

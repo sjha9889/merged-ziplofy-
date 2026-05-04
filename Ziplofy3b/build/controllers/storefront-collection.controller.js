@@ -45,7 +45,7 @@ exports.getProductsInCollection = (0, error_utils_1.asyncErrorHandler)(async (re
             orderDiscount: null
         });
     }
-    const filter = { _id: { $in: productIds } };
+    const filter = { _id: { $in: productIds }, isDeleted: { $ne: true } };
     if (q && typeof q === 'string') {
         const rx = new RegExp(q.trim(), 'i');
         filter.$or = [{ title: rx }, { sku: rx }];

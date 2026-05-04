@@ -6,12 +6,14 @@ import ProductTableRow from "./ProductTableRow";
 
 interface ProductsTableProps {
   products: Product[];
+  viewMode?: "list" | "grid";
+  onUndeleteProduct?: (product: Product) => void;
 }
 
 type SortField = 'price' | 'quantity' | 'updatedAt' | null;
 type SortDirection = 'asc' | 'desc';
 
-const ProductsTable: React.FC<ProductsTableProps> = ({ products }) => {
+const ProductsTable: React.FC<ProductsTableProps> = ({ products, viewMode = "list", onUndeleteProduct }) => {
   const navigate = useNavigate();
   const [sortField, setSortField] = useState<SortField>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -55,15 +57,19 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ products }) => {
   }, [products, sortField, sortDirection]);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
-      <div className="overflow-x-auto">
+    <div className="bg-white rounded-2xl border border-gray-200/80 shadow-sm overflow-hidden">
+      {viewMode === "grid" && (
+        <div className="px-5 py-3 text-xs text-gray-500 border-b border-gray-100 bg-blue-50/40">
+          Grid view preview is coming soon. Showing list view for now.
+        </div>
+      )}
+      <div className="overflow-x-auto max-h-[68vh]">
         <table className="w-full">
-          <thead className="bg-gray-50/50">
+          <thead className="bg-gray-50/90 sticky top-0 z-10 backdrop-blur-sm">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+              <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Products</th>
               <th 
-                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-blue-50/50 transition-colors"
+                className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-blue-50/50 transition-colors"
                 onClick={() => handleSort('price')}
               >
                 <div className="flex items-center gap-1.5">
@@ -77,10 +83,9 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ products }) => {
                   )}
                 </div>
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Status</th>
               <th 
-                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-blue-50/50 transition-colors"
+                className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-blue-50/50 transition-colors"
                 onClick={() => handleSort('quantity')}
               >
                 <div className="flex items-center gap-1.5">
@@ -95,7 +100,7 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ products }) => {
                 </div>
               </th>
               <th 
-                className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-blue-50/50 transition-colors"
+                className="px-4 py-3 text-left text-[11px] font-semibold text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-blue-50/50 transition-colors"
                 onClick={() => handleSort('updatedAt')}
               >
                 <div className="flex items-center gap-1.5">
@@ -109,14 +114,27 @@ const ProductsTable: React.FC<ProductsTableProps> = ({ products }) => {
                   )}
                 </div>
               </th>
+              <th className="px-4 py-3 text-right text-[11px] font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
             {sortedProducts.map((product) => (
-              <ProductTableRow key={product._id} product={product} onRowClick={handleRowClick} />
+              <ProductTableRow
+                key={product._id}
+                product={product}
+                onRowClick={handleRowClick}
+                onUndeleteProduct={onUndeleteProduct}
+              />
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="flex items-center justify-between px-5 py-4 border-t border-gray-100 bg-gray-50/40">
+        <p className="text-xs text-gray-500">Showing {sortedProducts.length} products</p>
+        <button className="flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors">
+          Load More
+          <ArrowDownIcon className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

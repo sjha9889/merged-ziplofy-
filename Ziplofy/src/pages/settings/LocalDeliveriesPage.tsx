@@ -6,6 +6,7 @@ import {
 import React, { useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useLocalDeliveryLocationEntries } from '../../contexts/local-delivery-location-entries.context';
+import { SettingsHero, SettingsPanel } from '../../components/settings/SettingsPageScaffold';
 
 const LocalDeliveriesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -27,31 +28,31 @@ const LocalDeliveriesPage: React.FC = () => {
   const isLoading = entriesLoading && !missingLocalDeliveryId;
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-        <header className="flex items-start gap-3">
-          <button
-            type="button"
-            onClick={() => navigate('/settings/shipping-and-delivery')}
-            className="mt-0.5 inline-flex items-center justify-center p-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
-            aria-label="Back to shipping"
-          >
-            <ArrowLeftIcon className="w-5 h-5" />
-          </button>
-          <div className="flex items-center gap-2 min-w-0">
-            <TruckIcon className="w-6 h-6 text-gray-600 shrink-0" />
-            <div className="min-w-0">
-              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
-                Local delivery
-              </h1>
-              <p className="mt-1 text-sm text-gray-500">
-                Deliver orders to customers directly from your locations.
-              </p>
-            </div>
-          </div>
-        </header>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Local delivery"
+          description="Deliver orders to customers directly from your locations."
+          tip={
+            <span className="inline-flex items-center gap-2">
+              <TruckIcon className="h-4 w-4 text-blue-700" />
+              Configure zones and pricing per location from the table below.
+            </span>
+          }
+          leading={
+            <button
+              type="button"
+              onClick={() => navigate('/settings/shipping-and-delivery')}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200/90 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50/90 transition-colors"
+              aria-label="Back to shipping"
+            >
+              <ArrowLeftIcon className="h-4 w-4" />
+              Back
+            </button>
+          }
+        />
 
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+        <SettingsPanel className="overflow-hidden p-0">
           <div className="p-5 border-b border-gray-200">
             <h2 className="text-base font-semibold text-gray-900">Your locations</h2>
             <p className="mt-1 text-sm text-gray-500">
@@ -121,7 +122,7 @@ const LocalDeliveriesPage: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
+        </SettingsPanel>
       </div>
     </div>
   );

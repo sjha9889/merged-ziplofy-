@@ -63,10 +63,14 @@ export interface GetProductVariantByProductIdApiResponseType {
 
 interface ProductVariantContextType {
   variants: ProductVariant[];
+  activeVariant: ProductVariant | null;
   loading: boolean;
+  activeVariantLoading: boolean;
   error: string | null;
   fetchVariantsByProductId: (productId: string) => Promise<void>;
+  fetchProductVariantDetailsById: (variantId: string, productId?: string) => Promise<ProductVariant | null>;
   updateVariant: (variantId: string, update: Partial<ProductVariant>) => Promise<ProductVariant>;
+  clearActiveVariant: () => void;
   clearVariants: () => void;
 }
 
@@ -75,6 +79,8 @@ const ProductVariantContext = createContext<ProductVariantContextType | undefine
 export const ProductVariantProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [activeVariant, setActiveVariant] = useState<ProductVariant | null>(null);
+  const [activeVariantLoading, setActiveVariantLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchVariantsByProductId = useCallback(async (productId: string) => {
@@ -93,11 +99,38 @@ export const ProductVariantProvider: React.FC<{ children: React.ReactNode }> = (
     }
   }, []);
 
+  const fetchProductVariantDetailsById = useCallback(async (variantId: string, productId?: string) => {
+    try {
+      setActiveVariantLoading(true);
+      setError(null);
+      const res = await axiosi.get<{ success: boolean; data: ProductVariant }>(
+        `/product-variants/${variantId}`,
+        { params: productId ? { productId } : undefined }
+      );
+      const { success, data } = res.data;
+      if (!success || !data) throw new Error('Failed to fetch variant details');
+      setActiveVariant(data);
+      setVariants((prev) => {
+        const exists = prev.some((variant) => variant._id === data._id);
+        if (exists) return prev.map((variant) => (variant._id === data._id ? data : variant));
+        return [data, ...prev];
+      });
+      return data;
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to fetch variant details';
+      setError(msg);
+      setActiveVariant(null);
+      return null;
+    } finally {
+      setActiveVariantLoading(false);
+    }
+  }, []);
+
   const updateVariant = useCallback(async (variantId: string, update: Partial<ProductVariant>) => {
     try {
       setLoading(true);
       setError(null);
-      const res = await axiosi.put<{ success: boolean; data: ProductVariant; message?: string }>(
+      const res = await axiosi.patch<{ success: boolean; data: ProductVariant; message?: string }>(
         `/product-variants/${variantId}`,
         update,
       );
@@ -109,6 +142,7 @@ export const ProductVariantProvider: React.FC<{ children: React.ReactNode }> = (
           variant._id === variantId ? data : variant
         )
       );
+      setActiveVariant((prev) => (prev && prev._id === variantId ? data : prev));
       return data;
     } catch (err: any) {
       const msg = err?.response?.data?.message || err?.message || 'Failed to update variant';
@@ -119,18 +153,29 @@ export const ProductVariantProvider: React.FC<{ children: React.ReactNode }> = (
     }
   }, []);
 
+  const clearActiveVariant = useCallback(() => {
+    setActiveVariant(null);
+    setActiveVariantLoading(false);
+  }, []);
+
   const clearVariants = useCallback(() => {
     setVariants([]);
+    setActiveVariant(null);
     setError(null);
     setLoading(false);
+    setActiveVariantLoading(false);
   }, []);
 
   const value: ProductVariantContextType = {
     variants,
+    activeVariant,
     loading,
+    activeVariantLoading,
     error,
     fetchVariantsByProductId,
+    fetchProductVariantDetailsById,
     updateVariant,
+    clearActiveVariant,
     clearVariants,
   };
 

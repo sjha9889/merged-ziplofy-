@@ -1,7 +1,6 @@
 import { ArrowLeftIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import React, { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 import { useGiftCards } from '../contexts/gift-cards.context';
 import { useStore } from '../contexts/store.context';
 
@@ -91,8 +90,7 @@ const NewGiftCardPage: React.FC = () => {
   }, [formData, activeStoreId, createGiftCard, navigate]);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
+    <div className="min-h-screen bg-page-background-color">
         {/* Page Header */}
         <div className="border-b border-gray-200 px-4 py-4">
           <div className="max-w-4xl mx-auto">
@@ -274,8 +272,7 @@ const NewGiftCardPage: React.FC = () => {
             </button>
           </div>
         </div>
-      </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

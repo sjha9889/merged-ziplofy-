@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { BuildingStorefrontIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 
 interface LocationRowProps {
   location: {
@@ -33,31 +34,47 @@ const LocationRow: React.FC<LocationRowProps> = ({ location, isDefault, onLocati
     .join(', ');
 
   return (
-    <div
+    <button
+      type="button"
       onClick={handleClick}
-      className="flex justify-between items-center py-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50/80 transition-colors last:border-b-0 -mx-4 px-4"
+      className="group flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition-colors hover:bg-blue-50/50 sm:px-5"
     >
-      <div>
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-medium text-gray-900">{location.name}</p>
+      <div className="flex min-w-0 flex-1 items-start gap-3">
+        <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200/90 bg-slate-50/80 text-slate-600 transition-colors group-hover:border-blue-200/80 group-hover:bg-blue-50/60 group-hover:text-blue-700">
+          <BuildingStorefrontIcon className="h-4 w-4" aria-hidden />
+        </div>
+        <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <p className="text-sm font-semibold text-gray-900">{location.name}</p>
           {isDefault && (
-            <span className="px-2.5 py-1 rounded-md text-xs font-medium text-gray-700 bg-gray-100">
+            <span className="inline-flex items-center rounded-md border border-blue-200/80 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-800">
               Default
             </span>
           )}
         </div>
-        <p className="text-sm text-gray-500">{addressLine}</p>
+        {addressLine ? (
+          <p className="mt-0.5 truncate text-sm text-gray-500 sm:whitespace-normal">{addressLine}</p>
+        ) : (
+          <p className="mt-0.5 text-sm italic text-gray-400">No address on file</p>
+        )}
+        </div>
       </div>
-      <span
-        className={`px-2.5 py-1 rounded-md text-xs font-medium ${
-          location.isActive 
-            ? 'bg-gray-100 text-gray-700' 
-            : 'bg-gray-100 text-gray-500'
-        }`}
-      >
-        {location.isActive ? 'Active' : 'Inactive'}
-      </span>
-    </div>
+      <div className="flex shrink-0 items-center gap-2">
+        <span
+          className={`rounded-md px-2.5 py-1 text-xs font-medium ${
+            location.isActive
+              ? 'border border-emerald-200/80 bg-emerald-50 text-emerald-800'
+              : 'border border-slate-200 bg-slate-100 text-slate-600'
+          }`}
+        >
+          {location.isActive ? 'Active' : 'Inactive'}
+        </span>
+        <ChevronRightIcon
+          className="h-5 w-5 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:text-blue-600"
+          aria-hidden
+        />
+      </div>
+    </button>
   );
 };
 

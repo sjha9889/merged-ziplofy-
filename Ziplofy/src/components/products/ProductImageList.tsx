@@ -3,13 +3,11 @@ import ProductImageItem from "./ProductImageItem";
 
 interface ProductImageListProps {
   images: string[];
-  onUpdateImage: (index: number, url: string) => void;
   onRemoveImage: (index: number) => void;
 }
 
 const ProductImageList: React.FC<ProductImageListProps> = ({
   images,
-  onUpdateImage,
   onRemoveImage,
 }) => {
   return (
@@ -19,7 +17,6 @@ const ProductImageList: React.FC<ProductImageListProps> = ({
           key={index}
           imageUrl={imageUrl}
           index={index}
-          onUpdateImage={onUpdateImage}
           onRemoveImage={onRemoveImage}
         />
       ))}

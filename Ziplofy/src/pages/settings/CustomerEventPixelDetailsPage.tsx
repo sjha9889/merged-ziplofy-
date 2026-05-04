@@ -11,8 +11,23 @@ import DropdownMenuItem from '../../components/DropdownMenuItem';
 import PixelCodeSection from '../../components/PixelCodeSection';
 import PixelDataSaleSection from '../../components/PixelDataSaleSection';
 import PixelPermissionSection from '../../components/PixelPermissionSection';
+import {
+  SETTINGS_PAGE_CONTAINER_CLASS,
+  SettingsCallout,
+  SettingsHero,
+  SettingsPanel,
+} from '../../components/settings/SettingsPageScaffold';
 import { DataSaleOption, usePixels } from '../../contexts/pixel.context';
 import { useStore } from '../../contexts/store.context';
+
+const btnPrimary =
+  'inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50';
+
+const btnGhost =
+  'inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50';
+
+const btnIcon =
+  'inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white p-2 text-slate-700 shadow-sm transition-colors hover:bg-slate-50';
 
 type PermissionMode = 'required' | 'not_required';
 
@@ -138,20 +153,25 @@ const CustomerEventPixelDetailsPage: React.FC = () => {
     navigate('/settings/customer-events');
   }, [navigate]);
 
+  const backControl = (
+    <button
+      type="button"
+      onClick={handleBack}
+      className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+    >
+      <ArrowLeftIcon className="h-4 w-4" />
+      Back
+    </button>
+  );
+
   if (!pixelId) {
     return (
-      <div className="min-h-screen bg-page-background-color">
-        <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-          <button
-            type="button"
-            onClick={() => navigate('/settings/customer-events')}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors w-fit"
-          >
-            Back to customer events
-          </button>
-          <div className="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm max-w-[960px]">
-            No pixel selected.
-          </div>
+      <div className="w-full">
+        <div className={SETTINGS_PAGE_CONTAINER_CLASS}>
+          <SettingsHero title="Pixel" description="View or edit a customer event pixel." leading={backControl} />
+          <SettingsCallout variant="warning" title="No pixel selected">
+            <p className="text-sm text-gray-700">Choose a pixel from Customer events to open its details.</p>
+          </SettingsCallout>
         </div>
       </div>
     );
@@ -159,172 +179,147 @@ const CustomerEventPixelDetailsPage: React.FC = () => {
 
   if (!activeStoreId) {
     return (
-      <div className="min-h-screen bg-page-background-color">
-        <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-          <button
-            type="button"
-            onClick={() => navigate('/settings/customer-events')}
-            className="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 hover:bg-gray-50 transition-colors w-fit"
-          >
-            Back to customer events
-          </button>
-          <div className="rounded-lg bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 text-sm max-w-[960px]">
-            Select a store to view pixel details.
-          </div>
+      <div className="w-full">
+        <div className={SETTINGS_PAGE_CONTAINER_CLASS}>
+          <SettingsHero title="Pixel details" description="Manage tracking pixels for your storefront." leading={backControl} />
+          <SettingsCallout variant="info" title="Select a store">
+            <p className="text-sm text-gray-700">Select a store to view and edit pixel details.</p>
+          </SettingsCallout>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-        <div className="max-w-[960px] w-full">
-          {loading && !pixel ? (
-            <div className="flex flex-col items-center justify-center py-12 gap-3">
-              <div className="w-8 h-8 border-2 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
-              <p className="text-sm text-gray-500">Loading pixel…</p>
-            </div>
-          ) : !pixel ? (
-            <>
-              <header className="flex items-start gap-3 mb-6">
-                <button
-                  type="button"
-                  onClick={handleBack}
-                  className="mt-0.5 inline-flex items-center justify-center p-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors shrink-0"
-                  aria-label="Back to customer events"
-                >
-                  <ArrowLeftIcon className="w-5 h-5" />
-                </button>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Pixel not found</h1>
-                  <p className="mt-1 text-sm text-gray-500">This pixel may have been deleted.</p>
-                </div>
-              </header>
-              <div className="rounded-lg bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 text-sm">
-                Pixel not found or no longer exists.
-              </div>
-            </>
-          ) : (
-            <>
-              <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="flex items-start gap-3 min-w-0">
-                  <button
-                    type="button"
-                    onClick={handleBack}
-                    className="mt-0.5 inline-flex items-center justify-center p-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors shrink-0"
-                    aria-label="Back to customer events"
-                  >
-                    <ArrowLeftIcon className="w-5 h-5" />
-                  </button>
-                  <div className="min-w-0">
-                    <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
-                      {name.trim() || 'Pixel'}
-                    </h1>
-                    <p className="mt-1 text-sm text-gray-500">
-                      Manage customer event pixel settings and code.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                  {isDirty && (
-                    <button
-                      type="button"
-                      onClick={handleSave}
-                      disabled={loading}
-                      className="rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
+    <div className="w-full">
+      <div className={SETTINGS_PAGE_CONTAINER_CLASS}>
+        {loading && !pixel ? (
+          <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-slate-200/80 bg-white py-16 shadow-sm">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600" />
+            <p className="text-sm text-gray-500">Loading pixel…</p>
+          </div>
+        ) : !pixel ? (
+          <>
+            <SettingsHero
+              title="Pixel not found"
+              description="This pixel may have been deleted or the link is invalid."
+              leading={backControl}
+            />
+            <SettingsCallout variant="warning" title="Unavailable">
+              <p className="text-sm text-gray-700">Pixel not found or no longer exists.</p>
+            </SettingsCallout>
+          </>
+        ) : (
+          <>
+            <SettingsHero
+              title={name.trim() || 'Pixel'}
+              description="Manage customer event pixel settings, privacy, and code."
+              tip="Sandboxed pixels help keep storefront scripts isolated and stable."
+              leading={backControl}
+              actions={
+                <div className="flex flex-wrap items-center gap-2">
+                  {isDirty ? (
+                    <button type="button" onClick={handleSave} disabled={loading} className={btnPrimary}>
                       Save
                     </button>
-                  )}
-                  <button
-                    type="button"
-                    disabled
-                    className="rounded-lg px-4 py-2 text-sm font-medium border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
+                  ) : null}
+                  <button type="button" disabled className={btnGhost}>
                     Test
                   </button>
-                  <button
-                    type="button"
-                    disabled
-                    className="rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
+                  <button type="button" disabled className={btnPrimary}>
                     Connect
                   </button>
                   <div className="relative">
                     <button
                       type="button"
                       onClick={handleMenuOpen}
-                      className="inline-flex items-center justify-center p-2 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors border border-gray-200 bg-white"
+                      className={btnIcon}
                       aria-label="Pixel options"
                     >
-                      <EllipsisHorizontalIcon className="w-5 h-5" />
+                      <EllipsisHorizontalIcon className="h-5 w-5" />
                     </button>
                     <DropdownMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={handleMenuClose}>
                       <DropdownMenuItem disabled>Edit pixel name</DropdownMenuItem>
-                      <DropdownMenuItem disabled>Hire a Shopify Partner</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { handleMenuClose(); handleDelete(); }}>
+                      <DropdownMenuItem disabled>Hire a Ziplofy Partner</DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          handleMenuClose();
+                          handleDelete();
+                        }}
+                      >
                         <span className="text-red-600">Delete pixel</span>
                       </DropdownMenuItem>
                     </DropdownMenu>
                   </div>
                 </div>
-              </header>
+              }
+            />
 
-              <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5">
-                <h2 className="text-base font-semibold text-gray-900">Pixel details</h2>
-                <p className="mt-1 text-sm text-gray-500 mb-4">
-                  Name and sandbox info for this pixel.
-                </p>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Pixel name</label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    maxLength={50}
-                    placeholder="e.g. Facebook Pixel"
-                    className="w-full max-w-md rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                  />
+            <SettingsPanel className="ring-1 ring-slate-200/60">
+              <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+                <div className="border-l-4 border-blue-500/75 pl-3">
+                  <h2 className="text-base font-semibold text-gray-900">Pixel details</h2>
+                  <p className="mt-1 text-sm text-gray-500">Name and sandbox info for this pixel.</p>
                 </div>
+              </div>
+              <div className="p-5 sm:p-6">
+                <label className="mb-1 block text-sm font-medium text-gray-700">Pixel name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={50}
+                  placeholder="e.g. Facebook Pixel"
+                  className="w-full max-w-md rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                />
                 <p className="mt-3 text-sm text-gray-500">
-                  For enhanced security and stability, pixel access is sandboxed.{' '}
-                  <LinkLabel text="Learn more" href="#" />
+                  For enhanced security and stability, pixel access is sandboxed. <LinkLabel text="Learn more" href="#" />
                 </p>
               </div>
+            </SettingsPanel>
 
-              <div className="rounded-lg bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 flex items-start gap-2">
-                <InformationCircleIcon className="w-5 h-5 shrink-0 mt-0.5" />
-                <p className="text-sm">For enhanced security and stability, pixel access is sandboxed.</p>
-              </div>
+            <SettingsCallout
+              variant="info"
+              icon={<InformationCircleIcon className="h-5 w-5 text-blue-600" />}
+              title="Sandboxed execution"
+            >
+              <p>For enhanced security and stability, pixel access is sandboxed.</p>
+            </SettingsCallout>
 
-              <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5">
-                <h2 className="text-base font-semibold text-gray-900 mb-4">Customer privacy</h2>
-                <div className="space-y-4">
-                  <PixelPermissionSection
-                    permission={permission}
-                    purposes={purposes}
-                    onPermissionChange={handlePermissionChange}
-                    onPurposeChange={handlePurposeChange}
-                  />
-                  <PixelDataSaleSection
-                    dataSale={dataSale}
-                    onDataSaleChange={handleDataSaleChange}
-                  />
+            <SettingsPanel className="ring-1 ring-slate-200/60">
+              <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+                <div className="border-l-4 border-blue-500/75 pl-3">
+                  <h2 className="text-base font-semibold text-gray-900">Customer privacy</h2>
+                  <p className="mt-1 text-sm text-gray-500">Consent, purposes, and data sale classification.</p>
                 </div>
-                <p className="text-sm text-gray-500 mt-4">
-                  See how these settings apply to your store in{' '}
-                  <LinkLabel text="Customer privacy" href="#" />
+              </div>
+              <div className="space-y-4 p-5 sm:p-6">
+                <PixelPermissionSection
+                  permission={permission}
+                  purposes={purposes}
+                  onPermissionChange={handlePermissionChange}
+                  onPurposeChange={handlePurposeChange}
+                />
+                <PixelDataSaleSection dataSale={dataSale} onDataSaleChange={handleDataSaleChange} />
+                <p className="text-sm text-gray-500">
+                  See how these settings apply to your store in <LinkLabel text="Customer privacy" href="#" />
                 </p>
               </div>
+            </SettingsPanel>
 
-              <PixelCodeSection
-                code={code}
-                onCodeChange={handleCodeChange}
-              />
-            </>
-          )}
-        </div>
+            <SettingsPanel className="ring-1 ring-slate-200/60">
+              <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+                <div className="border-l-4 border-blue-500/75 pl-3">
+                  <h2 className="text-base font-semibold text-gray-900">Code</h2>
+                  <p className="mt-1 text-sm text-gray-500">Paste or edit the snippet loaded on your storefront.</p>
+                </div>
+              </div>
+              <div className="p-5 sm:p-6">
+                <PixelCodeSection code={code} onCodeChange={handleCodeChange} embedded />
+              </div>
+            </SettingsPanel>
+          </>
+        )}
       </div>
     </div>
   );

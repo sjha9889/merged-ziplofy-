@@ -28,6 +28,7 @@ import { useLocalDeliverySettings } from '../../contexts/local-delivery-settings
 import { usePackaging } from '../../contexts/packaging.context';
 import { useShippingProfiles } from '../../contexts/shipping-profile.context';
 import { useStore } from '../../contexts/store.context';
+import { SettingsHero } from '../../components/settings/SettingsPageScaffold';
 
 const ShippingSettings: React.FC = () => {
   const navigate = useNavigate();
@@ -242,16 +243,12 @@ const ShippingSettings: React.FC = () => {
   }, [packagings, ratePackageId]);
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Shipping and delivery</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Manage shipping profiles, rates, labels, and delivery options.
-            </p>
-          </div>
-        </header>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Shipping and delivery"
+          description="Manage shipping profiles, rates, labels, and delivery options."
+        />
 
         {/* Shipping Section */}
         <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">

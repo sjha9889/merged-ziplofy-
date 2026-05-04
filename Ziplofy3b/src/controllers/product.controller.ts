@@ -31,43 +31,48 @@ export const createProduct = asyncErrorHandler(async (req: Request, res: Respons
   // Shipping fields are optional; keep the controller lean and rely on schema defaults
 
   // 1) Create the base Product document first; variants (combinations) are created separately below
-  const product = await Product.create({
-    title: body.title,
-    storeId: body.storeId as any,
-    description: body.description,
-    category: body.category,
-    price: body.price,
-    compareAtPrice: body.compareAtPrice,
-    chargeTax: body.chargeTax ?? true,
-    cost: body.cost ?? 0,
-    profit: body.profit ?? 0,
-    marginPercent: body.marginPercent ?? 0,
-    unitPriceTotalAmount: body.unitPriceTotalAmount,
-    unitPriceTotalAmountMetric: body.unitPriceTotalAmountMetric,
-    unitPriceBaseMeasure: body.unitPriceBaseMeasure,
-    unitPriceBaseMeasureMetric: body.unitPriceBaseMeasureMetric,
-    inventoryTrackingEnabled: body.inventoryTrackingEnabled ?? true,
-    continueSellingWhenOutOfStock: body.continueSellingWhenOutOfStock ?? false,
-    sku: body.sku,
-    barcode: body.barcode,
-    isPhysicalProduct: body.isPhysicalProduct ?? true,
-    package: body.package,
-    productWeight: body.productWeight,
-    productWeightUnit: body.productWeightUnit,
-    countryOfOrigin: body.countryOfOrigin,
-    harmonizedSystemCode: body.harmonizedSystemCode,
-    variants: body.variants ?? [], // [{ optionName, values }]
-    pageTitle: body.pageTitle,
-    metaDescription: body.metaDescription,
-    urlHandle: body.urlHandle,
-    status: body.status ?? 'draft',
-    onlineStorePublishing: body.onlineStorePublishing ?? true,
-    pointOfSalePublishing: body.pointOfSalePublishing ?? false,
-    productType: body.productType,
-    vendor: body.vendor,
-    tagIds: body.tagIds ?? [],
-    imageUrls: body.imageUrls ?? [],
-  });
+  let product: IProduct;
+  try {
+    product = await Product.create({
+      title: body.title,
+      storeId: body.storeId as any,
+      description: body.description,
+      category: body.category,
+      price: body.price,
+      compareAtPrice: body.compareAtPrice,
+      chargeTax: body.chargeTax ?? true,
+      cost: body.cost ?? 0,
+      profit: body.profit ?? 0,
+      marginPercent: body.marginPercent ?? 0,
+      unitPriceTotalAmount: body.unitPriceTotalAmount,
+      unitPriceTotalAmountMetric: body.unitPriceTotalAmountMetric,
+      unitPriceBaseMeasure: body.unitPriceBaseMeasure,
+      unitPriceBaseMeasureMetric: body.unitPriceBaseMeasureMetric,
+      inventoryTrackingEnabled: body.inventoryTrackingEnabled ?? true,
+      continueSellingWhenOutOfStock: body.continueSellingWhenOutOfStock ?? false,
+      sku: body.sku,
+      barcode: body.barcode,
+      isPhysicalProduct: body.isPhysicalProduct ?? true,
+      package: body.package,
+      productWeight: body.productWeight,
+      productWeightUnit: body.productWeightUnit,
+      countryOfOrigin: body.countryOfOrigin,
+      harmonizedSystemCode: body.harmonizedSystemCode,
+      variants: body.variants ?? [], // [{ optionName, values }]
+      pageTitle: body.pageTitle,
+      metaDescription: body.metaDescription,
+      urlHandle: body.urlHandle,
+      status: body.status ?? 'draft',
+      onlineStorePublishing: body.onlineStorePublishing ?? true,
+      pointOfSalePublishing: body.pointOfSalePublishing ?? false,
+      productType: body.productType,
+      vendor: body.vendor,
+      tagIds: body.tagIds ?? [],
+      imageUrls: body.imageUrls ?? [],
+    });
+  } catch (error) {
+    throw new CustomError("We couldn't create the product. Please verify the product details and try again.", 400);
+  }
 
   // 2) Generate ProductVariant docs
   // If variant dimensions are provided (e.g., color/size), create the cartesian combinations.
@@ -81,6 +86,9 @@ export const createProduct = asyncErrorHandler(async (req: Request, res: Respons
     const optionDefs = body.variants
       .filter((opt) => opt && Array.isArray(opt.values) && opt.values.length > 0)
       .map((opt) => ({ name: opt.optionName, values: opt.values }));
+    if (optionDefs.length === 0) {
+      throw new CustomError("Please add at least one valid option value for each variant option.", 400);
+    }
     const combos = optionDefs.reduce<string[][]>((acc, opt) => {
       if (acc.length === 0) return opt.values.map((v) => [v]);
       const next: string[][] = [];
@@ -89,6 +97,9 @@ export const createProduct = asyncErrorHandler(async (req: Request, res: Respons
       }
       return next;
     }, []);
+    if (combos.length === 0) {
+      throw new CustomError("Unable to generate variants from the provided options. Please review option values.", 400);
+    }
     variantDocs = combos.map((vals, idx) => {
       // Map the Nth value in the combo back to the Nth option name (e.g., Color->Red, Size->M)
       const optionValues = new Map<string, string>();
@@ -158,12 +169,22 @@ export const createProduct = asyncErrorHandler(async (req: Request, res: Respons
 
   // 3) Persist variants, then initialize inventory levels across all store locations
   if (variantDocs.length > 0) {
-    const createdVariants: any[] = await ProductVariant.insertMany(variantDocs);
+    let createdVariants: any[] = [];
+    try {
+      createdVariants = await ProductVariant.insertMany(variantDocs);
+    } catch (error) {
+      throw new CustomError("Product was created, but creating its variants failed. Please try again.", 500);
+    }
 
     // Always create inventory levels for all variants across all locations
-    const locations = await LocationModel.find({ storeId: body.storeId }).select('_id');
+    let locations: Array<{ _id: mongoose.Types.ObjectId }> = [];
+    try {
+      locations = await LocationModel.find({ storeId: body.storeId }).select('_id');
+    } catch (error) {
+      throw new CustomError("Product variants were created, but loading store locations failed. Please try again.", 500);
+    }
     if (locations.length === 0) {
-      throw new CustomError("No locations found for this store", 404);
+      throw new CustomError("No inventory locations are configured for this store. Add a location and retry.", 404);
     }
     const inventoryLevelDocs = createdVariants.flatMap(variant => (
       locations.map(loc => ({
@@ -176,22 +197,121 @@ export const createProduct = asyncErrorHandler(async (req: Request, res: Respons
         incoming: 0,
       }))
     ));
-    await InventoryLevelModel.insertMany(inventoryLevelDocs);
+    try {
+      await InventoryLevelModel.insertMany(inventoryLevelDocs);
+    } catch (error) {
+      throw new CustomError("Product was created, but initializing inventory failed. Please try again.", 500);
+    }
   }
 
   // 4) Return the created product (populated) so the client has useful display data
-  const populatedProduct = await Product.findById(product._id)
-    .populate({ path: 'category' })
-    .populate({ path: 'package', model: 'Packaging' })
-    .populate({ path: 'tagIds', model: 'ProductTags' })
-    .populate({ path: 'vendor', model: 'Vendor' })
-    .populate({ path: 'productType', model: 'ProductType' });
+  let populatedProduct: IProduct | null = null;
+  try {
+    populatedProduct = await Product.findById(product._id)
+      .populate({ path: 'category' })
+      .populate({ path: 'package', model: 'Packaging' })
+      .populate({ path: 'tagIds', model: 'ProductTags' })
+      .populate({ path: 'vendor', model: 'Vendor' })
+      .populate({ path: 'productType', model: 'ProductType' });
+  } catch (error) {
+    throw new CustomError("Product was created, but loading the final product details failed. Please refresh.", 500);
+  }
 
   // 5) Send success response with created product payload
   res.status(201).json({
     success: true,
     data: populatedProduct || product,
     message: "Product created successfully",
+  });
+});
+
+// PATCH /products/:id - partial update product
+export const updateProductById = asyncErrorHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!id || !mongoose.isValidObjectId(id)) {
+    throw new CustomError("Valid product id is required", 400);
+  }
+
+  const body = req.body as Partial<IProduct> & Record<string, any>;
+  const updatePayload: Record<string, any> = {};
+
+  const allowedFields = [
+    "title",
+    "description",
+    "category",
+    "price",
+    "compareAtPrice",
+    "chargeTax",
+    "cost",
+    "profit",
+    "marginPercent",
+    "unitPriceTotalAmount",
+    "unitPriceTotalAmountMetric",
+    "unitPriceBaseMeasure",
+    "unitPriceBaseMeasureMetric",
+    "inventoryTrackingEnabled",
+    "continueSellingWhenOutOfStock",
+    "sku",
+    "barcode",
+    "isPhysicalProduct",
+    "package",
+    "productWeight",
+    "productWeightUnit",
+    "countryOfOrigin",
+    "harmonizedSystemCode",
+    "variants",
+    "pageTitle",
+    "metaDescription",
+    "urlHandle",
+    "status",
+    "onlineStorePublishing",
+    "pointOfSalePublishing",
+    "productType",
+    "vendor",
+    "tagIds",
+    "imageUrls",
+    "isDeleted",
+  ] as const;
+
+  for (const field of allowedFields) {
+    if (Object.prototype.hasOwnProperty.call(body, field)) {
+      updatePayload[field] = body[field];
+    }
+  }
+
+  // Backward compatibility with existing client payload naming
+  if (Object.prototype.hasOwnProperty.call(body, "images")) {
+    updatePayload.imageUrls = body.images ?? [];
+  }
+
+  // Keep weight units normalized
+  if (updatePayload.productWeightUnit === "grams") {
+    updatePayload.productWeightUnit = "g";
+  }
+
+  if (Object.keys(updatePayload).length === 0) {
+    throw new CustomError("No valid fields provided to update", 400);
+  }
+
+  const updatedProduct = await Product.findOneAndUpdate(
+    { _id: id },
+    { $set: updatePayload },
+    { new: true, runValidators: true }
+  )
+    .populate({ path: "category" })
+    .populate({ path: "package", model: "Packaging" })
+    .populate({ path: "tagIds", model: "ProductTags" })
+    .populate({ path: "vendor", model: "Vendor" })
+    .populate({ path: "productType", model: "ProductType" });
+
+  if (!updatedProduct) {
+    throw new CustomError("Product not found", 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    data: updatedProduct,
+    message: "Product updated successfully",
   });
 });
 
@@ -238,7 +358,7 @@ export const getProductsByStoreIdPublic = asyncErrorHandler(async (req: Request,
 
   // Get total count and products with pagination
   const [products, total] = await Promise.all([
-    Product.find({status:"active",storeId})
+    Product.find({status:"active",storeId, isDeleted: { $ne: true }})
       .populate({ path: 'category', select: 'name' })
       .populate({ path: 'vendor', model: 'Vendor', select: 'name' })
       .select({
@@ -258,7 +378,7 @@ export const getProductsByStoreIdPublic = asyncErrorHandler(async (req: Request,
       .skip(skip)
       .limit(limitNum)
       .lean(),
-    Product.countDocuments({status:"active",storeId})
+    Product.countDocuments({status:"active",storeId, isDeleted: { $ne: true }})
   ]);
 
   // ===== DISCOUNT LOGIC START =====
@@ -467,6 +587,31 @@ export const getProductsByStoreIdPublic = asyncErrorHandler(async (req: Request,
   });
 });
 
+// GET /products/:id - get single product details (protected)
+export const getProductById = asyncErrorHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  if (!id || !mongoose.isValidObjectId(id)) {
+    throw new CustomError("Valid product ID is required", 400);
+  }
+
+  const product = await Product.findOne({ _id: id })
+    .populate("category")
+    .populate("package")
+    .populate("tagIds")
+    .populate("vendor")
+    .populate("productType");
+
+  if (!product) {
+    throw new CustomError("Product not found", 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    data: product,
+  });
+});
+
 // Get product details by ID (public route)
 export const getProductByIdPublic = asyncErrorHandler(async (req: Request, res: Response) => {
   const { productId } = req.params;
@@ -475,7 +620,7 @@ export const getProductByIdPublic = asyncErrorHandler(async (req: Request, res: 
     throw new CustomError("Valid product ID is required", 400);
   }
 
-  const product = await Product.findOne({ _id: productId, status: "active" })
+  const product = await Product.findOne({ _id: productId, status: "active", isDeleted: { $ne: true } })
     .populate({ path: "category", select: "name" })
     .populate({ path: "vendor", model: "Vendor", select: "name" })
     .select({
@@ -532,7 +677,7 @@ export const addVariantsToProduct = asyncErrorHandler(async (req: Request, res: 
     throw new CustomError('Variants payload must include at least one option with non-empty values', 400);
   }
 
-  const product = await Product.findById(id);
+  const product = await Product.findOne({ _id: id, isDeleted: { $ne: true } });
   if (!product) {
     throw new CustomError("Product not found", 404);
   }
@@ -721,7 +866,7 @@ export const deleteVariantsFromProduct = asyncErrorHandler(async (req: Request, 
   // ========================================
   // STEP 2: FIND PRODUCT AND VALIDATE
   // ========================================
-  const product = await Product.findById(id);
+  const product = await Product.findOne({ _id: id, isDeleted: { $ne: true } });
   if (!product) {
     throw new CustomError("Product not found", 404);
   }
@@ -1007,7 +1152,7 @@ export const addOptionToProduct = asyncErrorHandler(async (req: Request, res: Re
   // STEP 2: FIND PRODUCT AND VALIDATE
   // ========================================
   // Find the product by ID to ensure it exists
-  const product = await Product.findById(id);
+  const product = await Product.findOne({ _id: id, isDeleted: { $ne: true } });
   if (!product) {
     throw new CustomError("Product not found", 404);
   }
@@ -1351,6 +1496,7 @@ export const searchProductsWithAvailability = asyncErrorHandler(async (req: Requ
   const [products, total] = await Promise.all([
     Product.find({
       storeId,
+      isDeleted: { $ne: true },
       $or: [
         { title: rx },
         { sku: rx },
@@ -1369,6 +1515,7 @@ export const searchProductsWithAvailability = asyncErrorHandler(async (req: Requ
       .lean(),
     Product.countDocuments({
       storeId,
+      isDeleted: { $ne: true },
       $or: [
         { title: rx },
         { sku: rx },
@@ -1473,7 +1620,7 @@ export const searchProductsBasic = asyncErrorHandler(async (req: Request, res: R
     return res.status(200).json({ success: true, data: [] });
   }
   const rx = new RegExp(q.trim(), 'i');
-  const filter: any = { $or: [{ title: rx }] };
+  const filter: any = { $or: [{ title: rx }], isDeleted: { $ne: true } };
   if (storeId && mongoose.isValidObjectId(storeId)) filter.storeId = storeId;
 
   const products = await Product.find(filter)
@@ -1508,7 +1655,7 @@ export const searchProductsWithVariants = asyncErrorHandler(async (req: Request,
   const limitNum = Math.min(100, Math.max(1, parseInt(String(limit), 10) || 20));
   const skip = (pageNum - 1) * limitNum;
 
-  const filter: Record<string, unknown> = { storeId };
+  const filter: Record<string, unknown> = { storeId, isDeleted: { $ne: true } };
   if (q && q.trim()) {
     const rx = new RegExp(q.trim(), 'i');
     filter.$or = [{ title: rx }, { sku: rx }];
@@ -1633,6 +1780,7 @@ export const searchProductsWithVariantAndDestination = asyncErrorHandler(async (
   const [products, total] = await Promise.all([
     Product.find({
       storeId,
+      isDeleted: { $ne: true },
       $or: [ { title: rx }, { sku: rx } ],
     })
       .sort({ createdAt: -1 })
@@ -1640,7 +1788,7 @@ export const searchProductsWithVariantAndDestination = asyncErrorHandler(async (
       .limit(limitNum)
       .select({ title: 1, sku: 1, imageUrls: 1 })
       .lean(),
-    Product.countDocuments({ storeId, $or: [ { title: rx }, { sku: rx } ] }),
+    Product.countDocuments({ storeId, isDeleted: { $ne: true }, $or: [ { title: rx }, { sku: rx } ] }),
   ]);
 
   if (products.length === 0) {
@@ -1700,6 +1848,30 @@ export const searchProductsWithVariantAndDestination = asyncErrorHandler(async (
     success: true,
     data,
     pagination: { page: pageNum, limit: limitNum, total, hasNext: skip + products.length < total },
+  });
+});
+
+// Soft delete product
+export const softDeleteProductById = asyncErrorHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  if (!id || !mongoose.isValidObjectId(id)) {
+    throw new CustomError("Valid product id is required", 400);
+  }
+
+  const product = await Product.findOneAndUpdate(
+    { _id: id, isDeleted: { $ne: true } },
+    { $set: { isDeleted: true } },
+    { new: true }
+  );
+
+  if (!product) {
+    throw new CustomError("Product not found", 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    data: { _id: product._id, isDeleted: true },
+    message: "Product deleted successfully",
   });
 });
 

@@ -26,31 +26,35 @@ const ProductVariantBasicInformation: React.FC<ProductVariantBasicInformationPro
   onInputChange,
 }) => {
   return (
-    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-base font-semibold text-gray-900">
-          Basic Information
-        </h2>
+    <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white p-6 shadow-sm">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-900">Basic information</h2>
+          <p className="mt-0.5 text-xs text-gray-500">SKU, barcode, and stock behavior</p>
+        </div>
         {!isEditing ? (
           <button
             onClick={onEdit}
-            className="p-1 text-gray-600 hover:bg-gray-50 rounded transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50"
           >
             <PencilIcon className="w-4 h-4" />
+            Edit
           </button>
         ) : (
-          <div className="flex gap-1">
+          <div className="flex items-center gap-2">
             <button
               onClick={onSave}
-              className="p-1 text-gray-700 hover:bg-gray-50 rounded transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-blue-700"
             >
               <CheckIcon className="w-4 h-4" />
+              Save
             </button>
             <button
               onClick={onCancel}
-              className="p-1 text-gray-700 hover:bg-gray-50 rounded transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50"
             >
               <XMarkIcon className="w-4 h-4" />
+              Cancel
             </button>
           </div>
         )}

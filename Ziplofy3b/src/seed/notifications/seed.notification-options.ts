@@ -1,5 +1,4 @@
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
 import { connectDB } from '../../config/database.config';
 import { NotificationCategory } from '../../models/notification-category/notification-category.model';
 import { NotificationOption } from '../../models/notification-option/notification-option.model';
@@ -28,10 +27,6 @@ type CategorySeed = {
   categoryName: string;
   options: SeedOption[];
 };
-
-const customerNotificationsCategoryId = "6911afd3928a6f0f5ef44543";
-const staffNotificationsCategoryId = "6911afd3928a6f0f5ef44544";
-const fulfillmentRequestNotificationsCategoryId = "6911afd3928a6f0f5ef44545";
 
 const optionSeeds: CategorySeed[] = [
   {
@@ -520,31 +515,24 @@ async function seedNotificationOptions() {
     await NotificationOption.deleteMany({});
     console.log('Deleted all existing notification options');
 
-    // Map category names to their IDs
-    const categoryIdMap: { [key: string]: string } = {
-      'Customer notifications': customerNotificationsCategoryId,
-      'Staff notifications': staffNotificationsCategoryId,
-      'Fulfillment request notification': fulfillmentRequestNotificationsCategoryId,
-    };
+    // Resolve category IDs dynamically by name for current DB.
+    const targetNames = optionSeeds.map((c) => c.categoryName);
+    const categories = await NotificationCategory.find({ name: { $in: targetNames } })
+      .select('_id name')
+      .lean();
+    const categoryIdMap = new Map<string, unknown>();
+    categories.forEach((cat) => {
+      categoryIdMap.set(cat.name, cat._id);
+    });
 
     for (const categorySeed of optionSeeds) {
-      const categoryIdString = categoryIdMap[categorySeed.categoryName];
-      if (!categoryIdString) {
-        console.warn(`No category ID mapped for "${categorySeed.categoryName}". Skipping options for this category.`);
-        continue;
-      }
-
-      const categoryObjectId = new mongoose.Types.ObjectId(categoryIdString);
-      const category = await NotificationCategory.findById(categoryObjectId);
-
-      if (!category) {
+      const targetCategoryId = categoryIdMap.get(categorySeed.categoryName);
+      if (!targetCategoryId) {
         console.warn(
-          `Notification category "${categorySeed.categoryName}" with id "${categoryIdString}" not found. Please seed categories first.`
+          `Notification category "${categorySeed.categoryName}" not found. Please run seed:notification-categories first.`
         );
         continue;
       }
-
-      const targetCategoryId = category._id;
 
       for (const option of categorySeed.options) {
         await NotificationOption.updateOne(

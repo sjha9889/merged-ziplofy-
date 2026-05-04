@@ -1,4 +1,7 @@
-import React, { useCallback, useEffect } from "react";
+import { PlusIcon } from "@heroicons/react/24/outline";
+import React, { useCallback, useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
+import AddPackageModal from "../AddPackageModal";
 import { usePackaging } from "../../contexts/packaging.context";
 
 interface ProductShippingSectionProps {
@@ -54,7 +57,19 @@ const ProductShippingSection: React.FC<ProductShippingSectionProps> = ({
   onHsCodeChange,
   activeStoreId,
 }) => {
-  const { packagings, fetchPackagingsByStoreId } = usePackaging();
+  const { packagings, fetchPackagingsByStoreId, createPackaging } = usePackaging();
+  const [isAddPackageModalOpen, setIsAddPackageModalOpen] = useState(false);
+  const [packageFormData, setPackageFormData] = useState({
+    packageName: "",
+    packageType: "box",
+    length: "",
+    width: "",
+    height: "",
+    dimensionsUnit: "cm",
+    weight: "",
+    weightUnit: "kg",
+    isDefault: false,
+  });
 
   // Fetch packagings when component mounts or activeStoreId changes
   useEffect(() => {
@@ -62,6 +77,13 @@ const ProductShippingSection: React.FC<ProductShippingSectionProps> = ({
       fetchPackagingsByStoreId(activeStoreId);
     }
   }, [activeStoreId, fetchPackagingsByStoreId]);
+
+  useEffect(() => {
+    if (!selectedPackage && packagings.length > 0) {
+      const preferredPackage = packagings.find((pkg) => pkg.isDefault) || packagings[0];
+      onSelectedPackageChange(preferredPackage._id);
+    }
+  }, [selectedPackage, packagings, onSelectedPackageChange]);
 
   const handlePhysicalProductChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     onPhysicalProductChange(e.target.checked);
@@ -86,6 +108,80 @@ const ProductShippingSection: React.FC<ProductShippingSectionProps> = ({
   const handleHsCodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     onHsCodeChange(e.target.value);
   }, [onHsCodeChange]);
+
+  const isHsCodeValid = hsCode.trim() === "" || /^\d{6}$/.test(hsCode.trim());
+
+  const resetPackageForm = useCallback(() => {
+    setPackageFormData({
+      packageName: "",
+      packageType: "box",
+      length: "",
+      width: "",
+      height: "",
+      dimensionsUnit: "cm",
+      weight: "",
+      weightUnit: "kg",
+      isDefault: false,
+    });
+  }, []);
+
+  const handleOpenAddPackageModal = useCallback(() => {
+    resetPackageForm();
+    setIsAddPackageModalOpen(true);
+  }, [resetPackageForm]);
+
+  const handleCloseAddPackageModal = useCallback(() => {
+    setIsAddPackageModalOpen(false);
+  }, []);
+
+  const handlePackageFormChange = useCallback((field: string, value: any) => {
+    setPackageFormData((prev) => ({ ...prev, [field]: value }));
+  }, []);
+
+  const handleAddPackageSubmit = useCallback(async () => {
+    if (!activeStoreId) {
+      toast.error("Please select a store first");
+      return;
+    }
+
+    const payload = {
+      storeId: activeStoreId,
+      packageName: packageFormData.packageName.trim(),
+      packageType: packageFormData.packageType as "box" | "envelope" | "soft_package",
+      length: parseFloat(packageFormData.length),
+      width: parseFloat(packageFormData.width),
+      height: packageFormData.packageType === "envelope" ? 0 : parseFloat(packageFormData.height),
+      dimensionsUnit: packageFormData.dimensionsUnit as "cm" | "in",
+      weight: parseFloat(packageFormData.weight),
+      weightUnit: packageFormData.weightUnit as "g" | "kg" | "oz" | "lb",
+      isDefault: packageFormData.isDefault,
+    };
+
+    if (
+      !payload.packageName ||
+      Number.isNaN(payload.length) ||
+      Number.isNaN(payload.width) ||
+      Number.isNaN(payload.weight) ||
+      (payload.packageType !== "envelope" && Number.isNaN(payload.height))
+    ) {
+      toast.error("Please fill all required package details");
+      return;
+    }
+
+    try {
+      await createPackaging(payload);
+      setIsAddPackageModalOpen(false);
+      await fetchPackagingsByStoreId(activeStoreId);
+      toast.success("Package added");
+    } catch (error) {
+      toast.error("Failed to add package");
+    }
+  }, [
+    activeStoreId,
+    packageFormData,
+    createPackaging,
+    fetchPackagingsByStoreId,
+  ]);
 
   return (
     <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
@@ -124,6 +220,23 @@ const ProductShippingSection: React.FC<ProductShippingSectionProps> = ({
                   </option>
                 ))}
               </select>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                {packagings.length === 0 ? (
+                  <p className="text-xs text-amber-600">
+                    No packages found. Add one to continue shipping setup.
+                  </p>
+                ) : (
+                  <span />
+                )}
+                <button
+                  type="button"
+                  onClick={handleOpenAddPackageModal}
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:text-blue-700"
+                >
+                  <PlusIcon className="w-3.5 h-3.5" />
+                  Add package
+                </button>
+              </div>
             </div>
             
             <div>
@@ -154,12 +267,7 @@ const ProductShippingSection: React.FC<ProductShippingSectionProps> = ({
             </div>
           </div>
 
-          {/* Customs Information Sub-segment */}
           <div className="mt-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">
-              Customs Information
-            </h3>
-            
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -188,14 +296,34 @@ const ProductShippingSection: React.FC<ProductShippingSectionProps> = ({
                   value={hsCode}
                   onChange={handleHsCodeChange}
                   placeholder="Enter a six-digit code or search by keyword"
-                  className="w-full px-3 py-2 border border-gray-200 rounded text-base focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+                  className={`w-full px-3 py-2 border rounded text-base focus:outline-none focus:ring-1 transition-colors ${
+                    isHsCodeValid
+                      ? "border-gray-200 focus:ring-gray-400 focus:border-gray-400"
+                      : "border-red-300 focus:ring-red-300 focus:border-red-400"
+                  }`}
+                  maxLength={6}
+                  inputMode="numeric"
+                  pattern="\d{6}"
+                  aria-invalid={!isHsCodeValid}
                 />
-                <p className="mt-1 text-sm text-gray-500">Enter a six-digit code or search by keyword</p>
+                <p className={`mt-1 text-sm ${isHsCodeValid ? "text-gray-500" : "text-red-600"}`}>
+                  {isHsCodeValid
+                    ? "Enter a six-digit code or search by keyword"
+                    : "HS code must be exactly 6 digits"}
+                </p>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      <AddPackageModal
+        open={isAddPackageModalOpen}
+        onClose={handleCloseAddPackageModal}
+        formData={packageFormData}
+        onFormChange={handlePackageFormChange}
+        onSubmit={handleAddPackageSubmit}
+      />
     </div>
   );
 };

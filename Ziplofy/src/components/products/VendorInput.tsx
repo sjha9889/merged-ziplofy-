@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "react-hot-toast";
 import { useVendors } from "../../contexts/vendor.context";
 import VendorMenu from "./VendorMenu";
 
@@ -75,8 +76,18 @@ const VendorInput: React.FC<VendorInputProps> = ({
 
   const handleCreateVendor = useCallback(async () => {
     if (!activeStoreId) return;
-    const created = await createVendor({ storeId: activeStoreId, name: debouncedVendorQuery });
-    handleVendorSelect(created._id, created.name);
+    try {
+      const created = await createVendor({ storeId: activeStoreId, name: debouncedVendorQuery });
+      handleVendorSelect(created._id, created.name);
+      toast.success("Vendor created");
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Failed to create vendor";
+      toast.error(message);
+    }
   }, [activeStoreId, debouncedVendorQuery, createVendor, handleVendorSelect]);
 
   const queryExists = useMemo(() => {
@@ -95,7 +106,7 @@ const VendorInput: React.FC<VendorInputProps> = ({
         onChange={handleInputChange}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        className="w-full px-3 py-2 border border-gray-200 rounded text-base focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors"
+        className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-base transition-colors focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
       />
       {vendorMenuOpen && (
         <VendorMenu

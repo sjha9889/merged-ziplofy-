@@ -66,46 +66,43 @@ const HierarchicalCategoryDropdown: React.FC<HierarchicalCategoryDropdownProps> 
     fetchBaseCategories();
   }, [fetchBaseCategories]);
 
-  // Get current breadcrumb path
-  const getBreadcrumbPath = useCallback(() => {
-    if (navigationStack.length === 0) return 'Base Categories';
-    return navigationStack.map(item => item.name).join(' > ');
-  }, [navigationStack]);
+  const breadcrumbPath = navigationStack.map((item) => item.name).join(" > ");
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 max-h-96 overflow-hidden">
-      {/* Header with navigation */}
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-gray-600">
-            {getBreadcrumbPath()}
-          </span>
-          <div className="flex items-center gap-1">
-            {navigationStack.length > 0 && (
+      {(navigationStack.length > 0 || selectedCategoryName) && (
+        <div className="p-4 border-b border-gray-200">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <span className="truncate text-sm font-medium text-gray-700">
+              {breadcrumbPath || "Categories"}
+            </span>
+            <div className="flex items-center gap-1">
+              {navigationStack.length > 0 && (
+                <button
+                  onClick={handleBack}
+                  title="Go Back"
+                  className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <ArrowLeftIcon className="w-4 h-4" />
+                </button>
+              )}
               <button
-                onClick={handleBack}
-                title="Go Back"
+                onClick={handleHome}
+                title="Home"
                 className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <ArrowLeftIcon className="w-4 h-4" />
+                <HomeIcon className="w-4 h-4" />
               </button>
-            )}
-            <button
-              onClick={handleHome}
-              title="Home"
-              className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <HomeIcon className="w-4 h-4" />
-            </button>
+            </div>
           </div>
+
+          {selectedCategoryName && (
+            <span className="inline-flex items-center px-2.5 py-1 mt-2 text-xs font-medium text-gray-900 bg-gray-100 border border-gray-300 rounded-lg">
+              Selected: {selectedCategoryName}
+            </span>
+          )}
         </div>
-        
-        {selectedCategoryName && (
-          <span className="inline-flex items-center px-2.5 py-1 mt-2 text-xs font-medium text-gray-900 bg-gray-100 border border-gray-300 rounded-lg">
-            Selected: {selectedCategoryName}
-          </span>
-        )}
-      </div>
+      )}
 
       {/* Categories List */}
       <div className="max-h-72 overflow-y-auto">

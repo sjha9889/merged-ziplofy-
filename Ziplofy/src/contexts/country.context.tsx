@@ -97,5 +97,3 @@ export const useCountries = (): CountryContextType => {
 };
 
 export default CountryContext;
-
-

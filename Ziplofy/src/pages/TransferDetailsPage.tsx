@@ -13,7 +13,6 @@ import {
   BuildingStorefrontIcon,
   ChevronDownIcon
 } from '@heroicons/react/24/outline';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 import { useShipments } from '../contexts/shipment.context';
 import { useTransferEntries } from '../contexts/transfer-entries.context';
 import { useTransfers } from '../contexts/transfer.context';
@@ -82,8 +81,7 @@ const TransferDetailsPage: React.FC = () => {
 
   if (!transfer) {
     return (
-      <GridBackgroundWrapper>
-        <div className="min-h-screen">
+      <div className="min-h-screen bg-page-background-color">
           <div className="max-w-7xl mx-auto px-4 py-6">
             <div className="border border-gray-200 p-8 text-center">
               <CubeIcon className="w-12 h-12 text-gray-400 mx-auto mb-3" />
@@ -101,14 +99,12 @@ const TransferDetailsPage: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
-      </GridBackgroundWrapper>
+      </div>
     );
   }
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
+    <div className="min-h-screen bg-page-background-color">
         {/* Header */}
         <div className="border-b border-gray-200 px-4 py-3">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -686,7 +682,6 @@ const TransferDetailsPage: React.FC = () => {
           </div>
         </Modal>
       </div>
-    </GridBackgroundWrapper>
   );
 };
 

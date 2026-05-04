@@ -48,7 +48,7 @@ export const getProductsInCollection = asyncErrorHandler(async (req: Request, re
     });
   }
 
-  const filter: any = { _id: { $in: productIds } };
+  const filter: any = { _id: { $in: productIds }, isDeleted: { $ne: true } };
   if (q && typeof q === 'string') {
     const rx = new RegExp(q.trim(), 'i');
     filter.$or = [{ title: rx }, { sku: rx }];

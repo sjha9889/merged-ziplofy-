@@ -1,23 +1,17 @@
 @import "tailwindcss";
 
-/* ========================================
-   ORNATIVA THEME CSS VARIABLES
-   ======================================== */
 :root {
-  /* Luxury Color Palette */
-  --ivory-white: #fefcf8;
-  --champagne-beige: #f5f1e8;
-  --warm-beige: #e8e0d5;
-  --charcoal-black: #0c100c;
+  --ivory-white: #f7f6f4;
+  --champagne-beige: #f1ede7;
+  --warm-beige: #e3ded7;
+  --charcoal-black: #0a0a0a;
   --soft-charcoal: #2b1e1e;
-  --gold: #d4af37;
-  --light-gold: #e6c547;
-  --dark-gold: #b8941f;
+  --gold: #b8956c;
+  --light-gold: #c8ab84;
+  --dark-gold: #8f714e;
   --accent-gold: #f4e4bc;
-
-  /* Typography */
-  --font-serif: "Playfair Display", serif;
-  --font-sans: "Inter", sans-serif;
+  --font-serif: "Cormorant Garamond", serif;
+  --font-sans: "DM Sans", "Inter", sans-serif;
 
   /* Spacing */
   --section-padding: 80px 0;
@@ -43,10 +37,10 @@ body {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-weight: 600;
   line-height: 1.2;
-  color: var(--charcoal-black);
+  color: inherit;
 }
 
 /* ========================================
@@ -164,4 +158,60 @@ html {
 ::selection {
   background-color: var(--gold);
   color: var(--charcoal-black);
+}
+
+/* Layout: Account dropdown (Chronova + render-store) */
+.header-icon-wrap {
+  position: relative;
+}
+.header-icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+.header-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  min-width: 180px;
+  background: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+  padding: 0.5rem;
+  z-index: 50;
+}
+.header-dropdown-menu a,
+.header-dropdown-menu button {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: #374151;
+  border-radius: 0.25rem;
+}
+.header-dropdown-menu a:hover,
+.header-dropdown-menu button:hover {
+  background: #f3f4f6;
+}
+
+/* Login/Signup primary button - gold theme to match original (Shop Now style) */
+.btn-login-primary {
+  background: linear-gradient(to right, var(--gold), var(--light-gold)) !important;
+  color: var(--charcoal-black) !important;
+}
+.btn-login-primary:hover:not(:disabled) {
+  background: linear-gradient(to right, var(--dark-gold), var(--gold)) !important;
+  box-shadow: var(--shadow-gold);
 }

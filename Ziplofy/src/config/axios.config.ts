@@ -1,10 +1,11 @@
 import type { AxiosInstance } from "axios";
 import axios from "axios";
 import { safeLocalStorage } from "../types/local-storage";
+import { frontendEnv } from "./env";
 
 
 export const axiosi: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: frontendEnv.apiUrl,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -46,12 +47,9 @@ axiosi.interceptors.response.use(
         localStorage.removeItem('token');
       }
       
-      // Only redirect if we're not already on a login/auth page
-      const currentPath = window.location.pathname;
-      if (!currentPath.includes('/login') && !currentPath.includes('/auth')) {
-        // Optionally redirect to auth service or login page
-        // window.location.href = 'http://localhost:3000/login';
-      }
+      const baseAuthUrl = frontendEnv.authMicroserviceFrontendUrl.replace(/\/+$/, '');
+      const targetUrl = `${baseAuthUrl}?logout=true`;
+      window.location.href = targetUrl;
     }
     
     return Promise.reject(error);

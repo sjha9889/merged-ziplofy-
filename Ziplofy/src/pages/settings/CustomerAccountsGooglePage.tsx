@@ -55,20 +55,20 @@ const CustomerAccountsGooglePage: React.FC = () => {
   };
 
   const fallbackOrigins = useMemo(
-    () => ['https://shopify.com', 'https://example.myshopify.com'],
+    () => ['https://ziplofy.com', 'https://example.myziplofy.com'],
     [],
   );
   const fallbackRedirects = useMemo(
     () => [
-      'https://shopify.com/authentication/placeholder/social/google/callback',
-      'https://example.myshopify.com/authentication/social/google/callback',
+      'https://ziplofy.com/authentication/placeholder/social/google/callback',
+      'https://example.myziplofy.com/authentication/social/google/callback',
     ],
     [],
   );
   const fallbackDeauth = useMemo(
     () => [
-      'https://shopify.com/authentication/placeholder/social/google/revoke',
-      'https://example.myshopify.com/authentication/social/google/revoke',
+      'https://ziplofy.com/authentication/placeholder/social/google/revoke',
+      'https://example.myziplofy.com/authentication/social/google/revoke',
     ],
     [],
   );

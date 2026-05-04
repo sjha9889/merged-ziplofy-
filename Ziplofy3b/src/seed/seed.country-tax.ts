@@ -1,24 +1,23 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { connectDB } from '../config/database.config';
+import { Country } from '../models/country/country.model';
 import { CountryTax } from '../models/country-tax/country-tax.model';
 
 dotenv.config();
-
-// India country ID
-const INDIA_COUNTRY_ID = '6902f7358dd63bde9269cbfe';
 
 async function seedCountryTax() {
   try {
     await connectDB();
     console.log('Connected to database');
 
-    // Validate India country ID
-    if (!mongoose.Types.ObjectId.isValid(INDIA_COUNTRY_ID)) {
-      throw new Error(`Invalid India country ID: ${INDIA_COUNTRY_ID}`);
+    // Resolve India dynamically from Country seed data.
+    const india = await Country.findOne({ iso2: 'IN' }).select('_id').lean();
+    if (!india?._id) {
+      console.log('India country not found (iso2=IN). Please run seed:countries first.');
+      process.exit(0);
     }
-
-    const indiaObjectId = new mongoose.Types.ObjectId(INDIA_COUNTRY_ID);
+    const indiaObjectId = new mongoose.Types.ObjectId(String(india._id));
 
     // Create or update country tax for India
     console.log('Creating/updating country tax for India...');

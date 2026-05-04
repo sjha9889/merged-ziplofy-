@@ -56,11 +56,8 @@ interface AmountOffOrderContextType {
 
   // Actions (customerId optional for guest checkout)
   fetchEligibleDiscounts: (storeId: string, customerId: string | null, cartItems: AmountOffOrderCartItem[]) => Promise<void>;
-  amountOffOrderDiscountCodeCheck: (storeId: string, customerId: string | null, cartItems: AmountOffOrderCartItem[], discountCode: string) => Promise<AmountOffOrderDiscount | null>;
   applyAutomaticDiscount: (discount: AmountOffOrderDiscount) => void;
   clearAppliedAutomaticDiscount: () => void;
-  clearDiscounts: () => void;
-  clearDiscountCodeResult: () => void;
 }
 
 // Create Context
@@ -81,7 +78,7 @@ export const AmountOffOrderProvider: React.FC<AmountOffOrderProviderProps> = ({ 
   const [error, setError] = useState<string | null>(null);
   const [discountCodeResult, setDiscountCodeResult] = useState<AmountOffOrderDiscount | null>(null);
   const [appliedAutomaticDiscount, setAppliedAutomaticDiscount] = useState<AmountOffOrderDiscount | null>(null);
-  const [discountCodeLoading, setDiscountCodeLoading] = useState<boolean>(false);
+  const [discountCodeLoading] = useState<boolean>(false);
   const [discountCodeError, setDiscountCodeError] = useState<string | null>(null);
 
   const applyAutomaticDiscount = useCallback((discount: AmountOffOrderDiscount) => {
@@ -131,62 +128,6 @@ export const AmountOffOrderProvider: React.FC<AmountOffOrderProviderProps> = ({ 
     }
   }, []);
 
-  // Validate discount code (customerId optional for guest checkout)
-  const amountOffOrderDiscountCodeCheck = useCallback(async (
-    storeId: string,
-    customerId: string | null,
-    cartItems: AmountOffOrderCartItem[],
-    discountCode: string
-  ): Promise<AmountOffOrderDiscount | null> => {
-    try {
-      setDiscountCodeLoading(true);
-      setDiscountCodeError(null);
-      setDiscountCodeResult(null);
-
-      const response = await axiosi.post(
-        '/storefront/discounts/amount-off-order/validate-code',
-        {
-          storeId,
-          ...(customerId && { customerId }),
-          cartItems,
-          discountCode: discountCode.trim(),
-        }
-      );
-
-      if (response.data.success) {
-        const discount = response.data.data.discount;
-        setDiscountCodeResult(discount);
-        return discount;
-      } else {
-        setDiscountCodeError(response.data.message || 'Invalid discount code');
-        return null;
-      }
-    } catch (err: any) {
-      console.error('Error validating discount code:', err);
-      setDiscountCodeError(err.response?.data?.message || 'Failed to validate discount code');
-      setDiscountCodeResult(null);
-      return null;
-    } finally {
-      setDiscountCodeLoading(false);
-    }
-  }, []);
-
-  const clearDiscountCodeResult = useCallback(() => {
-    setDiscountCodeResult(null);
-    setDiscountCodeError(null);
-  }, []);
-
-  // Clear discounts
-  const clearDiscounts = useCallback(() => {
-    setEligibleDiscounts([]);
-    setCartTotal(0);
-    setTotalQuantity(0);
-    setError(null);
-    setDiscountCodeResult(null);
-    setAppliedAutomaticDiscount(null);
-    setDiscountCodeError(null);
-  }, []);
-
   // Context value
   const value: AmountOffOrderContextType = {
     eligibleDiscounts,
@@ -199,11 +140,8 @@ export const AmountOffOrderProvider: React.FC<AmountOffOrderProviderProps> = ({ 
     discountCodeLoading,
     discountCodeError,
     fetchEligibleDiscounts,
-    amountOffOrderDiscountCodeCheck,
     applyAutomaticDiscount,
     clearAppliedAutomaticDiscount,
-    clearDiscounts,
-    clearDiscountCodeResult,
   };
 
   return (

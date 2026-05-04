@@ -3,6 +3,7 @@ import {
   addOptionToProduct,
   addVariantsToProduct,
   createProduct,
+  getProductById,
   deleteVariantsFromProduct,
   getProductByIdPublic,
   getProductsByStoreId,
@@ -11,6 +12,8 @@ import {
   searchProductsWithAvailability,
   searchProductsWithVariantAndDestination,
   searchProductsWithVariants,
+  softDeleteProductById,
+  updateProductById,
 } from "../controllers/product.controller";
 import { protect } from "../middlewares/auth.middleware";
 
@@ -27,6 +30,12 @@ productRouter.use(protect);
 
 // Create product
 productRouter.post("/", createProduct);
+
+// Partial update product
+productRouter.patch("/:id", updateProductById);
+
+// Soft delete product
+productRouter.delete("/:id", softDeleteProductById);
 
 // Get products by store id
 productRouter.get("/store/:storeId", getProductsByStoreId);
@@ -54,4 +63,7 @@ productRouter.get("/search-with-variants", searchProductsWithVariants);
 
 // search products with variant and destination availability
 productRouter.get("/search-product-with-variant-and-destination", searchProductsWithVariantAndDestination);
+
+// Get single product by id (keep after specific GET routes)
+productRouter.get("/:id", getProductById);
 

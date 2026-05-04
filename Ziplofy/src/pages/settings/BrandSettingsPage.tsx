@@ -1,5 +1,4 @@
 import {
-  ArrowLeftIcon,
   ChatBubbleLeftRightIcon,
   ChevronDownIcon,
   DocumentTextIcon,
@@ -20,7 +19,7 @@ import BrandPrimaryColorSection from '../../components/BrandPrimaryColorSection'
 import BrandSecondaryColorSection from '../../components/BrandSecondaryColorSection';
 import BrandSloganSection from '../../components/BrandSloganSection';
 import BrandVisualPlaceholder from '../../components/BrandVisualPlaceholder';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
+import { SettingsHero, SettingsPanel } from '../../components/settings/SettingsPageScaffold';
 import { useStoreBranding } from '../../contexts/store-branding.context';
 import { useStore } from '../../contexts/store.context';
 
@@ -103,28 +102,28 @@ const BrandSettingsPage: React.FC = () => {
 
   const getExampleUrl = useCallback((platformName: string) => {
     const examples: Record<string, string> = {
-      'Facebook': 'https://facebook.com/shopify',
-      'X': 'https://x.com/shopify',
-      'Pinterest': 'https://pinterest.com/shopify',
-      'Instagram': 'https://instagram.com/shopify',
-      'TikTok': 'https://tiktok.com/@shopify',
-      'Tumblr': 'https://tumblr.com/shopify',
-      'Snapchat': 'https://snapchat.com/add/shopify',
-      'YouTube': 'https://youtube.com/shopify',
-      'Vimeo': 'https://vimeo.com/shopify',
-      'LinkedIn': 'https://linkedin.com/company/shopify',
-      'Spotify': 'https://open.spotify.com/artist/shopify',
-      'WhatsApp': 'https://wa.me/shopify',
-      'Threads': 'https://threads.net/@shopify',
-      'KakaoTalk': 'https://kakaotalk.com/shopify',
-      'LINE': 'https://line.me/shopify',
-      'Discord': 'https://discord.gg/shopify',
-      'Twitch': 'https://twitch.tv/shopify',
-      'Weibo': 'https://weibo.com/shopify',
-      'WeChat': 'https://wechat.com/shopify',
-      'Shopify Inbox': 'https://shopify.com/inbox',
+      'Facebook': 'https://facebook.com/ziplofy',
+      'X': 'https://x.com/ziplofy',
+      'Pinterest': 'https://pinterest.com/ziplofy',
+      'Instagram': 'https://instagram.com/ziplofy',
+      'TikTok': 'https://tiktok.com/@ziplofy',
+      'Tumblr': 'https://tumblr.com/ziplofy',
+      'Snapchat': 'https://snapchat.com/add/ziplofy',
+      'YouTube': 'https://youtube.com/ziplofy',
+      'Vimeo': 'https://vimeo.com/ziplofy',
+      'LinkedIn': 'https://linkedin.com/company/ziplofy',
+      'Spotify': 'https://open.spotify.com/artist/ziplofy',
+      'WhatsApp': 'https://wa.me/ziplofy',
+      'Threads': 'https://threads.net/@ziplofy',
+      'KakaoTalk': 'https://kakaotalk.com/ziplofy',
+      'LINE': 'https://line.me/ziplofy',
+      'Discord': 'https://discord.gg/ziplofy',
+      'Twitch': 'https://twitch.tv/ziplofy',
+      'Weibo': 'https://weibo.com/ziplofy',
+      'WeChat': 'https://wechat.com/ziplofy',
+      'Ziplofy Inbox': 'https://ziplofy.com/inbox',
     };
-    return examples[platformName] || `https://${platformName.toLowerCase()}.com/shopify`;
+    return examples[platformName] || `https://${platformName.toLowerCase()}.com/ziplofy`;
   }, []);
 
   const socialPlatforms = [
@@ -147,7 +146,7 @@ const BrandSettingsPage: React.FC = () => {
     { name: 'Twitch', icon: <VideoCameraIcon className="w-5 h-5" /> },
     { name: 'Weibo', icon: <GlobeAltIcon className="w-5 h-5" /> },
     { name: 'WeChat', icon: <ChatBubbleLeftRightIcon className="w-5 h-5" /> },
-    { name: 'Shopify Inbox', icon: <ShoppingBagIcon className="w-5 h-5" /> },
+    { name: 'Ziplofy Inbox', icon: <ShoppingBagIcon className="w-5 h-5" /> },
   ];
 
   const availablePlatforms = socialPlatforms.filter(platform => !addedSocialLinks.includes(platform.name));
@@ -369,30 +368,31 @@ const BrandSettingsPage: React.FC = () => {
   }, [navigate]);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-[1200px] mx-auto py-8 px-4">
-      
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-        <div className="flex items-center gap-3">
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6 pb-10">
+      <SettingsHero
+        title="Brand"
+        description="Define logo, colors, messaging, and social links used across your storefront."
+        leading={
           <button
             onClick={handleBack}
-            className="p-1 text-gray-600 hover:text-gray-900 transition-colors"
+            className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50"
           >
-            <ArrowLeftIcon className="w-5 h-5" />
+            Back
           </button>
-          <h1 className="text-xl font-medium text-gray-900">Brand</h1>
-        </div>
-        {initialLoadComplete && isDirty && (
-          <button
-            onClick={handleSave}
-            disabled={saving || brandingLoading}
-            className="px-3 py-1.5 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {saving ? 'Saving...' : 'Save'}
-          </button>
-        )}
-      </div>
+        }
+        actions={
+          initialLoadComplete && isDirty ? (
+            <button
+              onClick={handleSave}
+              disabled={saving || brandingLoading}
+              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {saving ? 'Saving...' : 'Save changes'}
+            </button>
+          ) : null
+        }
+      />
 
       {/* Visual Placeholder Area */}
       <BrandVisualPlaceholder />
@@ -418,7 +418,7 @@ const BrandSettingsPage: React.FC = () => {
       />
 
       {/* Colors Section */}
-      <div className="p-4 mb-8 border border-gray-200 bg-white/95">
+      <SettingsPanel className="mb-8 p-4">
         <h3 className="text-sm font-medium text-gray-900 mb-6">Colors</h3>
 
         {/* Primary Color */}
@@ -458,7 +458,7 @@ const BrandSettingsPage: React.FC = () => {
           onTempSecondaryColorChange={setTempSecondaryColor}
           getPopoverPosition={getPopoverPosition}
         />
-      </div>
+      </SettingsPanel>
 
       {/* Cover Image Section */}
       <BrandCoverImageSection
@@ -479,7 +479,7 @@ const BrandSettingsPage: React.FC = () => {
       />
 
       {/* Short Description Section */}
-      <div className="p-4 mb-8 border border-gray-200 bg-white/95">
+      <SettingsPanel className="mb-8 p-4">
         <div className="flex justify-between items-start">
           <div className="flex-1">
             <h3 className="text-sm font-medium text-gray-900 mb-1">Short description</h3>
@@ -503,8 +503,8 @@ const BrandSettingsPage: React.FC = () => {
                 <p className="text-xs text-gray-500 mt-1">{shortDescription.length}/150 characters</p>
               </div>
             ) : (
-              <div className="border border-dashed border-gray-300 p-4 flex items-center gap-3 bg-gray-50">
-                <div className="w-10 h-10 border border-dashed border-gray-300 flex items-center justify-center bg-white">
+              <div className="flex items-center gap-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white">
                   <DocumentTextIcon className="w-5 h-5 text-gray-400" />
                 </div>
                 <p className="text-sm text-gray-600">Add a short description</p>
@@ -517,15 +517,15 @@ const BrandSettingsPage: React.FC = () => {
                 setShowShortDescriptionInput(true);
               }
             }}
-            className="ml-4 w-9 h-9 bg-gray-900 text-white hover:bg-gray-800 transition-colors flex items-center justify-center"
+            className="ml-4 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white transition-colors hover:bg-blue-700"
           >
             <PlusIcon className="w-4 h-4" />
           </button>
         </div>
-      </div>
+      </SettingsPanel>
 
       {/* Social Links Section */}
-      <div className="p-4 mb-8 border border-gray-200 bg-white/95">
+      <SettingsPanel className="mb-8 p-4">
         <div>
           <h3 className="text-sm font-medium text-gray-900 mb-1">Social links</h3>
           <p className="text-xs text-gray-600 mb-4">Social links for your business, often used in the theme footer</p>
@@ -533,7 +533,7 @@ const BrandSettingsPage: React.FC = () => {
             <button
               onClick={handleOpenSocialMenu}
               disabled={availablePlatforms.length === 0}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-300 text-gray-900 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-900 transition-colors hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <span>Add social link</span>
               <ChevronDownIcon className="w-4 h-4" />
@@ -593,7 +593,7 @@ const BrandSettingsPage: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
+      </SettingsPanel>
 
       {/* Learn More Link */}
       <div className="text-center mt-6">
@@ -605,7 +605,7 @@ const BrandSettingsPage: React.FC = () => {
         </a>
       </div>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

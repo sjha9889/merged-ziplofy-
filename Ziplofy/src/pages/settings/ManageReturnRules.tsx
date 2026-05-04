@@ -1,12 +1,28 @@
 import React from 'react';
 import { ArrowLeftIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
-import GridBackgroundWrapper from '../../components/GridBackgroundWrapper';
 import { useCollections } from '../../contexts/collection.context';
 import { useStore } from '../../contexts/store.context';
 import { useProducts, ProductSearchWithVariantsItem } from '../../contexts/product.context';
 import { useReturnRules } from '../../contexts/return-rules.context';
 import { useFinalSaleItems } from '../../contexts/final-sale-item.context';
+import {
+  SETTINGS_PAGE_CONTAINER_CLASS,
+  SettingsHero,
+  SettingsPanel,
+} from '../../components/settings/SettingsPageScaffold';
+
+const btnPrimary =
+  'inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-blue-600';
+
+const fieldInput =
+  'w-full max-w-[220px] rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-inner placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20';
+
+const radioClass =
+  'h-4 w-4 border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-0';
+
+const checkboxClass =
+  'h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-2 focus:ring-blue-500/30 focus:ring-offset-0';
 
 const ManageReturnRules: React.FC = () => {
   const navigate = useNavigate();
@@ -196,70 +212,89 @@ const ManageReturnRules: React.FC = () => {
   );
 
   return (
-    <GridBackgroundWrapper>
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
+    <div className="w-full">
+      <div className={SETTINGS_PAGE_CONTAINER_CLASS}>
+        <SettingsHero
+          title="Manage return rules"
+          description="Edit return windows, shipping costs, restocking fees, and which products are final sale."
+          tip="Saved changes apply to purchases made after you update these rules."
+          leading={
             <button
+              type="button"
               onClick={() => navigate(-1)}
-              className="p-1 text-gray-600 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
             >
-              <ArrowLeftIcon className="w-4 h-4" />
+              <ArrowLeftIcon className="h-4 w-4" />
+              Back
             </button>
-            <h1 className="text-xl font-medium text-gray-900">Manage return rules</h1>
-          </div>
-          <div className="flex items-center gap-3">
-            {isDirty && rules && (
-              <button
-                disabled={loading}
-                onClick={async () => {
-                  await updateRules(rules._id, {
-                    enabled: currentNormalized.enabled,
-                    returnWindow: currentNormalized.returnWindow,
-                    returnShippingCost: currentNormalized.returnShippingCost as any,
-                    flatRate: currentNormalized.flatRate,
-                    chargeRestockingFree: currentNormalized.chargeRestockingFree,
-                    restockingFee: currentNormalized.restockingFee,
-                  });
-                  navigate('/settings/policies');
-                }}
-                className="px-3 py-1.5 text-sm text-white bg-gray-900 hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                Save
-              </button>
-            )}
-            <label className="flex items-center gap-2 cursor-pointer">
-              <span className="text-sm text-gray-900">{enabled ? 'Return rules on' : 'Return rules off'}</span>
-              <button
-                type="button"
-                className={`relative w-11 h-6 transition-colors ${
-                  enabled ? 'bg-gray-900' : 'bg-gray-300'
-                }`}
-                onClick={() => setEnabled((v) => !v)}
-              >
-                <span
-                  className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white transition-transform ${
-                    enabled ? 'translate-x-5' : 'translate-x-0'
+          }
+          actions={
+            <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+              {isDirty && rules ? (
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={async () => {
+                    await updateRules(rules._id, {
+                      enabled: currentNormalized.enabled,
+                      returnWindow: currentNormalized.returnWindow,
+                      returnShippingCost: currentNormalized.returnShippingCost as any,
+                      flatRate: currentNormalized.flatRate,
+                      chargeRestockingFree: currentNormalized.chargeRestockingFree,
+                      restockingFee: currentNormalized.restockingFee,
+                    });
+                    navigate('/settings/policies');
+                  }}
+                  className={btnPrimary}
+                >
+                  Save
+                </button>
+              ) : null}
+              <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+                <span className="text-center text-sm font-medium text-slate-700 sm:text-left">
+                  {enabled ? 'Return rules on' : 'Return rules off'}
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={enabled}
+                  onClick={() => setEnabled((v) => !v)}
+                  className={`relative h-7 w-12 shrink-0 rounded-full transition-colors ${
+                    enabled ? 'bg-blue-600' : 'bg-slate-300'
                   }`}
-                />
-              </button>
-            </label>
-          </div>
-        </div>
+                >
+                  <span
+                    className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+                      enabled ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+          }
+        />
 
-        {/* Return window + shipping */}
-        <div className="border border-gray-200 bg-white p-4 mb-4">
-          <h2 className="text-base font-medium text-gray-900 mb-3">Return window</h2>
-          <div className="space-y-2 mb-4">
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Returns &amp; shipping</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Return window, who pays for return shipping, and optional restocking fees.
+              </p>
+            </div>
+          </div>
+          <div className="p-5 sm:p-6">
+          <h3 className="text-base font-semibold text-gray-900">Return window</h3>
+          <div className="mt-3 space-y-2.5">
             {(['14', '30', '90', 'unlimited', 'custom'] as const).map((value) => (
-              <label key={value} className="flex items-center gap-2 cursor-pointer">
+              <label key={value} className="flex cursor-pointer items-center gap-3">
                 <input
                   type="radio"
                   name="windowType"
                   value={value}
                   checked={windowType === value}
                   onChange={(e) => setWindowType(e.target.value as any)}
-                  className="w-4 h-4 text-gray-900 focus:ring-gray-400"
+                  className={radioClass}
                 />
                 <span className="text-sm text-gray-900">
                   {value === 'custom' ? 'Custom days' : value === 'unlimited' ? 'Unlimited' : `${value} days`}
@@ -268,34 +303,34 @@ const ManageReturnRules: React.FC = () => {
             ))}
           </div>
           {windowType === 'custom' && (
-            <div className="mb-4">
-              <label className="block text-xs text-gray-600 mb-1">Number of days</label>
+            <div className="mt-4">
+              <label className="mb-1.5 block text-xs font-medium text-slate-600">Number of days</label>
               <input
                 type="text"
                 value={customDays}
                 onChange={(e) => setCustomDays(e.target.value)}
-                className="w-full max-w-[220px] border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+                className={fieldInput}
                 placeholder="Number of days"
               />
             </div>
           )}
 
-          <hr className="my-4 border-gray-200" />
+          <hr className="my-8 border-gray-200/90" />
 
-          <h2 className="text-base font-medium text-gray-900 mb-1">Return shipping cost</h2>
-          <p className="text-xs text-gray-600 mb-3">
-            Does not apply to returns using Point of Sale
+          <h3 className="text-base font-semibold text-gray-900">Return shipping cost</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            Does not apply to returns using Point of Sale.
           </p>
-          <div className="space-y-2 mb-4">
+          <div className="mt-4 space-y-2.5">
             {(['customer', 'free', 'flat'] as const).map((value) => (
-              <label key={value} className="flex items-center gap-2 cursor-pointer">
+              <label key={value} className="flex cursor-pointer items-center gap-3">
                 <input
                   type="radio"
                   name="shippingCost"
                   value={value}
                   checked={shippingCost === value}
                   onChange={(e) => setShippingCost(e.target.value as any)}
-                  className="w-4 h-4 text-gray-900 focus:ring-gray-400"
+                  className={radioClass}
                 />
                 <span className="text-sm text-gray-900">
                   {value === 'customer' ? 'Customer provides return shipping' : value === 'free' ? 'Free return shipping' : 'Flat rate return shipping'}
@@ -304,59 +339,65 @@ const ManageReturnRules: React.FC = () => {
             ))}
           </div>
           {shippingCost === 'flat' && (
-            <div className="mb-4">
-              <label className="block text-xs text-gray-600 mb-1">Flat rate</label>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-700">₹</span>
+            <div className="mt-4">
+              <label className="mb-1.5 block text-xs font-medium text-slate-600">Flat rate</label>
+              <div className="flex max-w-[220px] items-center gap-2">
+                <span className="text-sm text-slate-600">₹</span>
                 <input
                   type="number"
                   value={flatRate}
                   onChange={(e) => setFlatRate(e.target.value)}
                   placeholder="0.00"
-                  className="w-full max-w-[220px] border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+                  className={`${fieldInput} max-w-none flex-1`}
                 />
               </div>
             </div>
           )}
 
-          <hr className="my-4 border-gray-200" />
+          <hr className="my-8 border-gray-200/90" />
 
-          <h2 className="text-base font-medium text-gray-900 mb-3">Restocking fee</h2>
-          <label className="flex items-center gap-2 cursor-pointer mb-3">
+          <h3 className="text-base font-semibold text-gray-900">Restocking fee</h3>
+          <p className="mt-1 text-sm text-gray-500">Optional percentage deducted from the refund when you restock.</p>
+          <label className="mt-4 flex cursor-pointer items-center gap-3">
             <input
               type="checkbox"
               checked={chargeRestock}
               onChange={(e) => setChargeRestock(e.target.checked)}
-              className="w-4 h-4 text-gray-900 focus:ring-gray-400"
+              className={checkboxClass}
             />
             <span className="text-sm text-gray-900">Charge restocking fee</span>
           </label>
           {chargeRestock && (
-            <div className="mb-4">
-              <label className="block text-xs text-gray-600 mb-1">Restocking fee (%)</label>
+            <div className="mt-4">
+              <label className="mb-1.5 block text-xs font-medium text-slate-600">Restocking fee (%)</label>
               <input
                 type="number"
                 value={restockFee}
                 onChange={(e) => setRestockFee(e.target.value)}
                 placeholder="0"
-                className="w-full max-w-[220px] border border-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400"
+                className={fieldInput}
               />
             </div>
           )}
 
-          <div className="mt-3 pt-3 border-t border-gray-200">
-            <p className="text-xs text-gray-600">
-              Return rules will only apply to items purchased after the return rules were turned on or updated.
+          <div className="mt-8 rounded-xl border border-slate-200/90 bg-slate-50/80 px-4 py-3">
+            <p className="text-xs leading-relaxed text-slate-600">
+              Return rules only apply to items purchased after return rules are turned on or updated.
             </p>
           </div>
-        </div>
+          </div>
+        </SettingsPanel>
 
-        {/* Final sale items */}
-        <div className="border border-gray-200 bg-white p-4 mb-4">
-          <h2 className="text-base font-medium text-gray-900 mb-1">Final sale items</h2>
-          <p className="text-xs text-gray-600 mb-4">
-            Customers can't request returns for products set as final sale
-          </p>
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Final sale items</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Customers can&apos;t request returns for products set as final sale.
+              </p>
+            </div>
+          </div>
+          <div className="p-5 sm:p-6">
           <div className="flex flex-col gap-3">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -372,7 +413,7 @@ const ManageReturnRules: React.FC = () => {
                     setFinalCollections([]);
                   }
                 }}
-                className="w-4 h-4 text-gray-900 focus:ring-gray-400"
+                className={checkboxClass}
               />
               <span className="text-sm text-gray-900">Specific collections</span>
             </label>
@@ -457,7 +498,7 @@ const ManageReturnRules: React.FC = () => {
                     setSelectedVariants({});
                   }
                 }}
-                className="w-4 h-4 text-gray-900 focus:ring-gray-400"
+                className={checkboxClass}
               />
               <span className="text-sm text-gray-900">Specific products</span>
             </label>
@@ -519,7 +560,7 @@ const ManageReturnRules: React.FC = () => {
                                     type="checkbox"
                                     checked={checked}
                                     onChange={() => {}}
-                                    className="w-4 h-4 text-gray-900 focus:ring-gray-400"
+                                    className={checkboxClass}
                                   />
                                   <div>
                                     <p className="text-sm font-medium text-gray-900">
@@ -582,6 +623,7 @@ const ManageReturnRules: React.FC = () => {
 
               return (
                 <button
+                  type="button"
                   disabled={disabled}
                   onClick={async () => {
                     if (!rules || !activeStoreId) return;
@@ -604,19 +646,28 @@ const ManageReturnRules: React.FC = () => {
                     }
                     navigate('/settings/policies');
                   }}
-                  className="px-3 py-1.5 text-sm text-white bg-gray-900 hover:bg-gray-800 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className={btnPrimary}
                 >
                   Save
                 </button>
               );
             })()}
           </div>
-        </div>
+          </div>
+        </SettingsPanel>
 
-        <div className="border border-gray-200 bg-white p-4 mb-4">
-          <h2 className="text-base font-medium text-gray-900 mb-3">
-            Current {activeFinalSaleSelection === 'collections' ? 'final sale collections' : 'final sale products'}
-          </h2>
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">
+                Current {activeFinalSaleSelection === 'collections' ? 'final sale collections' : 'final sale products'}
+              </h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Collections and variants already saved as final sale.
+              </p>
+            </div>
+          </div>
+          <div className="p-5 sm:p-6">
           {activeFinalSaleSelection === 'collections' ? (
             collectionItems.length > 0 ? (
               <div className="flex flex-col gap-2">
@@ -685,15 +736,14 @@ const ManageReturnRules: React.FC = () => {
               No products added to final sale yet.
             </p>
           )}
-        </div>
+          </div>
+        </SettingsPanel>
 
-        <div className="flex justify-between items-center">
-          <p className="text-xs text-gray-600">
-            Learn more about <a href="#" className="text-gray-700 hover:underline">return rules</a>
-          </p>
-        </div>
+        <p className="text-xs text-gray-600">
+          Learn more about <a href="#" className="text-blue-600 hover:underline">return rules</a>
+        </p>
       </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

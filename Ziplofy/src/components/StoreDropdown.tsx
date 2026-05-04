@@ -8,6 +8,7 @@ import {
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useStore } from '../contexts/store.context';
 import toast from 'react-hot-toast';
+import { frontendEnv } from '../config/env';
 
 interface StoreDropdownProps {
   onStoreChange?: (storeId: string) => void;
@@ -93,7 +94,7 @@ const StoreDropdown: React.FC<StoreDropdownProps> = ({ onStoreChange }) => {
   }, []);
 
   const handleConfirmLogout = useCallback(() => {
-    window.location.href = `${import.meta.env.VITE_AUTH_MICROSERVICE_FRONTEND_URL}?logout=true`
+    window.location.href = `${frontendEnv.authMicroserviceFrontendUrl}?logout=true`
   }, []);
 
   // Close dropdown when clicking outside

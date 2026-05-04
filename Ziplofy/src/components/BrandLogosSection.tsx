@@ -142,7 +142,7 @@ const BrandLogosSection: React.FC<BrandLogosSectionProps> = ({
         <p className="text-xs text-gray-600">
           No logo?{' '}
           <a
-            href="https://hatchful.shopify.com"
+            href="https://hatchful.ziplofy.com"
             target="_blank"
             rel="noopener noreferrer"
             className="text-gray-700 hover:text-gray-900 transition-colors"

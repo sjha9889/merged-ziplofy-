@@ -4,20 +4,14 @@ import React, { useCallback } from "react";
 interface ProductImageItemProps {
   imageUrl: string;
   index: number;
-  onUpdateImage: (index: number, url: string) => void;
   onRemoveImage: (index: number) => void;
 }
 
 const ProductImageItem: React.FC<ProductImageItemProps> = ({
   imageUrl,
   index,
-  onUpdateImage,
   onRemoveImage,
 }) => {
-  const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    onUpdateImage(index, e.target.value);
-  }, [index, onUpdateImage]);
-
   const handleRemoveClick = useCallback(() => {
     onRemoveImage(index);
   }, [index, onRemoveImage]);
@@ -40,16 +34,7 @@ const ProductImageItem: React.FC<ProductImageItemProps> = ({
           <TrashIcon className="w-3.5 h-3.5" />
         </button>
       </div>
-      
-      {/* Image URL Input */}
-      <input
-        type="text"
-        placeholder="Enter image URL"
-        value={imageUrl}
-        onChange={handleImageChange}
-        className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 transition-colors mb-2"
-      />
-      
+
       {/* Image Preview */}
       {imageUrl.trim() ? (
         <img

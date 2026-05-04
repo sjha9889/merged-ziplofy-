@@ -12,6 +12,14 @@ import {
 import { useCountries } from '../../contexts/country.context';
 import { useTaxAndDutiesGlobalSettings } from '../../contexts/tax-and-duties-global-settings.context';
 import { useStore } from '../../contexts/store.context';
+import { SettingsCallout, SettingsHero, SettingsPanel } from '../../components/settings/SettingsPageScaffold';
+
+const btnOutline =
+  'inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50';
+const iconBtn =
+  'inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition-colors hover:border-slate-300 hover:bg-slate-50';
+const pageBtn =
+  'inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40';
 
 interface TaxRegion {
   id: string;
@@ -32,16 +40,13 @@ const TaxesAndDutiesPage: React.FC = () => {
   const [includeSalesTax, setIncludeSalesTax] = useState(false);
   const [chargeTaxOnShipping, setChargeTaxOnShipping] = useState(false);
   const [chargeVATOnDigital, setChargeVATOnDigital] = useState(false);
-  
-  // Debounce timer ref
+
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Fetch countries on component mount
   useEffect(() => {
-    getCountries({ limit: 1000 }); // Fetch a large number to get all countries
+    getCountries({ limit: 1000 });
   }, [getCountries]);
 
-  // Fetch tax and duties global settings when store ID is available
   useEffect(() => {
     if (activeStoreId) {
       getByStoreId(activeStoreId).catch((error) => {
@@ -50,7 +55,6 @@ const TaxesAndDutiesPage: React.FC = () => {
     }
   }, [activeStoreId, getByStoreId]);
 
-  // Sync local state with fetched settings
   useEffect(() => {
     if (settings) {
       setIncludeSalesTax(settings.includeSalesTaxInProductPriceAndShippingRate);
@@ -59,7 +63,6 @@ const TaxesAndDutiesPage: React.FC = () => {
     }
   }, [settings]);
 
-  // Debounced update function
   const debouncedUpdate = useCallback(
     (payload: {
       includeSalesTaxInProductPriceAndShippingRate?: boolean;
@@ -70,24 +73,21 @@ const TaxesAndDutiesPage: React.FC = () => {
         return;
       }
 
-      // Clear previous timer
       if (debounceTimerRef.current) {
         clearTimeout(debounceTimerRef.current);
       }
 
-      // Set new timer
       debounceTimerRef.current = setTimeout(async () => {
         try {
           await update(settings._id, payload);
         } catch (error) {
           console.error('Failed to update tax and duties global settings:', error);
         }
-      }, 500); // 500ms debounce delay
+      }, 500);
     },
     [settings, update]
   );
 
-  // Cleanup debounce timer on unmount
   useEffect(() => {
     return () => {
       if (debounceTimerRef.current) {
@@ -96,235 +96,278 @@ const TaxesAndDutiesPage: React.FC = () => {
     };
   }, []);
 
-  // Map countries to TaxRegion format
   const taxRegions: TaxRegion[] = countries.map((country) => ({
     id: country._id,
     name: country.name,
     flag: country.flagEmoji || '🏳️',
-    collecting: country.name.toLowerCase() === 'india' ? 'Taxes' : null, // Show "Taxes" chip for India
-    taxService: 'Manual Tax', // Default value, can be updated later
+    collecting: country.name.toLowerCase() === 'india' ? 'Taxes' : null,
+    taxService: 'Manual Tax',
   }));
 
   const filteredRegions = taxRegions.filter((region) =>
     region.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const paginatedRegions = filteredRegions.slice(
-    (page - 1) * rowsPerPage,
-    page * rowsPerPage
-  );
+  const paginatedRegions = filteredRegions.slice((page - 1) * rowsPerPage, page * rowsPerPage);
 
   const totalPages = Math.ceil(filteredRegions.length / rowsPerPage);
 
+  const searchInputClass =
+    'w-full rounded-lg border border-slate-200 bg-white py-2 pl-10 pr-3 text-sm text-slate-900 shadow-inner placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20';
+
+  const checkboxClass =
+    'mt-0.5 h-4 w-4 shrink-0 rounded border-slate-300 text-blue-600 focus:ring-blue-500/30';
+
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-        <header>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Taxes and duties</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage tax regions, duties, import taxes, and global tax settings.
-          </p>
-        </header>
+    <div className="w-full">
+      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-6">
+        <SettingsHero
+          title="Taxes and duties"
+          description="Manage tax regions, duties, import taxes, and global tax settings."
+          tip="Tax region details vary by country—select a row to configure rates and registrations where supported."
+        />
 
-        {/* Tax Regions Section */}
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <h2 className="text-base font-semibold text-gray-900">Tax regions</h2>
-            <InformationCircleIcon className="w-4 h-4 text-gray-500" />
-          </div>
-
-          <p className="text-sm text-gray-500 mb-4">
-            Areas where your customers will pay tax, and where you will collect and remit. Create a{' '}
-            <button
-              type="button"
-              onClick={() => navigate('/settings/shipping-and-delivery')}
-              className="text-gray-700 cursor-pointer hover:underline font-medium"
-            >
-              shipping zone
-            </button>{' '}
-            to add a new tax region. If you're unsure about your tax liability, check with a tax professional.
-          </p>
-
-          {/* Search and Filter Bar */}
-          <div className="flex items-center gap-2 mb-4">
-            <div className="relative flex-1 max-w-[300px]">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
-              <input
-                type="text"
-                placeholder="Search"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setPage(1);
-                }}
-                className="w-full pl-10 pr-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
-              />
-            </div>
-            <button type="button" className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-              <FunnelIcon className="w-4 h-4 text-gray-600" />
-            </button>
-            <button type="button" className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
-              <ArrowsUpDownIcon className="w-4 h-4 text-gray-600" />
-            </button>
-          </div>
-
-          {/* Tax Regions Table */}
-          <div className="overflow-x-auto rounded-lg border border-gray-200">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-gray-50/80">
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-700 border-b border-gray-200">
-                    Region
-                  </th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-700 border-b border-gray-200">
-                    Collecting
-                  </th>
-                  <th className="text-left py-3 px-4 text-xs font-medium text-gray-700 border-b border-gray-200">
-                    Tax service
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {countriesLoading ? (
-                  <tr>
-                    <td colSpan={3} className="text-center py-6 text-sm text-gray-500">
-                      Loading countries...
-                    </td>
-                  </tr>
-                ) : paginatedRegions.length === 0 ? (
-                  <tr>
-                    <td colSpan={3} className="text-center py-6 text-sm text-gray-500">
-                      No countries found
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedRegions.map((region) => (
-                    <tr
-                      key={region.id}
-                      onClick={() => navigate(`/settings/taxes-and-duties/${region.id}`)}
-                      className="cursor-pointer hover:bg-gray-50/80 transition-colors border-b border-gray-100 last:border-b-0"
-                    >
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <span className="text-lg">{region.flag}</span>
-                          <span className="text-sm text-gray-900 font-medium">
-                            {region.name}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-3 px-4">
-                        {region.collecting ? (
-                          <span className="inline-block px-2.5 py-1 rounded-md bg-gray-100 text-xs font-medium text-gray-700">
-                            {region.collecting}
-                          </span>
-                        ) : (
-                          <span className="text-sm text-gray-400">—</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-sm text-gray-600">
-                        {region.taxService}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center gap-1 mt-4">
-              <button
-                type="button"
-                disabled={page === 1}
-                onClick={() => setPage(page - 1)}
-                className={`p-2 rounded-lg border border-gray-200 transition-colors ${
-                  page === 1
-                    ? 'text-gray-300 cursor-not-allowed'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <ChevronLeftIcon className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                disabled={page === totalPages}
-                onClick={() => setPage(page + 1)}
-                className={`p-2 rounded-lg border border-gray-200 transition-colors ${
-                  page === totalPages
-                    ? 'text-gray-300 cursor-not-allowed'
-                    : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <ChevronRightIcon className="w-4 h-4" />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Duties and import taxes */}
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <h2 className="text-base font-semibold text-gray-900">Duties and import taxes</h2>
-            <InformationCircleIcon className="w-4 h-4 text-gray-500" />
-          </div>
-
-          {/* Collect duties and import taxes at checkout */}
-          <div className="mb-4">
-            <div className="flex justify-between items-start gap-4 mb-2">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900 mb-0.5">
-                  Collect duties and import taxes at checkout
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 border-l-4 border-blue-500/75 pl-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-base font-semibold text-gray-900">Tax regions</h2>
+                  <button
+                    type="button"
+                    className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
+                    title="Regions where you collect tax. Add shipping zones to expose new regions."
+                    aria-label="About tax regions"
+                  >
+                    <InformationCircleIcon className="h-4 w-4" />
+                  </button>
+                </div>
+                <p className="mt-1 text-sm text-gray-500">
+                  Areas where customers pay tax and you collect or remit. Create a{' '}
+                  <button
+                    type="button"
+                    onClick={() => navigate('/settings/shipping-and-delivery')}
+                    className="font-medium text-blue-700 underline-offset-2 hover:underline"
+                  >
+                    shipping zone
+                  </button>{' '}
+                  to add a region. Consult a tax professional if you are unsure about liability.
                 </p>
-                <p className="text-sm text-gray-500">
+              </div>
+            </div>
+          </div>
+
+          <div className="p-5 sm:p-6">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <div className="relative min-w-[200px] flex-1 max-w-[320px]">
+                <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="search"
+                  placeholder="Search regions"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setPage(1);
+                  }}
+                  className={searchInputClass}
+                  aria-label="Search tax regions"
+                />
+              </div>
+              <button type="button" className={iconBtn} title="Filter (coming soon)" aria-label="Filter">
+                <FunnelIcon className="h-4 w-4" />
+              </button>
+              <button type="button" className={iconBtn} title="Sort (coming soon)" aria-label="Sort">
+                <ArrowsUpDownIcon className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-inner ring-1 ring-slate-100/80">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[520px] border-collapse text-left">
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-gradient-to-r from-slate-50/95 to-slate-50/50">
+                      <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600 sm:px-5">
+                        Region
+                      </th>
+                      <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600 sm:px-5">
+                        Collecting
+                      </th>
+                      <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-600 sm:px-5">
+                        Tax service
+                      </th>
+                      <th className="w-10 px-2 sm:w-12" aria-hidden />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {countriesLoading ? (
+                      <tr>
+                        <td colSpan={4} className="px-4 py-12 text-center">
+                          <div className="inline-flex flex-col items-center gap-2">
+                            <div
+                              className="h-7 w-7 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600"
+                              aria-hidden
+                            />
+                            <span className="text-sm text-slate-500">Loading countries…</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : paginatedRegions.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="px-4 py-10 text-center text-sm text-slate-500">
+                          No countries match your search.
+                        </td>
+                      </tr>
+                    ) : (
+                      paginatedRegions.map((region) => (
+                        <tr
+                          key={region.id}
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => navigate(`/settings/taxes-and-duties/${region.id}`)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              navigate(`/settings/taxes-and-duties/${region.id}`);
+                            }
+                          }}
+                          className="cursor-pointer transition-colors hover:bg-blue-50/50"
+                        >
+                          <td className="px-4 py-3.5 sm:px-5">
+                            <div className="flex items-center gap-3">
+                              <span className="text-xl leading-none" role="img" aria-hidden>
+                                {region.flag}
+                              </span>
+                              <span className="text-sm font-semibold text-gray-900">{region.name}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3.5 sm:px-5">
+                            {region.collecting ? (
+                              <span className="inline-flex rounded-md border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-800">
+                                {region.collecting}
+                              </span>
+                            ) : (
+                              <span className="text-sm text-slate-400">—</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3.5 text-sm text-slate-600 sm:px-5">{region.taxService}</td>
+                          <td className="px-2 py-3.5 text-slate-400">
+                            <ChevronRightIcon className="h-5 w-5" aria-hidden />
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {totalPages > 1 ? (
+              <div className="mt-4 flex items-center justify-between gap-3">
+                <p className="text-xs text-slate-500">
+                  Page {page} of {totalPages}
+                </p>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    disabled={page === 1}
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    className={pageBtn}
+                    aria-label="Previous page"
+                  >
+                    <ChevronLeftIcon className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={page === totalPages}
+                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    className={pageBtn}
+                    aria-label="Next page"
+                  >
+                    <ChevronRightIcon className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </SettingsPanel>
+
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="text-base font-semibold text-gray-900">Duties and import taxes</h2>
+                <button
+                  type="button"
+                  className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
+                  title="Collect duties at checkout to reduce surprise fees for international buyers."
+                  aria-label="About duties and import taxes"
+                >
+                  <InformationCircleIcon className="h-4 w-4" />
+                </button>
+              </div>
+              <p className="mt-1 text-sm text-gray-500">
+                Optional checkout collection for cross-border duties (fees may apply).
+              </p>
+            </div>
+          </div>
+          <div className="p-5 sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-900">Collect duties and import taxes at checkout</p>
+                <p className="mt-1 text-sm text-gray-500">
                   Prevent surprise fees for international customers at delivery • 0.5% transaction fee
                 </p>
               </div>
-              <button type="button" className="rounded-lg px-4 py-2 text-sm font-medium border border-gray-200 text-gray-700 bg-white hover:bg-gray-50 transition-colors whitespace-nowrap">
+              <button type="button" className={`${btnOutline} shrink-0`}>
                 Set up
               </button>
             </div>
 
-            <div className="mt-3 p-3 rounded-lg bg-gray-50 border border-gray-200 flex items-start gap-2">
-              <InformationCircleIcon className="w-4 h-4 text-gray-600 shrink-0 mt-0.5" />
-              <p className="text-sm text-gray-500">
-                Ensure the carriers you use offer{' '}
-                <button type="button" className="text-gray-700 cursor-pointer hover:underline font-medium">
-                  Delivered duty paid (DDP) shipping labels
-                </button>
-                .
-              </p>
-            </div>
-          </div>
-
-          {/* Customs information */}
-          <div>
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-sm font-medium text-gray-900">Customs information</h3>
-              <button type="button" className="p-2 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors">
-                <EllipsisVerticalIcon className="w-4 h-4" />
+            <SettingsCallout variant="info" icon={<InformationCircleIcon className="h-5 w-5 text-blue-600" />} className="mt-4">
+              Ensure the carriers you use offer{' '}
+              <button type="button" className="font-medium text-blue-800 underline-offset-2 hover:underline">
+                Delivered duty paid (DDP) shipping labels
               </button>
-            </div>
+              .
+            </SettingsCallout>
 
-            <div className="mb-3">
-              <p className="text-sm text-gray-500 mb-0.5">Country of origin</p>
-              <p className="text-sm text-gray-900">No default set</p>
-            </div>
+            <div className="mt-8 border-t border-slate-100 pt-6">
+              <div className="mb-4 flex items-center justify-between gap-2">
+                <h3 className="text-sm font-semibold text-gray-900">Customs information</h3>
+                <button
+                  type="button"
+                  className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
+                  aria-label="Customs options"
+                >
+                  <EllipsisVerticalIcon className="h-4 w-4" />
+                </button>
+              </div>
 
-            <div>
-              <p className="text-sm text-gray-500 mb-0.5">Harmonized System (HS) codes</p>
-              <p className="text-sm text-gray-900">No physical products available</p>
+              <div className="space-y-4 rounded-xl border border-slate-100 bg-slate-50/50 p-4 sm:p-5">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500">Country of origin</p>
+                  <p className="mt-1 text-sm font-medium text-gray-900">No default set</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                    Harmonized System (HS) codes
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-gray-900">No physical products available</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </SettingsPanel>
 
-        {/* Global settings */}
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Global settings</h2>
-
-          {/* Include sales tax in product price and shipping rate */}
-          <div className="mb-4">
-            <label className="flex items-start gap-3 cursor-pointer">
+        <SettingsPanel className="ring-1 ring-slate-200/60">
+          <div className="border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-5 py-4 sm:px-6">
+            <div className="border-l-4 border-blue-500/75 pl-3">
+              <h2 className="text-base font-semibold text-gray-900">Global settings</h2>
+              <p className="mt-1 text-sm text-gray-500">Defaults that apply across your catalog and checkout.</p>
+            </div>
+          </div>
+          <div className="divide-y divide-slate-100 px-5 py-1 sm:px-6">
+            <label className="flex cursor-pointer items-start gap-3 py-5">
               <input
                 type="checkbox"
                 checked={includeSalesTax}
@@ -336,26 +379,21 @@ const TaxesAndDutiesPage: React.FC = () => {
                   });
                 }}
                 disabled={settingsLoading || !settings}
-                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/30"
+                className={checkboxClass}
               />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900 mb-0.5">
-                  Include sales tax in product price and shipping rate
-                </p>
-                <p className="text-sm text-gray-500">
-                  Assumes a 9% tax rate, which is adjusted to local tax rates in markets with{' '}
-                  <button type="button" className="text-gray-700 cursor-pointer hover:underline font-medium">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-900">Include sales tax in product price and shipping rate</p>
+                <p className="mt-1 text-sm text-gray-500">
+                  Assumes a 9% tax rate, adjusted to local rates in markets with{' '}
+                  <button type="button" className="font-medium text-blue-700 underline-offset-2 hover:underline">
                     dynamic tax inclusion
                   </button>
                   .
                 </p>
               </div>
             </label>
-          </div>
 
-          {/* Charge sales tax on shipping */}
-          <div className="mb-4">
-            <label className="flex items-start gap-3 cursor-pointer">
+            <label className="flex cursor-pointer items-start gap-3 py-5">
               <input
                 type="checkbox"
                 checked={chargeTaxOnShipping}
@@ -367,20 +405,17 @@ const TaxesAndDutiesPage: React.FC = () => {
                   });
                 }}
                 disabled={settingsLoading || !settings}
-                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/30"
+                className={checkboxClass}
               />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900 mb-0.5">Charge sales tax on shipping</p>
-                <p className="text-sm text-gray-500">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-900">Charge sales tax on shipping</p>
+                <p className="mt-1 text-sm text-gray-500">
                   Automatically calculated for Canada, European Union, and United States
                 </p>
               </div>
             </label>
-          </div>
 
-          {/* Charge VAT on digital goods */}
-          <div>
-            <label className="flex items-start gap-3 cursor-pointer">
+            <label className="flex cursor-pointer items-start gap-3 py-5">
               <input
                 type="checkbox"
                 checked={chargeVATOnDigital}
@@ -392,13 +427,13 @@ const TaxesAndDutiesPage: React.FC = () => {
                   });
                 }}
                 disabled={settingsLoading || !settings}
-                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/30"
+                className={checkboxClass}
               />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900 mb-0.5">Charge VAT on digital goods</p>
-                <p className="text-sm text-gray-500">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-gray-900">Charge VAT on digital goods</p>
+                <p className="mt-1 text-sm text-gray-500">
                   Creates a collection of digital goods that will be{' '}
-                  <button type="button" className="text-gray-700 cursor-pointer hover:underline font-medium">
+                  <button type="button" className="font-medium text-blue-700 underline-offset-2 hover:underline">
                     charged VAT
                   </button>{' '}
                   at checkout (for European customers)
@@ -406,7 +441,7 @@ const TaxesAndDutiesPage: React.FC = () => {
               </div>
             </label>
           </div>
-        </div>
+        </SettingsPanel>
       </div>
     </div>
   );

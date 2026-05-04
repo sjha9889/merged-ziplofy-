@@ -34,8 +34,8 @@ export default function SettingsSidebarItem({
     <li>
       <button
         onClick={() => onItemClick(item)}
-        className={`w-full flex items-center gap-3 px-4 py-2.5 text-gray-700 hover:bg-gray-50 transition-colors text-left ${
-          isCurrentPath ? 'bg-gray-50' : ''
+        className={`w-full rounded-lg flex items-center gap-3 px-3 py-2 text-slate-700 hover:bg-slate-100 transition-colors text-left ${
+          isCurrentPath ? 'bg-blue-50 text-blue-700 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.25)]' : ''
         }`}
       >
         <Icon className="w-4 h-4 shrink-0" />
@@ -43,9 +43,9 @@ export default function SettingsSidebarItem({
         {hasChildren && (
           <span className="shrink-0">
             {isExpanded ? (
-              <ChevronUpIcon className="w-4 h-4 text-gray-500" />
+              <ChevronUpIcon className="w-4 h-4 text-slate-400" />
             ) : (
-              <ChevronDownIcon className="w-4 h-4 text-gray-500" />
+              <ChevronDownIcon className="w-4 h-4 text-slate-400" />
             )}
           </span>
         )}

@@ -11,5 +11,7 @@ exports.productVariantRouter.get("/public/product/:productId", product_variant_c
 exports.productVariantRouter.use(auth_middleware_1.protect);
 // GET variants by product id
 exports.productVariantRouter.get("/product/:productId", product_variant_controller_1.getVariantsByProductId);
-// PUT update variant by id
-exports.productVariantRouter.put("/:id", product_variant_controller_1.updateVariantById);
+// GET single variant by id
+exports.productVariantRouter.get("/:id", product_variant_controller_1.getVariantById);
+// PATCH update variant by id
+exports.productVariantRouter.patch("/:id", product_variant_controller_1.updateVariantById);

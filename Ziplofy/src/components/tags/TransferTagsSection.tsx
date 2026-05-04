@@ -1,5 +1,6 @@
 import { PlusIcon } from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { SettingsPanel } from '../settings/SettingsPageScaffold';
 import { useStore } from '../../contexts/store.context';
 import { useTransferTags } from '../../contexts/transfer-tags.context';
 import DeleteTagConfirmationModal from './DeleteTagConfirmationModal';
@@ -55,38 +56,62 @@ const TransferTagsSection: React.FC = () => {
   }, [activeStoreId]);
 
   return (
-    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
-      <h2 className="text-base font-semibold text-gray-900 mb-4">Product transfer tags</h2>
-      <div className="flex gap-3 mb-4">
-        <input
-          type="text"
-          placeholder="Add new transfer tag"
-          value={newTagName}
-          onChange={handleNewTagNameChange}
-          className="flex-1 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-colors text-sm"
+    <>
+      <SettingsPanel className="overflow-hidden p-0">
+        <div className="border-b border-gray-100 px-5 py-4 sm:px-6">
+          <h2 className="text-base font-semibold text-gray-900">Your transfer tags</h2>
+          <p className="mt-0.5 text-sm text-gray-500">
+            Use consistent labels on transfers so receiving, auditing, and inventory reports stay easy to scan.
+          </p>
+        </div>
+
+        <div className="border-b border-gray-100 bg-gray-50/40 px-5 py-4 sm:px-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <input
+              type="text"
+              placeholder="Add new transfer tag"
+              value={newTagName}
+              onChange={handleNewTagNameChange}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && canCreate && !loading) void handleAddTag();
+              }}
+              className="min-w-0 flex-1 rounded-xl border border-gray-200/90 bg-white px-3.5 py-2.5 text-sm text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-blue-500/40 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            />
+            <button
+              type="button"
+              disabled={!canCreate || loading}
+              onClick={() => void handleAddTag()}
+              className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <PlusIcon className="h-4 w-4" />
+              Add
+            </button>
+          </div>
+        </div>
+
+        {error ? (
+          <div
+            className="border-b border-red-100 bg-red-50/60 px-5 py-3 text-sm text-red-800 sm:px-6"
+            role="alert"
+          >
+            {error}
+          </div>
+        ) : null}
+
+        <TransferTagsList
+          tags={tags}
+          loading={loading}
+          onDeleteClick={handleDeleteClick}
         />
-        <button
-          disabled={!canCreate || loading}
-          onClick={handleAddTag}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <PlusIcon className="w-4 h-4" />
-          Add
-        </button>
-      </div>
-      {error && <p className="text-sm text-red-600 mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">{error}</p>}
-      <TransferTagsList
-        tags={tags}
-        loading={loading}
-        onDeleteClick={handleDeleteClick}
-      />
+      </SettingsPanel>
+
       <DeleteTagConfirmationModal
         isOpen={isDeleteModalOpen}
         tagName={tagToDelete?.name || ''}
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
       />
-    </div>
+    </>
   );
 };
 

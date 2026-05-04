@@ -1,11 +1,11 @@
 import React, { useCallback } from 'react';
 import {
-  BellIcon,
-  ChevronRightIcon,
+  ArrowLeftIcon,
   PlusIcon,
   InformationCircleIcon,
 } from '@heroicons/react/24/outline';
 import { useNavigate } from 'react-router-dom';
+import { SettingsHero, SettingsPanel } from '../../components/settings/SettingsPageScaffold';
 
 const WebhooksNotificationsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -20,26 +20,25 @@ const WebhooksNotificationsPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-        <header className="flex items-start gap-3">
-          <button
-            type="button"
-            onClick={handleBackClick}
-            className="mt-0.5 inline-flex items-center justify-center p-2 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
-            aria-label="Back to notifications"
-          >
-            <BellIcon className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Webhooks</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Send XML or JSON notifications about store events to a URL.
-            </p>
-          </div>
-        </header>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Webhooks"
+          description="Send XML or JSON notifications about store events to a URL."
+          leading={
+            <button
+              type="button"
+              onClick={handleBackClick}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200/90 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50/90 transition-colors"
+              aria-label="Back to notifications"
+            >
+              <ArrowLeftIcon className="h-4 w-4" />
+              Back
+            </button>
+          }
+        />
 
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm p-5 mb-6">
+        <SettingsPanel className="p-5 sm:p-6">
           <button
             type="button"
             onClick={handleCreateWebhook}
@@ -58,7 +57,7 @@ const WebhooksNotificationsPage: React.FC = () => {
               </span>
             </p>
           </div>
-        </div>
+        </SettingsPanel>
       </div>
     </div>
   );

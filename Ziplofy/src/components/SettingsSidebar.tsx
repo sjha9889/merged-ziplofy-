@@ -116,7 +116,7 @@ export default function SettingsSidebar({ currentPath, onNavigate, onBack }: Set
 
   return (
     <aside
-      className="fixed bg-white border-r border-gray-200 left-0 top-12 h-[calc(100vh-48px)] w-[240px] flex flex-col shrink-0 z-50"
+      className="fixed left-0 top-12 z-50 flex h-[calc(100vh-48px)] w-[240px] shrink-0 flex-col border-r border-slate-200/80 bg-slate-50/90 backdrop-blur"
       style={{ width: `${drawerWidth}px` }}
     >
       {/* Header Section */}

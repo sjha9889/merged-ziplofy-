@@ -7,7 +7,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        'page-background-color': '#fdfdfd',
+        // Barely off-white so white cards read almost flush with the canvas
+        'page-background-color': '#fefefe',
+        /** Home / analytics canvas — matches reference dashboard gray */
+        'dashboard-canvas': '#F8F9FA',
+      },
+      boxShadow: {
+        'dashboard-card': '0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06)',
+        'dashboard-card-hover': '0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05)',
       },
       keyframes: {
         'fade-in': {

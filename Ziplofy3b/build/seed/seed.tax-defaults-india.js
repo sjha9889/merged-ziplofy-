@@ -6,20 +6,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const database_config_1 = require("../config/database.config");
+const country_model_1 = require("../models/country/country.model");
 const tax_rate_default_model_1 = require("../models/tax-rate-default/tax-rate-default.model");
 const state_model_1 = require("../models/state/state.model");
 dotenv_1.default.config();
-// India country ID
-const INDIA_COUNTRY_ID = '6902f7358dd63bde9269cbfe';
 async function seedIndiaTaxDefaults() {
     try {
         await (0, database_config_1.connectDB)();
         console.log('Connected to database');
-        // Validate India country ID
-        if (!mongoose_1.default.Types.ObjectId.isValid(INDIA_COUNTRY_ID)) {
-            throw new Error(`Invalid India country ID: ${INDIA_COUNTRY_ID}`);
+        // Resolve India dynamically from Country seed data.
+        const india = await country_model_1.Country.findOne({ iso2: 'IN' }).select('_id').lean();
+        if (!india?._id) {
+            console.log('India country not found (iso2=IN). Please run seed:countries first.');
+            process.exit(0);
         }
-        const indiaObjectId = new mongoose_1.default.Types.ObjectId(INDIA_COUNTRY_ID);
+        const indiaObjectId = new mongoose_1.default.Types.ObjectId(String(india._id));
         // Fetch all states for India
         const states = await state_model_1.State.find({ countryId: indiaObjectId }).lean();
         if (!states || states.length === 0) {

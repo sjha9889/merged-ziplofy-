@@ -7,191 +7,628 @@ import { Category, ICategory } from "../../models/category/category.model";
 dotenv.config();
 
 const categoryTree = {
-    "X1": {
-      "X1.1": {
-        "X1.1.1": {},
-        "X1.1.2": {},
-        "X1.1.3": {},
-        "X1.1.4": {},
-        "X1.1.5": {}
-      },
-      "X1.2": {
-        "X1.2.1": {},
-        "X1.2.2": {},
-        "X1.2.3": {},
-        "X1.2.4": {},
-        "X1.2.5": {}
-      },
-      "X1.3": {
-        "X1.3.1": {},
-        "X1.3.2": {},
-        "X1.3.3": {},
-        "X1.3.4": {},
-        "X1.3.5": {}
-      },
-      "X1.4": {
-        "X1.4.1": {},
-        "X1.4.2": {},
-        "X1.4.3": {},
-        "X1.4.4": {},
-        "X1.4.5": {}
-      },
-      "X1.5": {
-        "X1.5.1": {},
-        "X1.5.2": {},
-        "X1.5.3": {},
-        "X1.5.4": {},
-        "X1.5.5": {}
+  "Apparel & Accessories": {
+    "Clothing": {
+      "Tops": {},
+      "Bottoms": {},
+      "Dresses": {},
+      "Outerwear": {},
+      "Activewear": {},
+      "Sleepwear & Loungewear": {}
+    },
+    "Footwear": {
+      "Sneakers": {},
+      "Boots": {},
+      "Sandals": {},
+      "Formal Shoes": {},
+      "Slippers": {}
+    },
+    "Bags & Wallets": {
+      "Backpacks": {},
+      "Handbags": {},
+      "Travel Bags": {},
+      "Laptop Bags": {},
+      "Wallets & Card Holders": {}
+    },
+    "Jewelry": {
+      "Necklaces": {},
+      "Bracelets": {},
+      "Earrings": {},
+      "Rings": {},
+      "Watches": {
+        "By Gender": {
+          "Men's Watches": {},
+          "Women's Watches": {},
+          "Unisex Watches": {},
+          "Kids' Watches": {}
+        },
+        "By Display Type": {
+          "Analog Watches": {},
+          "Digital Watches": {},
+          "Analog-Digital Watches": {},
+          "Smart Watches": {}
+        },
+        "By Movement": {
+          "Quartz Watches": {},
+          "Automatic Watches": {},
+          "Mechanical Manual Watches": {},
+          "Solar Watches": {},
+          "Kinetic Watches": {}
+        },
+        "By Strap Material": {
+          "Stainless Steel Strap Watches": {},
+          "Leather Strap Watches": {},
+          "Silicone Strap Watches": {},
+          "Nylon Strap Watches": {},
+          "Ceramic Strap Watches": {},
+          "Titanium Strap Watches": {}
+        },
+        "By Case Material": {
+          "Stainless Steel Case Watches": {},
+          "Titanium Case Watches": {},
+          "Ceramic Case Watches": {},
+          "Resin Case Watches": {},
+          "Gold Plated Case Watches": {}
+        },
+        "By Style": {
+          "Dress Watches": {},
+          "Casual Watches": {},
+          "Sport Watches": {},
+          "Luxury Watches": {},
+          "Minimalist Watches": {},
+          "Fashion Watches": {},
+          "Vintage Watches": {}
+        },
+        "By Features": {
+          "Chronograph Watches": {},
+          "GMT Watches": {},
+          "Diver Watches": {},
+          "Pilot Watches": {},
+          "Field Watches": {},
+          "Moonphase Watches": {},
+          "Skeleton Watches": {},
+          "Perpetual Calendar Watches": {},
+          "Alarm Watches": {},
+          "World Time Watches": {}
+        },
+        "By Occasion": {
+          "Everyday Wear Watches": {},
+          "Formal Occasion Watches": {},
+          "Party Wear Watches": {},
+          "Office Wear Watches": {},
+          "Travel Watches": {},
+          "Wedding Watches": {}
+        },
+        "By Water Resistance": {
+          "30m Water Resistant Watches": {},
+          "50m Water Resistant Watches": {},
+          "100m Water Resistant Watches": {},
+          "200m+ Water Resistant Watches": {}
+        },
+        "Watch Accessories": {
+          "Watch Straps & Bands": {},
+          "Metal Bracelets for Watches": {},
+          "Watch Buckles & Clasps": {},
+          "Watch Batteries": {},
+          "Watch Winders": {},
+          "Watch Storage Boxes": {},
+          "Watch Protectors & Cases": {},
+          "Watch Repair Tools": {},
+          "Watch Cleaning Kits": {}
+        },
+        "Watch Parts": {
+          "Watch Cases": {},
+          "Watch Dials": {},
+          "Watch Hands": {},
+          "Watch Crowns": {},
+          "Watch Crystals": {},
+          "Watch Movements": {}
+        },
+        "Certified & Special Collections": {
+          "Limited Edition Watches": {},
+          "Collector Edition Watches": {},
+          "Pre-Owned Watches": {},
+          "Certified Refurbished Watches": {}
+        }
       }
     },
-    "X2": {
-      "X2.1": {
-        "X2.1.1": {},
-        "X2.1.2": {},
-        "X2.1.3": {},
-        "X2.1.4": {},
-        "X2.1.5": {}
-      },
-      "X2.2": {
-        "X2.2.1": {},
-        "X2.2.2": {},
-        "X2.2.3": {},
-        "X2.2.4": {},
-        "X2.2.5": {}
-      },
-      "X2.3": {
-        "X2.3.1": {},
-        "X2.3.2": {},
-        "X2.3.3": {},
-        "X2.3.4": {},
-        "X2.3.5": {}
-      },
-      "X2.4": {
-        "X2.4.1": {},
-        "X2.4.2": {},
-        "X2.4.3": {},
-        "X2.4.4": {},
-        "X2.4.5": {}
-      },
-      "X2.5": {
-        "X2.5.1": {},
-        "X2.5.2": {},
-        "X2.5.3": {},
-        "X2.5.4": {},
-        "X2.5.5": {}
-      }
-    },
-    "X3": {
-      "X3.1": {
-        "X3.1.1": {},
-        "X3.1.2": {},
-        "X3.1.3": {},
-        "X3.1.4": {},
-        "X3.1.5": {}
-      },
-      "X3.2": {
-        "X3.2.1": {},
-        "X3.2.2": {},
-        "X3.2.3": {},
-        "X3.2.4": {},
-        "X3.2.5": {}
-      },
-      "X3.3": {
-        "X3.3.1": {},
-        "X3.3.2": {},
-        "X3.3.3": {},
-        "X3.3.4": {},
-        "X3.3.5": {}
-      },
-      "X3.4": {
-        "X3.4.1": {},
-        "X3.4.2": {},
-        "X3.4.3": {},
-        "X3.4.4": {},
-        "X3.4.5": {}
-      },
-      "X3.5": {
-        "X3.5.1": {},
-        "X3.5.2": {},
-        "X3.5.3": {},
-        "X3.5.4": {},
-        "X3.5.5": {}
-      }
-    },
-    "X4": {
-      "X4.1": {
-        "X4.1.1": {},
-        "X4.1.2": {},
-        "X4.1.3": {},
-        "X4.1.4": {},
-        "X4.1.5": {}
-      },
-      "X4.2": {
-        "X4.2.1": {},
-        "X4.2.2": {},
-        "X4.2.3": {},
-        "X4.2.4": {},
-        "X4.2.5": {}
-      },
-      "X4.3": {
-        "X4.3.1": {},
-        "X4.3.2": {},
-        "X4.3.3": {},
-        "X4.3.4": {},
-        "X4.3.5": {}
-      },
-      "X4.4": {
-        "X4.4.1": {},
-        "X4.4.2": {},
-        "X4.4.3": {},
-        "X4.4.4": {},
-        "X4.4.5": {}
-      },
-      "X4.5": {
-        "X4.5.1": {},
-        "X4.5.2": {},
-        "X4.5.3": {},
-        "X4.5.4": {},
-        "X4.5.5": {}
-      }
-    },
-    "X5": {
-      "X5.1": {
-        "X5.1.1": {},
-        "X5.1.2": {},
-        "X5.1.3": {},
-        "X5.1.4": {},
-        "X5.1.5": {}
-      },
-      "X5.2": {
-        "X5.2.1": {},
-        "X5.2.2": {},
-        "X5.2.3": {},
-        "X5.2.4": {},
-        "X5.2.5": {}
-      },
-      "X5.3": {
-        "X5.3.1": {},
-        "X5.3.2": {},
-        "X5.3.3": {},
-        "X5.3.4": {},
-        "X5.3.5": {}
-      },
-      "X5.4": {
-        "X5.4.1": {},
-        "X5.4.2": {},
-        "X5.4.3": {},
-        "X5.4.4": {},
-        "X5.4.5": {}
-      },
-      "X5.5": {
-        "X5.5.1": {},
-        "X5.5.2": {},
-        "X5.5.3": {},
-        "X5.5.4": {},
-        "X5.5.5": {}
-      }
+    "Fashion Accessories": {
+      "Belts": {},
+      "Hats & Caps": {},
+      "Sunglasses": {},
+      "Scarves & Gloves": {},
+      "Hair Accessories": {}
     }
+  },
+  "Electronics": {
+    "Computers & Tablets": {
+      "Laptops": {},
+      "Desktop PCs": {},
+      "Monitors": {},
+      "Tablets": {},
+      "Computer Components": {},
+      "Computer Accessories": {}
+    },
+    "Phones & Accessories": {
+      "Smartphones": {},
+      "Feature Phones": {},
+      "Cases & Covers": {},
+      "Chargers & Cables": {},
+      "Screen Protectors": {},
+      "Power Banks": {}
+    },
+    "Audio": {
+      "Headphones": {},
+      "Earbuds": {},
+      "Speakers": {},
+      "Home Audio Systems": {},
+      "Microphones": {}
+    },
+    "Cameras & Optics": {
+      "Digital Cameras": {},
+      "Lenses": {},
+      "Tripods": {},
+      "Action Cameras": {},
+      "Drones": {},
+      "Binoculars & Telescopes": {}
+    },
+    "Smart Home": {
+      "Security Cameras": {},
+      "Smart Lighting": {},
+      "Smart Speakers": {},
+      "Smart Plugs": {},
+      "Home Automation Hubs": {}
+    }
+  },
+  "Home & Garden": {
+    "Furniture": {
+      "Living Room Furniture": {},
+      "Bedroom Furniture": {},
+      "Dining Room Furniture": {},
+      "Office Furniture": {},
+      "Outdoor Furniture": {}
+    },
+    "Home Decor": {
+      "Wall Decor": {},
+      "Rugs & Carpets": {},
+      "Curtains & Blinds": {},
+      "Clocks": {},
+      "Decorative Accents": {}
+    },
+    "Kitchen & Dining": {
+      "Cookware": {},
+      "Bakeware": {},
+      "Dinnerware": {},
+      "Drinkware": {},
+      "Kitchen Tools & Gadgets": {},
+      "Storage & Organization": {}
+    },
+    "Bedding & Bath": {
+      "Bed Sheets": {},
+      "Comforters & Duvets": {},
+      "Pillows": {},
+      "Towels": {},
+      "Bathroom Accessories": {}
+    },
+    "Garden & Outdoor": {
+      "Plants & Seeds": {},
+      "Planters & Pots": {},
+      "Gardening Tools": {},
+      "Outdoor Decor": {},
+      "BBQ & Outdoor Cooking": {}
+    }
+  },
+  "Beauty & Personal Care": {
+    "Skin Care": {
+      "Cleansers": {},
+      "Moisturizers": {},
+      "Serums": {},
+      "Sunscreen": {},
+      "Face Masks": {}
+    },
+    "Hair Care": {
+      "Shampoo": {},
+      "Conditioner": {},
+      "Hair Treatments": {},
+      "Hair Styling Products": {},
+      "Hair Tools": {}
+    },
+    "Makeup": {
+      "Face Makeup": {},
+      "Eye Makeup": {},
+      "Lip Makeup": {},
+      "Makeup Tools": {},
+      "Makeup Removers": {}
+    },
+    "Fragrances": {
+      "Perfume": {},
+      "Body Mist": {},
+      "Deodorants": {},
+      "Gift Sets": {}
+    },
+    "Personal Care": {
+      "Oral Care": {},
+      "Body Care": {},
+      "Shaving & Grooming": {},
+      "Feminine Care": {},
+      "Health & Wellness Devices": {}
+    }
+  },
+  "Health & Wellness": {
+    "Vitamins & Supplements": {
+      "Multivitamins": {},
+      "Protein & Sports Nutrition": {},
+      "Omega & Fish Oil": {},
+      "Herbal Supplements": {},
+      "Immunity Support": {}
+    },
+    "Medical Supplies": {
+      "First Aid": {},
+      "Monitoring Devices": {},
+      "Mobility Aids": {},
+      "Respiratory Care": {},
+      "Home Medical Equipment": {}
+    },
+    "Fitness": {
+      "Cardio Equipment": {},
+      "Strength Training": {},
+      "Yoga & Pilates": {},
+      "Resistance Bands": {},
+      "Fitness Accessories": {}
+    },
+    "Sexual Wellness": {
+      "Intimate Care": {},
+      "Protection": {},
+      "Lubricants": {},
+      "Wellness Devices": {}
+    }
+  },
+  "Food, Beverages & Tobacco": {
+    "Grocery Staples": {
+      "Rice, Grains & Pulses": {},
+      "Flours & Baking Essentials": {},
+      "Oils & Ghee": {},
+      "Spices & Seasonings": {},
+      "Sauces & Condiments": {}
+    },
+    "Snacks": {
+      "Chips & Savory Snacks": {},
+      "Nuts & Dry Fruits": {},
+      "Biscuits & Cookies": {},
+      "Chocolate & Candy": {}
+    },
+    "Beverages": {
+      "Tea": {},
+      "Coffee": {},
+      "Juices & Soft Drinks": {},
+      "Energy Drinks": {},
+      "Health Drinks": {}
+    },
+    "Breakfast & Dairy": {
+      "Breakfast Cereals": {},
+      "Spreads & Jams": {},
+      "Milk & Milk Alternatives": {},
+      "Cheese & Butter": {}
+    },
+    "Tobacco & Alternatives": {
+      "Cigars & Cigarettes": {},
+      "Smokeless Tobacco": {},
+      "Rolling Papers & Accessories": {},
+      "Herbal Alternatives": {}
+    }
+  },
+  "Baby & Toddler": {
+    "Diapering": {
+      "Diapers": {},
+      "Wipes": {},
+      "Diaper Bags": {},
+      "Changing Mats": {}
+    },
+    "Feeding": {
+      "Baby Bottles": {},
+      "Breastfeeding Essentials": {},
+      "Baby Food": {},
+      "High Chairs": {},
+      "Sterilizers & Warmers": {}
+    },
+    "Baby Gear": {
+      "Strollers": {},
+      "Car Seats": {},
+      "Carriers": {},
+      "Playards": {},
+      "Walkers": {}
+    },
+    "Baby Clothing": {
+      "Bodysuits": {},
+      "Sleepwear": {},
+      "Outerwear": {},
+      "Footwear": {},
+      "Accessories": {}
+    },
+    "Nursery": {
+      "Cribs": {},
+      "Mattresses": {},
+      "Nursery Decor": {},
+      "Baby Monitors": {},
+      "Storage & Organization": {}
+    }
+  },
+  "Toys & Games": {
+    "Learning & Education": {
+      "STEM Toys": {},
+      "Puzzles": {},
+      "Flash Cards": {},
+      "Activity Kits": {}
+    },
+    "Action Figures & Collectibles": {
+      "Action Figures": {},
+      "Character Dolls": {},
+      "Trading Cards": {},
+      "Model Kits": {}
+    },
+    "Outdoor Play": {
+      "Ride-Ons": {},
+      "Sports Toys": {},
+      "Water Toys": {},
+      "Playhouses": {}
+    },
+    "Board Games & Card Games": {
+      "Family Games": {},
+      "Strategy Games": {},
+      "Party Games": {},
+      "Classic Games": {}
+    },
+    "Soft Toys & Dolls": {
+      "Plush Toys": {},
+      "Fashion Dolls": {},
+      "Dollhouses": {},
+      "Doll Accessories": {}
+    }
+  },
+  "Sports & Outdoors": {
+    "Team Sports": {
+      "Cricket": {},
+      "Football": {},
+      "Basketball": {},
+      "Badminton": {},
+      "Volleyball": {}
+    },
+    "Cycling": {
+      "Bicycles": {},
+      "Helmets": {},
+      "Cycling Apparel": {},
+      "Bike Components": {},
+      "Bike Accessories": {}
+    },
+    "Camping & Hiking": {
+      "Tents": {},
+      "Sleeping Bags": {},
+      "Backpacks": {},
+      "Camping Cookware": {},
+      "Navigation & Survival Gear": {}
+    },
+    "Water Sports": {
+      "Swimming Gear": {},
+      "Kayaking": {},
+      "Surfing": {},
+      "Snorkeling & Diving": {}
+    },
+    "Gym & Training": {
+      "Dumbbells & Weights": {},
+      "Benches & Racks": {},
+      "Mats": {},
+      "Accessories": {}
+    }
+  },
+  "Automotive": {
+    "Car Electronics": {
+      "Dash Cams": {},
+      "Car Audio": {},
+      "GPS & Navigation": {},
+      "Phone Mounts": {},
+      "Chargers & Adapters": {}
+    },
+    "Exterior Accessories": {
+      "Car Covers": {},
+      "Lighting": {},
+      "Wipers": {},
+      "Roof Racks": {},
+      "Decals & Styling": {}
+    },
+    "Interior Accessories": {
+      "Seat Covers": {},
+      "Floor Mats": {},
+      "Steering Covers": {},
+      "Organizers": {},
+      "Air Fresheners": {}
+    },
+    "Oils & Fluids": {
+      "Engine Oil": {},
+      "Coolants": {},
+      "Brake Fluids": {},
+      "Additives": {}
+    },
+    "Tools & Maintenance": {
+      "Car Care Kits": {},
+      "Cleaning Supplies": {},
+      "Diagnostic Tools": {},
+      "Repair Tools": {}
+    }
+  },
+  "Hardware & Tools": {
+    "Power Tools": {
+      "Drills": {},
+      "Saws": {},
+      "Sanders": {},
+      "Grinders": {},
+      "Tool Combos": {}
+    },
+    "Hand Tools": {
+      "Screwdrivers": {},
+      "Wrenches": {},
+      "Hammers": {},
+      "Pliers": {},
+      "Measuring Tools": {}
+    },
+    "Electrical": {
+      "Switches & Sockets": {},
+      "Wires & Cables": {},
+      "Circuit Protection": {},
+      "Lighting Fixtures": {}
+    },
+    "Plumbing": {
+      "Fittings": {},
+      "Pipes": {},
+      "Valves": {},
+      "Bathroom Plumbing": {},
+      "Water Pumps": {}
+    },
+    "Safety & Security": {
+      "Locks": {},
+      "CCTV": {},
+      "Safety Gear": {},
+      "Fire Safety": {},
+      "Access Control": {}
+    }
+  },
+  "Office Supplies": {
+    "Writing & Correction": {
+      "Pens & Pencils": {},
+      "Markers & Highlighters": {},
+      "Correction Supplies": {},
+      "Notebooks & Journals": {}
+    },
+    "Paper Products": {
+      "Printer Paper": {},
+      "Sticky Notes": {},
+      "Envelopes": {},
+      "Labels": {}
+    },
+    "Desk Organization": {
+      "File Folders": {},
+      "Desk Organizers": {},
+      "Calendars & Planners": {},
+      "Storage Boxes": {}
+    },
+    "Office Electronics": {
+      "Printers": {},
+      "Scanners": {},
+      "Projectors": {},
+      "Shredders": {},
+      "Calculator & Label Makers": {}
+    },
+    "Presentation Supplies": {
+      "Whiteboards": {},
+      "Notice Boards": {},
+      "Presentation Folders": {},
+      "Display Supplies": {}
+    }
+  },
+  "Pet Supplies": {
+    "Dog Supplies": {
+      "Dog Food": {},
+      "Dog Treats": {},
+      "Dog Toys": {},
+      "Leashes & Collars": {},
+      "Dog Beds": {}
+    },
+    "Cat Supplies": {
+      "Cat Food": {},
+      "Cat Treats": {},
+      "Cat Toys": {},
+      "Litter & Accessories": {},
+      "Cat Furniture": {}
+    },
+    "Fish & Aquatic": {
+      "Aquariums": {},
+      "Fish Food": {},
+      "Filters & Pumps": {},
+      "Aquarium Decor": {}
+    },
+    "Bird Supplies": {
+      "Bird Cages": {},
+      "Bird Food": {},
+      "Perches & Toys": {},
+      "Cleaning Supplies": {}
+    },
+    "Small Pets": {
+      "Rabbit Supplies": {},
+      "Hamster Supplies": {},
+      "Guinea Pig Supplies": {},
+      "Habitat Accessories": {}
+    }
+  },
+  "Arts & Entertainment": {
+    "Art Supplies": {
+      "Drawing": {},
+      "Painting": {},
+      "Craft Supplies": {},
+      "Canvases & Paper": {},
+      "Brushes & Tools": {}
+    },
+    "Musical Instruments": {
+      "Guitars": {},
+      "Keyboards": {},
+      "Percussion": {},
+      "Wind Instruments": {},
+      "Accessories": {}
+    },
+    "Books & Magazines": {
+      "Fiction": {},
+      "Non-Fiction": {},
+      "Children's Books": {},
+      "Academic": {},
+      "Comics & Graphic Novels": {}
+    },
+    "Party Supplies": {
+      "Decorations": {},
+      "Balloons": {},
+      "Tableware": {},
+      "Costumes": {},
+      "Gift Wrap": {}
+    },
+    "Collectibles": {
+      "Coins & Stamps": {},
+      "Memorabilia": {},
+      "Limited Edition Items": {},
+      "Vintage Collectibles": {}
+    }
+  },
+  "Business & Industrial": {
+    "Packaging & Shipping": {
+      "Boxes": {},
+      "Mailers": {},
+      "Tape & Seals": {},
+      "Labels & Printers": {},
+      "Pallets & Stretch Film": {}
+    },
+    "Industrial Tools": {
+      "Material Handling": {},
+      "Measuring & Testing": {},
+      "Welding": {},
+      "Cutting Tools": {},
+      "Industrial Safety": {}
+    },
+    "Retail Store Supplies": {
+      "POS Accessories": {},
+      "Price Tags": {},
+      "Display Fixtures": {},
+      "Shopping Bags": {},
+      "Barcode Scanners": {}
+    },
+    "Janitorial & Sanitation": {
+      "Cleaning Chemicals": {},
+      "Cleaning Tools": {},
+      "Waste Management": {},
+      "Hygiene Supplies": {}
+    },
+    "Food Service Equipment": {
+      "Commercial Kitchen": {},
+      "Serving Equipment": {},
+      "Refrigeration": {},
+      "Baking Equipment": {}
+    }
+  }
 };
 
  

@@ -1,4 +1,10 @@
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import {
+  ArrowLeftIcon,
+  ChevronRightIcon,
+  FolderIcon,
+  HomeIcon,
+  RectangleStackIcon,
+} from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AddProductsToCollectionSection from '../components/collections/AddProductsToCollectionSection';
@@ -46,21 +52,18 @@ const ProductCollectionDetailsPage: React.FC = () => {
     setEditForm(initialEdit);
   }, [initialEdit]);
 
-  // Fetch products when component mounts
   useEffect(() => {
     if (collection?.storeId) {
       fetchProductsByStoreId(collection.storeId);
     }
   }, [collection?.storeId, fetchProductsByStoreId]);
 
-  // Fetch collection entries when component mounts
   useEffect(() => {
     if (id) {
       fetchCollectionEntriesByCollectionId(id);
     }
   }, [id, fetchCollectionEntriesByCollectionId]);
 
-  // Remote search using searchBasic with debouncing
   useEffect(() => {
     let cancelled = false;
     const doSearch = async () => {
@@ -77,7 +80,6 @@ const ProductCollectionDetailsPage: React.FC = () => {
       }
     };
 
-    // Debounce: wait 300ms after user stops typing
     const timeoutId = setTimeout(() => {
       doSearch();
     }, 300);
@@ -93,8 +95,7 @@ const ProductCollectionDetailsPage: React.FC = () => {
   }, [navigate]);
 
   const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value;
-    setSearchQuery(value);
+    setSearchQuery(event.target.value);
   }, []);
 
   const handleSearchClose = useCallback(() => {
@@ -104,11 +105,9 @@ const ProductCollectionDetailsPage: React.FC = () => {
   const handleProductSelect = useCallback(
     (product: any) => {
       const isAlreadySelected = selectedProducts.some((p) => p._id === product._id);
-
       if (!isAlreadySelected) {
         setSelectedProducts((prev) => [...prev, product]);
       }
-
       handleSearchClose();
     },
     [selectedProducts, handleSearchClose]
@@ -120,7 +119,6 @@ const ProductCollectionDetailsPage: React.FC = () => {
 
   const handleAddProductsToCollection = useCallback(async () => {
     if (!collection?._id || selectedProducts.length === 0) return;
-
     try {
       const promises = selectedProducts.map((product) =>
         createCollectionEntry({
@@ -128,10 +126,8 @@ const ProductCollectionDetailsPage: React.FC = () => {
           productId: product._id,
         })
       );
-
       await Promise.all(promises);
       setSelectedProducts([]);
-      console.log('Successfully added products to collection');
     } catch (error) {
       console.error('Failed to add products to collection:', error);
     }
@@ -141,7 +137,6 @@ const ProductCollectionDetailsPage: React.FC = () => {
     async (entryId: string) => {
       try {
         await deleteCollectionEntry(entryId);
-        console.log('Successfully removed product from collection');
       } catch (error) {
         console.error('Failed to remove product from collection:', error);
       }
@@ -179,38 +174,11 @@ const ProductCollectionDetailsPage: React.FC = () => {
     } catch {}
   }, [collection?._id, editForm, updateCollection]);
 
-  const handleOpenEditModal = useCallback(() => {
-    setEditOpen(true);
-  }, []);
-
-  const handleCloseEditModal = useCallback(() => {
-    setEditOpen(false);
-  }, []);
-
-  const handleOpenDeleteModal = useCallback(() => {
-    setConfirmOpen(true);
-  }, []);
-
-  const handleCloseDeleteModal = useCallback(() => {
-    setConfirmOpen(false);
-  }, []);
-
-  const handleClearSelectedProducts = useCallback(() => {
-    setSelectedProducts([]);
-  }, []);
-
   const handleProductClick = useCallback(
     (product: any) => {
       handleProductSelect(product);
     },
     [handleProductSelect]
-  );
-
-  const handleRemoveSelectedProduct = useCallback(
-    (productId: string) => {
-      handleRemoveProduct(productId);
-    },
-    [handleRemoveProduct]
   );
 
   const handleNavigateToProduct = useCallback(
@@ -237,38 +205,123 @@ const ProductCollectionDetailsPage: React.FC = () => {
     []
   );
 
-  const showSearchDropdown = searchQuery.trim() && filteredProducts.length > 0;
+  const productCount = collectionEntries.length;
+
+  if (!collection) {
+    return (
+      <div className="min-h-screen bg-page-background-color">
+        <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="mb-6 inline-flex items-center gap-2 rounded-xl border border-gray-200/80 bg-white px-3 py-2 text-sm font-medium text-gray-600 shadow-sm transition-colors hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
+          >
+            <ArrowLeftIcon className="h-4 w-4" aria-hidden />
+            Collections
+          </button>
+          <div className="flex flex-col items-center rounded-2xl border border-gray-200/80 bg-white px-6 py-16 text-center shadow-sm sm:py-20">
+            <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-gray-100 bg-gray-50">
+              <FolderIcon className="h-8 w-8 text-gray-400" aria-hidden />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900">Collection not found</h2>
+            <p className="mt-2 max-w-md text-sm text-gray-500">
+              This collection isn&apos;t loaded yet or doesn&apos;t exist. Open it from the collections list or
+              check the link.
+            </p>
+            <button
+              type="button"
+              onClick={handleBack}
+              className="mt-8 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+            >
+              Back to collections
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
-        {/* Header */}
-        <div className="mb-6">
+      <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8">
+        <header className="mb-6 space-y-5">
           <button
+            type="button"
             onClick={handleBack}
-            className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 mb-2 transition-colors"
-            aria-label="Back"
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-200/80 bg-white px-3 py-2 text-sm font-medium text-gray-600 shadow-sm transition-colors hover:border-gray-300 hover:bg-gray-50 hover:text-gray-900"
           >
-            <ArrowLeftIcon className="w-4 h-4" />
-            Back to collections
+            <ArrowLeftIcon className="h-4 w-4" aria-hidden />
+            Collections
           </button>
-          <h1 className="text-2xl font-semibold text-gray-900">{collection?.title || 'Collection'}</h1>
-          {collection?.description && (
-            <p className="text-sm text-gray-600 mt-1">{collection.description}</p>
-          )}
-        </div>
-        {!collection ? (
-          <div className="text-sm text-gray-600">Collection not found in state.</div>
-        ) : (
-          <>
-            {/* Overview Section */}
+
+          <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-sm">
+            <button
+              type="button"
+              onClick={() => navigate('/products')}
+              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
+            >
+              <HomeIcon className="h-3.5 w-3.5" aria-hidden />
+              Products
+            </button>
+            <ChevronRightIcon className="h-3.5 w-3.5 shrink-0 text-gray-300" aria-hidden />
+            <button
+              type="button"
+              onClick={handleBack}
+              className="rounded-lg px-2 py-1 font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
+            >
+              Collections
+            </button>
+            <ChevronRightIcon className="h-3.5 w-3.5 shrink-0 text-gray-300" aria-hidden />
+            <span className="rounded-lg bg-gray-100/80 px-2 py-1 font-semibold text-gray-900" aria-current="page">
+              {collection.title}
+            </span>
+          </nav>
+        </header>
+
+        <section className="mb-8 rounded-2xl border border-gray-200/80 bg-gradient-to-b from-white to-blue-50/25 p-5 shadow-sm sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0 border-l-4 border-blue-500/70 pl-4">
+              <div className="flex flex-wrap items-center gap-2 gap-y-2">
+                <h1 className="text-2xl font-semibold tracking-tight text-gray-900 sm:text-3xl">
+                  {collection.title}
+                </h1>
+                <span
+                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                    collection.status === 'published'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : 'bg-gray-100 text-gray-700'
+                  }`}
+                >
+                  {collection.status === 'published' ? 'Published' : 'Draft'}
+                </span>
+              </div>
+              {collection.description ? (
+                <p className="mt-2 max-w-3xl text-sm leading-relaxed text-gray-600">{collection.description}</p>
+              ) : (
+                <p className="mt-2 text-sm text-gray-400">No description</p>
+              )}
+              <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/80 px-2.5 py-1 font-medium text-gray-700 ring-1 ring-gray-200/80">
+                  <RectangleStackIcon className="h-3.5 w-3.5 text-blue-600" aria-hidden />
+                  {productCount} {productCount === 1 ? 'product' : 'products'}
+                </span>
+                {collection.urlHandle ? (
+                  <span className="font-mono text-gray-500">
+                    /{collection.urlHandle}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
+          <div className="space-y-6 lg:col-span-5">
             <CollectionOverviewSection
               collection={collection}
-              onEdit={handleOpenEditModal}
-              onDelete={handleOpenDeleteModal}
+              onEdit={() => setEditOpen(true)}
+              onDelete={() => setConfirmOpen(true)}
             />
-
-            {/* Add products to collection section */}
             <AddProductsToCollectionSection
               searchQuery={searchQuery}
               filteredProducts={filteredProducts}
@@ -276,41 +329,38 @@ const ProductCollectionDetailsPage: React.FC = () => {
               onSearchChange={handleSearchChange}
               onProductSelect={handleProductClick}
             />
-
-            {/* Selected products to be added */}
             <SelectedProductsToAddSection
               selectedProducts={selectedProducts}
               loading={collectionEntriesLoading}
-              onRemoveProduct={handleRemoveSelectedProduct}
+              onRemoveProduct={handleRemoveProduct}
               onAddProducts={handleAddProductsToCollection}
-              onClearAll={handleClearSelectedProducts}
+              onClearAll={() => setSelectedProducts([])}
             />
+          </div>
 
-            {/* Products in collection */}
+          <div className="lg:col-span-7">
             <ProductsInCollectionSection
               collectionEntries={collectionEntries}
               loading={collectionEntriesLoading}
               onProductClick={handleNavigateToProduct}
               onRemoveProduct={handleRemoveProductWithStopPropagation}
             />
-          </>
-        )}
+          </div>
+        </div>
       </div>
 
-      {/* Edit Collection Modal */}
       <EditCollectionModal
         isOpen={editOpen}
         formData={editForm}
         onChange={handleEditFormChange}
-        onClose={handleCloseEditModal}
+        onClose={() => setEditOpen(false)}
         onUpdate={handleUpdateCollection}
       />
 
-      {/* Delete Confirmation Modal */}
       <DeleteCollectionModal
         isOpen={confirmOpen}
         collectionTitle={collection?.title}
-        onClose={handleCloseDeleteModal}
+        onClose={() => setConfirmOpen(false)}
         onConfirm={handleDeleteCollection}
       />
     </div>

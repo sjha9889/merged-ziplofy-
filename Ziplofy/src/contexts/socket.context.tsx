@@ -7,6 +7,7 @@ import {
 } from "react";
 import toast from "react-hot-toast";
 import { io, Socket } from "socket.io-client";
+import { frontendEnv } from "../config/env";
 import { SocketEventType } from "../types/event.types";
 
 interface SocketContextType {
@@ -41,7 +42,7 @@ export const SocketProvider = ({children}: {children: ReactNode}) => {
     const token = localStorage.getItem("accessToken");
     if(!token) return;
 
-    const newSocket: Socket = io(import.meta.env.VITE_SOCKET_URL, {
+    const newSocket: Socket = io(frontendEnv.socketUrl, {
       autoConnect: true,
       reconnection: true,
       reconnectionDelay: 1000,

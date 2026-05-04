@@ -159,6 +159,7 @@ export const searchProductsInCollection = asyncErrorHandler(async (req: Request,
 
   const filter = {
     _id: { $in: productIds },
+    isDeleted: { $ne: true },
     $or: [
       { title: rx },
       { sku: rx },

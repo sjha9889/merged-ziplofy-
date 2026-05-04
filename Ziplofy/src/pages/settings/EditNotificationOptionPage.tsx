@@ -127,8 +127,8 @@ const EditNotificationOptionPage: React.FC = () => {
 
   if (!categoryId || !categorySlug) {
     return (
-      <div className="min-h-screen bg-page-background-color">
-        <div className="max-w-[1400px] mx-auto w-full py-6 px-4">
+      <div className="w-full">
+        <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
           <Box sx={{ maxWidth: 1200, mx: 'auto', py: 0 }}>
             <Typography>Notification category not found.</Typography>
           </Box>
@@ -139,8 +139,8 @@ const EditNotificationOptionPage: React.FC = () => {
 
   if (!currentOption) {
     return (
-      <div className="min-h-screen bg-page-background-color">
-        <div className="max-w-[1400px] mx-auto w-full py-6 px-4">
+      <div className="w-full">
+        <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
           <Box sx={{ maxWidth: 1200, mx: 'auto', py: 0 }}>
             <Typography>Loading...</Typography>
           </Box>
@@ -150,9 +150,9 @@ const EditNotificationOptionPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full py-6 px-4">
-        <Box sx={{ maxWidth: 1200, mx: 'auto', py: 0 }}>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <Box sx={{ maxWidth: 1200, mx: 'auto', py: 0, width: '100%' }}>
       {/* Breadcrumbs */}
       <Breadcrumbs
         separator={<ChevronRightIcon sx={{ fontSize: 16 }} />}

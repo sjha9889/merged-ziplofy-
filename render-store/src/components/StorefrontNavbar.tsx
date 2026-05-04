@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiLogOut, FiMenu, FiSearch, FiShoppingCart, FiUser, FiX } from 'react-icons/fi';
+import { FiLogOut, FiSearch, FiShoppingBag, FiUser, FiX, FiChevronDown, FiPackage } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStorefront } from '../contexts/store.context';
@@ -47,73 +47,92 @@ const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ showSearch, searchV
 		return () => document.removeEventListener('click', onDocClick);
 	}, [menuOpen]);
 
-	// Listen for global \"open-cart-drawer\" events so other pages (like product detail)
-	// can trigger the cart drawer to open.
 	React.useEffect(() => {
 		const handler = () => setCartOpen(true);
 		window.addEventListener('open-cart-drawer', handler);
 		return () => window.removeEventListener('open-cart-drawer', handler);
 	}, []);
 
-	// Get all cart items (both authenticated and guest)
 	const displayItems = isGuest ? guestItems : items;
 	const totalItems = displayItems.reduce((sum, item) => sum + item.quantity, 0);
 
 	return (
 		<>
-			<header className="fixed inset-x-0 top-0 z-50 bg-[#fefcf8]/95 backdrop-blur-md border-b border-[#e8e0d5]/60 shadow-sm">
+			<header className="fixed inset-x-0 top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
 				<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-					<div className="flex h-16 items-center justify-between gap-4">
+					<div className="flex h-16 items-center justify-between gap-6">
 						{/* Logo and Store Name */}
 						<button
 							type="button"
 							onClick={() => navigate('/')}
-							className="flex items-center gap-3 group"
+							className="flex items-center gap-3 group flex-shrink-0"
 						>
-							<div className="h-10 w-10 rounded-lg bg-gradient-to-br from-[#d4af37] to-[#e6c547] flex items-center justify-center text-[#0c100c] text-sm font-semibold group-hover:shadow-lg transition-all duration-200">
-								<span style={{ fontFamily: 'var(--font-serif)' }}>
-									{storeFrontMeta?.name?.charAt(0) || 'Z'}
-								</span>
+							<div className="h-9 w-9 rounded-xl bg-gray-900 flex items-center justify-center text-white text-sm font-semibold group-hover:scale-105 transition-transform duration-200">
+								{storeFrontMeta?.name?.charAt(0) || 'S'}
 							</div>
 							<div className="hidden sm:block">
-								<div className="text-sm font-semibold text-[#0c100c] group-hover:text-[#d4af37] transition-colors" style={{ fontFamily: 'var(--font-serif)' }}>
+								<div className="text-[15px] font-semibold text-gray-900 tracking-tight">
 									{storeFrontMeta?.name || 'Store'}
 								</div>
-								<div className="text-xs text-[#2b1e1e]">Premium Shopping</div>
 							</div>
 						</button>
 
-						{/* Search Bar */}
+						{/* Search Bar - Centered */}
 						{showSearch && (
-							<div className={`hidden md:flex flex-1 max-w-2xl mx-8 items-center rounded-lg bg-[#f5f1e8] border transition-all duration-200 ${
-								searchFocused ? 'border-[#d4af37] bg-white shadow-sm' : 'border-transparent'
-							}`}>
-								<FiSearch className={`ml-4 w-4 h-4 transition-colors duration-200 ${
-									searchFocused ? 'text-[#d4af37]' : 'text-[#2b1e1e]/60'
-								}`} />
-								<input
-									value={searchValue || ''}
-									onChange={(e) => onSearchChange?.(e.target.value)}
-									onFocus={() => setSearchFocused(true)}
-									onBlur={() => setSearchFocused(false)}
-									placeholder="Search products..."
-									className="flex-1 ml-3 py-2.5 bg-transparent text-sm text-[#0c100c] outline-none placeholder:text-[#2b1e1e]/50"
-								/>
+							<div className="hidden md:flex flex-1 max-w-lg mx-auto">
+								<div className={`w-full flex items-center rounded-full transition-all duration-300 ${
+									searchFocused 
+										? 'bg-white ring-2 ring-gray-900 shadow-lg' 
+										: 'bg-gray-100 hover:bg-gray-50'
+								}`}>
+									<FiSearch className={`ml-4 w-4 h-4 flex-shrink-0 transition-colors duration-200 ${
+										searchFocused ? 'text-gray-900' : 'text-gray-400'
+									}`} />
+									<input
+										value={searchValue || ''}
+										onChange={(e) => onSearchChange?.(e.target.value)}
+										onFocus={() => setSearchFocused(true)}
+										onBlur={() => setSearchFocused(false)}
+										placeholder="Search products..."
+										className="flex-1 px-3 py-2.5 bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400"
+									/>
+									{searchValue && (
+										<button
+											type="button"
+											onClick={() => onSearchChange?.('')}
+											className="mr-3 p-1 rounded-full hover:bg-gray-200 transition-colors"
+										>
+											<FiX className="w-3.5 h-3.5 text-gray-400" />
+										</button>
+									)}
+								</div>
 							</div>
 						)}
 
 						{/* Right Side Actions */}
-						<div className="flex items-center gap-2">
+						<div className="flex items-center gap-1">
+							{/* Mobile Search Toggle */}
+							{showSearch && (
+								<button
+									type="button"
+									onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+									className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
+									aria-label="Search"
+								>
+									<FiSearch className="w-5 h-5" />
+								</button>
+							)}
+
 							{/* Cart Button */}
 							<button
 								type="button"
 								onClick={() => setCartOpen(true)}
-								className="relative inline-flex h-10 w-10 items-center justify-center rounded-lg text-[#0c100c] hover:bg-[#f5f1e8] hover:text-[#d4af37] transition-all duration-200"
+								className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-gray-700 hover:bg-gray-100 transition-all duration-200"
 								aria-label="Cart"
 							>
-								<FiShoppingCart className="w-5 h-5" />
+								<FiShoppingBag className="w-5 h-5" />
 								{totalItems > 0 && (
-									<span className="absolute -right-1 -top-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#d4af37] px-1.5 text-xs font-medium text-[#0c100c]">
+									<span className="absolute -right-0.5 -top-0.5 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-gray-900 px-1.5 text-[10px] font-semibold text-white">
 										{totalItems}
 									</span>
 								)}
@@ -124,107 +143,136 @@ const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ showSearch, searchV
 								<button
 									type="button"
 									onClick={(e) => { e.stopPropagation(); setMenuOpen((s) => !s); }}
-									className="inline-flex h-10 items-center justify-center gap-2 rounded-lg px-3 text-[#0c100c] hover:bg-[#f5f1e8] transition-all duration-200"
+									className="inline-flex h-10 items-center justify-center gap-2 rounded-full px-2 text-gray-700 hover:bg-gray-100 transition-all duration-200"
 									aria-label="Account menu"
 								>
-									<div className="h-8 w-8 rounded-lg bg-[#e8e0d5] flex items-center justify-center text-[#0c100c] text-xs font-medium">
-										{user ? user.firstName.charAt(0).toUpperCase() : <FiUser className="w-4 h-4" />}
-									</div>
-									<span className="hidden sm:block text-sm font-medium">
-										{user ? user.firstName : 'Account'}
-									</span>
+									{user ? (
+										<div className="h-8 w-8 rounded-full bg-gradient-to-br from-gray-800 to-gray-600 flex items-center justify-center text-white text-xs font-semibold">
+											{user.firstName.charAt(0).toUpperCase()}
+										</div>
+									) : (
+										<div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600">
+											<FiUser className="w-4 h-4" />
+										</div>
+									)}
+									<FiChevronDown className={`hidden sm:block w-4 h-4 text-gray-400 transition-transform duration-200 ${menuOpen ? 'rotate-180' : ''}`} />
 								</button>
 
 								{/* Dropdown Menu */}
-								{menuOpen && (
-									<div
-										onClick={(e) => e.stopPropagation()}
-										className="absolute right-0 mt-2 w-56 overflow-hidden rounded-lg border border-[#e8e0d5] bg-[#fefcf8] shadow-lg"
-									>
-										{user ? (
-											<>
-												<div className="border-b border-[#e8e0d5] px-4 py-3 bg-[#f5f1e8]">
-													<p className="text-sm font-semibold text-[#0c100c]">{user.firstName} {user.lastName}</p>
-													<p className="text-xs text-[#2b1e1e] mt-0.5 truncate">{user.email}</p>
+								<AnimatePresence>
+									{menuOpen && (
+										<motion.div
+											initial={{ opacity: 0, y: 8, scale: 0.96 }}
+											animate={{ opacity: 1, y: 0, scale: 1 }}
+											exit={{ opacity: 0, y: 8, scale: 0.96 }}
+											transition={{ duration: 0.15 }}
+											onClick={(e) => e.stopPropagation()}
+											className="absolute right-0 mt-2 w-64 overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-gray-100"
+										>
+											{user ? (
+												<>
+													<div className="px-4 py-4 bg-gradient-to-br from-gray-50 to-white border-b border-gray-100">
+														<div className="flex items-center gap-3">
+															<div className="h-11 w-11 rounded-full bg-gradient-to-br from-gray-800 to-gray-600 flex items-center justify-center text-white text-sm font-semibold flex-shrink-0">
+																{user.firstName.charAt(0).toUpperCase()}
+															</div>
+															<div className="min-w-0">
+																<p className="text-sm font-semibold text-gray-900 truncate">{user.firstName} {user.lastName}</p>
+																<p className="text-xs text-gray-500 truncate">{user.email}</p>
+															</div>
+														</div>
+													</div>
+													<div className="py-2">
+														<button
+															type="button"
+															className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150"
+															onClick={() => { setMenuOpen(false); navigate('/profile'); }}
+														>
+															<FiUser className="w-4 h-4 text-gray-400" />
+															<span>My Profile</span>
+														</button>
+														<button
+															type="button"
+															className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-150"
+															onClick={() => { setMenuOpen(false); navigate('/my-orders'); }}
+														>
+															<FiPackage className="w-4 h-4 text-gray-400" />
+															<span>My Orders</span>
+														</button>
+													</div>
+													<div className="border-t border-gray-100 py-2">
+														<button
+															type="button"
+															className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm text-red-600 hover:bg-red-50 transition-colors duration-150"
+															onClick={handleLogoutClick}
+														>
+															<FiLogOut className="w-4 h-4" />
+															<span>Sign out</span>
+														</button>
+													</div>
+												</>
+											) : (
+												<div className="p-4">
+													<p className="text-sm text-gray-500 mb-3">Welcome! Sign in to access your account.</p>
+													<div className="space-y-2">
+														<button
+															type="button"
+															className="w-full px-4 py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors duration-150"
+															onClick={() => { setMenuOpen(false); navigate('/auth/login'); }}
+														>
+															Sign in
+														</button>
+														<button
+															type="button"
+															className="w-full px-4 py-2.5 bg-white text-gray-900 text-sm font-medium rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-150"
+															onClick={() => { setMenuOpen(false); navigate('/auth/signup'); }}
+														>
+															Create account
+														</button>
+													</div>
 												</div>
-												<div className="py-1.5">
-													<button
-														type="button"
-														className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-[#0c100c] hover:bg-[#f5f1e8] transition-colors duration-200"
-														onClick={() => { setMenuOpen(false); navigate('/profile'); }}
-													>
-														<FiUser className="w-4 h-4 text-[#d4af37]" />
-														Profile
-													</button>
-													<button
-														type="button"
-														className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-[#0c100c] hover:bg-[#f5f1e8] transition-colors duration-200"
-														onClick={() => { setMenuOpen(false); navigate('/my-orders'); }}
-													>
-														<FiShoppingCart className="w-4 h-4 text-[#d4af37]" />
-														My Orders
-													</button>
-												</div>
-												<hr className="border-[#e8e0d5]" />
-												<div className="py-1.5">
-													<button
-														type="button"
-														className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors duration-200"
-														onClick={handleLogoutClick}
-													>
-														<FiLogOut className="w-4 h-4" />
-														Logout
-													</button>
-												</div>
-											</>
-										) : (
-											<div className="py-1.5">
-												<button
-													type="button"
-													className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-[#0c100c] hover:bg-[#f5f1e8] transition-colors duration-200"
-													onClick={() => { setMenuOpen(false); navigate('/auth/login'); }}
-												>
-													Login
-												</button>
-												<button
-													type="button"
-													className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-[#0c100c] hover:bg-[#f5f1e8] transition-colors duration-200"
-													onClick={() => { setMenuOpen(false); navigate('/auth/signup'); }}
-												>
-													Signup
-												</button>
-											</div>
-										)}
-									</div>
-								)}
+											)}
+										</motion.div>
+									)}
+								</AnimatePresence>
 							</div>
-
-							{/* Mobile Menu Button */}
-							<button
-								type="button"
-								onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-								className="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
-								aria-label="Menu"
-							>
-								{mobileMenuOpen ? <FiX className="w-5 h-5" /> : <FiMenu className="w-5 h-5" />}
-							</button>
 						</div>
 					</div>
 
 					{/* Mobile Search */}
-					{showSearch && mobileMenuOpen && (
-						<div className="md:hidden pb-4 pt-4 border-t border-[#e8e0d5]">
-							<div className="flex items-center rounded-lg bg-[#f5f1e8] border border-[#e8e0d5] px-3 py-2">
-								<FiSearch className="w-4 h-4 text-[#2b1e1e]/60" />
-								<input
-									value={searchValue || ''}
-									onChange={(e) => onSearchChange?.(e.target.value)}
-									placeholder="Search products..."
-									className="flex-1 ml-2 bg-transparent text-sm text-[#0c100c] outline-none placeholder:text-[#2b1e1e]/50"
-								/>
-							</div>
-						</div>
-					)}
+					<AnimatePresence>
+						{showSearch && mobileMenuOpen && (
+							<motion.div
+								initial={{ height: 0, opacity: 0 }}
+								animate={{ height: 'auto', opacity: 1 }}
+								exit={{ height: 0, opacity: 0 }}
+								transition={{ duration: 0.2 }}
+								className="md:hidden overflow-hidden"
+							>
+								<div className="pb-4 pt-2">
+									<div className="flex items-center rounded-full bg-gray-100 px-4 py-2.5">
+										<FiSearch className="w-4 h-4 text-gray-400 flex-shrink-0" />
+										<input
+											value={searchValue || ''}
+											onChange={(e) => onSearchChange?.(e.target.value)}
+											placeholder="Search products..."
+											className="flex-1 ml-3 bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400"
+											autoFocus
+										/>
+										{searchValue && (
+											<button
+												type="button"
+												onClick={() => onSearchChange?.('')}
+												className="p-1 rounded-full hover:bg-gray-200 transition-colors"
+											>
+												<FiX className="w-4 h-4 text-gray-400" />
+											</button>
+										)}
+									</div>
+								</div>
+							</motion.div>
+						)}
+					</AnimatePresence>
 				</div>
 			</header>
 			<CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
@@ -236,37 +284,37 @@ const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ showSearch, searchV
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
-						className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4"
+						className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
 						onClick={cancelLogout}
 					>
 						<motion.div
-							initial={{ opacity: 0, scale: 0.95 }}
-							animate={{ opacity: 1, scale: 1 }}
-							exit={{ opacity: 0, scale: 0.95 }}
-							transition={{ duration: 0.2 }}
+							initial={{ opacity: 0, scale: 0.95, y: 20 }}
+							animate={{ opacity: 1, scale: 1, y: 0 }}
+							exit={{ opacity: 0, scale: 0.95, y: 20 }}
+							transition={{ type: 'spring', damping: 25, stiffness: 300 }}
 							className="bg-white rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden"
 							onClick={(e) => e.stopPropagation()}
 						>
 							<div className="p-6 text-center">
-								<div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-									<FiLogOut className="w-7 h-7 text-red-600" />
+								<div className="w-14 h-14 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+									<FiLogOut className="w-6 h-6 text-red-500" />
 								</div>
-								<h3 className="text-lg font-semibold text-gray-900 mb-2">Logout</h3>
+								<h3 className="text-lg font-semibold text-gray-900 mb-2">Sign out</h3>
 								<p className="text-sm text-gray-500 mb-6">
-									Are you sure you want to logout from your account?
+									Are you sure you want to sign out of your account?
 								</p>
 								<div className="flex gap-3">
 									<button
 										onClick={cancelLogout}
-										className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+										className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-xl hover:bg-gray-200 transition-colors"
 									>
 										Cancel
 									</button>
 									<button
 										onClick={confirmLogout}
-										className="flex-1 px-4 py-2.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+										className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium rounded-xl hover:bg-red-600 transition-colors"
 									>
-										Yes, Logout
+										Sign out
 									</button>
 								</div>
 							</div>

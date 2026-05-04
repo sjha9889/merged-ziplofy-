@@ -2,8 +2,8 @@ import { GoogleLogin, type CredentialResponse } from '@react-oauth/google';
 import { useCallback, useState, type FormEvent } from 'react';
 import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
-import SlantedImageCarouselWrapper from '../components/SlantedImageCarouselWrapper';
 import ziplofyLogo from '../assets/ziplofy-logo.png';
+import SlantedImageCarouselWrapper from '../components/SlantedImageCarouselWrapper';
 import { useAuth } from '../contexts/auth.context';
 
 // Define types
@@ -39,7 +39,7 @@ function Register() {
     try {
       await register(form.name, form.email, form.password);
     } catch (error: any) {
-      setErr(error.response?.data?.message || 'Registration failed');
+      setErr(error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -54,7 +54,7 @@ function Register() {
       }
       await googleLogin(googleJwtToken);
     } catch (error: any) {
-      setErr(error.message || 'Google sign-in failed');
+      setErr(error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Google sign-in failed');
     }
   }, [googleLogin, setErr]);
 

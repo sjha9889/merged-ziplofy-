@@ -8,6 +8,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useStoreRoles } from '../../contexts/store-roles.context';
 import { useStore } from '../../contexts/store.context';
+import { SettingsHero, SettingsPanel } from '../../components/settings/SettingsPageScaffold';
 
 type RoleRow = {
   id: string;
@@ -50,35 +51,33 @@ const RolesPage: React.FC = () => {
   const isIndeterminate = rows.length > 0 && selectedCount > 0 && selectedCount < rows.length;
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Roles</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Define permissions and assign roles to staff.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
-            >
-              <ArrowUpTrayIcon className="w-4 h-4" />
-              Export
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate('/settings/users/roles/new')}
-              className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-            >
-              <PlusIcon className="w-4 h-4" />
-              Add role
-            </button>
-          </div>
-        </header>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Roles"
+          description="Define permissions and assign roles to staff."
+          actions={
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200/90 shadow-sm hover:bg-gray-50/90 transition-colors"
+              >
+                <ArrowUpTrayIcon className="w-4 h-4" />
+                Export
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/settings/users/roles/new')}
+                className="inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-white bg-blue-600 shadow-sm hover:bg-blue-700 transition-colors"
+              >
+                <PlusIcon className="w-4 h-4" />
+                Add role
+              </button>
+            </div>
+          }
+        />
 
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+        <SettingsPanel className="overflow-hidden p-0">
           <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
             <button
               type="button"
@@ -183,7 +182,7 @@ const RolesPage: React.FC = () => {
               </button>
             </p>
           </div>
-        </div>
+        </SettingsPanel>
       </div>
     </div>
   );

@@ -22,7 +22,7 @@ const SelectedTagsList: React.FC<SelectedTagsListProps> = ({
   }
 
   return (
-    <div className="mt-3 flex gap-2 flex-wrap">
+    <div className="mt-3 flex flex-wrap gap-2.5">
       {tagIds.map(id => {
         const tag = productTags.find(pt => pt._id === id);
         return (

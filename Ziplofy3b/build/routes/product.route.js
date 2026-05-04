@@ -13,6 +13,10 @@ exports.productRouter.get("/public/:productId", product_controller_1.getProductB
 exports.productRouter.use(auth_middleware_1.protect);
 // Create product
 exports.productRouter.post("/", product_controller_1.createProduct);
+// Partial update product
+exports.productRouter.patch("/:id", product_controller_1.updateProductById);
+// Soft delete product
+exports.productRouter.delete("/:id", product_controller_1.softDeleteProductById);
 // Get products by store id
 exports.productRouter.get("/store/:storeId", product_controller_1.getProductsByStoreId);
 // add variants to product
@@ -31,3 +35,5 @@ exports.productRouter.get("/search-basic", product_controller_1.searchProductsBa
 exports.productRouter.get("/search-with-variants", product_controller_1.searchProductsWithVariants);
 // search products with variant and destination availability
 exports.productRouter.get("/search-product-with-variant-and-destination", product_controller_1.searchProductsWithVariantAndDestination);
+// Get single product by id (keep after specific GET routes)
+exports.productRouter.get("/:id", product_controller_1.getProductById);

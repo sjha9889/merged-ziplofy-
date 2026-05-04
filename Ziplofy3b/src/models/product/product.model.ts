@@ -54,6 +54,7 @@ export interface IProduct {
   vendor: mongoose.Types.ObjectId;
   tagIds: mongoose.Types.ObjectId[];
   imageUrls: string[];
+  isDeleted: boolean;
 
   createdAt: Date;
   updatedAt: Date;
@@ -264,6 +265,12 @@ const productSchema = new Schema<IProduct & Document>({
       message: 'At least one product image is required'
     }
   },
+  // Soft delete flag
+  isDeleted: {
+    type: Boolean,
+    default: false,
+    index: true,
+  },
   // removed themeTemplate
 }, {
   timestamps: true,
@@ -283,6 +290,7 @@ productSchema.index({ tagIds: 1 });
 productSchema.index({ price: 1 });
 productSchema.index({ createdAt: -1 });
 productSchema.index({ updatedAt: -1 });
+productSchema.index({ storeId: 1, isDeleted: 1 });
 
 // Export the Product model
 export const Product: Model<IProduct & Document> = mongoose.model<IProduct & Document>("Product", productSchema);

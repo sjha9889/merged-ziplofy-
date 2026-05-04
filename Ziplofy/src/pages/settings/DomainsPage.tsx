@@ -4,6 +4,7 @@ import {
   InformationCircleIcon,
   ChevronDownIcon,
 } from '@heroicons/react/24/outline';
+import { SettingsHero } from '../../components/settings/SettingsPageScaffold';
 
 const DomainsPage: React.FC = () => {
   const [connectMenuOpen, setConnectMenuOpen] = useState(false);
@@ -29,17 +30,13 @@ const DomainsPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-        <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Domains</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Connect, buy, and manage the domains customers use to reach your store.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Domains"
+          description="Connect, buy, and manage the domains customers use to reach your store."
+          actions={
+            <div className="flex flex-wrap items-center gap-2">
             <div className="relative">
               <button
                 type="button"
@@ -81,8 +78,9 @@ const DomainsPage: React.FC = () => {
             >
               Buy new domain
             </button>
-          </div>
-        </header>
+            </div>
+          }
+        />
 
         {/* Information Alert */}
         <div className="p-4 rounded-xl bg-white border border-gray-200/80 shadow-sm flex items-start gap-3">

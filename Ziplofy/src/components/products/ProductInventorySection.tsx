@@ -4,22 +4,18 @@ interface ProductInventorySectionProps {
   inventoryTrackingEnabled: boolean;
   sku: string;
   barcode: string;
-  continueSellingWhenOutOfStock: boolean;
   onInventoryTrackingEnabledChange: (checked: boolean) => void;
   onSkuChange: (value: string) => void;
   onBarcodeChange: (value: string) => void;
-  onContinueSellingWhenOutOfStockChange: (checked: boolean) => void;
 }
 
 const ProductInventorySection: React.FC<ProductInventorySectionProps> = ({
   inventoryTrackingEnabled,
   sku,
   barcode,
-  continueSellingWhenOutOfStock,
   onInventoryTrackingEnabledChange,
   onSkuChange,
   onBarcodeChange,
-  onContinueSellingWhenOutOfStockChange,
 }) => {
   const handleInventoryTrackingChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     onInventoryTrackingEnabledChange(e.target.checked);
@@ -32,10 +28,6 @@ const ProductInventorySection: React.FC<ProductInventorySectionProps> = ({
   const handleBarcodeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     onBarcodeChange(e.target.value);
   }, [onBarcodeChange]);
-
-  const handleContinueSellingChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    onContinueSellingWhenOutOfStockChange(e.target.checked);
-  }, [onContinueSellingWhenOutOfStockChange]);
 
   return (
     <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
@@ -54,12 +46,7 @@ const ProductInventorySection: React.FC<ProductInventorySectionProps> = ({
         </label>
       </div>
 
-      {/* More Details Sub-segment */}
       <div className="mt-4">
-        <h3 className="text-sm font-medium text-gray-700 mb-3">
-          More Details
-        </h3>
-        
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -88,20 +75,6 @@ const ProductInventorySection: React.FC<ProductInventorySectionProps> = ({
           </div>
         </div>
 
-        {/* Continue Selling Checkbox (only when tracking is enabled) */}
-        {inventoryTrackingEnabled && (
-          <div className="mt-3">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={continueSellingWhenOutOfStock}
-                onChange={handleContinueSellingChange}
-                className="w-3.5 h-3.5 text-gray-900 focus:ring-gray-400 rounded border-gray-300"
-              />
-              <span className="text-sm text-gray-700">Continue selling when out of stock</span>
-            </label>
-          </div>
-        )}
       </div>
     </div>
   );

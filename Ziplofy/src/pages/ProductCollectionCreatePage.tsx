@@ -1,9 +1,11 @@
 import { ArrowLeftIcon, PlusIcon, RectangleStackIcon } from '@heroicons/react/24/outline';
 import React, { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 import { useCollections } from '../contexts/collection.context';
 import { useStore } from '../contexts/store.context';
+
+const inputClass =
+  'w-full rounded-lg border border-gray-200/90 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm outline-none transition-colors placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20';
 
 const ProductCollectionCreatePage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,7 +20,7 @@ const ProductCollectionCreatePage: React.FC = () => {
     status: 'published' as 'draft' | 'published',
   });
 
-  const handleChange = useCallback((field: string, value: any) => {
+  const handleChange = useCallback((field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   }, []);
 
@@ -44,51 +46,57 @@ const ProductCollectionCreatePage: React.FC = () => {
         status: form.status,
       });
       navigate('/products/collections');
-    } catch (e) {
-      // error is handled in context; optionally keep here for UX in future
+    } catch {
+      // error is handled in context
     }
   }, [activeStoreId, form, createCollection, navigate]);
 
   return (
-    <GridBackgroundWrapper>
-      <div className="min-h-screen">
-        {/* Header */}
-        <div className="border-b border-gray-200 px-4 py-4">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-page-background-color">
+      <div className="mx-auto max-w-[1400px] px-3 py-4 sm:px-4">
+        {/* Page header — aligned with Collections list */}
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <button
+              type="button"
+              onClick={handleBack}
+              className="mb-3 inline-flex items-center gap-2 rounded-full border border-gray-200/90 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 shadow-sm transition-colors hover:bg-gray-50"
+            >
+              <ArrowLeftIcon className="h-3.5 w-3.5" aria-hidden />
+              Back to collections
+            </button>
+            <div className="border-l-4 border-blue-500/60 pl-3">
               <div className="flex items-center gap-2">
-                <button
-                  onClick={handleBack}
-                  className="p-1.5 hover:bg-gray-100 rounded transition-colors"
-                  aria-label="Back"
-                >
-                  <ArrowLeftIcon className="w-4 h-4" />
-                </button>
-                <RectangleStackIcon className="w-5 h-5 text-gray-600" />
-                <h1 className="text-xl font-medium text-gray-900">Create Collection</h1>
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
+                  <RectangleStackIcon className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight text-gray-900">Create collection</h1>
+                  <p className="mt-0.5 text-sm text-gray-500">
+                    Add details and SEO settings. You can add products after saving.
+                  </p>
+                </div>
               </div>
-              <button
-                onClick={handleSubmit}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded hover:bg-gray-800 transition-colors"
-              >
-                <PlusIcon className="w-4 h-4" />
-                Save Collection
-              </button>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="inline-flex shrink-0 items-center gap-2 self-start rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+          >
+            <PlusIcon className="h-4 w-4" />
+            Save collection
+          </button>
         </div>
 
-      <div className="max-w-7xl mx-auto py-6 px-4">
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Left column */}
-          <div className="flex-1">
-            {/* Title & Description */}
-            <div className="bg-white rounded border border-gray-200 p-4 mb-6">
-              <h2 className="text-base font-medium text-gray-900 mb-3">Title and description</h2>
-              <div className="border-t border-gray-200 mb-3"></div>
-              <div className="space-y-4">
+        <div className="flex flex-col gap-6 lg:flex-row">
+          <div className="min-w-0 flex-1 space-y-6">
+            <section className="rounded-xl border border-gray-200/80 bg-white p-5 shadow-sm sm:p-6">
+              <h2 className="text-base font-semibold text-gray-900">Title and description</h2>
+              <p className="mt-1 text-sm text-gray-500">Shown on your storefront where this collection appears.</p>
+              <div className="mt-5 space-y-4 border-t border-gray-100 pt-5">
                 <div>
-                  <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="title" className="mb-2 block text-sm font-medium text-gray-700">
                     Title <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -97,12 +105,12 @@ const ProductCollectionCreatePage: React.FC = () => {
                     value={form.title}
                     onChange={(e) => handleChange('title', e.target.value)}
                     required
-                    className="w-full px-3 py-2 border border-gray-200 rounded text-base focus:ring-1 focus:ring-gray-400 focus:border-gray-400 outline-none transition-colors"
-                    placeholder="Enter collection title"
+                    className={inputClass}
+                    placeholder="e.g. Summer sale"
                   />
                 </div>
                 <div>
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="description" className="mb-2 block text-sm font-medium text-gray-700">
                     Description
                   </label>
                   <textarea
@@ -110,22 +118,21 @@ const ProductCollectionCreatePage: React.FC = () => {
                     value={form.description}
                     onChange={(e) => handleChange('description', e.target.value)}
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-200 rounded text-base focus:ring-1 focus:ring-gray-400 focus:border-gray-400 outline-none transition-colors resize-none"
-                    placeholder="Enter collection description"
+                    className={`${inputClass} resize-none`}
+                    placeholder="Optional description for customers"
                   />
                 </div>
               </div>
-            </div>
+            </section>
 
-            {/* Search Engine Listing */}
-            <div className="bg-white rounded border border-gray-200 p-4">
-              <h2 className="text-base font-medium text-gray-900 mb-2">Search engine listing</h2>
-              <p className="text-sm text-gray-600 mb-4">
-                Add a title and description to see how this collection might appear in a search engine listing.
+            <section className="rounded-xl border border-gray-200/80 bg-white p-5 shadow-sm sm:p-6">
+              <h2 className="text-base font-semibold text-gray-900">Search engine listing</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Add a title and description to preview how this collection may appear in search results.
               </p>
-              <div className="space-y-4">
+              <div className="mt-5 space-y-4 border-t border-gray-100 pt-5">
                 <div>
-                  <label htmlFor="pageTitle" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="pageTitle" className="mb-2 block text-sm font-medium text-gray-700">
                     Page title
                   </label>
                   <input
@@ -133,12 +140,12 @@ const ProductCollectionCreatePage: React.FC = () => {
                     type="text"
                     value={form.pageTitle}
                     onChange={(e) => handleChange('pageTitle', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-200 rounded text-base focus:ring-1 focus:ring-gray-400 focus:border-gray-400 outline-none transition-colors"
-                    placeholder="Enter page title"
+                    className={inputClass}
+                    placeholder="Page title for search engines"
                   />
                 </div>
                 <div>
-                  <label htmlFor="metaDescription" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="metaDescription" className="mb-2 block text-sm font-medium text-gray-700">
                     Meta description
                   </label>
                   <textarea
@@ -146,12 +153,12 @@ const ProductCollectionCreatePage: React.FC = () => {
                     value={form.metaDescription}
                     onChange={(e) => handleChange('metaDescription', e.target.value)}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-200 rounded text-base focus:ring-1 focus:ring-gray-400 focus:border-gray-400 outline-none transition-colors resize-none"
-                    placeholder="Enter meta description"
+                    className={`${inputClass} resize-none`}
+                    placeholder="Short summary for search results"
                   />
                 </div>
                 <div>
-                  <label htmlFor="urlHandle" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="urlHandle" className="mb-2 block text-sm font-medium text-gray-700">
                     URL handle
                   </label>
                   <input
@@ -159,42 +166,38 @@ const ProductCollectionCreatePage: React.FC = () => {
                     type="text"
                     value={form.urlHandle}
                     onChange={(e) => handleChange('urlHandle', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-200 rounded text-base focus:ring-1 focus:ring-gray-400 focus:border-gray-400 outline-none transition-colors"
-                    placeholder="Enter URL handle"
+                    className={inputClass}
+                    placeholder="summer-sale"
                   />
-                  <p className="mt-1 text-sm text-gray-500">
-                    Lowercase letters, numbers, and hyphens only
-                  </p>
+                  <p className="mt-1.5 text-xs text-gray-500">Use lowercase letters, numbers, and hyphens only.</p>
                 </div>
               </div>
-            </div>
+            </section>
           </div>
 
-          {/* Right column */}
-          <div className="w-full md:w-[360px]">
-            <div className="bg-white rounded border border-gray-200 p-4">
-              <h2 className="text-base font-medium text-gray-900 mb-3">Status</h2>
-              <div className="border-t border-gray-200 mb-3"></div>
-              <div>
-                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+          <aside className="w-full shrink-0 lg:w-[360px]">
+            <section className="rounded-xl border border-gray-200/80 bg-white p-5 shadow-sm sm:p-6">
+              <h2 className="text-base font-semibold text-gray-900">Visibility</h2>
+              <p className="mt-1 text-sm text-gray-500">Control whether this collection is live on your store.</p>
+              <div className="mt-5 border-t border-gray-100 pt-5">
+                <label htmlFor="status" className="mb-2 block text-sm font-medium text-gray-700">
                   Status
                 </label>
                 <select
                   id="status"
                   value={form.status}
                   onChange={(e) => handleChange('status', e.target.value as 'draft' | 'published')}
-                  className="w-full px-3 py-2 border border-gray-200 rounded text-base focus:ring-1 focus:ring-gray-400 focus:border-gray-400 outline-none transition-colors bg-white"
+                  className={`${inputClass} cursor-pointer`}
                 >
                   <option value="draft">Draft</option>
                   <option value="published">Published</option>
                 </select>
               </div>
-            </div>
-          </div>
+            </section>
+          </aside>
         </div>
       </div>
-      </div>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

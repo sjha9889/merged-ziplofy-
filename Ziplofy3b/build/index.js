@@ -18,6 +18,7 @@ const socket_auth_middleware_1 = require("./middlewares/socket-auth.middleware")
 const amount_off_products_discount_route_1 = __importDefault(require("./routes/amount-off-products-discount.route"));
 const assigned_support_developer_route_1 = require("./routes/assigned-support-developer.route");
 const auth_route_1 = require("./routes/auth.route");
+const aws_route_1 = __importDefault(require("./routes/aws.route"));
 const category_route_1 = require("./routes/category.route");
 const client_theme_files_route_1 = require("./routes/client-theme-files.route");
 const client_theme_route_1 = require("./routes/client-theme.route");
@@ -91,6 +92,7 @@ const notification_option_route_1 = __importDefault(require("./routes/notificati
 const notification_override_route_1 = __importDefault(require("./routes/notification-override.route"));
 const permission_route_1 = __importDefault(require("./routes/permission.route"));
 const pixel_route_1 = __importDefault(require("./routes/pixel.route"));
+const product_offers_route_1 = require("./routes/product-offers.route");
 const product_override_entry_route_1 = require("./routes/product-override-entry.route");
 const product_override_route_1 = require("./routes/product-override.route");
 const return_rules_route_1 = __importDefault(require("./routes/return-rules.route"));
@@ -101,6 +103,8 @@ const shipping_profile_route_1 = __importDefault(require("./routes/shipping-prof
 const shipping_zone_rate_route_1 = __importDefault(require("./routes/shipping-zone-rate.route"));
 const shipping_zone_route_1 = __importDefault(require("./routes/shipping-zone.route"));
 const state_route_1 = __importDefault(require("./routes/state.route"));
+const store_banner_route_1 = __importDefault(require("./routes/store-banner.route"));
+const payment_route_1 = __importDefault(require("./routes/payment.route"));
 const store_branding_route_1 = __importDefault(require("./routes/store-branding.route"));
 const store_contact_info_route_1 = __importDefault(require("./routes/store-contact-info.route"));
 const store_notification_email_route_1 = require("./routes/store-notification-email.route");
@@ -124,7 +128,6 @@ const tax_and_duties_global_settings_route_1 = require("./routes/tax-and-duties-
 const tax_rate_default_route_1 = require("./routes/tax-rate-default.route");
 const tax_rate_override_route_1 = require("./routes/tax-rate-override.route");
 const trigger_route_1 = __importDefault(require("./routes/trigger.route"));
-const product_offers_route_1 = require("./routes/product-offers.route");
 const automation_flow_route_1 = __importDefault(require("./routes/automation-flow.route"));
 const checkout_settings_route_1 = __importDefault(require("./routes/checkout-settings.route"));
 const customer_account_settings_route_1 = __importDefault(require("./routes/customer-account-settings.route"));
@@ -147,7 +150,7 @@ const io = new socket_io_1.Server(server, {
     }
 });
 exports.io = io;
-const PORT = process.env.PORT;
+const PORT = Number(env_utils_1.env.PORT);
 // Middleware
 app.use((0, cors_1.default)({
     origin: config_1.config.allowedOrigins,
@@ -161,6 +164,7 @@ app.use("/uploads", express_1.default.static(path_1.default.join(process.cwd(), 
 // route middlewares
 app.use("/api/stores", store_route_1.storeRouter);
 app.use("/api/auth", auth_route_1.authRouter);
+app.use("/api/aws", aws_route_1.default);
 app.use("/api/user", user_route_1.userRouter);
 app.use("/api/themes", theme_route_1.themeRouter);
 app.use("/api/clients", client_route_1.clientRouter);
@@ -224,6 +228,8 @@ app.use("/api/store-shipping-policy", store_shipping_policy_route_1.default);
 app.use("/api/store-terms-policy", store_terms_policy_route_1.default);
 app.use("/api/store-return-refund-policy", store_return_refund_policy_route_1.default);
 app.use("/api/store-branding", store_branding_route_1.default);
+app.use("/api/store-banners", store_banner_route_1.default);
+app.use("/api/payments", payment_route_1.default);
 app.use("/api/local-delivery-settings", local_delivery_settings_route_1.default);
 app.use("/api/local-delivery-location-entries", local_delivery_location_entry_route_1.default);
 app.use("/api/general-settings", general_settings_route_1.default);
@@ -281,7 +287,7 @@ app.get('/', (req, res) => {
 });
 app.get('/api/health', (req, res) => {
     res.status(200).json({
-        status: 'ok  - updated piyush',
+        status: 'ok  - updated piyush ci cd updated',
         timestamp: new Date().toISOString(),
         uptime: process.uptime()
     });
@@ -293,7 +299,7 @@ io.use(socket_auth_middleware_1.socketAuthMiddleware);
 app.use(error_middleware_1.errorMiddleware);
 // Start server
 server.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode (using ${env_utils_1.loadedEnvFile})`);
+    console.log(`🚀 Server is running on port ${PORT} in ${env_utils_1.env.NODE_ENV} mode (using ${env_utils_1.loadedEnvFile})`);
 });
 // Start BullMQ workers
 const emailWorker = (0, email_worker_1.startEmailWorker)();

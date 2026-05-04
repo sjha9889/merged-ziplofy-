@@ -1,7 +1,6 @@
 import { Avatar, Box, Button, Paper, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import GridBackgroundWrapper from '../components/GridBackgroundWrapper';
 import { useTransferEntries } from '../contexts/transfer-entries.context';
 import { useShipments } from '../contexts/shipment.context';
 
@@ -52,7 +51,7 @@ const ShipmentReceivePage: React.FC = () => {
   };
 
   return (
-    <GridBackgroundWrapper>
+    <div className="min-h-screen bg-page-background-color">
       <Box sx={{ width: '100%', color: '#000000', m: -3, p: 3, minHeight: '100%' }}>
         <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
         <Paper elevation={0} sx={{ p: 4, mb: 4, borderRadius: 3, background: 'linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)', color: 'white' }}>
@@ -122,7 +121,7 @@ const ShipmentReceivePage: React.FC = () => {
         </Paper>
         </Box>
       </Box>
-    </GridBackgroundWrapper>
+    </div>
   );
 };
 

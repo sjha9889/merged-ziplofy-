@@ -153,20 +153,32 @@ export default function Sidebar() {
 
   return (
     <aside
-      className="fixed bg-white border-r border-gray-200 left-0 top-12 h-[calc(100vh-48px)] w-[240px] flex flex-col shrink-0 z-50"
-      style={{ 
-        width: `${drawerWidth}px`
+      className="fixed left-0 top-12 z-50 flex h-[calc(100vh-48px)] w-[240px] shrink-0 flex-col border-r border-slate-200/80 bg-slate-50/90 backdrop-blur"
+      style={{
+        width: `${drawerWidth}px`,
       }}
-    > 
-      {/* navbar  */}
-      <nav className="flex-1 overflow-y-auto py-2">
-        <ul className="p-0 m-0 list-none">
+    >
+      {/* navbar — match SettingsSidebar: slate surface + p-2 list */}
+      <nav className="flex-1 overflow-y-auto">
+        <ul className="m-0 list-none p-2">
           {/* nav list */}
           {NAV.map((item) => {
             const hasKids = !!item.children?.length;
             const openSection = open[item.text] ?? false;
             const Icon = item.icon;
             const active = isActive(item.path);
+
+            /** Longest matching child path so /orders/drafts only highlights Drafts, not Orders */
+            const activeSubPath =
+              hasKids && item.children
+                ? [...item.children]
+                    .filter(
+                      (c) =>
+                        location.pathname === c.path ||
+                        location.pathname.startsWith(`${c.path}/`)
+                    )
+                    .sort((a, b) => b.path.length - a.path.length)[0]?.path
+                : undefined;
 
             const activeChildIndex =
               item.children
@@ -203,18 +215,21 @@ export default function Sidebar() {
                       toggle(item.text);
                     }
                   }}
-                  className={`relative z-10 flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors ${
-                    active ? 'text-blue-700' : ''
+                  data-tour-id={`nav-${item.text.toLowerCase().replace(/\s+/g, '-')}`}
+                  className={`relative z-10 flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors ${
+                    active
+                      ? 'bg-blue-50 text-blue-700 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.25)]'
+                      : 'text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-blue-600' : ''}`} />
+                  <Icon className="h-4 w-4 shrink-0" />
                   <span className="flex-1 text-sm font-medium">{item.text}</span>
                   {hasKids && (
-                    <span className={`shrink-0 ${active ? 'text-blue-600' : 'text-gray-500'}`}>
+                    <span className="shrink-0 text-slate-400">
                       {openSection ? (
-                        <ChevronUpIcon className="w-4 h-4" />
+                        <ChevronUpIcon className="h-4 w-4" />
                       ) : (
-                        <ChevronDownIcon className="w-4 h-4" />
+                        <ChevronDownIcon className="h-4 w-4" />
                       )}
                     </span>
                   )}
@@ -226,18 +241,20 @@ export default function Sidebar() {
                       openSection ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'
                     }`}
                   >
-                    <ul className="p-0 m-0 list-none relative z-10">
+                    <ul className="relative z-10 m-0 list-none">
                       {item.children!.map((sub) => {
-                        const subActive = location.pathname === sub.path;
+                        const subActive = sub.path === activeSubPath;
                         return (
                           <li key={sub.text}>
                             <Link
                               to={sub.path}
-                              className={`flex items-center gap-2 px-3 py-1.5 pl-10 mx-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors ${
-                                subActive ? 'text-blue-700 font-medium' : ''
+                              className={`flex w-full items-center gap-2 rounded-lg px-3 py-1.5 pl-10 text-left transition-colors ${
+                                subActive
+                                  ? 'bg-blue-50 font-medium text-blue-700'
+                                  : 'text-slate-600 hover:bg-slate-100'
                               }`}
                             >
-                              <span className="text-xs">{sub.text}</span>
+                              <span className="text-xs font-medium">{sub.text}</span>
                             </Link>
                           </li>
                         );
@@ -251,24 +268,26 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      <div className="border-t border-gray-200 w-full mt-2" />
+      <div className="mt-2 w-full border-t border-slate-200/80" />
       {/* settings option */}
       <nav className="pb-3">
-        <ul className="p-0 m-0 list-none">
+        <ul className="m-0 list-none p-2 pt-2">
           <li>
             <Link
               to="/settings/general"
-              className={`flex items-center gap-3 px-4 py-2.5 mx-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors ${
-                location.pathname.startsWith('/settings') ? 'text-blue-700' : ''
+              data-tour-id="nav-settings"
+              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors ${
+                location.pathname.startsWith('/settings')
+                  ? 'bg-blue-50 text-blue-700 shadow-[inset_0_0_0_1px_rgba(59,130,246,0.25)]'
+                  : 'text-slate-700 hover:bg-slate-100'
               }`}
             >
-              <Cog6ToothIcon className={`w-4 h-4 shrink-0 ${location.pathname.startsWith('/settings') ? 'text-blue-600' : ''}`} />
+              <Cog6ToothIcon className="h-4 w-4 shrink-0" />
               <span className="flex-1 text-sm font-medium">Settings</span>
             </Link>
           </li>
         </ul>
       </nav>
-
     </aside>
   );
 }

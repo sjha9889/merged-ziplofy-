@@ -1,9 +1,4 @@
-import GridBackgroundWrapper from "../components/GridBackgroundWrapper";
+import MetaobjectsPage from './ContentPage';
 
-export const ContentMetaObjectsPage = () => {
-  return (
-    <GridBackgroundWrapper>
-      <div>ContentMetaObjectsPage</div>
-    </GridBackgroundWrapper>
-  )
-}
+/** Metaobjects under Content → same UI as the main content index, without grid background */
+export const ContentMetaObjectsPage = MetaobjectsPage;

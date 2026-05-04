@@ -1,8 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { toast } from 'react-hot-toast';
 import { useNavigate, useParams } from 'react-router-dom';
 import AddOptionValuesModal from '../components/AddOptionValuesModal';
 import AddProductVariantsModal from '../components/AddProductVariantsModal';
 import ConfirmDeleteVariantModal from '../components/ConfirmDeleteVariantModal';
+import ConfirmDeleteProductModal from '../components/ConfirmDeleteProductModal';
+import ConfirmUndeleteProductModal from '../components/ConfirmUndeleteProductModal';
 import DeleteVariantDimensionModal from '../components/DeleteVariantDimensionModal';
 import ProductBasicInformation from '../components/ProductBasicInformation';
 import ProductDetailsHeader from '../components/ProductDetailsHeader';
@@ -14,44 +17,77 @@ import ProductPricing from '../components/ProductPricing';
 import ProductShippingInformation from '../components/ProductShippingInformation';
 import ProductStatusDetails from '../components/ProductStatusDetails';
 import ProductVariantsList from '../components/ProductVariantsList';
+import { useAwsUpload } from '../contexts/aws-upload.context';
 import { useProductVariants } from '../contexts/product-variant.context';
 import { useProducts } from '../contexts/product.context';
 import { useStore } from '../contexts/store.context';
 
+const extractS3KeyFromUrl = (imageUrl: string): string | null => {
+  try {
+    const parsed = new URL(imageUrl);
+    const key = decodeURIComponent(parsed.pathname.replace(/^\/+/, ''));
+    return key || null;
+  } catch {
+    return null;
+  }
+};
+
 const ProductDetailsPage: React.FC = () => {
   const { id } = useParams();
+  const {
+    activeProduct,
+    activeProductLoading,
+    addVariantsToProduct,
+    deleteVariantFromProduct,
+    addOptionToProduct,
+    deleteProduct,
+    fetchProductById,
+    clearActiveProduct,
+    updateProduct,
+  } =
+    useProducts();
   const navigate = useNavigate();
-  const { products, addVariantsToProduct, deleteVariantFromProduct, addOptionToProduct, fetchProductsByStoreId } = useProducts();
   const { activeStoreId } = useStore();
+  const { uploadImageWithSignedUrl, deleteImagesFromS3 } = useAwsUpload();
   const { fetchVariantsByProductId, variants, loading } = useProductVariants();
+  const product = activeProduct;
 
-  const product = useMemo(() => products.find(p => p._id === id), [products, id]);
-
-  // Fetch products when navigating directly to product URL (products may not be loaded yet)
   useEffect(() => {
-    if (activeStoreId && id && products.length === 0) {
-      fetchProductsByStoreId(activeStoreId);
+    if (id) {
+      fetchProductById(id).catch(() => {
+        // errors handled by context and not-found state
+      });
     }
-  }, [activeStoreId, id, products.length, fetchProductsByStoreId]);
+    return () => {
+      clearActiveProduct();
+    };
+  }, [id, fetchProductById, clearActiveProduct]);
 
-  // UI-only: Add Variants dialog state and handlers (replicated from NewProductPage)
   const [addVariantsOpen, setAddVariantsOpen] = useState(false);
   const [variantsForm, setVariantsForm] = useState<Array<{ optionName: string; values: string[] }>>([
-    { optionName: '', values: [''] }
+    { optionName: '', values: [''] },
   ]);
 
-  // Delete Variants dialog state and handlers
   const [deleteVariantOpen, setDeleteVariantOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [selectedDimension, setSelectedDimension] = useState('');
   const [deletingVariant, setDeletingVariant] = useState(false);
 
-  // Add Option in Variant dialog state and handlers
   const [addOptionOpen, setAddOptionOpen] = useState(false);
   const [selectedOptionName, setSelectedOptionName] = useState('');
   const [newOptionValues, setNewOptionValues] = useState<string[]>(['']);
   const [submittingOption, setSubmittingOption] = useState(false);
-  
+  const [deleteProductOpen, setDeleteProductOpen] = useState(false);
+  const [deletingProduct, setDeletingProduct] = useState(false);
+  const [undeleteProductOpen, setUndeleteProductOpen] = useState(false);
+  const [undeletingProduct, setUndeletingProduct] = useState(false);
+  const [savingBasicInfo, setSavingBasicInfo] = useState(false);
+  const [savingProductBasicCard, setSavingProductBasicCard] = useState(false);
+  const [savingPricingCard, setSavingPricingCard] = useState(false);
+  const [savingOrganizationCard, setSavingOrganizationCard] = useState(false);
+  const [savingShippingCard, setSavingShippingCard] = useState(false);
+  const [savingMediaCard, setSavingMediaCard] = useState(false);
+
   const handleOpenAddVariants = useCallback(() => {
     setAddVariantsOpen(true);
   }, []);
@@ -61,7 +97,6 @@ const ProductDetailsPage: React.FC = () => {
     setVariantsForm([{ optionName: '', values: [''] }]);
   }, []);
 
-  // Delete Variants handlers
   const handleOpenDeleteVariant = useCallback(() => {
     setDeleteVariantOpen(true);
   }, []);
@@ -83,9 +118,24 @@ const ProductDetailsPage: React.FC = () => {
     setSelectedDimension('');
   }, []);
 
-  // Add Option in Variant handlers
   const handleOpenAddOption = useCallback(() => {
     setAddOptionOpen(true);
+  }, []);
+
+  const handleOpenDeleteProduct = useCallback(() => {
+    setDeleteProductOpen(true);
+  }, []);
+
+  const handleCloseDeleteProduct = useCallback(() => {
+    setDeleteProductOpen(false);
+  }, []);
+
+  const handleOpenUndeleteProduct = useCallback(() => {
+    setUndeleteProductOpen(true);
+  }, []);
+
+  const handleCloseUndeleteProduct = useCallback(() => {
+    setUndeleteProductOpen(false);
   }, []);
 
   const handleCloseAddOption = useCallback(() => {
@@ -96,11 +146,10 @@ const ProductDetailsPage: React.FC = () => {
 
   const handleConfirmDelete = useCallback(async () => {
     if (!product || !selectedDimension) return;
-    
+
     try {
       setDeletingVariant(true);
       await deleteVariantFromProduct(product._id, selectedDimension);
-      // Refresh variants after deletion
       await fetchVariantsByProductId(product._id);
       handleCloseConfirmDelete();
     } catch (error) {
@@ -111,53 +160,59 @@ const ProductDetailsPage: React.FC = () => {
   }, [product, selectedDimension, deleteVariantFromProduct, fetchVariantsByProductId, handleCloseConfirmDelete]);
 
   const addVariantRow = useCallback(() => {
-    setVariantsForm(prev => [...prev, { optionName: '', values: [''] }]);
+    setVariantsForm((prev) => [...prev, { optionName: '', values: [''] }]);
   }, []);
 
   const removeVariantRow = useCallback((index: number) => {
-    setVariantsForm(prev => prev.filter((_, i) => i !== index));
+    setVariantsForm((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
   const updateVariantOptionName = useCallback((index: number, optionName: string) => {
-    setVariantsForm(prev => prev.map((v, i) => (i === index ? { ...v, optionName } : v)));
+    setVariantsForm((prev) => prev.map((v, i) => (i === index ? { ...v, optionName } : v)));
   }, []);
 
   const addVariantValue = useCallback((variantIndex: number) => {
-    setVariantsForm(prev => prev.map((v, i) => (
-      i === variantIndex ? { ...v, values: [...v.values, ''] } : v
-    )));
+    setVariantsForm((prev) =>
+      prev.map((v, i) => (i === variantIndex ? { ...v, values: [...v.values, ''] } : v))
+    );
   }, []);
 
   const removeVariantValue = useCallback((variantIndex: number, valueIndex: number) => {
-    setVariantsForm(prev => prev.map((v, i) => (
-      i === variantIndex ? { ...v, values: v.values.filter((_, j) => j !== valueIndex) } : v
-    )));
+    setVariantsForm((prev) =>
+      prev.map((v, i) =>
+        i === variantIndex ? { ...v, values: v.values.filter((_, j) => j !== valueIndex) } : v
+      )
+    );
   }, []);
 
   const updateVariantValue = useCallback((variantIndex: number, valueIndex: number, value: string) => {
-    setVariantsForm(prev => prev.map((v, i) => (
-      i === variantIndex
-        ? { ...v, values: v.values.map((val, j) => (j === valueIndex ? value : val)) }
-        : v
-    )));
+    setVariantsForm((prev) =>
+      prev.map((v, i) =>
+        i === variantIndex
+          ? { ...v, values: v.values.map((val, j) => (j === valueIndex ? value : val)) }
+          : v
+      )
+    );
   }, []);
 
   const [submittingVariants, setSubmittingVariants] = useState(false);
-  
+
   const handleSubmitAddVariants = useCallback(async () => {
     if (!id) return;
     const payload = variantsForm
-      .map(v => ({ optionName: v.optionName.trim(), values: v.values.map(val => val.trim()).filter(Boolean) }))
-      .filter(v => v.optionName && v.values.length > 0);
+      .map((v) => ({
+        optionName: v.optionName.trim(),
+        values: v.values.map((val) => val.trim()).filter(Boolean),
+      }))
+      .filter((v) => v.optionName && v.values.length > 0);
     if (payload.length === 0) return;
     try {
       setSubmittingVariants(true);
       await addVariantsToProduct(id, payload);
       handleCloseAddVariants();
-      // refresh variants list
       fetchVariantsByProductId(id);
-    } catch (e) {
-      // noop; errors handled by context
+    } catch {
+      // errors from context
     } finally {
       setSubmittingVariants(false);
     }
@@ -165,48 +220,273 @@ const ProductDetailsPage: React.FC = () => {
 
   const handleSubmitAddOption = useCallback(async () => {
     if (!id || !selectedOptionName) return;
-    const validValues = newOptionValues.filter(val => val.trim().length > 0);
+    const validValues = newOptionValues.filter((val) => val.trim().length > 0);
     if (validValues.length === 0) return;
-    
+
     try {
       setSubmittingOption(true);
-      
-      console.log('Calling addOptionToProduct with:', {
-        productId: id,
-        optionName: selectedOptionName,
-        values: validValues
-      });
-      
       await addOptionToProduct(id, selectedOptionName, validValues);
-      
-      console.log('Successfully added option values');
       handleCloseAddOption();
-      // refresh variants list
       fetchVariantsByProductId(id);
     } catch (e) {
       console.error('Error adding option values:', e);
-      // noop; errors handled by context
     } finally {
       setSubmittingOption(false);
     }
   }, [id, selectedOptionName, newOptionValues, addOptionToProduct, fetchVariantsByProductId, handleCloseAddOption]);
 
+  const handleConfirmDeleteProduct = useCallback(async () => {
+    if (!product) return;
+    try {
+      setDeletingProduct(true);
+      await deleteProduct(product._id);
+      setDeleteProductOpen(false);
+      navigate('/products');
+    } catch (error) {
+      console.error('Failed to delete product:', error);
+    } finally {
+      setDeletingProduct(false);
+    }
+  }, [product, deleteProduct, navigate]);
+
+  const handleConfirmUndeleteProduct = useCallback(async () => {
+    if (!product) return;
+    try {
+      setUndeletingProduct(true);
+      await updateProduct(product._id, { isDeleted: false });
+      toast.success('Product restored');
+      setUndeleteProductOpen(false);
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to un-delete product';
+      toast.error(message);
+    } finally {
+      setUndeletingProduct(false);
+    }
+  }, [product, updateProduct]);
+
+  const handleSaveBasicInfo = useCallback(
+    async (payload: { title: string; description: string }) => {
+      if (!product) return;
+      try {
+        setSavingBasicInfo(true);
+        await updateProduct(product._id, {
+          title: payload.title,
+          description: payload.description,
+        });
+        toast.success('Product details updated');
+      } catch (error: any) {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          'Failed to update product details';
+        toast.error(message);
+        throw error;
+      } finally {
+        setSavingBasicInfo(false);
+      }
+    },
+    [product, updateProduct]
+  );
+
+  const handleSaveProductBasicCard = useCallback(
+    async (payload: { category: string; sku: string; barcode: string }) => {
+      if (!product) return;
+      try {
+        setSavingProductBasicCard(true);
+        await updateProduct(product._id, {
+          category: payload.category,
+          sku: payload.sku,
+          barcode: payload.barcode,
+        });
+        toast.success('Basic information updated');
+      } catch (error: any) {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          'Failed to update basic information';
+        toast.error(message);
+        throw error;
+      } finally {
+        setSavingProductBasicCard(false);
+      }
+    },
+    [product, updateProduct]
+  );
+
+  const handleSavePricingCard = useCallback(
+    async (payload: {
+      price: number;
+      compareAtPrice?: number;
+      cost: number;
+      profit: number;
+      marginPercent: number;
+      unitPriceTotalAmount?: number;
+      unitPriceTotalAmountMetric?: string;
+      unitPriceBaseMeasure?: number;
+      unitPriceBaseMeasureMetric?: string;
+    }) => {
+      if (!product) return;
+      try {
+        setSavingPricingCard(true);
+        await updateProduct(product._id, {
+          price: payload.price,
+          compareAtPrice: payload.compareAtPrice,
+          cost: payload.cost,
+          profit: payload.profit,
+          marginPercent: payload.marginPercent,
+          unitPriceTotalAmount: payload.unitPriceTotalAmount,
+          unitPriceTotalAmountMetric: payload.unitPriceTotalAmountMetric,
+          unitPriceBaseMeasure: payload.unitPriceBaseMeasure,
+          unitPriceBaseMeasureMetric: payload.unitPriceBaseMeasureMetric,
+        });
+        toast.success('Pricing updated');
+      } catch (error: any) {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          'Failed to update pricing';
+        toast.error(message);
+        throw error;
+      } finally {
+        setSavingPricingCard(false);
+      }
+    },
+    [product, updateProduct]
+  );
+
+  const handleSaveOrganizationCard = useCallback(
+    async (payload: { productType: string; vendor: string; tagIds: string[] }) => {
+      if (!product) return;
+      try {
+        setSavingOrganizationCard(true);
+        await updateProduct(product._id, {
+          productType: payload.productType,
+          vendor: payload.vendor,
+          tagIds: payload.tagIds,
+        });
+        toast.success('Organization updated');
+      } catch (error: any) {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          'Failed to update organization';
+        toast.error(message);
+        throw error;
+      } finally {
+        setSavingOrganizationCard(false);
+      }
+    },
+    [product, updateProduct]
+  );
+
+  const handleSaveShippingCard = useCallback(
+    async (payload: {
+      package?: string;
+      productWeight?: number;
+      productWeightUnit?: string;
+      countryOfOrigin?: string;
+      harmonizedSystemCode?: string;
+    }) => {
+      if (!product) return;
+      try {
+        setSavingShippingCard(true);
+        await updateProduct(product._id, {
+          package: payload.package,
+          productWeight: payload.productWeight,
+          productWeightUnit: payload.productWeightUnit,
+          countryOfOrigin: payload.countryOfOrigin,
+          harmonizedSystemCode: payload.harmonizedSystemCode,
+        });
+        toast.success('Shipping information updated');
+      } catch (error: any) {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          'Failed to update shipping information';
+        toast.error(message);
+        throw error;
+      } finally {
+        setSavingShippingCard(false);
+      }
+    },
+    [product, updateProduct]
+  );
+
+  const handleSaveMediaCard = useCallback(
+    async (payload: { retainedImageUrls: string[]; newImageFiles: File[] }) => {
+      if (!product) return;
+      if (payload.retainedImageUrls.length + payload.newImageFiles.length === 0) {
+        toast.error('At least one image is required');
+        throw new Error('At least one image is required');
+      }
+
+      try {
+        setSavingMediaCard(true);
+        const folderStoreId = activeStoreId || product.storeId;
+        const existingUrls = Array.isArray(product.imageUrls) ? product.imageUrls : [];
+        const removedImageUrls = existingUrls.filter((url) => !payload.retainedImageUrls.includes(url));
+        const removedImageKeys = removedImageUrls
+          .map((url) => extractS3KeyFromUrl(url))
+          .filter((key): key is string => Boolean(key));
+
+        if (removedImageUrls.length > 0) {
+          const deleteToast = toast.loading(
+            `Deleting ${removedImageUrls.length} image${removedImageUrls.length > 1 ? 's' : ''}...`
+          );
+          await deleteImagesFromS3({ imageKeys: removedImageKeys, imageUrls: removedImageUrls });
+          toast.success('Removed images deleted', { id: deleteToast });
+        }
+
+        let uploadedUrls: string[] = [];
+        if (payload.newImageFiles.length > 0) {
+          const uploadToast = toast.loading(
+            `Uploading ${payload.newImageFiles.length} image${payload.newImageFiles.length > 1 ? 's' : ''}...`
+          );
+          const uploaded = await Promise.all(
+            payload.newImageFiles.map((file) =>
+              uploadImageWithSignedUrl(file, { folder: `${folderStoreId}/product-image` })
+            )
+          );
+          uploadedUrls = uploaded.map((item) => item.objectUrl);
+          toast.success('Images uploaded', { id: uploadToast });
+        }
+
+        const finalImageUrls = [...payload.retainedImageUrls, ...uploadedUrls];
+        await updateProduct(product._id, { imageUrls: finalImageUrls });
+        toast.success('Media updated');
+      } catch (error: any) {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          'Failed to update media';
+        toast.error(message);
+        throw error;
+      } finally {
+        setSavingMediaCard(false);
+      }
+    },
+    [product, activeStoreId, deleteImagesFromS3, uploadImageWithSignedUrl, updateProduct]
+  );
+
   const updateNewOptionValue = useCallback((index: number, value: string) => {
-    setNewOptionValues(prev => {
-      const newValues = [...prev];
-      newValues[index] = value;
-      return newValues;
+    setNewOptionValues((prev) => {
+      const next = [...prev];
+      next[index] = value;
+      return next;
     });
   }, []);
 
   const addNewOptionValue = useCallback(() => {
-    setNewOptionValues(prev => [...prev, '']);
+    setNewOptionValues((prev) => [...prev, '']);
   }, []);
 
   const removeNewOptionValue = useCallback((index: number) => {
-    setNewOptionValues(prev => {
-      const newValues = prev.filter((_, i) => i !== index);
-      return newValues.length > 0 ? newValues : [''];
+    setNewOptionValues((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      return next.length > 0 ? next : [''];
     });
   }, []);
 
@@ -216,58 +496,72 @@ const ProductDetailsPage: React.FC = () => {
     }
   }, [id, fetchVariantsByProductId]);
 
+  if (activeProductLoading) {
+    return null;
+  }
+
   if (!product) {
     return <ProductNotFound />;
   }
 
   return (
     <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
-          {/* Simple Header */}
-          <ProductDetailsHeader
-            product={product}
-            variantsCount={variants.length}
-            onAddVariants={handleOpenAddVariants}
-            onDeleteVariant={handleOpenDeleteVariant}
-            onAddOption={handleOpenAddOption}
-          />
+      <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8">
+        <ProductDetailsHeader
+          product={product}
+          variantsCount={variants.length}
+          onDeleteProduct={handleOpenDeleteProduct}
+          onUndeleteProduct={handleOpenUndeleteProduct}
+          onSaveBasicInfo={handleSaveBasicInfo}
+          isSavingBasicInfo={savingBasicInfo}
+        />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column - Main Content */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Images Gallery */}
-              <ProductImagesGallery imageUrls={product.imageUrls || []} />
-              
-              {/* Basic Information */}
-              <ProductBasicInformation product={product} />
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 xl:gap-8">
+          <div className="space-y-6 xl:col-span-2">
+            <ProductImagesGallery
+              imageUrls={product.imageUrls || []}
+              onSave={handleSaveMediaCard}
+              isSaving={savingMediaCard}
+            />
+            <ProductBasicInformation
+              product={product}
+              onSave={handleSaveProductBasicCard}
+              isSaving={savingProductBasicCard}
+            />
+            <ProductPricing
+              product={product}
+              onSave={handleSavePricingCard}
+              isSaving={savingPricingCard}
+            />
+            <ProductOrganization
+              product={product}
+              activeStoreId={activeStoreId}
+              onSave={handleSaveOrganizationCard}
+              isSaving={savingOrganizationCard}
+            />
+            <ProductShippingInformation
+              product={product}
+              activeStoreId={activeStoreId}
+              onSave={handleSaveShippingCard}
+              isSaving={savingShippingCard}
+            />
+            <ProductOptions
+              product={product}
+              onAddVariants={handleOpenAddVariants}
+              onAddOption={handleOpenAddOption}
+              onDeleteVariantDimension={handleOpenDeleteVariant}
+            />
+            <ProductVariantsList variants={variants} productId={id || ''} loading={loading} />
+          </div>
 
-              {/* Pricing */}
-              <ProductPricing product={product} />
-
-              {/* Organization */}
-              <ProductOrganization product={product} />
-
-              {/* Shipping Information */}
-              <ProductShippingInformation product={product} />
-
-              {/* Product Options */}
-              <ProductOptions product={product} />
-
-              {/* Variants */}
-              <ProductVariantsList
-                variants={variants}
-                productId={id || ''}
-                loading={loading}
-              />
-            </div>
-            
-            {/* Right Sidebar */}
-            <div className="lg:col-span-1">
+          <div className="xl:col-span-1">
+            <div className="xl:sticky xl:top-6">
               <ProductStatusDetails product={product} />
             </div>
           </div>
         </div>
-      {/* Add Variants Dialog - UI only (replica of NewProductPage variant UI) */}
+      </div>
+
       <AddProductVariantsModal
         isOpen={addVariantsOpen}
         variantsForm={variantsForm}
@@ -282,7 +576,6 @@ const ProductDetailsPage: React.FC = () => {
         onUpdateVariantValue={updateVariantValue}
       />
 
-      {/* Delete Variant Modal */}
       <DeleteVariantDimensionModal
         isOpen={deleteVariantOpen}
         product={product}
@@ -292,7 +585,6 @@ const ProductDetailsPage: React.FC = () => {
         onDimensionChange={setSelectedDimension}
       />
 
-      {/* Confirmation Modal */}
       <ConfirmDeleteVariantModal
         isOpen={confirmDeleteOpen}
         selectedDimension={selectedDimension}
@@ -301,7 +593,6 @@ const ProductDetailsPage: React.FC = () => {
         onConfirm={handleConfirmDelete}
       />
 
-      {/* Add Option in Variant Dialog */}
       <AddOptionValuesModal
         isOpen={addOptionOpen}
         product={product}
@@ -315,10 +606,23 @@ const ProductDetailsPage: React.FC = () => {
         onAddNewOptionValue={addNewOptionValue}
         onRemoveNewOptionValue={removeNewOptionValue}
       />
+
+      <ConfirmDeleteProductModal
+        isOpen={deleteProductOpen}
+        productTitle={product.title}
+        deletingProduct={deletingProduct}
+        onClose={handleCloseDeleteProduct}
+        onConfirm={handleConfirmDeleteProduct}
+      />
+      <ConfirmUndeleteProductModal
+        isOpen={undeleteProductOpen}
+        productTitle={product.title}
+        undeletingProduct={undeletingProduct}
+        onClose={handleCloseUndeleteProduct}
+        onConfirm={handleConfirmUndeleteProduct}
+      />
     </div>
   );
 };
 
 export default ProductDetailsPage;
-
-

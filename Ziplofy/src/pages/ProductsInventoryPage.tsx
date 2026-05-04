@@ -96,7 +96,7 @@ const ProductsInventoryPage: React.FC = () => {
     if (!unavailLevelId || !editUnavailable) return;
     try {
       setSavingUnavailable(true);
-      // Shopify-style math: available = onHand - committed - unavailableTotal
+      // Ziplofy-style math: available = onHand - committed - unavailableTotal
       const lvl = inventoryLevels.find(l => l._id === unavailLevelId);
       const currentCommitted = lvl?.committed ?? 0;
       const currentOnHand = lvl?.onHand ?? 0;
@@ -122,7 +122,7 @@ const ProductsInventoryPage: React.FC = () => {
     if (!editingAvailableId) return;
     try {
       setSavingAvailable(true);
-      // Shopify-style math: onHand = available + committed + unavailableTotal
+      // Ziplofy-style math: onHand = available + committed + unavailableTotal
       const lvl = inventoryLevels.find(l => l._id === editingAvailableId);
       const currentCommitted = lvl?.committed ?? 0;
       const unavail = lvl?.unavailable || { damaged: 0, qualityControl: 0, safetyStock: 0, other: 0 };
@@ -149,7 +149,7 @@ const ProductsInventoryPage: React.FC = () => {
     if (!editingOnHandId) return;
     try {
       setSavingOnHand(true);
-      // Shopify-style math: available = onHand - committed - unavailableTotal
+      // Ziplofy-style math: available = onHand - committed - unavailableTotal
       const lvl = inventoryLevels.find(l => l._id === editingOnHandId);
       const currentCommitted = lvl?.committed ?? 0;
       const unavail = lvl?.unavailable || { damaged: 0, qualityControl: 0, safetyStock: 0, other: 0 };

@@ -26,7 +26,7 @@ export default function Login() {
     try {
       await login(form.email, form.password);
     } catch (error: any) {
-      setErr(error.response?.data?.message || 'Login failed');
+      setErr(error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -42,7 +42,7 @@ export default function Login() {
         await googleLogin(googleJwtToken);
         // Navigation will be handled by the auth context useEffect
       } catch (error: any) {
-        setErr(error.message || 'Google sign-in failed');
+        setErr(error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Google sign-in failed');
       }
     },
     [googleLogin]

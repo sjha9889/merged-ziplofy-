@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldCheckIcon } from '@heroicons/react/24/outline';
+import { SettingsHero, SettingsPanel } from '../../components/settings/SettingsPageScaffold';
 
 interface User {
   _id: string;
@@ -45,32 +46,30 @@ const UsersPage: React.FC = () => {
   const isIndeterminate = selectedUsers.size > 0 && selectedUsers.size < users.length;
 
   return (
-    <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto w-full flex flex-col gap-6 py-6 px-4">
-        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Users</h1>
-            <p className="mt-1 text-sm text-gray-500">
-              Manage staff accounts, roles, and permissions.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
-            >
-              Export
-            </button>
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-            >
-              Add users
-            </button>
-          </div>
-        </header>
+    <div className="w-full">
+      <div className="max-w-[1200px] mx-auto w-full flex flex-col gap-6">
+        <SettingsHero
+          title="Users"
+          description="Manage staff accounts, roles, and permissions."
+          actions={
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200/90 hover:bg-gray-50/90 transition-colors shadow-sm"
+              >
+                Export
+              </button>
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                Add users
+              </button>
+            </div>
+          }
+        />
 
-        <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
+        <SettingsPanel className="overflow-hidden p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -136,7 +135,7 @@ const UsersPage: React.FC = () => {
               </tbody>
             </table>
           </div>
-        </div>
+        </SettingsPanel>
 
         <p className="text-sm text-gray-500">
           <button

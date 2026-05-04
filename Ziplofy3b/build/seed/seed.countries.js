@@ -4,24 +4,67 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
+const mongoose_1 = __importDefault(require("mongoose"));
 const database_config_1 = require("../config/database.config");
 const country_model_1 = require("../models/country/country.model");
 const currency_model_1 = require("../models/currency/currency.model");
 dotenv_1.default.config();
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+async function fetchWithRetry(url, label, attempts = 4) {
+    let lastError;
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+        try {
+            const res = await fetch(url);
+            if (!res.ok) {
+                throw new Error(`Failed to download ${label}: ${res.status} ${res.statusText}`);
+            }
+            return (await res.json());
+        }
+        catch (error) {
+            lastError = error;
+            if (attempt < attempts) {
+                const backoffMs = attempt * 1000;
+                console.warn(`${label} fetch attempt ${attempt}/${attempts} failed. Retrying in ${backoffMs}ms...`);
+                await wait(backoffMs);
+            }
+        }
+    }
+    throw lastError instanceof Error ? lastError : new Error(`Failed to download ${label}`);
+}
 async function fetchAllCountries() {
-    const url = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,ccn3,region,subregion,flag,currencies';
-    const res = await fetch(url);
-    if (!res.ok)
-        throw new Error(`Failed to download countries: ${res.status} ${res.statusText}`);
-    return (await res.json());
+    const primaryUrl = 'https://restcountries.com/v3.1/all?fields=name,cca2,cca3,ccn3,region,subregion,flag,currencies';
+    try {
+        return await fetchWithRetry(primaryUrl, 'countries');
+    }
+    catch (primaryError) {
+        console.warn('Primary countries API failed, using fallback source...');
+        const fallbackUrl = 'https://raw.githubusercontent.com/dr5hn/countries-states-cities-database/master/json/countries.json';
+        const fallback = await fetchWithRetry(fallbackUrl, 'countries fallback');
+        return fallback
+            .filter((c) => Boolean(c.iso2) && Boolean(c.iso3) && Boolean(c.name))
+            .map((c) => {
+            const currencyCode = (c.currency || '').toUpperCase();
+            return {
+                name: { common: c.name, official: c.name },
+                cca2: c.iso2.toUpperCase(),
+                cca3: c.iso3.toUpperCase(),
+                ccn3: (c.numeric_code || '').toString(),
+                region: c.region || '',
+                subregion: c.subregion || '',
+                flag: c.emoji || '',
+                currencies: currencyCode
+                    ? {
+                        [currencyCode]: {},
+                    }
+                    : undefined,
+            };
+        });
+    }
 }
 async function fetchAllCurrencies() {
     // Returns object like { "USD": "United States Dollar", ... }
     const url = 'https://openexchangerates.org/api/currencies.json';
-    const res = await fetch(url);
-    if (!res.ok)
-        throw new Error(`Failed to download currencies: ${res.status} ${res.statusText}`);
-    return (await res.json());
+    return fetchWithRetry(url, 'currencies');
 }
 async function seedCurrenciesAndCountries() {
     try {
@@ -90,7 +133,7 @@ async function seedCurrenciesAndCountries() {
         });
         if (ops.length === 0) {
             console.log('No countries to seed.');
-            process.exit(0);
+            return;
         }
         const result = await country_model_1.Country.bulkWrite(ops, { ordered: false });
         console.log('Countries seeding completed:', {
@@ -98,11 +141,23 @@ async function seedCurrenciesAndCountries() {
             modified: result.modifiedCount,
             matched: result.matchedCount,
         });
-        process.exit(0);
     }
     catch (err) {
         console.error('Error seeding countries:', err);
-        process.exit(1);
+        throw err;
+    }
+    finally {
+        // Ensure connection closes cleanly on both success and failure.
+        if (mongoose_1.default.connection.readyState !== 0) {
+            await mongoose_1.default.disconnect();
+            console.log('MongoDB disconnected');
+        }
     }
 }
-seedCurrenciesAndCountries();
+seedCurrenciesAndCountries()
+    .then(() => {
+    process.exitCode = 0;
+})
+    .catch(() => {
+    process.exitCode = 1;
+});

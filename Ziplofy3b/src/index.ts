@@ -12,6 +12,7 @@ import { socketAuthMiddleware } from './middlewares/socket-auth.middleware';
 import amountOffProductsDiscountRouter from './routes/amount-off-products-discount.route';
 import { assignedSupportDeveloperRouter } from './routes/assigned-support-developer.route';
 import { authRouter } from './routes/auth.route';
+import awsRouter from './routes/aws.route';
 import { categoryRouter } from './routes/category.route';
 import { clientThemeFilesRouter } from './routes/client-theme-files.route';
 import { clientThemeRouter } from './routes/client-theme.route';
@@ -30,6 +31,7 @@ import { locationRouter } from './routes/location.route';
 import { orderRouter } from './routes/order.route';
 import { packagingRouter } from './routes/packaging.route';
 import { productTagsRouter } from './routes/product-tags.route';
+
 import { productTypeRouter } from './routes/product-type.route';
 import { productVariantRouter } from './routes/product-variant.route';
 import { productRouter } from './routes/product.route';
@@ -53,7 +55,7 @@ import { userRouter } from './routes/user.route';
 import { vendorRouter } from './routes/vendor.route';
 import { registerSocketHandlers } from './socket';
 import './utils/env.utils';
-import { loadedEnvFile, validateEnv } from './utils/env.utils';
+import { env, loadedEnvFile, validateEnv } from './utils/env.utils';
 // Ensure Mongoose registers dependent models used via refs (e.g., Supplier)
 import { getAllThemesPublic } from './controllers/theme.controller';
 import './models/supplier/supplier.model';
@@ -85,6 +87,7 @@ import notificationOptionRouter from './routes/notification-option.route';
 import notificationOverrideRouter from './routes/notification-override.route';
 import permissionRouter from './routes/permission.route';
 import pixelRouter from './routes/pixel.route';
+import { productOffersRouter } from './routes/product-offers.route';
 import { productOverrideEntryRouter } from './routes/product-override-entry.route';
 import { productOverrideRouter } from './routes/product-override.route';
 import returnRulesRouter from './routes/return-rules.route';
@@ -95,6 +98,8 @@ import shippingProfileRouter from './routes/shipping-profile.route';
 import shippingZoneRateRouter from './routes/shipping-zone-rate.route';
 import shippingZoneRouter from './routes/shipping-zone.route';
 import stateRouter from './routes/state.route';
+import storeBannerRouter from './routes/store-banner.route';
+import paymentRouter from './routes/payment.route';
 import storeBrandingRouter from './routes/store-branding.route';
 import storeContactInfoRouter from './routes/store-contact-info.route';
 import { storeNotificationEmailRouter } from './routes/store-notification-email.route';
@@ -118,7 +123,6 @@ import { taxAndDutiesGlobalSettingsRouter } from './routes/tax-and-duties-global
 import { taxRateDefaultRouter } from './routes/tax-rate-default.route';
 import { taxRateOverrideRouter } from './routes/tax-rate-override.route';
 import triggerRouter from './routes/trigger.route';
-import { productOffersRouter } from './routes/product-offers.route';
 
 import automationFlowRouter from './routes/automation-flow.route';
 import checkoutSettingsRoute from './routes/checkout-settings.route';
@@ -150,7 +154,7 @@ const io = new SocketIOServer(server, {
 // Export io instance to make it globally accessible
 export { io };
 
-const PORT = process.env.PORT;
+const PORT = Number(env.PORT);
 
 // Middleware
 app.use(cors({
@@ -174,6 +178,7 @@ app.use(
 // route middlewares
 app.use("/api/stores", storeRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/aws", awsRouter);
 app.use("/api/user", userRouter);
 app.use("/api/themes", themeRouter);
 app.use("/api/clients", clientRouter);
@@ -237,6 +242,8 @@ app.use("/api/store-shipping-policy", storeShippingPolicyRouter);
 app.use("/api/store-terms-policy", storeTermsPolicyRouter);
 app.use("/api/store-return-refund-policy", storeReturnRefundPolicyRouter);
 app.use("/api/store-branding", storeBrandingRouter);
+app.use("/api/store-banners", storeBannerRouter);
+app.use("/api/payments", paymentRouter);
 app.use("/api/local-delivery-settings", localDeliverySettingsRouter);
 app.use("/api/local-delivery-location-entries", localDeliveryLocationEntryRouter);
 app.use("/api/general-settings", generalSettingsRouter);
@@ -295,7 +302,7 @@ app.get('/', (req: Request, res: Response) => {
 
 app.get('/api/health', (req: Request, res: Response) => {
   res.status(200).json({ 
-    status: 'ok  - updated piyush',
+    status: 'ok  - updated piyush ci cd updated',
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
@@ -312,7 +319,7 @@ app.use(errorMiddleware);
 
 // Start server
 server.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode (using ${loadedEnvFile})`);
+  console.log(`🚀 Server is running on port ${PORT} in ${env.NODE_ENV} mode (using ${loadedEnvFile})`);
 });
 
 // Start BullMQ workers

@@ -4,7 +4,7 @@ import {
   PlusIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import ProductBasicInformationSection from "../components/products/ProductBasicInformationSection";
@@ -15,14 +15,25 @@ import ProductPriceSection from "../components/products/ProductPriceSection";
 import ProductSearchEngineListingSection from "../components/products/ProductSearchEngineListingSection";
 import ProductShippingSection from "../components/products/ProductShippingSection";
 import ProductStatusSection from "../components/products/ProductStatusSection";
+import { useAwsUpload } from "../contexts/aws-upload.context";
 import { useCategories } from "../contexts/category.context";
 import { useProducts } from "../contexts/product.context";
 import { useStore } from "../contexts/store.context";
+
+type SelectedProductImage = {
+  file: File;
+  previewUrl: string;
+};
+
 const NewProductPage: React.FC = () => {
   const { categories, fetchBaseCategories } = useCategories();
   const { createProduct, loading: productLoading } = useProducts();
   const { activeStoreId } = useStore();
+  const { uploadImageWithSignedUrl } = useAwsUpload();
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedImages, setSelectedImages] = useState<SelectedProductImage[]>([]);
+  const selectedImagesRef = useRef<SelectedProductImage[]>([]);
   
   const [formData, setFormData] = useState({
     // Basic Information
@@ -70,11 +81,45 @@ const NewProductPage: React.FC = () => {
     fetchBaseCategories();
   }, [fetchBaseCategories]);
 
+  useEffect(() => {
+    selectedImagesRef.current = selectedImages;
+  }, [selectedImages]);
+
+  useEffect(() => {
+    return () => {
+      selectedImagesRef.current.forEach((image) => URL.revokeObjectURL(image.previewUrl));
+    };
+  }, []);
+
   const handleInputChange = useCallback((field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
+  }, []);
+
+  const getErrorMessage = useCallback((error: any): string => {
+    const apiMessage =
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      error?.response?.data?.details?.message ||
+      error?.response?.data?.data?.message;
+
+    if (typeof apiMessage === "string" && apiMessage.trim()) {
+      return apiMessage;
+    }
+
+    if (Array.isArray(error?.response?.data?.errors) && error.response.data.errors.length > 0) {
+      const firstError = error.response.data.errors[0];
+      if (typeof firstError === "string") return firstError;
+      if (typeof firstError?.message === "string") return firstError.message;
+    }
+
+    if (typeof error?.message === "string" && error.message.trim()) {
+      return error.message;
+    }
+
+    return "Failed to create product";
   }, []);
 
   const handleSubmit = useCallback(async () => {
@@ -83,7 +128,26 @@ const NewProductPage: React.FC = () => {
       return;
     }
 
+    if (formData.physicalProduct && formData.hsCode.trim() !== "" && !/^\d{6}$/.test(formData.hsCode.trim())) {
+      toast.error("HS code must be exactly 6 digits");
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
+      let uploadedImageUrls: string[] = [];
+      if (selectedImages.length > 0) {
+        const uploadToastId = toast.loading(`Uploading ${selectedImages.length} image${selectedImages.length > 1 ? 's' : ''}...`);
+        const uploadedImages = await Promise.all(
+          selectedImages.map((image) =>
+            uploadImageWithSignedUrl(image.file, { folder: `${activeStoreId}/product-image` })
+          )
+        );
+        console.log("uploadedImages", uploadedImages);
+        uploadedImageUrls = uploadedImages.map((image) => image.objectUrl);
+        toast.success('Images uploaded', { id: uploadToastId });
+      };
+
       // Calculate profit and margin
       const price = parseFloat(formData.price) || 0;
       const cost = parseFloat(formData.cost) || 0;
@@ -123,7 +187,7 @@ const NewProductPage: React.FC = () => {
         status: formData.status,
         onlineStorePublishing: true,
         pointOfSalePublishing: false,
-        images: formData.images.filter(img => img.trim() !== ''),
+        images: uploadedImageUrls,
         productType: formData.productType,
         vendor: formData.vendor,
         tagIds: formData.tags || []
@@ -164,33 +228,45 @@ const NewProductPage: React.FC = () => {
         urlHandle: "",
         images: [] as string[]
       });
+      selectedImages.forEach((image) => URL.revokeObjectURL(image.previewUrl));
+      setSelectedImages([]);
     } catch (error: any) {
       console.error('Error creating product:', error);
-      alert(`Error creating product: ${error.message || 'Unknown error'}`);
-      toast.error('Error creating product');
+      const message = getErrorMessage(error);
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [activeStoreId, formData, createProduct, navigate]);
+  }, [activeStoreId, formData, createProduct, navigate, selectedImages, uploadImageWithSignedUrl, getErrorMessage]);
 
   // Image management functions
-  const addImage = useCallback(() => {
-    setFormData(prev => ({
-      ...prev,
-      images: [...prev.images, '']
-    }));
-  }, []);
+  const addImageFiles = useCallback((files: File[]) => {
+    const validFiles = files.filter((file) => file.type.startsWith('image/'));
+    const rejectedFilesCount = files.length - validFiles.length;
 
-  const updateImage = useCallback((index: number, url: string) => {
-    setFormData(prev => ({
+    if (rejectedFilesCount > 0) {
+      toast.error(`Skipped ${rejectedFilesCount} non-image file${rejectedFilesCount > 1 ? 's' : ''}`);
+    }
+
+    if (!validFiles.length) return;
+
+    setSelectedImages((prev) => [
       ...prev,
-      images: prev.images.map((img, i) => i === index ? url : img)
-    }));
+      ...validFiles.map((file) => ({
+        file,
+        previewUrl: URL.createObjectURL(file),
+      })),
+    ]);
   }, []);
 
   const removeImage = useCallback((index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index)
-    }));
+    setSelectedImages((prev) => {
+      const imageToRemove = prev[index];
+      if (imageToRemove) {
+        URL.revokeObjectURL(imageToRemove.previewUrl);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
   }, []);
 
   // Variant management functions
@@ -255,9 +331,8 @@ const NewProductPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-page-background-color">
-      <div className="max-w-[1400px] mx-auto px-3 sm:px-4 py-4">
-        {/* Page Header */}
-        <div className="mb-6">
+      <div className="mx-auto max-w-[1500px] px-3 py-4 sm:px-4">
+        <div className="mb-5">
           <button
             type="button"
             onClick={() => navigate('/products')}
@@ -266,107 +341,90 @@ const NewProductPage: React.FC = () => {
             <ArrowLeftIcon className="w-4 h-4" />
             Back to Products
           </button>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center">
-              <CubeIcon className="w-5 h-5 text-blue-600" />
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100">
+                <CubeIcon className="h-4 w-4 text-gray-700" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-semibold tracking-tight text-gray-900">Add product</h1>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Add product</h1>
-              <p className="text-sm text-gray-500 mt-0.5">
-                Create a new product with details, pricing, and inventory
-              </p>
-            </div>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={productLoading || isSubmitting || !activeStoreId}
+              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSubmitting || productLoading ? 'Creating product...' : 'Add product'}
+            </button>
           </div>
         </div>
 
-        <div className="space-y-6">
-          {/* Basic Information Section */}
-          <ProductBasicInformationSection
-            title={formData.title}
-            category={formData.category}
-            description={formData.description}
-            activeStoreId={activeStoreId}
-            onTitleChange={(value) => handleInputChange('title', value)}
-            onCategoryChange={(categoryId) => handleInputChange('category', categoryId)}
-            onDescriptionChange={(value) => handleInputChange('description', value)}
-          />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+          <div className="space-y-6">
+            <ProductBasicInformationSection
+              title={formData.title}
+              category={formData.category}
+              description={formData.description}
+              activeStoreId={activeStoreId}
+              onTitleChange={(value) => handleInputChange('title', value)}
+              onCategoryChange={(categoryId) => handleInputChange('category', categoryId)}
+              onDescriptionChange={(value) => handleInputChange('description', value)}
+            />
 
-          {/* Product Images Sub-section */}
-          <ProductImagesSection
-            images={formData.images}
-            onAddImage={addImage}
-            onUpdateImage={updateImage}
-            onRemoveImage={removeImage}
-          />
+            <ProductImagesSection
+              images={selectedImages.map((image) => image.previewUrl)}
+              onAddImageFiles={addImageFiles}
+              onRemoveImage={removeImage}
+              disabled={isSubmitting || productLoading}
+            />
 
-          {/* Status Section */}
-          <ProductStatusSection
-            status={formData.status}
-            onChange={(status) => handleInputChange('status', status)}
-          />
+            <ProductPriceSection
+              price={formData.price}
+              compareAtPrice={formData.compareAtPrice}
+              unitPriceTotalAmount={formData.unitPriceTotalAmount}
+              unitPriceBaseMeasure={formData.unitPriceBaseMeasure}
+              selectedUnit={formData.selectedUnit}
+              selectedBaseMeasureUnit={formData.selectedBaseMeasureUnit}
+              chargeTaxOnProduct={formData.chargeTaxOnProduct}
+              cost={formData.cost}
+              onPriceChange={(value) => handleInputChange('price', value)}
+              onCompareAtPriceChange={(value) => handleInputChange('compareAtPrice', value)}
+              onUnitPriceTotalAmountChange={(value) => handleInputChange('unitPriceTotalAmount', value)}
+              onUnitPriceBaseMeasureChange={(value) => handleInputChange('unitPriceBaseMeasure', value)}
+              onSelectedUnitChange={(value) => handleInputChange('selectedUnit', value)}
+              onSelectedBaseMeasureUnitChange={(value) => handleInputChange('selectedBaseMeasureUnit', value)}
+              onChargeTaxOnProductChange={(checked) => handleInputChange('chargeTaxOnProduct', checked)}
+              onCostChange={(value) => handleInputChange('cost', value)}
+            />
 
-          {/* Product Organization Section */}
-          <ProductOrganizationSection
-            productType={formData.productType}
-            vendor={formData.vendor}
-            tags={formData.tags}
-            onProductTypeChange={(productTypeId) => handleInputChange('productType', productTypeId)}
-            onVendorChange={(vendorId) => handleInputChange('vendor', vendorId)}
-            onTagsChange={(tags) => handleInputChange('tags', tags)}
-            activeStoreId={activeStoreId}
-          />
+            <ProductInventorySection
+              inventoryTrackingEnabled={formData.inventoryTrackingEnabled}
+              sku={formData.sku}
+              barcode={formData.barcode}
+              onInventoryTrackingEnabledChange={(checked) => handleInputChange('inventoryTrackingEnabled', checked)}
+              onSkuChange={(value) => handleInputChange('sku', value)}
+              onBarcodeChange={(value) => handleInputChange('barcode', value)}
+            />
 
-          {/* Price Section */}
-          <ProductPriceSection
-            price={formData.price}
-            compareAtPrice={formData.compareAtPrice}
-            unitPriceTotalAmount={formData.unitPriceTotalAmount}
-            unitPriceBaseMeasure={formData.unitPriceBaseMeasure}
-            selectedUnit={formData.selectedUnit}
-            selectedBaseMeasureUnit={formData.selectedBaseMeasureUnit}
-            chargeTaxOnProduct={formData.chargeTaxOnProduct}
-            cost={formData.cost}
-            onPriceChange={(value) => handleInputChange('price', value)}
-            onCompareAtPriceChange={(value) => handleInputChange('compareAtPrice', value)}
-            onUnitPriceTotalAmountChange={(value) => handleInputChange('unitPriceTotalAmount', value)}
-            onUnitPriceBaseMeasureChange={(value) => handleInputChange('unitPriceBaseMeasure', value)}
-            onSelectedUnitChange={(value) => handleInputChange('selectedUnit', value)}
-            onSelectedBaseMeasureUnitChange={(value) => handleInputChange('selectedBaseMeasureUnit', value)}
-            onChargeTaxOnProductChange={(checked) => handleInputChange('chargeTaxOnProduct', checked)}
-            onCostChange={(value) => handleInputChange('cost', value)}
-          />
+            <ProductShippingSection
+              physicalProduct={formData.physicalProduct}
+              selectedPackage={formData.selectedPackage}
+              productWeight={formData.productWeight}
+              weightUnit={formData.weightUnit}
+              countryOfOrigin={formData.countryOfOrigin}
+              hsCode={formData.hsCode}
+              onPhysicalProductChange={(checked) => handleInputChange('physicalProduct', checked)}
+              onSelectedPackageChange={(value) => handleInputChange('selectedPackage', value)}
+              onProductWeightChange={(value) => handleInputChange('productWeight', value)}
+              onWeightUnitChange={(value) => handleInputChange('weightUnit', value)}
+              onCountryOfOriginChange={(value) => handleInputChange('countryOfOrigin', value)}
+              onHsCodeChange={(value) => handleInputChange('hsCode', value)}
+              activeStoreId={activeStoreId}
+            />
 
-          {/* Inventory Section */}
-          <ProductInventorySection
-            inventoryTrackingEnabled={formData.inventoryTrackingEnabled}
-            sku={formData.sku}
-            barcode={formData.barcode}
-            continueSellingWhenOutOfStock={formData.continueSellingWhenOutOfStock}
-            onInventoryTrackingEnabledChange={(checked) => handleInputChange('inventoryTrackingEnabled', checked)}
-            onSkuChange={(value) => handleInputChange('sku', value)}
-            onBarcodeChange={(value) => handleInputChange('barcode', value)}
-            onContinueSellingWhenOutOfStockChange={(checked) => handleInputChange('continueSellingWhenOutOfStock', checked)}
-          />
-
-          {/* Shipping Section */}
-          <ProductShippingSection
-            physicalProduct={formData.physicalProduct}
-            selectedPackage={formData.selectedPackage}
-            productWeight={formData.productWeight}
-            weightUnit={formData.weightUnit}
-            countryOfOrigin={formData.countryOfOrigin}
-            hsCode={formData.hsCode}
-            onPhysicalProductChange={(checked) => handleInputChange('physicalProduct', checked)}
-            onSelectedPackageChange={(value) => handleInputChange('selectedPackage', value)}
-            onProductWeightChange={(value) => handleInputChange('productWeight', value)}
-            onWeightUnitChange={(value) => handleInputChange('weightUnit', value)}
-            onCountryOfOriginChange={(value) => handleInputChange('countryOfOrigin', value)}
-            onHsCodeChange={(value) => handleInputChange('hsCode', value)}
-            activeStoreId={activeStoreId}
-          />
-
-          {/* Variants Section */}
-          <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
+            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
             <h2 className="text-base font-semibold text-gray-900 mb-4">Variants</h2>
             <p className="text-sm text-gray-500 mb-4">
               Add options like size or color so customers can choose from different variants
@@ -437,29 +495,43 @@ const NewProductPage: React.FC = () => {
                 </div>
               </div>
             ))}
+            </div>
+
+            <ProductSearchEngineListingSection
+              pageTitle={formData.pageTitle}
+              metaDescription={formData.metaDescription}
+              urlHandle={formData.urlHandle}
+              onPageTitleChange={(value) => handleInputChange('pageTitle', value)}
+              onMetaDescriptionChange={(value) => handleInputChange('metaDescription', value)}
+              onUrlHandleChange={(value) => handleInputChange('urlHandle', value)}
+            />
           </div>
 
-          {/* Search Engine Listing Section */}
-          <ProductSearchEngineListingSection
-            pageTitle={formData.pageTitle}
-            metaDescription={formData.metaDescription}
-            urlHandle={formData.urlHandle}
-            onPageTitleChange={(value) => handleInputChange('pageTitle', value)}
-            onMetaDescriptionChange={(value) => handleInputChange('metaDescription', value)}
-            onUrlHandleChange={(value) => handleInputChange('urlHandle', value)}
-          />
-        </div>
+          <aside className="space-y-4 lg:sticky lg:top-4 lg:self-start">
+            <ProductStatusSection
+              status={formData.status}
+              onChange={(status) => handleInputChange('status', status)}
+            />
 
-        {/* Add Product Button */}
-        <div className="flex justify-end pt-4 pb-2">
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={productLoading || !activeStoreId}
-            className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {productLoading ? 'Creating product...' : 'Add product'}
-          </button>
+            <ProductOrganizationSection
+              productType={formData.productType}
+              vendor={formData.vendor}
+              tags={formData.tags}
+              onProductTypeChange={(productTypeId) => handleInputChange('productType', productTypeId)}
+              onVendorChange={(vendorId) => handleInputChange('vendor', vendorId)}
+              onTagsChange={(tags) => handleInputChange('tags', tags)}
+              activeStoreId={activeStoreId}
+            />
+
+            <div className="rounded-xl border border-gray-200/80 bg-white p-6 shadow-sm">
+              <h2 className="mb-3 text-base font-semibold text-gray-900">Publishing</h2>
+              <div className="flex flex-wrap gap-2">
+                <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
+                  Online Store
+                </span>
+              </div>
+            </div>
+          </aside>
         </div>
       </div>
     </div>

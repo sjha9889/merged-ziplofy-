@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiMinus, FiPlus, FiTrash2, FiX, FiArrowLeft, FiLock, FiMapPin } from 'react-icons/fi';
+import { FiTrash2, FiX, FiArrowLeft, FiLock, FiMapPin, FiShoppingBag } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useStorefront } from '../contexts/store.context';
 import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 import { useStorefrontCart } from '../contexts/storefront-cart.context';
@@ -12,7 +13,10 @@ import { useAmountOffProduct } from '../contexts/amount-off-product.context';
 import { useBuyXGetY } from '../contexts/buy-x-get-y.context';
 import type { BuyXGetYCartItem } from '../contexts/buy-x-get-y.context';
 import { BxgyChooseItemsModal } from './BxgyChooseItemsModal';
+import { BxgyCheckoutGetsSection } from './BxgyCheckoutGetsSection';
 import { formatINR } from '../utils/currency';
+import { savePendingCheckout } from '../utils/pendingCheckout';
+import type { CreateOrderPayload } from '../contexts/storefront-order.context';
 import { useStorefrontCountries } from '../contexts/storefront-country.context';
 import ZiplofyLogo from '../assets/ziplofy-logo.png';
 
@@ -25,32 +29,25 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
   const navigate = useNavigate();
   const { storeFrontMeta } = useStorefront();
   const { user, checkAuth } = useStorefrontAuth();
-  const { items, guestItems, isGuest, getCartByCustomerId, updateCartEntry, deleteCartEntry, clear } = useStorefrontCart();
+  const { items, guestItems, isGuest, getCartByCustomerId, updateCartEntry, deleteCartEntry } = useStorefrontCart();
 
   // Use guest items when not logged in, otherwise use server items
   const displayItems = isGuest ? guestItems : items;
   const { addresses, fetchCustomerAddressesByCustomerId, addCustomerAddress, loading: addressLoading } = useCustomerAddresses();
   const { countries, getCountries, loading: countriesLoading } = useStorefrontCountries();
-  const { createOrder, loading: orderLoading } = useStorefrontOrder();
+  const { loading: orderLoading } = useStorefrontOrder();
   const {
     eligibleDiscounts,
     discountCodeResult,
     appliedAutomaticDiscount,
-    // The rest of the free-shipping helpers are available via context but
-    // not used directly in this component now that discount sections were
-    // removed from the checkout modal.
-    // loading: freeShippingLoading,
-    // discountCodeLoading,
-    // discountCodeError,
+    loading: freeShippingLoading,
     checkEligibleFreeShippingDiscounts,
-    // validateFreeShippingDiscountCode,
     applyAutomaticDiscount,
     clearAppliedAutomaticDiscount,
-    // clearDiscountCodeResult,
   } = useFreeShipping();
   const {
     eligibleDiscounts: aooEligibleDiscounts,
-    // loading: aooLoading,
+    loading: aooLoading,
     discountCodeResult: aooDiscountCodeResult,
     appliedAutomaticDiscount: aooAppliedAutomaticDiscount,
     // discountCodeLoading: aooDiscountCodeLoading,
@@ -63,7 +60,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
   } = useAmountOffOrder();
   const {
     eligibleDiscounts: aopEligibleDiscounts,
-    // loading: aopLoading,
+    loading: aopLoading,
     discountCodeResult: aopDiscountCodeResult,
     appliedAutomaticDiscount: aopAppliedAutomaticDiscount,
     // discountCodeLoading: aopDiscountCodeLoading,
@@ -76,7 +73,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
   } = useAmountOffProduct();
   const {
     eligibleDiscounts: bxgyEligibleDiscounts,
-    // loading: bxgyLoading,
+    loading: bxgyLoading,
     discountCodeResult: bxgyDiscountCodeResult,
     appliedAutomaticDiscount: bxgyAppliedAutomaticDiscount,
     selectedGetsItems: bxgySelectedGetsItems,
@@ -179,53 +176,70 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
   const cartItemsKey = useMemo(() => JSON.stringify(cartItemsForApi.map((c) => `${c.productId}:${c.quantity}:${c.price}`)), [cartItemsForApi]);
   const bxgyCartItemsKey = useMemo(() => JSON.stringify(buyXGetYCartItems.map((c) => `${c.productId}:${c.quantity}:${c.price}`)), [buyXGetYCartItems]);
   const selectedAddrData = addresses.find((a) => a._id === selectedShippingAddressId);
-  const shippingCountryIso2 = (selectedAddrData?.countryId as { iso2?: string })?.iso2;
+  /** When cart opens before checkout, fall back to first saved address so free-shipping eligibility can run. */
+  const addressForFreeShippingCheck = selectedAddrData ?? (addresses.length > 0 ? addresses[0] : undefined);
+  const shippingCountryIso2 = (addressForFreeShippingCheck?.countryId as { iso2?: string })?.iso2;
+
+  const discountsContextActive = open || checkoutDialogOpen;
+  const discountsOffersLoading =
+    discountsContextActive &&
+    (aooLoading || aopLoading || bxgyLoading || (!!user?._id && freeShippingLoading));
 
   useEffect(() => {
-    if (!checkoutDialogOpen || !storeFrontMeta?.storeId || !user?._id || cartItemsForApi.length === 0) return;
-    const selectedAddr = addresses.find((a) => a._id === selectedShippingAddressId);
+    if (!discountsContextActive || !storeFrontMeta?.storeId || !user?._id || cartItemsForApi.length === 0) return;
+    const addr = addressForFreeShippingCheck;
     checkEligibleFreeShippingDiscounts({
       storeId: storeFrontMeta.storeId,
       customerId: user._id,
       cartItems: cartItemsForApi,
-      shippingAddress: selectedAddr ? {
-        country: (selectedAddr.countryId as { iso2?: string })?.iso2,
-        countryId: typeof selectedAddr.countryId === 'object' ? (selectedAddr.countryId as any)?._id : selectedAddr.countryId,
-        state: selectedAddr.state,
-        city: selectedAddr.city,
-      } : undefined,
+      shippingAddress: addr
+        ? {
+            country: (addr.countryId as { iso2?: string })?.iso2,
+            countryId: typeof addr.countryId === 'object' ? (addr.countryId as any)?._id : addr.countryId,
+            state: addr.state,
+            city: addr.city,
+          }
+        : undefined,
     }).catch(() => {});
-  }, [checkoutDialogOpen, storeFrontMeta?.storeId, user?._id, selectedShippingAddressId, cartItemsKey, shippingCountryIso2, checkEligibleFreeShippingDiscounts]);
+  }, [
+    discountsContextActive,
+    storeFrontMeta?.storeId,
+    user?._id,
+    cartItemsKey,
+    shippingCountryIso2,
+    addressForFreeShippingCheck?._id,
+    checkEligibleFreeShippingDiscounts,
+  ]);
 
-  // Check eligible amount-off-order discounts when checkout modal opens and cart changes
+  // Check eligible amount-off-order discounts when cart or checkout is open and cart changes
   useEffect(() => {
-    if (!checkoutDialogOpen || !storeFrontMeta?.storeId || cartItemsForApi.length === 0) return;
+    if (!discountsContextActive || !storeFrontMeta?.storeId || cartItemsForApi.length === 0) return;
     fetchAooEligibleDiscounts(
       storeFrontMeta.storeId,
       user?._id ?? null,
       cartItemsForApi
     ).catch(() => {});
-  }, [checkoutDialogOpen, storeFrontMeta?.storeId, user?._id, cartItemsKey, fetchAooEligibleDiscounts]);
+  }, [discountsContextActive, storeFrontMeta?.storeId, user?._id, cartItemsKey, fetchAooEligibleDiscounts]);
 
-  // Check eligible amount-off-product discounts when checkout modal opens and cart changes
+  // Check eligible amount-off-product discounts when cart or checkout is open and cart changes
   useEffect(() => {
-    if (!checkoutDialogOpen || !storeFrontMeta?.storeId || buyXGetYCartItems.length === 0) return;
+    if (!discountsContextActive || !storeFrontMeta?.storeId || buyXGetYCartItems.length === 0) return;
     fetchAopEligibleDiscounts(
       storeFrontMeta.storeId,
       user?._id ?? null,
       buyXGetYCartItems
     ).catch(() => {});
-  }, [checkoutDialogOpen, storeFrontMeta?.storeId, user?._id, bxgyCartItemsKey, fetchAopEligibleDiscounts]);
+  }, [discountsContextActive, storeFrontMeta?.storeId, user?._id, bxgyCartItemsKey, fetchAopEligibleDiscounts]);
 
-  // Check eligible Buy X Get Y discounts when checkout modal opens and cart changes
+  // Check eligible Buy X Get Y discounts when cart or checkout is open and cart changes
   useEffect(() => {
-    if (!checkoutDialogOpen || !storeFrontMeta?.storeId || buyXGetYCartItems.length === 0) return;
+    if (!discountsContextActive || !storeFrontMeta?.storeId || buyXGetYCartItems.length === 0) return;
     fetchBxgyEligibleDiscounts(
       storeFrontMeta.storeId,
       user?._id ?? null,
       buyXGetYCartItems
     ).catch(() => {});
-  }, [checkoutDialogOpen, storeFrontMeta?.storeId, user?._id, bxgyCartItemsKey, fetchBxgyEligibleDiscounts]);
+  }, [discountsContextActive, storeFrontMeta?.storeId, user?._id, bxgyCartItemsKey, fetchBxgyEligibleDiscounts]);
 
   // Amounts are stored in paisa (minor units), so 200 rupees = 20000
   const shippingCost = 20000; // Hardcoded ₹200 for now
@@ -287,7 +301,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
 
   // Unified auto-apply effect using combination validation
   useEffect(() => {
-    if (!checkoutDialogOpen) return;
+    if (!discountsContextActive) return;
 
     // Get best eligible discount from each type (skip if manual code applied)
     const candidates: Array<{
@@ -420,7 +434,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
       }
     }
   }, [
-    checkoutDialogOpen,
+    discountsContextActive,
     shippingCost,
     // Free Shipping
     eligibleDiscounts,
@@ -631,296 +645,381 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
     }
   };
 
-  const handlePlaceOrder = async () => {
-    if (!selectedShippingAddressId || !user?._id) {
-      console.error('Cannot place order: missing shipping address or user');
-      return;
+  const buildCheckoutOrderPayload = (): CreateOrderPayload | null => {
+    if (!selectedShippingAddressId || !user?._id || items.length === 0 || !storeFrontMeta?.storeId) {
+      return null;
     }
-    if (items.length === 0) {
-      console.error('Cannot place order: cart is empty');
-      return;
+    let orderItems = items.map((item) => {
+      const pv = typeof item.productVariantId === 'object' ? item.productVariantId : null;
+      const price = pv?.price ?? 0;
+      return {
+        productVariantId: typeof item.productVariantId === 'object' ? item.productVariantId._id : item.productVariantId,
+        quantity: item.quantity,
+        price,
+        total: price * item.quantity,
+      };
+    });
+
+    const appliedBxgy = bxgyDiscountCodeResult ?? bxgyAppliedAutomaticDiscount;
+    const getsItemsToUse =
+      appliedBxgy?.customerGetsAnyItemsFrom === 'specific-collections' && bxgySelectedGetsItems && bxgySelectedGetsItems.length > 0
+        ? bxgySelectedGetsItems
+        : appliedBxgy?.getsItems ?? [];
+    if (getsItemsToUse.length > 0) {
+      const freeGetsItems = getsItemsToUse.map((gi) => ({
+        productVariantId: gi.productVariantId ?? gi.productId,
+        quantity: gi.quantity,
+        price: gi.discountedPrice,
+        total: gi.discountedPrice * gi.quantity,
+      }));
+      orderItems = [...orderItems, ...freeGetsItems];
     }
-    try {
-      let orderItems = items.map((item) => {
-        const pv = typeof item.productVariantId === 'object' ? item.productVariantId : null;
-        const price = pv?.price ?? 0;
-        return { 
-          productVariantId: typeof item.productVariantId === 'object' ? item.productVariantId._id : item.productVariantId, 
-          quantity: item.quantity, 
-          price, 
-          total: price * item.quantity 
-        };
-      });
 
-      const appliedBxgy = bxgyDiscountCodeResult ?? bxgyAppliedAutomaticDiscount;
-      const getsItemsToUse =
-        appliedBxgy?.customerGetsAnyItemsFrom === 'specific-collections' && bxgySelectedGetsItems && bxgySelectedGetsItems.length > 0
-          ? bxgySelectedGetsItems
-          : appliedBxgy?.getsItems ?? [];
-      if (getsItemsToUse.length > 0) {
-        const freeGetsItems = getsItemsToUse.map((gi) => ({
-          productVariantId: gi.productVariantId ?? gi.productId,
-          quantity: gi.quantity,
-          price: gi.discountedPrice,
-          total: gi.discountedPrice * gi.quantity,
-        }));
-        orderItems = [...orderItems, ...freeGetsItems];
-      }
+    const freeShippingDiscountId =
+      (appliedAutomaticDiscount?.id || discountCodeResult?.id) ?? undefined;
+    const amountOffOrderDiscountId =
+      (aooAppliedAutomaticDiscount?.id || aooDiscountCodeResult?.id) ?? undefined;
+    const amountOffProductDiscountId =
+      (aopAppliedAutomaticDiscount?.id || aopDiscountCodeResult?.id) ?? undefined;
+    const buyXGetYDiscountId = appliedBxgy?.id ?? undefined;
 
-      if (!storeFrontMeta?.storeId) {
-        throw new Error('Store ID is required');
-      }
-      console.log('Placing order with items:', orderItems);
-      const freeShippingDiscountId =
-        (appliedAutomaticDiscount?.id || discountCodeResult?.id) ?? undefined;
-      const amountOffOrderDiscountId =
-        (aooAppliedAutomaticDiscount?.id || aooDiscountCodeResult?.id) ?? undefined;
-      const amountOffProductDiscountId =
-        (aopAppliedAutomaticDiscount?.id || aopDiscountCodeResult?.id) ?? undefined;
-      const buyXGetYDiscountId = appliedBxgy?.id ?? undefined;
-
-      await createOrder({
-        storeId: storeFrontMeta.storeId,
-        shippingAddressId: selectedShippingAddressId,
-        billingAddressId: selectedBillingAddressId || undefined,
-        items: orderItems,
-        paymentMethod: 'cod',
-        subtotal,
-        tax,
-        shippingCost,
-        total: finalTotal,
-        ...(freeShippingDiscountId && { freeShippingDiscountId }),
-        ...(amountOffOrderDiscountId && { amountOffOrderDiscountId }),
-        ...(amountOffProductDiscountId && { amountOffProductDiscountId }),
-        ...(buyXGetYDiscountId && { buyXGetYDiscountId }),
-      });
-      console.log('Order placed successfully');
-      setCheckoutDialogOpen(false);
-      await Promise.all(items.map(item => deleteCartEntry(item._id).catch(() => {})));
-      clear();
-      onClose(); // Close the cart drawer after successful order
-    } catch (error) { 
-      console.error('Failed to create order:', error);
-      // You might want to show a toast notification here
-    }
+    return {
+      storeId: storeFrontMeta.storeId,
+      shippingAddressId: selectedShippingAddressId,
+      billingAddressId: selectedBillingAddressId || undefined,
+      items: orderItems,
+      paymentMethod: 'cod',
+      subtotal,
+      tax,
+      shippingCost,
+      total: finalTotal,
+      ...(freeShippingDiscountId && { freeShippingDiscountId }),
+      ...(amountOffOrderDiscountId && { amountOffOrderDiscountId }),
+      ...(amountOffProductDiscountId && { amountOffProductDiscountId }),
+      ...(buyXGetYDiscountId && { buyXGetYDiscountId }),
+    };
   };
 
-  const [isMounted, setIsMounted] = useState(open);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    if (open) {
-      setIsMounted(true);
-      // Next frame so transitions apply
-      requestAnimationFrame(() => setIsVisible(true));
-    } else {
-      setIsVisible(false);
-      const timeout = setTimeout(() => {
-        setIsMounted(false);
-      }, 300); // match CSS duration
-      return () => clearTimeout(timeout);
-    }
-  }, [open]);
-
-  if (!isMounted) return null;
+  const goToCheckoutPayment = () => {
+    const payload = buildCheckoutOrderPayload();
+    if (!payload) return;
+    const pending = {
+      createOrderPayload: payload,
+      cartEntryIds: items.map((i) => i._id),
+      merchantName: storeFrontMeta?.name || 'Store',
+      itemSummaryLine: `${displayItems.length} ${displayItems.length === 1 ? 'item' : 'items'}`,
+      amountPaise: finalTotal,
+      orderIdDisplay: `ORD-${Date.now().toString(36).toUpperCase()}`,
+    };
+    savePendingCheckout(pending);
+    setCheckoutDialogOpen(false);
+    onClose();
+    navigate('/checkout/payment', { state: { pending } });
+  };
 
   return (
     <>
-      <div
-        className={`fixed inset-0 z-50 transition-opacity duration-300 ${
-          isVisible ? 'opacity-100' : 'opacity-0'
-        }`}
-      >
-        <button
-          type="button"
-          aria-label="Close cart"
-          className="absolute inset-0 bg-black/50"
-          onClick={onClose}
-        />
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-[110]">
+          {/* Backdrop */}
+          <motion.button
+            type="button"
+            aria-label="Close cart"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 bg-[var(--charcoal-black)]/45 backdrop-blur-[2px]"
+            onClick={onClose}
+          />
 
-        <aside
-          className={`absolute right-0 top-0 h-full w-full max-w-md bg-[#fefcf8] shadow-xl transform transition-transform duration-300 ${
-            isVisible ? 'translate-x-0' : 'translate-x-full'
-          }`}
-        >
-          <div className="flex items-center justify-between border-b border-[#e8e0d5] px-4 py-4">
-            <div className="text-lg font-semibold text-[#0c100c]" style={{ fontFamily: 'var(--font-serif)' }}>Your Cart</div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg hover:bg-[#f5f1e8] text-[#0c100c] transition-colors"
-              aria-label="Close"
-            >
-              <FiX />
-            </button>
-          </div>
+          {/* Drawer — Ornativa theme: ivory panel, warm border, above footer UI (z-100) */}
+          <motion.aside
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 32, stiffness: 320 }}
+            className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col border-l border-[var(--warm-beige)] bg-[var(--ivory-white)] shadow-[-12px_0_48px_rgba(12,16,12,0.12)]"
+          >
+            <header className="flex shrink-0 items-center justify-between border-b border-[var(--warm-beige)] bg-white/90 px-5 py-4 backdrop-blur-md">
+              <div>
+                <h2
+                  className="text-[1.15rem] font-semibold tracking-tight text-[var(--charcoal-black)]"
+                  style={{ fontFamily: 'var(--font-serif)' }}
+                >
+                  Shopping bag
+                </h2>
+                <p className="mt-0.5 text-xs font-medium uppercase tracking-[0.12em] text-[var(--soft-charcoal)]/80">
+                  {displayItems.length} {displayItems.length === 1 ? 'item' : 'items'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-xl p-2.5 text-[var(--soft-charcoal)] transition-colors hover:bg-[var(--champagne-beige)] hover:text-[var(--charcoal-black)]"
+                aria-label="Close cart"
+              >
+                <FiX className="h-5 w-5" strokeWidth={2} />
+              </button>
+            </header>
 
-          <div className="flex h-[calc(100%-64px)] flex-col p-4">
-            {displayItems.length === 0 ? (
-              <div className="flex flex-1 flex-col items-center justify-center text-center">
-                <div className="text-base font-semibold text-[#0c100c]">Your cart is empty</div>
+            <div className="flex min-h-0 flex-1 flex-col">
+              {displayItems.length === 0 ? (
+                <div className="flex flex-1 flex-col items-center justify-center px-4 py-12 text-center">
+                  <div className="mb-5 flex h-24 w-24 items-center justify-center rounded-full border border-[var(--warm-beige)] bg-[var(--champagne-beige)]/60">
+                    <FiShoppingBag className="h-11 w-11 text-[var(--gold)]/40" />
+                  </div>
+                  <p className="text-lg font-semibold text-[var(--charcoal-black)]" style={{ fontFamily: 'var(--font-serif)' }}>
+                    Your bag is empty
+                  </p>
+                  <p className="mt-2 max-w-[240px] text-sm text-[var(--soft-charcoal)]/90">
+                    Discover pieces you love and add them here.
+                  </p>
                   <button
                     type="button"
                     onClick={onClose}
-                    className="mt-4 rounded-lg bg-gradient-to-r from-[#d4af37] to-[#e6c547] px-4 py-2 text-sm font-semibold text-[#0c100c] hover:shadow-lg transition-all"
-                    style={{ boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)' }}
+                    className="mt-8 rounded-full bg-[var(--charcoal-black)] px-8 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#2b1e1e]"
                   >
-                    Continue Shopping
+                    Continue shopping
                   </button>
-              </div>
-            ) : (
-              <>
-                {/* Optional sign-in / rewards banner */}
-                {!user && (
-                  <div className="mb-3 rounded-2xl border border-[#e8e0d5] bg-white px-3 py-3 flex items-center justify-between">
-                    <div className="text-xs text-[#2b1e1e]">
-                      <div className="font-semibold text-[#0c100c]">Sign in to sync your cart</div>
-                      <div>Sign in to checkout and save your cart.</div>
+                </div>
+              ) : (
+                <>
+                  {!user && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mx-4 mt-4 shrink-0 rounded-2xl border border-[var(--warm-beige)] bg-gradient-to-r from-[var(--champagne-beige)]/80 to-white px-4 py-3.5"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0 text-left">
+                          <p className="text-sm font-semibold text-[var(--charcoal-black)]">Sign in</p>
+                          <p className="text-xs text-[var(--soft-charcoal)]">Sync your cart across devices</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onClose();
+                            navigate('/auth/login');
+                          }}
+                          className="shrink-0 rounded-full border border-[var(--charcoal-black)] bg-white px-4 py-2 text-xs font-semibold text-[var(--charcoal-black)] transition hover:bg-[var(--champagne-beige)]"
+                        >
+                          Sign in
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-2 pt-4">
+                    <div className="space-y-3">
+                      {displayItems.map((it, index) => {
+                        const pv = typeof it.productVariantId === 'object' ? it.productVariantId : null;
+                        const image = pv?.images?.[0];
+                        const title = pv?.sku || 'Product';
+                        const price = pv?.price ?? 0;
+                        const compareAtPrice = pv?.compareAtPrice ?? null;
+                        const productId = pv?.productId;
+                        const handleProductClick = () => {
+                          if (productId) {
+                            onClose();
+                            navigate(`/products/${productId}`);
+                          }
+                        };
+                        return (
+                          <motion.div
+                            key={it._id}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.04 }}
+                            className="flex gap-3.5 rounded-2xl border border-[var(--warm-beige)] bg-white p-3.5 shadow-[var(--shadow-light)]"
+                          >
+                            <button
+                              type="button"
+                              className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border border-[var(--warm-beige)] bg-[var(--champagne-beige)]/50"
+                              onClick={handleProductClick}
+                              aria-label={productId ? `View ${title}` : undefined}
+                            >
+                              <img
+                                src={image || 'https://via.placeholder.com/96'}
+                                alt=""
+                                className="h-full w-full object-cover"
+                              />
+                            </button>
+                            <div className="min-w-0 flex-1 text-left">
+                              {productId ? (
+                                <button
+                                  type="button"
+                                  onClick={handleProductClick}
+                                  className="text-left text-[0.9375rem] font-semibold leading-snug text-[var(--charcoal-black)] hover:text-[var(--gold)]"
+                                >
+                                  {title}
+                                </button>
+                              ) : (
+                                <p className="text-[0.9375rem] font-semibold text-[var(--charcoal-black)]">{title}</p>
+                              )}
+                              {pv?.optionValues && (
+                                <p className="mt-0.5 text-xs leading-relaxed text-[var(--soft-charcoal)]">
+                                  {Object.entries(pv.optionValues)
+                                    .map(([k, v]) => `${k}: ${v}`)
+                                    .join(' · ')}
+                                </p>
+                              )}
+                              <div className="mt-2 flex flex-wrap items-baseline gap-2">
+                                <span className="text-sm font-semibold tabular-nums text-[var(--charcoal-black)]">
+                                  {formatINR(price * it.quantity)}
+                                </span>
+                                {compareAtPrice != null && compareAtPrice > price && (
+                                  <span className="text-xs tabular-nums text-[var(--soft-charcoal)] line-through">
+                                    {formatINR(compareAtPrice * it.quantity)}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="mt-3 flex items-center gap-2">
+                                <div className="inline-flex items-center rounded-full border border-[var(--warm-beige)] bg-[var(--ivory-white)] p-0.5">
+                                  <button
+                                    type="button"
+                                    className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium text-[var(--charcoal-black)] transition hover:bg-[var(--champagne-beige)]"
+                                    onClick={() => updateCartEntry({ id: it._id, quantity: Math.max(1, it.quantity - 1) })}
+                                    aria-label="Decrease quantity"
+                                  >
+                                    −
+                                  </button>
+                                  <span className="min-w-[1.75rem] text-center text-sm font-semibold tabular-nums text-[var(--charcoal-black)]">
+                                    {it.quantity}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium text-[var(--charcoal-black)] transition hover:bg-[var(--champagne-beige)]"
+                                    onClick={() => updateCartEntry({ id: it._id, quantity: it.quantity + 1 })}
+                                    aria-label="Increase quantity"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => deleteCartEntry(it._id)}
+                                  className="ml-auto flex h-9 w-9 items-center justify-center rounded-full text-[var(--soft-charcoal)] transition hover:bg-red-50 hover:text-red-600"
+                                  aria-label="Remove item"
+                                >
+                                  <FiTrash2 className="h-4 w-4" />
+                                </button>
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="shrink-0 border-t border-[var(--warm-beige)] bg-gradient-to-b from-white to-[var(--champagne-beige)]/30 px-4 pb-6 pt-6"
+                  >
+                    <h3
+                      className="mb-4 text-base font-semibold text-[var(--charcoal-black)]"
+                      style={{ fontFamily: 'var(--font-serif)' }}
+                    >
+                      Order summary
+                    </h3>
+                    {displayItems.length > 0 && (
+                      <div className="mb-4 rounded-2xl border border-[var(--warm-beige)] bg-white/80 p-3.5 text-xs leading-relaxed text-[var(--soft-charcoal)] shadow-[var(--shadow-light)]">
+                        {discountsOffersLoading ? (
+                          <p className="text-[var(--charcoal-black)]">Calculating the best offers for your bag…</p>
+                        ) : appliedDiscounts.length > 0 ? (
+                          <>
+                            <p className="font-semibold text-[var(--charcoal-black)]" style={{ fontFamily: 'var(--font-serif)' }}>
+                              We&apos;ve applied the best compatible discounts for you.
+                            </p>
+                            <p className="mt-1.5 text-[11px] text-[var(--soft-charcoal)]">
+                              These offers work together and give you the highest savings right now.
+                            </p>
+                            <ul className="mt-2.5 space-y-1.5 border-t border-[var(--warm-beige)] pt-2.5">
+                              {appliedDiscounts.map((d, idx) => {
+                                const badge = getDiscountBadge(d.type);
+                                return (
+                                  <li key={`${d.type}-${idx}`} className="flex items-start justify-between gap-2">
+                                    <span className="min-w-0 flex-1">
+                                      <span
+                                        className={`mr-1.5 inline-block rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${badge.bg} ${badge.color}`}
+                                      >
+                                        {badge.text}
+                                      </span>
+                                      <span className="text-[var(--charcoal-black)]">{d.label}</span>
+                                    </span>
+                                    <span className="shrink-0 font-semibold tabular-nums text-emerald-700">−{formatINR(d.amount)}</span>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </>
+                        ) : (
+                          <p>No automatic stackable discounts apply to this bag yet. You can still enter a code at checkout.</p>
+                        )}
+                      </div>
+                    )}
+                    <div className="space-y-2.5 text-sm">
+                      <div className="flex justify-between text-[var(--soft-charcoal)]">
+                        <span>Subtotal</span>
+                        <span className="font-medium tabular-nums text-[var(--charcoal-black)]">{formatINR(subtotal)}</span>
+                      </div>
+                      {totalDiscountAmount > 0 && (
+                        <div className="flex justify-between text-emerald-700">
+                          <span>Discount</span>
+                          <span className="font-semibold tabular-nums">−{formatINR(totalDiscountAmount)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-[var(--soft-charcoal)]">
+                        <span>Shipping</span>
+                        <span className="font-medium tabular-nums text-[var(--charcoal-black)]">
+                          {totalDiscountAmount > 0 && (discountCodeResult || appliedAutomaticDiscount)
+                            ? 'Free'
+                            : shippingCost <= 0
+                              ? 'Free'
+                              : formatINR(shippingCost)}
+                        </span>
+                      </div>
+                      <div className="my-3 h-px bg-[var(--warm-beige)]" />
+                      <div className="flex justify-between text-base font-semibold text-[var(--charcoal-black)]">
+                        <span>Total</span>
+                        <span className="tabular-nums">{formatINR(finalTotal)}</span>
+                      </div>
                     </div>
                     <button
                       type="button"
-                      onClick={onClose}
-                      className="px-3 py-1.5 rounded-full bg-[#0c100c] text-white text-xs font-semibold hover:bg-black"
+                      onClick={handleCheckoutClick}
+                      disabled={displayItems.length === 0}
+                      className="mt-5 w-full rounded-full bg-[var(--charcoal-black)] py-3.5 text-sm font-semibold text-white shadow-md transition hover:bg-[#2b1e1e] disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      Sign in
+                      Proceed to checkout
                     </button>
-                  </div>
-                )}
-
-                <div className="flex-1 space-y-3 overflow-y-auto pr-1">
-                  {displayItems.map((it) => {
-                    const pv = typeof it.productVariantId === 'object' ? it.productVariantId : null;
-                    const image = pv?.images?.[0];
-                    const title = pv?.sku || 'Product';
-                    const price = pv?.price ?? 0;
-                    const productId = pv?.productId;
-                    const handleProductClick = () => {
-                      if (productId) {
-                        onClose();
-                        navigate(`/products/${productId}`);
-                      }
-                    };
-                    return (
-                      <div key={it._id} className="rounded-2xl border border-[#e8e0d5] p-3">
-                        <div className="flex gap-3">
-                          <img
-                            src={image || 'https://via.placeholder.com/96'}
-                            alt={title}
-                            className={`h-20 w-20 flex-shrink-0 rounded-xl bg-[#f5f1e8] object-contain ${productId ? 'cursor-pointer hover:opacity-80 transition-opacity' : ''}`}
-                            onClick={handleProductClick}
-                          />
-                          <div className="min-w-0 flex-1">
-                            <div
-                              className={`truncate text-sm font-semibold text-[#0c100c] ${productId ? 'cursor-pointer hover:text-amber-600 transition-colors' : ''}`}
-                              title={title}
-                              onClick={handleProductClick}
-                            >
-                              {title}
-                            </div>
-                            {pv?.optionValues && (
-                              <div className="mt-1 text-xs text-[#2b1e1e]">
-                                {Object.entries(pv.optionValues).map(([k, v]) => `${k}: ${v}`).join(', ')}
-                              </div>
-                            )}
-                            <div className="mt-2 flex items-center justify-between">
-                              <div className="text-sm font-semibold text-[#0c100c]">
-                                {formatINR(price * it.quantity)}
-                              </div>
-                              <button
-                                type="button"
-                                onClick={() => deleteCartEntry(it._id)}
-                                className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-rose-600 hover:bg-rose-50"
-                                aria-label="Remove"
-                              >
-                                <FiTrash2 />
-                              </button>
-                            </div>
-                            <div className="mt-2 flex items-center gap-2">
-                              <button
-                                type="button"
-                                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#e8e0d5] hover:bg-[#f5f1e8]"
-                                onClick={() => updateCartEntry({ id: it._id, quantity: Math.max(1, it.quantity - 1) })}
-                                aria-label="Decrease quantity"
-                              >
-                                <FiMinus />
-                              </button>
-                              <div className="w-8 text-center text-sm font-medium text-[#0c100c]">{it.quantity}</div>
-                              <button
-                                type="button"
-                                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#e8e0d5] hover:bg-[#f5f1e8]"
-                                onClick={() => updateCartEntry({ id: it._id, quantity: it.quantity + 1 })}
-                                aria-label="Increase quantity"
-                              >
-                                <FiPlus />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="mt-4 rounded-2xl border border-[#e8e0d5] p-4 bg-white">
-                  <div className="flex items-center justify-between text-xs text-[#2b1e1e] mb-1">
-                    <span>MRP Total:</span>
-                    <span className="font-semibold text-[#0c100c]">
-                      {formatINR(subtotal + totalDiscountAmount)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-[#2b1e1e] mb-1">
-                    <span>MRP Discount:</span>
-                    <span className="font-semibold text-emerald-700">
-                      -{formatINR(totalDiscountAmount)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-[#2b1e1e] mb-1">
-                    <span>Cart Total:</span>
-                    <span className="font-semibold text-[#0c100c]">
-                      {formatINR(subtotal)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-[#2b1e1e] mb-2">
-                    <span>Shipping:</span>
-                    <span className="font-semibold text-[#0c100c]">
-                      {shippingCost <= 0 ? 'FREE' : formatINR(shippingCost)}
-                    </span>
-                  </div>
-                  <div className="border-t border-dashed border-gray-300 my-2" />
-                  <div className="flex items-center justify-between text-sm font-semibold text-[#0c100c]">
-                    <span>To Pay:</span>
-                    <span>{formatINR(finalTotal)}</span>
-                  </div>
-                </div>
-
-                <div className="mt-3 flex items-center justify-between rounded-xl bg-white px-4 py-3 border border-[#e8e0d5]">
-                  <div className="flex flex-col">
-                    <span className="text-xs text-[#2b1e1e]">₹ {formatINR(finalTotal)} </span>
-                    <span className="text-[11px] text-gray-500">Inclusive of all taxes</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleCheckoutClick}
-                    className="px-5 py-2 rounded-full bg-black text-white text-sm font-semibold hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={displayItems.length === 0}
-                  >
-                    Pay Now
-                  </button>
-                </div>
-              </>
-            )}
-          </div>
-        </aside>
-      </div>
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="mt-3 w-full rounded-full border border-[var(--warm-beige)] bg-white py-3 text-sm font-medium text-[var(--charcoal-black)] transition hover:border-[var(--gold)]/50 hover:bg-[var(--champagne-beige)]/50"
+                    >
+                      Continue shopping
+                    </button>
+                  </motion.div>
+                </>
+              )}
+            </div>
+          </motion.aside>
+        </div>
+      )}
+    </AnimatePresence>
 
       {/* Quick Checkout Popup (Pay Now from Cart) – Boat-style UI */}
       {checkoutDialogOpen && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4"
+          className="checkout-page fixed inset-0 z-[120] flex items-center justify-center bg-black/50 p-4"
+          style={{ position: 'fixed' }}
           onClick={() => setCheckoutDialogOpen(false)}
         >
           <div
-            className="bg-white rounded-3xl max-w-md w-full max-h-[85vh] overflow-hidden shadow-2xl font-sans flex flex-col"
+            className="checkout-inner checkout-drawer-modal bg-white rounded-3xl max-w-md w-full max-h-[85vh] overflow-hidden shadow-2xl font-sans flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Top savings & items bar */}
@@ -1026,44 +1125,53 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
                 </div>
               </div>
 
-              {/* Login / phone entry section */}
-              <div className="px-6 pb-4">
-                <div className="rounded-2xl border border-gray-200 overflow-hidden">
-                  <div className="bg-amber-100 text-amber-900 text-xs font-medium px-4 py-2">
-                    Login to redeem rewards or giftcard balance
-                  </div>
-                  <div className="p-4 space-y-4">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900 mb-1">Login to continue</p>
-                      <p className="text-xs text-gray-600 mb-3">
-                        Enter mobile number to receive order updates.
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <span className="px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-700">
-                          +91
-                        </span>
-                        <input
-                          type="tel"
-                          placeholder="Enter mobile number"
-                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 outline-none bg-white text-gray-900"
-                        />
-                      </div>
-                    </div>
+              <BxgyCheckoutGetsSection
+                appliedBxgy={bxgyDiscountCodeResult ?? bxgyAppliedAutomaticDiscount}
+                eligibleBxgy={bxgyEligibleDiscounts[0] ?? null}
+                selectedGetsItems={bxgySelectedGetsItems}
+                onChooseItemsClick={() => setBxgyChooseItemsModalOpen(true)}
+              />
 
-                    <div className="pt-3 border-t border-gray-100 text-center">
-                      <p className="text-[11px] uppercase tracking-wide text-gray-400 mb-1">
-                        Powered by
-                      </p>
-                      <img src={ZiplofyLogo} alt="Ziplofy" className="h-8 mx-auto mb-2 object-contain" />
-                      <div className="flex items-center justify-center gap-6 text-[10px] text-gray-500">
-                        <span>PCI DSS Certified</span>
-                        <span>100% Secured Payments</span>
-                        <span>Verified Merchant</span>
+              {/* Login / phone entry section - Only show when NOT logged in */}
+              {!user && (
+                <div className="px-6 pb-4">
+                  <div className="rounded-2xl border border-gray-200 overflow-hidden">
+                    <div className="bg-amber-100 text-amber-900 text-xs font-medium px-4 py-2">
+                      Login to redeem rewards or giftcard balance
+                    </div>
+                    <div className="p-4 space-y-4">
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900 mb-1">Login to continue</p>
+                        <p className="text-xs text-gray-600 mb-3">
+                          Enter mobile number to receive order updates.
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <span className="px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 text-sm text-gray-700">
+                            +91
+                          </span>
+                          <input
+                            type="tel"
+                            placeholder="Enter mobile number"
+                            className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 outline-none bg-white text-gray-900"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="pt-3 border-t border-gray-100 text-center">
+                        <p className="text-[11px] uppercase tracking-wide text-gray-400 mb-1">
+                          Powered by
+                        </p>
+                        <img src={ZiplofyLogo} alt="Ziplofy" className="h-8 mx-auto mb-2 object-contain" />
+                        <div className="flex items-center justify-center gap-6 text-[10px] text-gray-500">
+                          <span>PCI DSS Certified</span>
+                          <span>100% Secured Payments</span>
+                          <span>Verified Merchant</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Delivery details */}
               <div className="px-6 pb-4">
@@ -1261,7 +1369,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
             <div className="px-6 py-4 border-t border-gray-200 bg-white">
               <button
                 type="button"
-                onClick={handlePlaceOrder}
+                onClick={goToCheckoutPayment}
                 disabled={!selectedShippingAddressId || orderLoading || addresses.length === 0}
                 className="w-full px-6 py-3 text-sm rounded-full bg-black text-white font-semibold hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 title={
@@ -1297,7 +1405,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
       {/* Add Address Modal */}
       {addAddressModalOpen && (
         <div
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/50 p-4"
           onClick={() => setAddAddressModalOpen(false)}
         >
           <div
@@ -1508,7 +1616,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
       {/* Login Prompt Modal for Guest Checkout */}
       {loginPromptOpen && (
         <div
-          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4"
+          className="fixed inset-0 z-[130] flex items-center justify-center bg-black/50 p-4"
           onClick={() => setLoginPromptOpen(false)}
         >
           <div
@@ -1538,7 +1646,7 @@ const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
                   onClick={() => {
                     setLoginPromptOpen(false);
                     onClose();
-                    navigate('/login');
+                    navigate('/auth/login');
                   }}
                   className="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-amber-500 rounded-lg hover:bg-amber-600 transition-colors"
                 >
