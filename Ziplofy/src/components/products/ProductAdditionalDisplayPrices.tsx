@@ -1,9 +1,11 @@
-import React, { useCallback } from "react";
+import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
+import React, { useCallback, useMemo, useState } from "react";
 import CompareAtPriceInput from "./CompareAtPriceInput";
 import ProductTaxCheckbox from "./ProductTaxCheckbox";
 import ProductUnitPriceSection from "./ProductUnitPriceSection";
 
 interface ProductAdditionalDisplayPricesProps {
+  price: string;
   compareAtPrice: string;
   unitPriceTotalAmount: string;
   unitPriceBaseMeasure: string;
@@ -11,8 +13,6 @@ interface ProductAdditionalDisplayPricesProps {
   selectedBaseMeasureUnit: string;
   chargeTaxOnProduct: boolean;
   cost: string;
-  profit: number;
-  margin: number;
   onCompareAtPriceChange: (value: string) => void;
   onUnitPriceTotalAmountChange: (value: string) => void;
   onUnitPriceBaseMeasureChange: (value: string) => void;
@@ -22,7 +22,13 @@ interface ProductAdditionalDisplayPricesProps {
   onCostChange: (value: string) => void;
 }
 
-const ProductAdditionalDisplayPrices: React.FC<ProductAdditionalDisplayPricesProps> = ({
+const pillClass =
+  "rounded-full bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-800";
+
+const ProductAdditionalDisplayPrices: React.FC<
+  ProductAdditionalDisplayPricesProps
+> = ({
+  price,
   compareAtPrice,
   unitPriceTotalAmount,
   unitPriceBaseMeasure,
@@ -30,8 +36,6 @@ const ProductAdditionalDisplayPrices: React.FC<ProductAdditionalDisplayPricesPro
   selectedBaseMeasureUnit,
   chargeTaxOnProduct,
   cost,
-  profit,
-  margin,
   onCompareAtPriceChange,
   onUnitPriceTotalAmountChange,
   onUnitPriceBaseMeasureChange,
@@ -40,91 +44,162 @@ const ProductAdditionalDisplayPrices: React.FC<ProductAdditionalDisplayPricesPro
   onChargeTaxOnProductChange,
   onCostChange,
 }) => {
-  const handleCostChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    onCostChange(e.target.value);
-  }, [onCostChange]);
+  const [expanded, setExpanded] = useState(false);
+
+  const { profitDisplay, marginDisplay, profitNonNegative } = useMemo(() => {
+    const priceTrim = price.trim();
+    const costTrim = cost.trim();
+    if (!priceTrim || !costTrim) {
+      return {
+        profitDisplay: "--",
+        marginDisplay: "--",
+        profitNonNegative: true,
+      };
+    }
+    const priceNum = parseFloat(price) || 0;
+    const costNum = parseFloat(cost) || 0;
+    const prof = priceNum - costNum;
+    const marg = priceNum !== 0 ? (prof / priceNum) * 100 : null;
+    return {
+      profitDisplay: `₹${prof.toFixed(2)}`,
+      marginDisplay: marg === null ? "--" : `${marg.toFixed(1)}%`,
+      profitNonNegative: prof >= 0,
+    };
+  }, [price, cost]);
+
+  const handleCostChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      onCostChange(e.target.value);
+    },
+    [onCostChange]
+  );
+
+  const metricBoxClass =
+    "w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-700";
 
   return (
-    <div className="mt-6 border-t border-gray-100 pt-5">
-      <h3 className="mb-3 text-sm font-medium text-gray-700">
-        Additional pricing details
-      </h3>
-      
-      <div className="space-y-4">
-        <CompareAtPriceInput
-          value={compareAtPrice}
-          onChange={onCompareAtPriceChange}
-        />
-        
-        <ProductUnitPriceSection
-          unitPriceTotalAmount={unitPriceTotalAmount}
-          unitPriceBaseMeasure={unitPriceBaseMeasure}
-          selectedUnit={selectedUnit}
-          selectedBaseMeasureUnit={selectedBaseMeasureUnit}
-          onUnitPriceTotalAmountChange={onUnitPriceTotalAmountChange}
-          onUnitPriceBaseMeasureChange={onUnitPriceBaseMeasureChange}
-          onSelectedUnitChange={onSelectedUnitChange}
-          onSelectedBaseMeasureUnitChange={onSelectedBaseMeasureUnitChange}
-        />
-      </div>
-      
-      {/* Tax Checkbox */}
-      <ProductTaxCheckbox
-        checked={chargeTaxOnProduct}
-        onChange={onChargeTaxOnProductChange}
-      />
+    <div className="border-t border-gray-200">
+      {!expanded ? (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="flex w-full items-center justify-between gap-3 py-4 text-left transition-colors hover:bg-gray-50/50"
+        >
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <span className={pillClass}>Compare-at</span>
+            <span className={pillClass}>Unit price</span>
+            <span
+              className={`${pillClass} inline-flex items-center gap-1.5`}
+            >
+              Charge tax
+              {chargeTaxOnProduct ? (
+                <span className="rounded-md bg-gray-200/90 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-700">
+                  Yes
+                </span>
+              ) : null}
+            </span>
+            <span className={pillClass}>Cost per item</span>
+          </div>
+          <ChevronDownIcon
+            className="h-5 w-5 shrink-0 text-gray-500"
+            aria-hidden
+          />
+        </button>
+      ) : (
+        <>
+          <button
+            type="button"
+            onClick={() => setExpanded(false)}
+            className="flex w-full items-center justify-between gap-3 border-b border-gray-100 py-4 text-left transition-colors hover:bg-gray-50/50"
+          >
+            <span className="text-sm font-semibold text-gray-900">
+              Additional display prices
+            </span>
+            <ChevronUpIcon
+              className="h-5 w-5 shrink-0 text-gray-500"
+              aria-hidden
+            />
+          </button>
 
-      {/* Cost, Profit, and Margin Fields */}
-      <div className="mt-4 rounded-lg border border-gray-100 bg-gray-50/60 p-4">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-2">
-              Cost
-            </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-base">₹</span>
-              <input
-                type="number"
-                value={cost}
-                onChange={handleCostChange}
-                placeholder="0.00"
-                className="w-full rounded-lg border border-gray-200 py-2 pl-8 pr-3 text-base transition-colors focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
+          <div className="py-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6">
+              <CompareAtPriceInput
+                value={compareAtPrice}
+                onChange={onCompareAtPriceChange}
+              />
+              <ProductUnitPriceSection
+                unitPriceTotalAmount={unitPriceTotalAmount}
+                unitPriceBaseMeasure={unitPriceBaseMeasure}
+                selectedUnit={selectedUnit}
+                selectedBaseMeasureUnit={selectedBaseMeasureUnit}
+                onUnitPriceTotalAmountChange={onUnitPriceTotalAmountChange}
+                onUnitPriceBaseMeasureChange={onUnitPriceBaseMeasureChange}
+                onSelectedUnitChange={onSelectedUnitChange}
+                onSelectedBaseMeasureUnitChange={
+                  onSelectedBaseMeasureUnitChange
+                }
+              />
+            </div>
+
+            <div className="mt-4">
+              <ProductTaxCheckbox
+                checked={chargeTaxOnProduct}
+                onChange={onChargeTaxOnProductChange}
               />
             </div>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-2">
-              Profit
-            </label>
-            <input
-              type="text"
-              value={`₹${profit.toFixed(2)}`}
-              readOnly
-              className={`w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-base font-medium ${
-                profit >= 0 ? 'text-green-500' : 'text-red-500'
-              }`}
-            />
+
+          <div className="border-t border-gray-100 py-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div>
+                <p className="mb-2 text-xs font-medium text-gray-600">Cost</p>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-base text-gray-500">
+                    ₹
+                  </span>
+                  <input
+                    type="number"
+                    value={cost}
+                    onChange={handleCostChange}
+                    placeholder="--"
+                    className="w-full rounded-md border border-gray-200 bg-gray-50 py-2 pl-8 pr-3 text-sm transition-colors focus:border-gray-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-gray-400"
+                  />
+                </div>
+              </div>
+              <div>
+                <p className="mb-2 text-xs font-medium text-gray-600">Profit</p>
+                <div
+                  className={`${metricBoxClass} ${
+                    profitDisplay !== "--" && !profitNonNegative
+                      ? "text-red-600"
+                      : profitDisplay !== "--" && profitNonNegative
+                        ? "text-green-600"
+                        : ""
+                  }`}
+                >
+                  {profitDisplay}
+                </div>
+              </div>
+              <div>
+                <p className="mb-2 text-xs font-medium text-gray-600">Margin</p>
+                <div
+                  className={`${metricBoxClass} ${
+                    marginDisplay !== "--" && !profitNonNegative
+                      ? "text-red-600"
+                      : marginDisplay !== "--" && profitNonNegative
+                        ? "text-green-600"
+                        : ""
+                  }`}
+                >
+                  {marginDisplay}
+                </div>
+              </div>
+            </div>
           </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-2">
-              Margin
-            </label>
-            <input
-              type="text"
-              value={`${margin.toFixed(2)}%`}
-              readOnly
-              className={`w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-base font-medium ${
-                margin >= 0 ? 'text-green-500' : 'text-red-500'
-              }`}
-            />
-          </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 };
 
 export default ProductAdditionalDisplayPrices;
-

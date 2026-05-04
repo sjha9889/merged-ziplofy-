@@ -1,6 +1,7 @@
 import {
   ArrowLeftIcon,
   CubeIcon,
+  PlusCircleIcon,
   PlusIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
@@ -8,7 +9,6 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import ProductBasicInformationSection from "../components/products/ProductBasicInformationSection";
-import ProductImagesSection from "../components/products/ProductImagesSection";
 import ProductInventorySection from "../components/products/ProductInventorySection";
 import ProductOrganizationSection from "../components/products/ProductOrganizationSection";
 import ProductPriceSection from "../components/products/ProductPriceSection";
@@ -66,7 +66,7 @@ const NewProductPage: React.FC = () => {
     physicalProduct: false,
     selectedPackage: "",
     productWeight: "",
-    weightUnit: "",
+    weightUnit: "kg",
     countryOfOrigin: "",
     hsCode: "",
     variants: [] as Array<{ optionName: string; values: string[] }>,
@@ -365,19 +365,16 @@ const NewProductPage: React.FC = () => {
           <div className="space-y-6">
             <ProductBasicInformationSection
               title={formData.title}
-              category={formData.category}
               description={formData.description}
+              category={formData.category}
               activeStoreId={activeStoreId}
-              onTitleChange={(value) => handleInputChange('title', value)}
-              onCategoryChange={(categoryId) => handleInputChange('category', categoryId)}
-              onDescriptionChange={(value) => handleInputChange('description', value)}
-            />
-
-            <ProductImagesSection
               images={selectedImages.map((image) => image.previewUrl)}
+              onTitleChange={(value) => handleInputChange('title', value)}
+              onDescriptionChange={(value) => handleInputChange('description', value)}
+              onCategoryChange={(categoryId) => handleInputChange('category', categoryId)}
               onAddImageFiles={addImageFiles}
               onRemoveImage={removeImage}
-              disabled={isSubmitting || productLoading}
+              mediaDisabled={isSubmitting || productLoading}
             />
 
             <ProductPriceSection
@@ -424,80 +421,102 @@ const NewProductPage: React.FC = () => {
               activeStoreId={activeStoreId}
             />
 
-            <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
-            <h2 className="text-base font-semibold text-gray-900 mb-4">Variants</h2>
-            <p className="text-sm text-gray-500 mb-4">
-              Add options like size or color so customers can choose from different variants
-            </p>
-            <button
-              type="button"
-              onClick={addVariant}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors mb-4"
-            >
-              <PlusIcon className="w-4 h-4" />
-              Add options like size or color
-            </button>
+            <div className="rounded-xl border border-gray-200/80 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-base font-semibold text-gray-900">Variants</h2>
 
-            {/* Variants List */}
-            {formData.variants.map((variant, variantIndex) => (
-              <div key={variantIndex} className="mb-4 p-4 rounded-lg border border-gray-200 bg-gray-50/50">
-                <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-sm font-medium text-gray-900">Option {variantIndex + 1}</h4>
-                  <button
-                    type="button"
-                    onClick={() => removeVariant(variantIndex)}
-                    className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-colors"
+              <div className="space-y-4">
+                {formData.variants.map((variant, variantIndex) => (
+                  <div
+                    key={variantIndex}
+                    className="rounded-lg border border-gray-200 bg-gray-50/50 p-4"
                   >
-                    <TrashIcon className="w-4 h-4" />
-                  </button>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Option name</label>
-                    <input
-                      type="text"
-                      value={variant.optionName}
-                      onChange={(e) => updateVariantOptionName(variantIndex, e.target.value)}
-                      placeholder="e.g., Size, Color, Material"
-                      className="w-full px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 outline-none transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">Option values</label>
-                    {variant.values.map((value, valueIndex) => (
-                      <div key={valueIndex} className="flex gap-2 mb-2">
+                    <div className="mb-4 flex items-center justify-between">
+                      <h4 className="text-sm font-medium text-gray-900">
+                        Option {variantIndex + 1}
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => removeVariant(variantIndex)}
+                        className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-700"
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                          Option name
+                        </label>
                         <input
                           type="text"
-                          value={value}
-                          onChange={(e) => updateVariantValue(variantIndex, valueIndex, e.target.value)}
-                          placeholder="Enter value"
-                          className="flex-1 px-4 py-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 outline-none transition-all"
+                          value={variant.optionName}
+                          onChange={(e) =>
+                            updateVariantOptionName(variantIndex, e.target.value)
+                          }
+                          placeholder="e.g., Size, Color, Material"
+                          className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-500/30"
                         />
+                      </div>
+                      <div>
+                        <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                          Option values
+                        </label>
+                        {variant.values.map((value, valueIndex) => (
+                          <div key={valueIndex} className="mb-2 flex gap-2">
+                            <input
+                              type="text"
+                              value={value}
+                              onChange={(e) =>
+                                updateVariantValue(
+                                  variantIndex,
+                                  valueIndex,
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Enter value"
+                              className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-500/30"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                removeVariantValue(variantIndex, valueIndex)
+                              }
+                              disabled={variant.values.length === 1}
+                              className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-200 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </div>
+                        ))}
                         <button
                           type="button"
-                          onClick={() => removeVariantValue(variantIndex, valueIndex)}
-                          disabled={variant.values.length === 1}
-                          className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          onClick={() => addVariantValue(variantIndex)}
+                          className="mt-2 flex items-center gap-1.5 text-sm text-gray-600 transition-colors hover:text-gray-900"
                         >
-                          <TrashIcon className="w-4 h-4" />
+                          <PlusIcon className="h-4 w-4" />
+                          Add another value
                         </button>
                       </div>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => addVariantValue(variantIndex)}
-                      className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 mt-2"
-                    >
-                      <PlusIcon className="w-4 h-4" />
-                      Add another value
-                    </button>
+                    </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
+
+              <button
+                type="button"
+                onClick={addVariant}
+                className={`flex items-center gap-2 rounded-lg py-2 text-left text-sm font-medium text-gray-900 transition-colors hover:bg-gray-50 ${
+                  formData.variants.length > 0 ? "mt-4" : ""
+                }`}
+              >
+                <PlusCircleIcon className="h-5 w-5 shrink-0 text-gray-700" aria-hidden />
+                Add options like size or color
+              </button>
             </div>
 
             <ProductSearchEngineListingSection
+              productTitle={formData.title}
+              productDescription={formData.description}
               pageTitle={formData.pageTitle}
               metaDescription={formData.metaDescription}
               urlHandle={formData.urlHandle}

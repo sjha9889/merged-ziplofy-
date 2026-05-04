@@ -14,7 +14,7 @@ const ProductTaxCheckbox: React.FC<ProductTaxCheckboxProps> = ({
   }, [onChange]);
 
   return (
-    <div className="mt-3">
+    <div>
       <label className="flex items-center gap-2 cursor-pointer">
         <input
           type="checkbox"

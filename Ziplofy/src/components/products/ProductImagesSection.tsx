@@ -1,5 +1,5 @@
-import { PlusIcon } from "@heroicons/react/24/outline";
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useRef, useState } from "react";
+import { toast } from "react-hot-toast";
 import ProductImageList from "./ProductImageList";
 
 interface ProductImagesSectionProps {
@@ -7,6 +7,8 @@ interface ProductImagesSectionProps {
   onAddImageFiles: (files: File[]) => void;
   onRemoveImage: (index: number) => void;
   disabled?: boolean;
+  /** Omit outer card + border when nested inside another section (e.g. Basic Information). */
+  embedded?: boolean;
 }
 
 const ProductImagesSection: React.FC<ProductImagesSectionProps> = ({
@@ -14,26 +16,76 @@ const ProductImagesSection: React.FC<ProductImagesSectionProps> = ({
   onAddImageFiles,
   onRemoveImage,
   disabled = false,
+  embedded = false,
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  const addImageFilesFromList = useCallback(
+    (files: File[]) => {
+      const imageFiles = files.filter((f) => f.type.startsWith("image/"));
+      const rejected = files.length - imageFiles.length;
+      if (rejected > 0) {
+        toast.error(
+          "Only images are supported for product media right now."
+        );
+      }
+      if (imageFiles.length > 0) {
+        onAddImageFiles(imageFiles);
+      }
+    },
+    [onAddImageFiles]
+  );
 
   const handlePickImages = useCallback(() => {
     if (disabled) return;
     fileInputRef.current?.click();
   }, [disabled]);
 
-  const handleFileSelection = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files ? Array.from(e.target.files) : [];
-    e.target.value = '';
-    if (!files.length) return;
-    onAddImageFiles(files);
-  }, [onAddImageFiles]);
+  const handleFileSelection = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files ? Array.from(e.target.files) : [];
+      e.target.value = "";
+      if (!files.length) return;
+      addImageFilesFromList(files);
+    },
+    [addImageFilesFromList]
+  );
 
-  return (
-    <div className="bg-white rounded-xl border border-gray-200/80 p-6 shadow-sm">
-      <h3 className="text-base font-semibold text-gray-900 mb-4">
-        Product Images
-      </h3>
+  const handleDragOver = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!disabled) setIsDragOver(true);
+    },
+    [disabled]
+  );
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(false);
+      if (disabled) return;
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length) addImageFilesFromList(files);
+    },
+    [disabled, addImageFilesFromList]
+  );
+
+  const body = (
+    <>
+      {!embedded ? (
+        <h2 className="mb-4 text-base font-semibold text-gray-900">Media</h2>
+      ) : (
+        <h3 className="mb-4 text-base font-semibold text-gray-900">Media</h3>
+      )}
 
       <input
         ref={fileInputRef}
@@ -44,31 +96,48 @@ const ProductImagesSection: React.FC<ProductImagesSectionProps> = ({
         onChange={handleFileSelection}
       />
 
-      {/* Add Image Button */}
-      <button
-        type="button"
-        onClick={handlePickImages}
-        disabled={disabled}
-        className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <PlusIcon className="w-4 h-4" />
-        Add Images
-      </button>
-
-      {/* Selected image previews */}
       {images.length > 0 ? (
-        <ProductImageList
-          images={images}
-          onRemoveImage={onRemoveImage}
-        />
-      ) : (
-        <div className="text-center py-8 text-gray-600">
-          No images selected yet. Click "Add Images" to choose files.
+        <div className="mb-4">
+          <ProductImageList images={images} onRemoveImage={onRemoveImage} />
         </div>
-      )}
+      ) : null}
+
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`flex min-h-[200px] flex-col items-center justify-center rounded-lg border-2 border-dashed px-4 py-12 transition-colors ${
+          disabled
+            ? "cursor-not-allowed border-gray-200 bg-gray-50/50 opacity-60"
+            : isDragOver
+              ? "border-blue-400 bg-blue-50/40"
+              : "border-gray-200 bg-white"
+        }`}
+      >
+        <button
+          type="button"
+          onClick={handlePickImages}
+          disabled={disabled}
+          className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Upload new
+        </button>
+        <p className="mt-4 max-w-md text-center text-sm text-gray-500">
+          Accepts images, videos, or 3D models
+        </p>
+      </div>
+    </>
+  );
+
+  if (embedded) {
+    return <div>{body}</div>;
+  }
+
+  return (
+    <div className="rounded-xl border border-gray-200/80 bg-white p-6 shadow-sm">
+      {body}
     </div>
   );
 };
 
 export default ProductImagesSection;
-
