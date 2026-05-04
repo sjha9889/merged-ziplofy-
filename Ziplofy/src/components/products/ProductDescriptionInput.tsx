@@ -22,6 +22,10 @@ import Placeholder from "@tiptap/extension-placeholder";
 import StarterKit from "@tiptap/starter-kit";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
+import Table from "@tiptap/extension-table";
+import TableCell from "@tiptap/extension-table-cell";
+import TableHeader from "@tiptap/extension-table-header";
+import TableRow from "@tiptap/extension-table-row";
 import TaskItem from "@tiptap/extension-task-item";
 import TaskList from "@tiptap/extension-task-list";
 import TextAlign from "@tiptap/extension-text-align";
@@ -70,6 +74,19 @@ const BG_PRESETS = [
   "#f3f4f6",
 ];
 
+function getBlockPreviewClass(
+  kind: "paragraph" | "blockquote" | 1 | 2 | 3 | 4 | 5 | 6
+): string {
+  if (kind === "paragraph") return "text-[1.05rem] font-semibold text-gray-900";
+  if (kind === "blockquote") return "text-lg font-semibold text-gray-800";
+  if (kind === 1) return "text-[3rem] font-bold leading-[1.1] text-gray-900";
+  if (kind === 2) return "text-[2.2rem] font-bold leading-[1.15] text-gray-900";
+  if (kind === 3) return "text-[1.75rem] font-bold leading-[1.2] text-gray-900";
+  if (kind === 4) return "text-[1.45rem] font-bold leading-[1.25] text-gray-900";
+  if (kind === 5) return "text-[1.2rem] font-semibold leading-[1.3] text-gray-900";
+  return "text-[1.05rem] font-semibold leading-[1.35] text-gray-900";
+}
+
 function getBlockLabel(editor: Editor | null): string {
   if (!editor) return "Paragraph";
   if (editor.isActive("heading", { level: 1 })) return "Heading 1";
@@ -94,11 +111,16 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
   const [isBlockMenuOpen, setIsBlockMenuOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [isColorMenuOpen, setIsColorMenuOpen] = useState(false);
+  const [isLinkPopoverOpen, setIsLinkPopoverOpen] = useState(false);
+  const [isTableMenuOpen, setIsTableMenuOpen] = useState(false);
+  const [linkDraft, setLinkDraft] = useState("https://");
   const [colorTab, setColorTab] = useState<"text" | "background">("text");
   const alignMenuRef = useRef<HTMLDivElement | null>(null);
   const blockMenuRef = useRef<HTMLDivElement | null>(null);
   const moreMenuRef = useRef<HTMLDivElement | null>(null);
   const colorMenuRef = useRef<HTMLDivElement | null>(null);
+  const linkPopoverRef = useRef<HTMLDivElement | null>(null);
+  const tableMenuRef = useRef<HTMLDivElement | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -112,6 +134,12 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
       TaskList,
       TaskItem.configure({ nested: true }),
       HorizontalRule,
+      Table.configure({
+        resizable: true,
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
       TextAlign.configure({
         types: ["heading", "paragraph"],
       }),
@@ -120,7 +148,8 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
         openOnClick: false,
         autolink: true,
         HTMLAttributes: {
-          class: "text-blue-600 underline",
+          class:
+            "relative cursor-pointer text-blue-600 underline pr-2 after:content-['🔗'] after:absolute after:-right-0.5 after:top-0 after:text-[10px] after:leading-none after:opacity-70",
         },
       }),
       Placeholder.configure({
@@ -131,7 +160,7 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
     editorProps: {
       attributes: {
         class:
-          "min-h-[220px] max-w-none px-4 py-3 text-sm leading-6 text-gray-900 focus:outline-none [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-3 [&_blockquote]:text-gray-700 [&_code]:rounded [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_h1]:my-3 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:leading-tight [&_h2]:my-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:leading-snug [&_h3]:my-2 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:leading-snug [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-gray-900 [&_pre]:p-3 [&_pre]:text-gray-100 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6",
+          "min-h-[220px] max-w-none px-4 py-3 text-sm leading-6 text-gray-900 focus:outline-none [&_.selectedCell]:relative [&_.selectedCell]:bg-blue-50/70 [&_.selectedCell]:after:pointer-events-none [&_.selectedCell]:after:absolute [&_.selectedCell]:after:inset-0 [&_.selectedCell]:after:border [&_.selectedCell]:after:border-blue-300 [&_blockquote]:my-3 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-3 [&_blockquote]:text-gray-700 [&_code]:rounded [&_code]:bg-gray-100 [&_code]:px-1 [&_code]:py-0.5 [&_h1]:my-3 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:leading-tight [&_h2]:my-3 [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:leading-snug [&_h3]:my-2 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:leading-snug [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:my-2 [&_pre]:my-3 [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-gray-900 [&_pre]:p-3 [&_pre]:text-gray-100 [&_table]:my-3 [&_table]:w-full [&_table]:table-fixed [&_table]:border-collapse [&_td]:border [&_td]:border-gray-300 [&_td]:px-2 [&_td]:py-1.5 [&_td]:align-top [&_th]:border [&_th]:border-gray-300 [&_th]:bg-gray-50 [&_th]:px-2 [&_th]:py-1.5 [&_th]:text-left [&_th]:font-semibold [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-6",
       },
     },
     onUpdate: ({ editor: currentEditor }) => {
@@ -170,10 +199,19 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
     setIsBlockMenuOpen(false);
     setIsMoreMenuOpen(false);
     setIsColorMenuOpen(false);
+    setIsLinkPopoverOpen(false);
+    setIsTableMenuOpen(false);
   }, []);
 
   useEffect(() => {
-    if (!isAlignMenuOpen && !isBlockMenuOpen && !isMoreMenuOpen && !isColorMenuOpen)
+    if (
+      !isAlignMenuOpen &&
+      !isBlockMenuOpen &&
+      !isMoreMenuOpen &&
+      !isColorMenuOpen &&
+      !isLinkPopoverOpen &&
+      !isTableMenuOpen
+    )
       return;
     const handleClickOutside = (event: MouseEvent) => {
       const t = event.target as Node;
@@ -181,22 +219,46 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
       if (blockMenuRef.current?.contains(t)) return;
       if (moreMenuRef.current?.contains(t)) return;
       if (colorMenuRef.current?.contains(t)) return;
+      if (linkPopoverRef.current?.contains(t)) return;
+      if (tableMenuRef.current?.contains(t)) return;
       closeAllMenus();
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isAlignMenuOpen, isBlockMenuOpen, isMoreMenuOpen, isColorMenuOpen, closeAllMenus]);
+  }, [
+    isAlignMenuOpen,
+    isBlockMenuOpen,
+    isMoreMenuOpen,
+    isColorMenuOpen,
+    isLinkPopoverOpen,
+    isTableMenuOpen,
+    closeAllMenus,
+  ]);
 
-  const setOrUnsetLink = () => {
+  const openLinkPopover = () => {
     if (!editor) return;
-    const previousUrl = editor.getAttributes("link").href;
-    const url = window.prompt("Enter URL", previousUrl || "https://");
-    if (url === null) return;
-    if (url.trim() === "") {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run();
-      return;
-    }
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url.trim() }).run();
+    const selectedLink = (editor.getAttributes("link").href as string) || "";
+    setLinkDraft(selectedLink || "https://");
+    setIsLinkPopoverOpen((v) => !v);
+    setIsAlignMenuOpen(false);
+    setIsBlockMenuOpen(false);
+    setIsColorMenuOpen(false);
+    setIsMoreMenuOpen(false);
+    setIsTableMenuOpen(false);
+  };
+
+  const applyLink = () => {
+    if (!editor) return;
+    const url = linkDraft.trim();
+    if (!url) return;
+    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+    setIsLinkPopoverOpen(false);
+  };
+
+  const removeLink = () => {
+    if (!editor) return;
+    editor.chain().focus().extendMarkRange("link").unsetLink().run();
+    setIsLinkPopoverOpen(false);
   };
 
   const ToolbarDivider = () => (
@@ -251,12 +313,28 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
         key={label}
         type="button"
         onClick={() => setBlock(kind)}
-        className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm ${
-          active ? "bg-gray-100 font-medium text-gray-900" : "text-gray-700 hover:bg-gray-50"
+        className={`group flex w-full items-start justify-between gap-3 px-4 py-3.5 text-left transition-colors ${
+          active ? "bg-gray-100/90" : "hover:bg-gray-50"
         }`}
       >
-        {label}
-        {active ? <span className="text-gray-500">✓</span> : <span />}
+        <span className={getBlockPreviewClass(kind)}>
+          {kind === "blockquote" ? (
+            <span className="inline-flex items-center gap-2">
+              <span className="h-6 w-0.5 rounded bg-gray-300" />
+              {label}
+            </span>
+          ) : (
+            label
+          )}
+        </span>
+        <span
+          className={`mt-1 text-sm ${
+            active ? "text-blue-600" : "text-transparent group-hover:text-gray-300"
+          }`}
+          aria-hidden
+        >
+          ✓
+        </span>
       </button>
     );
   };
@@ -287,8 +365,8 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
       <label className="mb-2 block text-sm font-medium text-gray-700">
         Description
       </label>
-      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
-        <div className="flex flex-wrap items-center gap-0.5 border-b border-gray-200/90 bg-gray-50/95 px-2 py-1.5">
+      <div className="relative overflow-visible rounded-lg border border-gray-200 bg-white shadow-sm">
+        <div className="relative z-20 flex flex-wrap items-center gap-0.5 border-b border-gray-200/90 bg-gray-50/95 px-2 py-1.5">
           <button
             type="button"
             className={`${ICON_BTN} text-gray-400`}
@@ -316,11 +394,16 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
               <ChevronDownIcon className="h-4 w-4 shrink-0 text-gray-500" aria-hidden />
             </button>
             {isBlockMenuOpen && editor ? (
-              <div className={`${MENU_PANEL} max-h-72 overflow-y-auto`}>
+              <div className={`${MENU_PANEL} max-h-80 w-76 overflow-y-auto py-0`}>
                 {blockRow("Paragraph", "paragraph")}
+                <div className="border-t border-gray-100" />
                 {([1, 2, 3, 4, 5, 6] as const).map((level) =>
-                  blockRow(`Heading ${level}`, level)
+                  <React.Fragment key={level}>
+                    {blockRow(`Heading ${level}`, level)}
+                    {level !== 6 ? <div className="border-t border-gray-100" /> : null}
+                  </React.Fragment>
                 )}
+                <div className="border-t border-gray-100" />
                 {blockRow("Blockquote", "blockquote")}
               </div>
             ) : null}
@@ -514,15 +597,60 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
 
           <ToolbarDivider />
 
-          <button
-            type="button"
-            className={`${ICON_BTN} ${editor?.isActive("link") ? ICON_BTN_ACTIVE : ""}`}
-            onClick={setOrUnsetLink}
-            disabled={!editor}
-            title="Link"
-          >
-            <LinkIcon className="h-5 w-5" aria-hidden />
-          </button>
+          <div className="relative" ref={linkPopoverRef}>
+            <button
+              type="button"
+              className={`${ICON_BTN} ${editor?.isActive("link") ? ICON_BTN_ACTIVE : ""}`}
+              onClick={openLinkPopover}
+              disabled={!editor}
+              title="Link"
+            >
+              <LinkIcon className="h-5 w-5" aria-hidden />
+            </button>
+            {isLinkPopoverOpen ? (
+              <div className="absolute left-0 z-30 mt-1 w-72 rounded-lg border border-gray-200 bg-white p-2 shadow-lg">
+                <label className="mb-1 block text-xs font-medium text-gray-700">Enter URL</label>
+                <input
+                  type="url"
+                  value={linkDraft}
+                  onChange={(e) => setLinkDraft(e.target.value)}
+                  className="w-full rounded-md border border-gray-200 px-2.5 py-1.5 text-sm focus:border-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400"
+                  placeholder="https://"
+                />
+                <div className="mt-2 flex items-center justify-end gap-2">
+                  {editor?.isActive("link") ? (
+                    <button
+                      type="button"
+                      onClick={removeLink}
+                      className="rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
+                    >
+                      Remove
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => setIsLinkPopoverOpen(false)}
+                    className="rounded-md px-2 py-1 text-xs text-gray-600 hover:bg-gray-100"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={applyLink}
+                    disabled={!editor || editor.state.selection.empty || !linkDraft.trim()}
+                    className="rounded-md bg-gray-900 px-2.5 py-1 text-xs font-medium text-white disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Apply
+                  </button>
+                </div>
+                {editor?.state.selection.empty ? (
+                  <p className="mt-1 text-xs text-amber-600">
+                    Select text first, then apply the link.
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
           <button
             type="button"
             className={ICON_BTN}
@@ -539,14 +667,115 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
           >
             <PlayCircleIcon className="h-5 w-5" aria-hidden />
           </button>
-          <button
-            type="button"
-            className={ICON_BTN}
-            disabled
-            title="Table (coming soon)"
-          >
-            <TableCellsIcon className="h-5 w-5" aria-hidden />
-          </button>
+          <div className="relative" ref={tableMenuRef}>
+            <button
+              type="button"
+              className={`${ICON_BTN} ${editor?.isActive("table") ? ICON_BTN_ACTIVE : ""}`}
+              onClick={() => {
+                setIsTableMenuOpen((o) => !o);
+                setIsBlockMenuOpen(false);
+                setIsAlignMenuOpen(false);
+                setIsColorMenuOpen(false);
+                setIsMoreMenuOpen(false);
+              }}
+              disabled={!editor}
+              title="Table"
+            >
+              <TableCellsIcon className="h-5 w-5" aria-hidden />
+            </button>
+            {isTableMenuOpen ? (
+              <div className={`${MENU_PANEL} left-auto right-0 min-w-56`}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+                    setIsTableMenuOpen(false);
+                  }}
+                  className="mx-2 my-2 block rounded-md bg-gray-100 px-3 py-2 text-left text-sm font-medium text-gray-900 hover:bg-gray-200"
+                >
+                  Insert table
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    editor?.chain().focus().addRowBefore().run();
+                    setIsTableMenuOpen(false);
+                  }}
+                  disabled={!editor?.can().chain().focus().addRowBefore().run()}
+                  className="flex w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-35"
+                >
+                  Insert row above
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    editor?.chain().focus().addRowAfter().run();
+                    setIsTableMenuOpen(false);
+                  }}
+                  disabled={!editor?.can().chain().focus().addRowAfter().run()}
+                  className="flex w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-35"
+                >
+                  Insert row below
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    editor?.chain().focus().addColumnBefore().run();
+                    setIsTableMenuOpen(false);
+                  }}
+                  disabled={!editor?.can().chain().focus().addColumnBefore().run()}
+                  className="flex w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-35"
+                >
+                  Insert column before
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    editor?.chain().focus().addColumnAfter().run();
+                    setIsTableMenuOpen(false);
+                  }}
+                  disabled={!editor?.can().chain().focus().addColumnAfter().run()}
+                  className="flex w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-35"
+                >
+                  Insert column after
+                </button>
+                <div className="my-1 border-t border-gray-100" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    editor?.chain().focus().deleteRow().run();
+                    setIsTableMenuOpen(false);
+                  }}
+                  disabled={!editor?.can().chain().focus().deleteRow().run()}
+                  className="flex w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-35"
+                >
+                  Delete row
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    editor?.chain().focus().deleteColumn().run();
+                    setIsTableMenuOpen(false);
+                  }}
+                  disabled={!editor?.can().chain().focus().deleteColumn().run()}
+                  className="flex w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-35"
+                >
+                  Delete column
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    editor?.chain().focus().deleteTable().run();
+                    setIsTableMenuOpen(false);
+                  }}
+                  disabled={!editor?.can().chain().focus().deleteTable().run()}
+                  className="flex w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-35"
+                >
+                  Delete table
+                </button>
+              </div>
+            ) : null}
+          </div>
 
           <ToolbarDivider />
 

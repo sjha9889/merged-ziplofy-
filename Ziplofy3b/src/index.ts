@@ -302,7 +302,7 @@ app.get('/', (req: Request, res: Response) => {
 
 app.get('/api/health', (req: Request, res: Response) => {
   res.status(200).json({ 
-    status: 'ok  - updated piyush ci cd updated',
+    status: 'ok  - ci cd updated',
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
