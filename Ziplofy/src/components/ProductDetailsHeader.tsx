@@ -33,10 +33,12 @@ const ProductDetailsHeader: React.FC<ProductDetailsHeaderProps> = ({
 }) => {
   const navigate = useNavigate();
   const title = product.title || 'Untitled product';
-  const descriptionPreview = product.description
+  const descriptionPreview = product.description || '';
+  const descriptionPlainText = product.description
     ? product.description.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
     : '';
   const [isEditingBasicInfo, setIsEditingBasicInfo] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [draftTitle, setDraftTitle] = useState(title);
   const [draftDescription, setDraftDescription] = useState(product.description || '');
   const [editError, setEditError] = useState('');
@@ -47,6 +49,12 @@ const ProductDetailsHeader: React.FC<ProductDetailsHeaderProps> = ({
       setDraftDescription(product.description || '');
     }
   }, [title, product.description, isEditingBasicInfo]);
+
+  useEffect(() => {
+    if (!isEditingBasicInfo) {
+      setIsDescriptionExpanded(false);
+    }
+  }, [isEditingBasicInfo, product.description]);
 
   const handleStartEdit = () => {
     setEditError('');
@@ -177,11 +185,49 @@ const ProductDetailsHeader: React.FC<ProductDetailsHeaderProps> = ({
                 {editError ? <p className="text-xs text-red-600">{editError}</p> : null}
               </div>
             ) : descriptionPreview ? (
-              <p className="mt-2 max-w-4xl text-sm leading-relaxed text-gray-600 line-clamp-3">
-                {descriptionPreview}
-              </p>
+              <div className="mt-3 max-w-4xl">
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setIsDescriptionExpanded((v) => !v)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setIsDescriptionExpanded((v) => !v);
+                    }
+                  }}
+                  className={`group relative cursor-pointer overflow-hidden rounded-lg border border-gray-200/80 bg-white/80 p-3 text-gray-700 shadow-sm transition-colors hover:border-gray-300 ${
+                    isDescriptionExpanded ? '' : 'max-h-40'
+                  }`}
+                >
+                  <div
+                    className="prose prose-sm max-w-none
+                      [&_h1]:my-2 [&_h1]:text-2xl [&_h1]:font-semibold
+                      [&_h2]:my-2 [&_h2]:text-xl [&_h2]:font-semibold
+                      [&_h3]:my-1.5 [&_h3]:text-lg [&_h3]:font-semibold
+                      [&_p]:my-1.5 [&_p]:leading-relaxed
+                      [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5
+                      [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5
+                      [&_img]:my-2 [&_img]:max-h-64 [&_img]:max-w-full [&_img]:rounded-md [&_img]:border [&_img]:border-gray-200
+                      [&_iframe]:my-2 [&_iframe]:aspect-video [&_iframe]:w-full [&_iframe]:max-w-full [&_iframe]:rounded-md [&_iframe]:border [&_iframe]:border-gray-200"
+                    dangerouslySetInnerHTML={{ __html: descriptionPreview }}
+                  />
+                  {!isDescriptionExpanded ? (
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-linear-to-t from-white/95 to-transparent" />
+                  ) : null}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsDescriptionExpanded((v) => !v)}
+                  className="mt-2 text-xs font-semibold text-blue-700 hover:text-blue-800"
+                >
+                  {isDescriptionExpanded ? 'Show less' : 'Show full description'}
+                </button>
+              </div>
             ) : (
-              <p className="mt-2 text-sm text-gray-400">No description</p>
+              <p className="mt-2 text-sm text-gray-400">
+                {descriptionPlainText ? descriptionPlainText : 'No description'}
+              </p>
             )}
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <span
