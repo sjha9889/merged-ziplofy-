@@ -32,6 +32,15 @@ const extractS3KeyFromUrl = (imageUrl: string): string | null => {
   }
 };
 
+const getImageSrcListFromHtml = (html: string): string[] => {
+  if (!html?.trim()) return [];
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  return Array.from(doc.querySelectorAll('img[src]'))
+    .map((img) => img.getAttribute('src') || '')
+    .filter(Boolean);
+};
+
 const ProductDetailsPage: React.FC = () => {
   const { id } = useParams();
   const {
@@ -87,6 +96,88 @@ const ProductDetailsPage: React.FC = () => {
   const [savingOrganizationCard, setSavingOrganizationCard] = useState(false);
   const [savingShippingCard, setSavingShippingCard] = useState(false);
   const [savingMediaCard, setSavingMediaCard] = useState(false);
+
+  const dataUrlToFile = useCallback((dataUrl: string, fallbackName: string): File | null => {
+    const match = dataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+    if (!match) return null;
+    const mimeType = match[1];
+    const base64Data = match[2];
+    const binary = window.atob(base64Data);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i += 1) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    const extension = mimeType.split('/')[1] || 'png';
+    return new File([bytes], `${fallbackName}.${extension}`, { type: mimeType });
+  }, []);
+
+  const uploadDescriptionImagesForEdit = useCallback(
+    async (descriptionHtml: string) => {
+      if (!descriptionHtml.trim()) {
+        return {
+          html: descriptionHtml,
+          uploadedUrls: [] as string[],
+        };
+      }
+
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(descriptionHtml, 'text/html');
+      const imageNodes = Array.from(doc.querySelectorAll('img[src]'));
+      const localImages = imageNodes.filter((img) => {
+        const src = img.getAttribute('src') || '';
+        return src.startsWith('data:image/') || src.startsWith('blob:');
+      });
+
+      if (!localImages.length) {
+        return {
+          html: descriptionHtml,
+          uploadedUrls: [] as string[],
+        };
+      }
+
+      const folderStoreId = activeStoreId || product?.storeId;
+      if (!folderStoreId) {
+        throw new Error('Store is required to upload description images');
+      }
+
+      const uploadToastId = toast.loading(
+        `Uploading ${localImages.length} description image${localImages.length > 1 ? 's' : ''}...`
+      );
+
+      const uploadedUrls: string[] = [];
+      try {
+        await Promise.all(
+          localImages.map(async (img, index) => {
+            const src = img.getAttribute('src') || '';
+            let file: File | null = null;
+
+            if (src.startsWith('data:image/')) {
+              file = dataUrlToFile(src, `description-image-${index + 1}`);
+            } else if (src.startsWith('blob:')) {
+              const blob = await fetch(src).then((res) => res.blob());
+              const extension = (blob.type || 'image/png').split('/')[1] || 'png';
+              file = new File([blob], `description-image-${index + 1}.${extension}`, {
+                type: blob.type || 'image/png',
+              });
+            }
+
+            if (!file) return;
+            const uploaded = await uploadImageWithSignedUrl(file, {
+              folder: `${folderStoreId}/product-description-image`,
+            });
+            uploadedUrls.push(uploaded.objectUrl);
+            img.setAttribute('src', uploaded.objectUrl);
+          })
+        );
+        toast.success('Description images uploaded', { id: uploadToastId });
+        return { html: doc.body.innerHTML, uploadedUrls };
+      } catch (error) {
+        toast.error('Failed to upload description images', { id: uploadToastId });
+        throw error;
+      }
+    },
+    [activeStoreId, dataUrlToFile, product?.storeId, uploadImageWithSignedUrl]
+  );
 
   const handleOpenAddVariants = useCallback(() => {
     setAddVariantsOpen(true);
@@ -272,9 +363,41 @@ const ProductDetailsPage: React.FC = () => {
       if (!product) return;
       try {
         setSavingBasicInfo(true);
+
+        const previousDescription = product.description || '';
+        const { html: nextDescription } = await uploadDescriptionImagesForEdit(
+          payload.description || ''
+        );
+
+        const oldS3Urls = getImageSrcListFromHtml(previousDescription).filter((url) =>
+          Boolean(extractS3KeyFromUrl(url))
+        );
+        const newS3Urls = getImageSrcListFromHtml(nextDescription).filter((url) =>
+          Boolean(extractS3KeyFromUrl(url))
+        );
+        const removedDescriptionImageUrls = oldS3Urls.filter(
+          (url) => !newS3Urls.includes(url)
+        );
+
+        if (removedDescriptionImageUrls.length > 0) {
+          const removeToastId = toast.loading(
+            `Deleting ${removedDescriptionImageUrls.length} removed description image${
+              removedDescriptionImageUrls.length > 1 ? 's' : ''
+            }...`
+          );
+          const removedDescriptionImageKeys = removedDescriptionImageUrls
+            .map((url) => extractS3KeyFromUrl(url))
+            .filter((key): key is string => Boolean(key));
+          await deleteImagesFromS3({
+            imageKeys: removedDescriptionImageKeys,
+            imageUrls: removedDescriptionImageUrls,
+          });
+          toast.success('Removed description images deleted', { id: removeToastId });
+        }
+
         await updateProduct(product._id, {
           title: payload.title,
-          description: payload.description,
+          description: nextDescription,
         });
         toast.success('Product details updated');
       } catch (error: any) {
@@ -288,7 +411,7 @@ const ProductDetailsPage: React.FC = () => {
         setSavingBasicInfo(false);
       }
     },
-    [product, updateProduct]
+    [product, uploadDescriptionImagesForEdit, deleteImagesFromS3, updateProduct]
   );
 
   const handleSaveProductBasicCard = useCallback(
