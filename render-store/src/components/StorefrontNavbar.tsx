@@ -34,7 +34,6 @@ const StorefrontNavbar: React.FC<StorefrontNavbarProps> = ({ showSearch, searchV
 	const confirmLogout = () => {
 		setShowLogoutModal(false);
 		logout();
-		navigate('/');
 	};
 
 	const cancelLogout = () => {

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   ArrowLeftIcon,
   ShoppingBagIcon,
@@ -319,7 +319,16 @@ const OrderDetailsPage: React.FC = () => {
               <div className="px-5 py-4 space-y-3">
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Name</p>
-                  <p className="text-sm font-medium text-gray-900">{getCustomerName(order.customerId)}</p>
+                  {order.customerId?._id ? (
+                    <Link
+                      to={`/customers/${order.customerId._id}`}
+                      className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                      {getCustomerName(order.customerId)}
+                    </Link>
+                  ) : (
+                    <p className="text-sm font-medium text-gray-900">{getCustomerName(order.customerId)}</p>
+                  )}
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Email</p>

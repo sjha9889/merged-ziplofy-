@@ -37,6 +37,7 @@ const OrdersPage: React.FC = () => {
         orderId: o._id,
         date: o.orderDate || o.createdAt || '',
         customer,
+        customerId: o.customerId?._id,
         paymentStatus: o.paymentStatus === 'unpaid' ? 'pending' : 'success',
         total: o.total ?? 0,
         delivery: '—',

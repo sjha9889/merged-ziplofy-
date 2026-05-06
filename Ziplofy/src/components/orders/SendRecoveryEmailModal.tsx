@@ -1,5 +1,7 @@
 import React, { useCallback } from 'react';
 import Modal from '../Modal';
+import ProductDescriptionInput from '../products/ProductDescriptionInput';
+import { RECOVERY_EMAIL_TEMPLATE_OPTIONS } from '../../utils/recovery-email-templates';
 
 interface Customer {
   firstName: string;
@@ -44,13 +46,6 @@ const SendRecoveryEmailModal: React.FC<SendRecoveryEmailModalProps> = ({
       onSubjectChange(e.target.value);
     },
     [onSubjectChange]
-  );
-
-  const handleBodyChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      onBodyChange(e.target.value);
-    },
-    [onBodyChange]
   );
 
   return (
@@ -98,9 +93,11 @@ const SendRecoveryEmailModal: React.FC<SendRecoveryEmailModalProps> = ({
             onChange={handleTemplateChange}
             className="w-full px-3 py-1.5 text-sm border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 bg-white"
           >
-            <option value="custom">Custom Message</option>
-            <option value="reminder">Friendly Reminder</option>
-            <option value="discount">Special Offer</option>
+            {RECOVERY_EMAIL_TEMPLATE_OPTIONS.map((template) => (
+              <option key={template.id} value={template.id}>
+                {template.label}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -121,25 +118,31 @@ const SendRecoveryEmailModal: React.FC<SendRecoveryEmailModalProps> = ({
 
         {/* Body Field */}
         <div>
-          <label htmlFor="email-body" className="block text-sm font-medium text-gray-700 mb-1.5">
-            Email Body
-          </label>
-          <textarea
-            id="email-body"
+          <ProductDescriptionInput
             value={emailBody}
-            onChange={handleBodyChange}
-            rows={8}
-            className="w-full px-3 py-1.5 text-sm border border-gray-200 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:border-gray-400 resize-none font-mono"
-            placeholder="Enter your email message here..."
-            required
+            onChange={onBodyChange}
+            placeholder="Write your recovery message..."
+            enableImages={false}
+            enableTemplates={false}
           />
         </div>
 
         {/* Preview Section */}
-        <div className="bg-gray-50 p-3 border border-gray-200">
+        <div className="bg-gray-50 p-3 border border-gray-200 rounded-lg">
           <h4 className="text-xs font-medium text-gray-700 mb-2">Preview:</h4>
           <p className="text-xs font-medium text-gray-900 mb-1.5">Subject: {emailSubject}</p>
-          <p className="text-xs text-gray-600 whitespace-pre-line">{emailBody}</p>
+          <div
+            className="text-[13px] text-gray-700
+              [&_h1]:my-2 [&_h1]:text-2xl [&_h1]:font-semibold
+              [&_h2]:my-2 [&_h2]:text-xl [&_h2]:font-semibold
+              [&_h3]:my-1.5 [&_h3]:text-lg [&_h3]:font-semibold
+              [&_p]:my-1.5 [&_p]:leading-relaxed
+              [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5
+              [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5
+              [&_strong]:font-semibold
+              [&_em]:italic"
+            dangerouslySetInnerHTML={{ __html: emailBody || '<p></p>' }}
+          />
         </div>
       </div>
     </Modal>

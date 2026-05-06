@@ -1,10 +1,13 @@
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 export interface OrderItemData {
   orderId: string;
   date: string;
   customer: string;
+  /** When set, customer name links to admin customer details */
+  customerId?: string;
   paymentStatus: 'pending' | 'success';
   total: number;
   delivery: string;
@@ -15,12 +18,11 @@ export interface OrderItemData {
 interface OrderItemProps {
   order: OrderItemData;
   isSelected?: boolean;
-  onSelect?: (orderId: string) => void;
+  onSelect?: (orderId: string, checked: boolean) => void;
   onView?: (orderId: string) => void;
-  onChat?: (orderId: string) => void;
 }
 
-const OrderItem: React.FC<OrderItemProps> = ({ order, onView }) => {
+const OrderItem: React.FC<OrderItemProps> = ({ order, isSelected, onSelect, onView }) => {
   const formatCurrency = (amount: number) => {
     return `₹${amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
@@ -40,9 +42,23 @@ const OrderItem: React.FC<OrderItemProps> = ({ order, onView }) => {
 
   return (
     <tr
-      className="border-b border-gray-50 hover:bg-blue-50/50 transition-colors group cursor-pointer"
+      className={`border-b border-gray-50 transition-colors group cursor-pointer ${
+        isSelected ? 'bg-blue-50/60' : 'hover:bg-blue-50/50'
+      }`}
       onClick={() => onView?.(order.orderId)}
     >
+      <td
+        className="w-12 px-3 py-4 text-center"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <input
+          type="checkbox"
+          checked={Boolean(isSelected)}
+          onChange={(e) => onSelect?.(order.orderId, e.target.checked)}
+          aria-label={`Select order ${shortOrderId}`}
+          className="h-4 w-4 cursor-pointer rounded border-gray-300 text-blue-600 focus:ring-blue-500/40"
+        />
+      </td>
       <td className="px-5 py-4">
         <span className="text-sm font-medium text-gray-900">{shortOrderId}</span>
         <p className="text-xs text-gray-500 mt-0.5">{order.items} {order.items === 1 ? 'item' : 'items'}</p>
@@ -51,7 +67,17 @@ const OrderItem: React.FC<OrderItemProps> = ({ order, onView }) => {
         <span className="text-sm text-gray-600">{formatDate(order.date)}</span>
       </td>
       <td className="px-5 py-4">
-        <span className="text-sm text-gray-900">{order.customer}</span>
+        {order.customerId ? (
+          <Link
+            to={`/customers/${order.customerId}`}
+            className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {order.customer}
+          </Link>
+        ) : (
+          <span className="text-sm text-gray-900">{order.customer}</span>
+        )}
       </td>
       <td className="px-5 py-4">
         <span

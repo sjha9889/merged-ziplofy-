@@ -139,6 +139,19 @@ const StorefrontProductDetailPage: React.FC = () => {
     setBuyNowModalOpen(true);
   };
 
+  const handleAuthenticatedBuyNow = () => {
+    if (!selectedVariantId || !product) return;
+    const selectedVariant = variants.find((v) => v._id === selectedVariantId);
+    if (!selectedVariant) return;
+    setBuyNowLine({
+      variant: selectedVariant,
+      quantity: 1,
+      productTitle: product.title,
+      productImage: product.imageUrls?.[0] ?? selectedVariant.images?.[0],
+    });
+    setBuyNowModalOpen(true);
+  };
+
   if (productDetailLoading && !product) {
     return (
       <div className="min-h-screen bg-[#fefcf8] text-[#0c100c]">
@@ -344,7 +357,11 @@ const StorefrontProductDetailPage: React.FC = () => {
         ) : null}
       </main>
 
-      <AuthPopup open={authPopupOpen} onClose={() => setAuthPopupOpen(false)} />
+      <AuthPopup
+        open={authPopupOpen}
+        onClose={() => setAuthPopupOpen(false)}
+        onAuthenticated={handleAuthenticatedBuyNow}
+      />
       <QuickBuyNowCheckoutModal
         open={buyNowModalOpen}
         onClose={() => {

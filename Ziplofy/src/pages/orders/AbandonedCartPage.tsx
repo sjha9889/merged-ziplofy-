@@ -7,6 +7,7 @@ import AbandonedCartsList from '../../components/orders/AbandonedCartsList';
 import SendRecoveryEmailModal from '../../components/orders/SendRecoveryEmailModal';
 import { useAbandonedCarts } from '../../contexts/abandoned-cart.context';
 import { useStore } from '../../contexts/store.context';
+import { buildRecoveryEmailTemplate } from '../../utils/recovery-email-templates';
 
 const AbandonedCartsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -46,11 +47,11 @@ const AbandonedCartsPage: React.FC = () => {
   }, []);
 
   const handleSendEmail = useCallback((customer: any) => {
+    const template = buildRecoveryEmailTemplate('custom', customer?.firstName);
     setSelectedCustomer(customer);
-    setEmailSubject(`Complete your purchase - ${customer.firstName}`);
-    setEmailBody(
-      `Hi ${customer.firstName},\n\nWe noticed you left some items in your cart. Don't miss out on these great products!\n\nClick here to complete your purchase: [Cart Link]\n\nBest regards,\nYour Store Team`
-    );
+    setEmailTemplate('custom');
+    setEmailSubject(template.subject);
+    setEmailBody(template.bodyHtml);
     setIsEmailModalOpen(true);
   }, []);
 
@@ -73,23 +74,9 @@ const AbandonedCartsPage: React.FC = () => {
   const handleTemplateChange = useCallback(
     (template: string) => {
       setEmailTemplate(template);
-
-      if (template === 'reminder') {
-        setEmailSubject(`Don't forget your items - ${selectedCustomer?.firstName}`);
-        setEmailBody(
-          `Hi ${selectedCustomer?.firstName},\n\nYou have items waiting in your cart! Complete your purchase now to secure your items.\n\n[View Cart]\n\nThanks for shopping with us!`
-        );
-      } else if (template === 'discount') {
-        setEmailSubject(`Special offer for you - ${selectedCustomer?.firstName}`);
-        setEmailBody(
-          `Hi ${selectedCustomer?.firstName},\n\nWe're offering you a special 10% discount on your cart items! Use code SAVE10 at checkout.\n\n[Complete Purchase with Discount]\n\nThis offer expires in 24 hours!`
-        );
-      } else if (template === 'custom') {
-        setEmailSubject(`Complete your purchase - ${selectedCustomer?.firstName}`);
-        setEmailBody(
-          `Hi ${selectedCustomer?.firstName},\n\nWe noticed you left some items in your cart. Don't miss out on these great products!\n\nClick here to complete your purchase: [Cart Link]\n\nBest regards,\nYour Store Team`
-        );
-      }
+      const next = buildRecoveryEmailTemplate(template, selectedCustomer?.firstName);
+      setEmailSubject(next.subject);
+      setEmailBody(next.bodyHtml);
     },
     [selectedCustomer?.firstName]
   );
@@ -97,6 +84,13 @@ const AbandonedCartsPage: React.FC = () => {
   const handleViewDetails = useCallback(
     (customerId: string) => {
       navigate(`/orders/abandoned-carts/customer/${customerId}`);
+    },
+    [navigate]
+  );
+
+  const handleViewCustomer = useCallback(
+    (customerId: string) => {
+      navigate(`/customers/${customerId}`);
     },
     [navigate]
   );
@@ -133,7 +127,7 @@ const AbandonedCartsPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-page-background-color">
         <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6">
-          <div className="flex items-start gap-4 rounded-2xl border border-red-200/90 bg-gradient-to-br from-red-50/80 to-white p-5 shadow-sm">
+          <div className="flex items-start gap-4 rounded-2xl border border-red-200/90 bg-linear-to-br from-red-50/80 to-white p-5 shadow-sm">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-700">
               <ExclamationTriangleIcon className="h-5 w-5" aria-hidden />
             </div>
@@ -189,6 +183,7 @@ const AbandonedCartsPage: React.FC = () => {
             formatDate={formatDate}
             onSendEmail={handleSendEmail}
             onViewDetails={handleViewDetails}
+            onViewCustomer={handleViewCustomer}
           />
         )}
       </div>

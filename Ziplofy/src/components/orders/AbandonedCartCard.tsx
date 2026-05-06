@@ -39,6 +39,7 @@ interface AbandonedCartCardProps {
   formatDate: (dateString: string) => string;
   onSendEmail: (customer: Customer) => void;
   onViewDetails: (customerId: string) => void;
+  onViewCustomer: (customerId: string) => void;
 }
 
 const AbandonedCartCard: React.FC<AbandonedCartCardProps> = ({
@@ -47,6 +48,7 @@ const AbandonedCartCard: React.FC<AbandonedCartCardProps> = ({
   formatDate,
   onSendEmail,
   onViewDetails,
+  onViewCustomer,
 }) => {
   const handleSendEmail = useCallback(
     (e: React.MouseEvent) => {
@@ -62,6 +64,14 @@ const AbandonedCartCard: React.FC<AbandonedCartCardProps> = ({
       onViewDetails(cart.customer._id);
     },
     [cart.customer._id, onViewDetails]
+  );
+
+  const handleViewCustomer = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onViewCustomer(cart.customer._id);
+    },
+    [cart.customer._id, onViewCustomer]
   );
 
   const calculateTotal = useMemo(() => {
@@ -94,13 +104,17 @@ const AbandonedCartCard: React.FC<AbandonedCartCardProps> = ({
         {/* Customer */}
         <div className="lg:col-span-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-xs font-bold text-white shadow-md ring-2 ring-blue-100">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-blue-600 to-indigo-600 text-xs font-bold text-white shadow-md ring-2 ring-blue-100">
               {getInitials(cart.customer.firstName, cart.customer.lastName)}
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-semibold text-gray-900">
+              <button
+                type="button"
+                onClick={handleViewCustomer}
+                className="text-left text-sm font-semibold text-gray-900 hover:text-blue-700 hover:underline"
+              >
                 {cart.customer.firstName} {cart.customer.lastName}
-              </h3>
+              </button>
               <div className="mt-0.5 flex items-center gap-1.5 text-xs text-gray-500">
                 <EnvelopeIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" aria-hidden />
                 <span className="truncate">{cart.customer.email}</span>

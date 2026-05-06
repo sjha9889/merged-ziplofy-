@@ -33,6 +33,7 @@ interface AbandonedCartsListProps {
   formatDate: (dateString: string) => string;
   onSendEmail: (customer: Customer) => void;
   onViewDetails: (customerId: string) => void;
+  onViewCustomer: (customerId: string) => void;
 }
 
 const AbandonedCartsList: React.FC<AbandonedCartsListProps> = ({
@@ -41,6 +42,7 @@ const AbandonedCartsList: React.FC<AbandonedCartsListProps> = ({
   formatDate,
   onSendEmail,
   onViewDetails,
+  onViewCustomer,
 }) => {
   return (
     <section
@@ -51,7 +53,7 @@ const AbandonedCartsList: React.FC<AbandonedCartsListProps> = ({
         Abandoned cart list
       </h2>
 
-      <div className="flex flex-col gap-1 border-b border-gray-100 bg-gradient-to-r from-gray-50/90 to-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-1 border-b border-gray-100 bg-linear-to-r from-gray-50/90 to-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-semibold text-gray-900">All abandoned carts</p>
           <p className="text-xs text-gray-500">Sorted by most recently updated</p>
@@ -79,6 +81,7 @@ const AbandonedCartsList: React.FC<AbandonedCartsListProps> = ({
               formatDate={formatDate}
               onSendEmail={onSendEmail}
               onViewDetails={onViewDetails}
+              onViewCustomer={onViewCustomer}
             />
           </li>
         ))}

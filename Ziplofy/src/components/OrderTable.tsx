@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { OrderItemData } from './OrderItem';
 import OrderItemList from './OrderItemList';
 
@@ -12,6 +12,8 @@ interface OrderTableProps {
 
 const OrderTable: React.FC<OrderTableProps> = ({ orders, onOrderView }) => {
   const [activeTab, setActiveTab] = useState<FilterTab>('all');
+  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
+  const selectAllRef = useRef<HTMLInputElement | null>(null);
 
   const filteredOrders = orders.filter((order) => {
     switch (activeTab) {
@@ -27,6 +29,46 @@ const OrderTable: React.FC<OrderTableProps> = ({ orders, onOrderView }) => {
         return true;
     }
   });
+
+  const visibleOrderIds = useMemo(
+    () => filteredOrders.map((order) => order.orderId),
+    [filteredOrders]
+  );
+  const selectedVisibleCount = useMemo(
+    () => visibleOrderIds.filter((id) => selectedOrderIds.has(id)).length,
+    [visibleOrderIds, selectedOrderIds]
+  );
+  const allVisibleSelected = visibleOrderIds.length > 0 && selectedVisibleCount === visibleOrderIds.length;
+  const someVisibleSelected = selectedVisibleCount > 0 && !allVisibleSelected;
+
+  useEffect(() => {
+    if (!selectAllRef.current) return;
+    selectAllRef.current.indeterminate = someVisibleSelected;
+  }, [someVisibleSelected]);
+
+  const handleSelectOrder = (orderId: string, checked: boolean) => {
+    setSelectedOrderIds((prev) => {
+      const next = new Set(prev);
+      if (checked) {
+        next.add(orderId);
+      } else {
+        next.delete(orderId);
+      }
+      return next;
+    });
+  };
+
+  const handleSelectAllVisible = (checked: boolean) => {
+    setSelectedOrderIds((prev) => {
+      const next = new Set(prev);
+      if (checked) {
+        visibleOrderIds.forEach((id) => next.add(id));
+      } else {
+        visibleOrderIds.forEach((id) => next.delete(id));
+      }
+      return next;
+    });
+  };
 
   const tabs: { key: FilterTab; label: string }[] = [
     { key: 'all', label: 'All' },
@@ -70,6 +112,16 @@ const OrderTable: React.FC<OrderTableProps> = ({ orders, onOrderView }) => {
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-100">
+              <th className="w-12 px-3 py-3 text-center">
+                <input
+                  ref={selectAllRef}
+                  type="checkbox"
+                  checked={allVisibleSelected}
+                  onChange={(e) => handleSelectAllVisible(e.target.checked)}
+                  aria-label="Select all visible orders"
+                  className="h-4 w-4 cursor-pointer rounded border-gray-300 text-blue-600 focus:ring-blue-500/40"
+                />
+              </th>
               <th className="px-5 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Order
               </th>
@@ -93,10 +145,9 @@ const OrderTable: React.FC<OrderTableProps> = ({ orders, onOrderView }) => {
           </thead>
           <OrderItemList
             orders={filteredOrders}
-            selectedOrderId={null}
-            onOrderSelect={() => {}}
+            selectedOrderIds={selectedOrderIds}
+            onOrderSelect={handleSelectOrder}
             onOrderView={onOrderView ?? (() => {})}
-            onOrderChat={() => {}}
           />
         </table>
       </div>

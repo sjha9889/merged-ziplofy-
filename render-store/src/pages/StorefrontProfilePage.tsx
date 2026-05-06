@@ -58,16 +58,8 @@ const StorefrontProfilePage: React.FC = () => {
   useEffect(() => {
     if (user?._id) {
       fetchCustomerAddressesByCustomerId(user._id);
-    } else {
-      navigate('/auth/login');
     }
-  }, [user?._id, fetchCustomerAddressesByCustomerId, navigate]);
-
-  useEffect(() => {
-    if (!user) {
-      navigate('/auth/login');
-    }
-  }, [user, navigate]);
+  }, [user?._id, fetchCustomerAddressesByCustomerId]);
 
   useEffect(() => {
     if (user) {
@@ -271,7 +263,6 @@ const StorefrontProfilePage: React.FC = () => {
 
   const confirmLogout = () => {
     logout();
-    navigate('/');
   };
 
   const cancelLogout = () => {
@@ -279,7 +270,34 @@ const StorefrontProfilePage: React.FC = () => {
   };
 
   if (!user) {
-    return null;
+    return (
+      <main className="account-page">
+        <div className="account-inner">
+          <div className="rounded-xl border border-gray-200 bg-white p-6 text-center shadow-sm">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">You are signed out</h2>
+            <p className="text-sm text-gray-500 mb-5">
+              Sign in to view and manage your profile details.
+            </p>
+            <div className="flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => navigate('/auth/login')}
+                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50"
+              >
+                Sign in
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/')}
+                className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-black"
+              >
+                Continue shopping
+              </button>
+            </div>
+          </div>
+        </div>
+      </main>
+    );
   }
 
   const sidebarItems = [

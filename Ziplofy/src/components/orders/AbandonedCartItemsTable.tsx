@@ -5,15 +5,16 @@ import AbandonedCartItemRow, { CartItem } from './AbandonedCartItemRow';
 interface AbandonedCartItemsTableProps {
   cartItems: CartItem[];
   cartTotal: number;
+  onViewProduct: (productId: string) => void;
 }
 
 const formatInr = (n: number) =>
   `₹${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-const AbandonedCartItemsTable: React.FC<AbandonedCartItemsTableProps> = ({ cartItems, cartTotal }) => {
+const AbandonedCartItemsTable: React.FC<AbandonedCartItemsTableProps> = ({ cartItems, cartTotal, onViewProduct }) => {
   return (
     <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
-      <div className="flex flex-col gap-1 border-b border-gray-100 bg-gradient-to-r from-gray-50/90 to-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-1 border-b border-gray-100 bg-linear-to-r from-gray-50/90 to-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
             <ShoppingBagIcon className="h-5 w-5 text-blue-600" aria-hidden />
@@ -63,13 +64,13 @@ const AbandonedCartItemsTable: React.FC<AbandonedCartItemsTableProps> = ({ cartI
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
             {cartItems.map((item) => (
-              <AbandonedCartItemRow key={item._id} item={item} />
+              <AbandonedCartItemRow key={item._id} item={item} onViewProduct={onViewProduct} />
             ))}
           </tbody>
         </table>
       </div>
 
-      <div className="border-t border-gray-200/80 bg-gradient-to-r from-gray-50/90 to-blue-50/20 px-5 py-4">
+      <div className="border-t border-gray-200/80 bg-linear-to-r from-gray-50/90 to-blue-50/20 px-5 py-4">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <span className="text-sm font-semibold text-gray-700">Cart total</span>
           <span className="text-xl font-bold tabular-nums text-blue-700">{formatInr(cartTotal)}</span>

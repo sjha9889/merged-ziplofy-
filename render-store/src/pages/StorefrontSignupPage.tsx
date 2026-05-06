@@ -4,6 +4,11 @@ import { FcGoogle } from 'react-icons/fc';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiUser, FiArrowRight } from 'react-icons/fi';
 import { useStorefront } from '../contexts/store.context';
 import { useStorefrontAuth } from '../contexts/storefront-auth.context';
+import {
+  getSignupPasswordInlineIssue,
+  SIGNUP_PASSWORD_MIN_LENGTH,
+  validateSignupPasswordForSubmit,
+} from '../utils/signup-password';
 
 const StorefrontSignupPage: React.FC = () => {
   const navigate = useNavigate();
@@ -27,6 +32,11 @@ const StorefrontSignupPage: React.FC = () => {
       setError('Please agree to the terms and conditions');
       return;
     }
+    const passwordError = validateSignupPasswordForSubmit(password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
     setError('');
     try {
       await signup({ storeId: storeFrontMeta.storeId, firstName, lastName, email, password });
@@ -40,6 +50,8 @@ const StorefrontSignupPage: React.FC = () => {
       handleSignup();
     }
   };
+
+  const passwordInlineIssue = getSignupPasswordInlineIssue(password);
 
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4 py-12 bg-[var(--ivory-white)]">
@@ -135,7 +147,12 @@ const StorefrontSignupPage: React.FC = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Create a strong password"
-                  className="block w-full pl-10 pr-12 py-2.5 text-sm border border-[var(--warm-beige)] rounded-xl bg-white focus:ring-2 focus:ring-[var(--gold)]/30 focus:border-[var(--gold)] outline-none transition-all text-[var(--charcoal-black)] placeholder-gray-400"
+                  aria-invalid={passwordInlineIssue ? true : undefined}
+                  className={`block w-full pl-10 pr-12 py-2.5 text-sm border rounded-xl bg-white focus:ring-2 outline-none transition-all text-[var(--charcoal-black)] placeholder-gray-400 ${
+                    passwordInlineIssue
+                      ? 'border-red-300 focus:ring-red-200/50 focus:border-red-400'
+                      : 'border-[var(--warm-beige)] focus:ring-[var(--gold)]/30 focus:border-[var(--gold)]'
+                  }`}
                 />
                 <button
                   type="button"
@@ -145,7 +162,11 @@ const StorefrontSignupPage: React.FC = () => {
                   {showPassword ? <FiEyeOff className="h-5 w-5" /> : <FiEye className="h-5 w-5" />}
                 </button>
               </div>
-              <p className="mt-1 text-xs text-gray-400">Must be at least 8 characters</p>
+              <p
+                className={`mt-1 text-xs ${passwordInlineIssue ? 'text-red-600' : 'text-gray-400'}`}
+              >
+                {passwordInlineIssue ?? `Must be at least ${SIGNUP_PASSWORD_MIN_LENGTH} characters`}
+              </p>
             </div>
 
             {/* Terms Checkbox */}

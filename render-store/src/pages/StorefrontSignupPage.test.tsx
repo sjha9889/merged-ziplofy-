@@ -42,4 +42,18 @@ describe('StorefrontSignupPage', () => {
     expect(mockSignup).not.toHaveBeenCalled();
     expect(await screen.findByText(/please agree to the terms and conditions/i)).toBeInTheDocument();
   });
+
+  it('does not submit when password is too short', async () => {
+    const user = userEvent.setup({ delay: null });
+    mockSignup.mockClear();
+    render(<StorefrontSignupPage />, { wrapper: Wrapper });
+    await user.type(screen.getByPlaceholderText('John'), 'Jane');
+    await user.type(screen.getByPlaceholderText('Doe'), 'Smith');
+    await user.type(screen.getByPlaceholderText('john@example.com'), 'j@b.com');
+    await user.type(screen.getByPlaceholderText('Create a strong password'), 'short');
+    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('button', { name: /create account/i }));
+    expect(mockSignup).not.toHaveBeenCalled();
+    expect(await screen.findByText('Password must be at least 8 characters')).toBeInTheDocument();
+  });
 });

@@ -42,6 +42,10 @@ interface ProductDescriptionInputProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  /** When false, hides image upload controls (used for recovery emails). */
+  enableImages?: boolean;
+  /** When false, hides the templates (Sparkles) menu. */
+  enableTemplates?: boolean;
 }
 
 const ICON_BTN =
@@ -138,6 +142,8 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
   value,
   onChange,
   placeholder = "Describe your product...",
+  enableImages = true,
+  enableTemplates = true,
 }) => {
   const [isHtmlMode, setIsHtmlMode] = useState(false);
   const [htmlValue, setHtmlValue] = useState(value || "");
@@ -516,54 +522,60 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
         Description
       </label>
       <div className="relative overflow-visible rounded-lg border border-gray-200 bg-white shadow-sm">
-        <input
-          ref={imageInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleImageFileSelection}
-        />
+        {enableImages && (
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageFileSelection}
+          />
+        )}
         <div className="relative z-20 flex flex-wrap items-center gap-0.5 border-b border-gray-200/90 bg-gray-50/95 px-2 py-1.5">
-          <div className="relative" ref={templateMenuRef}>
-            <button
-              type="button"
-              className={`${ICON_BTN} ${isTemplateMenuOpen ? ICON_BTN_ACTIVE : ""}`}
-              title="Insert template"
-              onClick={() => {
-                setIsTemplateMenuOpen((o) => !o);
-                setIsBlockMenuOpen(false);
-                setIsAlignMenuOpen(false);
-                setIsColorMenuOpen(false);
-                setIsMoreMenuOpen(false);
-                setIsLinkPopoverOpen(false);
-                setIsTableMenuOpen(false);
-              }}
-            >
-              <SparklesIcon className="h-5 w-5" aria-hidden />
-            </button>
-            {isTemplateMenuOpen ? (
-              <div className={`${MENU_PANEL} w-96 p-2`}>
-                <p className="px-2 pb-1 pt-0.5 text-xs font-medium text-gray-500">
-                  Choose a template to start faster
-                </p>
-                <div className="max-h-96 space-y-1 overflow-y-auto">
-                  {DESCRIPTION_TEMPLATES.map((template) => (
-                    <button
-                      key={template.id}
-                      type="button"
-                      onClick={() => applyDescriptionTemplate(template.html)}
-                      className="w-full rounded-md border border-transparent px-3 py-2.5 text-left hover:border-gray-200 hover:bg-gray-50"
-                    >
-                      <p className="text-sm font-semibold text-gray-900">{template.name}</p>
-                      <p className="mt-0.5 text-xs text-gray-600">{template.useCase}</p>
-                    </button>
-                  ))}
-                </div>
+          {enableTemplates && (
+            <>
+              <div className="relative" ref={templateMenuRef}>
+                <button
+                  type="button"
+                  className={`${ICON_BTN} ${isTemplateMenuOpen ? ICON_BTN_ACTIVE : ""}`}
+                  title="Insert template"
+                  onClick={() => {
+                    setIsTemplateMenuOpen((o) => !o);
+                    setIsBlockMenuOpen(false);
+                    setIsAlignMenuOpen(false);
+                    setIsColorMenuOpen(false);
+                    setIsMoreMenuOpen(false);
+                    setIsLinkPopoverOpen(false);
+                    setIsTableMenuOpen(false);
+                  }}
+                >
+                  <SparklesIcon className="h-5 w-5" aria-hidden />
+                </button>
+                {isTemplateMenuOpen ? (
+                  <div className={`${MENU_PANEL} w-96 p-2`}>
+                    <p className="px-2 pb-1 pt-0.5 text-xs font-medium text-gray-500">
+                      Choose a template to start faster
+                    </p>
+                    <div className="max-h-96 space-y-1 overflow-y-auto">
+                      {DESCRIPTION_TEMPLATES.map((template) => (
+                        <button
+                          key={template.id}
+                          type="button"
+                          onClick={() => applyDescriptionTemplate(template.html)}
+                          className="w-full rounded-md border border-transparent px-3 py-2.5 text-left hover:border-gray-200 hover:bg-gray-50"
+                        >
+                          <p className="text-sm font-semibold text-gray-900">{template.name}</p>
+                          <p className="mt-0.5 text-xs text-gray-600">{template.useCase}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
-            ) : null}
-          </div>
 
-          <ToolbarDivider />
+              <ToolbarDivider />
+            </>
+          )}
 
           <div className="relative" ref={blockMenuRef}>
             <button
@@ -841,15 +853,17 @@ const ProductDescriptionInput: React.FC<ProductDescriptionInputProps> = ({
               </div>
             ) : null}
           </div>
-          <button
-            type="button"
-            className={ICON_BTN}
-            onClick={handlePickImage}
-            disabled={!editor}
-            title="Insert image"
-          >
-            <PhotoIcon className="h-5 w-5" aria-hidden />
-          </button>
+          {enableImages && (
+            <button
+              type="button"
+              className={ICON_BTN}
+              onClick={handlePickImage}
+              disabled={!editor}
+              title="Insert image"
+            >
+              <PhotoIcon className="h-5 w-5" aria-hidden />
+            </button>
+          )}
           <button
             type="button"
             className={ICON_BTN}

@@ -3,18 +3,16 @@ import OrderItem, { OrderItemData } from './OrderItem';
 
 interface OrderItemListProps {
   orders: OrderItemData[];
-  selectedOrderId?: string | null;
-  onOrderSelect?: (orderId: string) => void;
+  selectedOrderIds?: Set<string>;
+  onOrderSelect?: (orderId: string, checked: boolean) => void;
   onOrderView?: (orderId: string) => void;
-  onOrderChat?: (orderId: string) => void;
 }
 
 const OrderItemList: React.FC<OrderItemListProps> = ({
   orders,
-  selectedOrderId,
+  selectedOrderIds,
   onOrderSelect,
   onOrderView,
-  onOrderChat,
 }) => {
   return (
     <tbody className="bg-white">
@@ -23,15 +21,14 @@ const OrderItemList: React.FC<OrderItemListProps> = ({
           <OrderItem
             key={order.orderId}
             order={order}
-            isSelected={selectedOrderId === order.orderId}
+            isSelected={selectedOrderIds?.has(order.orderId)}
             onSelect={onOrderSelect}
             onView={onOrderView}
-            onChat={onOrderChat}
           />
         ))
       ) : (
         <tr>
-          <td colSpan={7} className="px-5 py-12 text-center text-sm text-gray-500">
+          <td colSpan={8} className="px-5 py-12 text-center text-sm text-gray-500">
             No orders found
           </td>
         </tr>

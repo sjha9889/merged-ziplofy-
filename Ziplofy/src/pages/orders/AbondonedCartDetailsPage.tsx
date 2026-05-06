@@ -13,6 +13,7 @@ import AbandonedCartSummary from '../../components/orders/AbandonedCartSummary';
 import SendRecoveryEmailModal from '../../components/orders/SendRecoveryEmailModal';
 import { useAbandonedCarts } from '../../contexts/abandoned-cart.context';
 import { useStore } from '../../contexts/store.context';
+import { buildRecoveryEmailTemplate } from '../../utils/recovery-email-templates';
 
 const AbandonedCartDetailsPage: React.FC = () => {
   const { customerId } = useParams<{ customerId: string }>();
@@ -66,10 +67,10 @@ const AbandonedCartDetailsPage: React.FC = () => {
   const handleSendEmail = useCallback(() => {
     if (selectedCart?.customer) {
       const customer = selectedCart.customer;
-      setEmailSubject(`Complete your purchase - ${customer.firstName}`);
-      setEmailBody(
-        `Hi ${customer.firstName},\n\nWe noticed you left some items in your cart. Don't miss out on these great products!\n\nClick here to complete your purchase: [Cart Link]\n\nBest regards,\nYour Store Team`
-      );
+      const template = buildRecoveryEmailTemplate('custom', customer.firstName);
+      setEmailTemplate('custom');
+      setEmailSubject(template.subject);
+      setEmailBody(template.bodyHtml);
       setIsEmailModalOpen(true);
     }
   }, [selectedCart]);
@@ -94,25 +95,9 @@ const AbandonedCartDetailsPage: React.FC = () => {
       setEmailTemplate(template);
 
       if (!selectedCart?.customer) return;
-
-      const customer = selectedCart.customer;
-
-      if (template === 'reminder') {
-        setEmailSubject(`Don't forget your items - ${customer.firstName}`);
-        setEmailBody(
-          `Hi ${customer.firstName},\n\nYou have items waiting in your cart! Complete your purchase now to secure your items.\n\n[View Cart]\n\nThanks for shopping with us!`
-        );
-      } else if (template === 'discount') {
-        setEmailSubject(`Special offer for you - ${customer.firstName}`);
-        setEmailBody(
-          `Hi ${customer.firstName},\n\nWe're offering you a special 10% discount on your cart items! Use code SAVE10 at checkout.\n\n[Complete Purchase with Discount]\n\nThis offer expires in 24 hours!`
-        );
-      } else if (template === 'custom') {
-        setEmailSubject(`Complete your purchase - ${customer.firstName}`);
-        setEmailBody(
-          `Hi ${customer.firstName},\n\nWe noticed you left some items in your cart. Don't miss out on these great products!\n\nClick here to complete your purchase: [Cart Link]\n\nBest regards,\nYour Store Team`
-        );
-      }
+      const next = buildRecoveryEmailTemplate(template, selectedCart.customer.firstName);
+      setEmailSubject(next.subject);
+      setEmailBody(next.bodyHtml);
     },
     [selectedCart?.customer]
   );
@@ -121,11 +106,25 @@ const AbandonedCartDetailsPage: React.FC = () => {
     navigate('/orders/abandoned-carts');
   }, [navigate]);
 
+  const handleViewCustomer = useCallback(
+    (id: string) => {
+      navigate(`/customers/${id}`);
+    },
+    [navigate]
+  );
+
   const handleRetryFetch = useCallback(() => {
     if (activeStoreId) {
       fetchAbandonedCartsByStoreId(activeStoreId);
     }
   }, [activeStoreId, fetchAbandonedCartsByStoreId]);
+
+  const handleViewProduct = useCallback(
+    (productId: string) => {
+      navigate(`/products/${productId}`);
+    },
+    [navigate]
+  );
 
   if (loading) {
     return (
@@ -147,7 +146,7 @@ const AbandonedCartDetailsPage: React.FC = () => {
     return (
       <div className="min-h-screen bg-page-background-color">
         <div className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6">
-          <div className="flex items-start gap-4 rounded-2xl border border-red-200/90 bg-gradient-to-br from-red-50/80 to-white p-5 shadow-sm">
+          <div className="flex items-start gap-4 rounded-2xl border border-red-200/90 bg-linear-to-br from-red-50/80 to-white p-5 shadow-sm">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-700">
               <ExclamationTriangleIcon className="h-5 w-5" aria-hidden />
             </div>
@@ -229,16 +228,20 @@ const AbandonedCartDetailsPage: React.FC = () => {
           />
         </header>
 
-        <section className="mb-8 rounded-2xl border border-gray-200/80 bg-gradient-to-b from-white to-blue-50/25 p-5 shadow-sm sm:p-6">
+        <section className="mb-8 rounded-2xl border border-gray-200/80 bg-linear-to-b from-white to-blue-50/25 p-5 shadow-sm sm:p-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex min-w-0 flex-1 items-start gap-4">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-lg font-bold text-white shadow-lg ring-4 ring-blue-100">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-blue-600 to-indigo-600 text-lg font-bold text-white shadow-lg ring-4 ring-blue-100">
                 {getInitials(selectedCart.customer.firstName, selectedCart.customer.lastName)}
               </div>
               <div className="min-w-0 border-l-4 border-blue-500/70 pl-4">
-                <h1 className="text-2xl font-semibold tracking-tight text-gray-900 sm:text-3xl">
+                <button
+                  type="button"
+                  onClick={() => handleViewCustomer(selectedCart.customer._id)}
+                  className="text-left text-2xl font-semibold tracking-tight text-gray-900 transition-colors hover:text-blue-700 hover:underline sm:text-3xl"
+                >
                   {selectedCart.customer.firstName} {selectedCart.customer.lastName}
-                </h1>
+                </button>
                 <p className="mt-1 truncate text-sm text-gray-500 sm:text-base">{selectedCart.customer.email}</p>
                 <p className="mt-2 text-xs text-gray-500">
                   Last cart activity · {formatDate(selectedCart.lastUpdated)}
@@ -258,7 +261,11 @@ const AbandonedCartDetailsPage: React.FC = () => {
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
           <aside className="space-y-5 lg:col-span-4 lg:space-y-6">
-            <AbandonedCartCustomerInfo customer={selectedCart.customer} getInitials={getInitials} />
+            <AbandonedCartCustomerInfo
+              customer={selectedCart.customer}
+              getInitials={getInitials}
+              onViewCustomer={handleViewCustomer}
+            />
             <AbandonedCartSummary
               totalItems={selectedCart.totalItems}
               uniqueProducts={selectedCart.cartItems.length}
@@ -269,7 +276,11 @@ const AbandonedCartDetailsPage: React.FC = () => {
           </aside>
 
           <div className="lg:col-span-8">
-            <AbandonedCartItemsTable cartItems={selectedCart.cartItems} cartTotal={calculateCartTotal()} />
+            <AbandonedCartItemsTable
+              cartItems={selectedCart.cartItems}
+              cartTotal={calculateCartTotal()}
+              onViewProduct={handleViewProduct}
+            />
           </div>
         </div>
       </div>

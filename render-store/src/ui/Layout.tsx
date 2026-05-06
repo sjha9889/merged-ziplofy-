@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useStorefront } from '../contexts/store.context';
 import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 import { useStorefrontCart } from '../contexts/storefront-cart.context';
@@ -9,7 +8,6 @@ import { SwissWristHeader } from '../components/SwissWristHeader';
 import { SwissWristFooter } from '../components/SwissWristFooter';
 
 export function Layout({ children }: { children: ReactNode }) {
-  const navigate = useNavigate();
   const { storeFrontMeta } = useStorefront();
   const { user, logout } = useStorefrontAuth();
   const { items, guestItems, isGuest } = useStorefrontCart();
@@ -28,7 +26,6 @@ export function Layout({ children }: { children: ReactNode }) {
 
   const handleLogout = () => {
     logout();
-    navigate('/');
   };
 
   return (
