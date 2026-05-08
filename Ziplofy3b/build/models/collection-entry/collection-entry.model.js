@@ -38,6 +38,7 @@ const mongoose_1 = __importStar(require("mongoose"));
 const collectionEntrySchema = new mongoose_1.Schema({
     collectionId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Collections', required: true },
     productId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Product', required: true },
+    position: { type: Number, default: 0, min: 0 },
 }, {
     timestamps: true,
     versionKey: false,

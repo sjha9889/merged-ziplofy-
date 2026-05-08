@@ -49,7 +49,7 @@ async function seedAdmins() {
     await connectDB();
 
     const entries: Array<{ email: string; password: string; role: string }> = [
-      { email: "utkarsh3639@gmail.com", password: "zebronics", role: "super-admin" },
+      { email: "developer200419@gmail.com", password: "zebronics", role: "super-admin" },
       { email: "blinderspeaky823@gmail.com", password: "zebronics", role: "support-admin" },
     ];
 

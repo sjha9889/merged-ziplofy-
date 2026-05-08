@@ -16,5 +16,6 @@ exports.collectionsRouter.get("/:collectionId/products/search", collections_cont
 exports.collectionsRouter.post("/", collections_controller_1.createCollection);
 // UPDATE
 exports.collectionsRouter.put("/:id", collections_controller_1.updateCollection);
+exports.collectionsRouter.patch("/:id", collections_controller_1.updateCollection);
 // DELETE
 exports.collectionsRouter.delete("/:id", collections_controller_1.deleteCollection);

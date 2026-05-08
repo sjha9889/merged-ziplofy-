@@ -1,8 +1,13 @@
+import { PhotoIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import React from 'react';
 import Modal from '../Modal';
+import ProductDescriptionInput from '../products/ProductDescriptionInput';
+import { useAwsUpload } from '../../contexts/aws-upload.context';
 
 interface EditCollectionForm {
   title: string;
+  imageUrl: string;
+  imageAltText: string;
   description: string;
   pageTitle: string;
   metaDescription: string;
@@ -16,6 +21,7 @@ interface EditCollectionModalProps {
   onChange: (field: keyof EditCollectionForm, value: string | 'draft' | 'published') => void;
   onClose: () => void;
   onUpdate: () => void;
+  hasChanges?: boolean;
 }
 
 const EditCollectionModal: React.FC<EditCollectionModalProps> = ({
@@ -24,13 +30,16 @@ const EditCollectionModal: React.FC<EditCollectionModalProps> = ({
   onChange,
   onClose,
   onUpdate,
+  hasChanges = true,
 }) => {
+  const { uploadImageWithSignedUrl, loading: awsUploading } = useAwsUpload();
+
   return (
     <Modal
       open={isOpen}
       onClose={onClose}
       title="Edit collection"
-      maxWidth="md"
+      maxWidth="lg"
       actions={
         <>
           <button
@@ -41,7 +50,8 @@ const EditCollectionModal: React.FC<EditCollectionModalProps> = ({
           </button>
           <button
             onClick={onUpdate}
-            className="px-3 py-1.5 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 transition-colors"
+            disabled={!hasChanges}
+            className="px-3 py-1.5 text-sm font-medium text-white bg-gray-900 hover:bg-gray-800 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           >
             Update
           </button>
@@ -62,18 +72,62 @@ const EditCollectionModal: React.FC<EditCollectionModalProps> = ({
           />
         </div>
         <div>
-          <label
-            htmlFor="edit-description"
-            className="block text-sm font-medium text-gray-700 mb-1.5"
-          >
-            Description
+          <label className="mb-1.5 block text-sm font-medium text-gray-700">Collection image</label>
+          {formData.imageUrl ? (
+            <div className="relative overflow-hidden rounded-lg border border-gray-200">
+              <img src={formData.imageUrl} alt="Collection" className="h-40 w-full object-cover" />
+              <button
+                type="button"
+                onClick={() => onChange('imageUrl', '')}
+                className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/65 text-white transition hover:bg-black/80"
+                aria-label="Remove collection image"
+              >
+                <XMarkIcon className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white px-4 py-7 text-center hover:border-blue-300 hover:bg-blue-50/30">
+              <PhotoIcon className="h-7 w-7 text-gray-400" />
+              <span className="mt-2 text-sm font-medium text-gray-700">
+                {awsUploading ? 'Uploading image...' : 'Upload collection image'}
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  e.currentTarget.value = '';
+                  if (!file) return;
+                  try {
+                    const uploaded = await uploadImageWithSignedUrl(file, { folder: 'collections' });
+                    onChange('imageUrl', uploaded.objectUrl);
+                  } catch {
+                    // upload errors are handled in context
+                  }
+                }}
+              />
+            </label>
+          )}
+        </div>
+        <div>
+          <label htmlFor="edit-image-alt" className="block text-sm font-medium text-gray-700 mb-1.5">
+            Image alt text
           </label>
-          <textarea
-            id="edit-description"
+          <input
+            id="edit-image-alt"
+            type="text"
+            value={formData.imageAltText}
+            onChange={(e) => onChange('imageAltText', e.target.value)}
+            className="w-full px-3 py-1.5 text-sm border border-gray-200 focus:ring-1 focus:ring-gray-400 focus:border-gray-400 outline-none transition-colors"
+            placeholder="Describe this image"
+          />
+        </div>
+        <div>
+          <ProductDescriptionInput
             value={formData.description}
-            onChange={(e) => onChange('description', e.target.value)}
-            rows={3}
-            className="w-full px-3 py-1.5 text-sm border border-gray-200 focus:ring-1 focus:ring-gray-400 focus:border-gray-400 outline-none transition-colors resize-none"
+            onChange={(html) => onChange('description', html)}
+            placeholder="Description for customers"
           />
         </div>
         <div>

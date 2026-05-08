@@ -11,7 +11,7 @@ const collection_entry_model_1 = require("../models/collection-entry/collection-
 const product_model_1 = require("../models/product/product.model");
 // Create a new collection
 exports.createCollection = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
-    const { storeId, title, description, pageTitle, metaDescription, urlHandle, onlineStorePublishing, pointOfSalePublishing, status, } = req.body;
+    const { storeId, title, imageUrl, imageAltText, description, pageTitle, metaDescription, urlHandle, productIds, productSort, status, } = req.body;
     if (!storeId || !title || !description || !pageTitle || !metaDescription || !urlHandle) {
         throw new error_utils_1.CustomError("Missing required fields", 400);
     }
@@ -19,17 +19,59 @@ exports.createCollection = (0, error_utils_1.asyncErrorHandler)(async (req, res)
     if (typeof status !== 'undefined' && status !== 'draft' && status !== 'published') {
         throw new error_utils_1.CustomError("Invalid status. Allowed values are 'draft' or 'published'", 400);
     }
-    const collection = await collections_model_1.Collections.create({
-        storeId,
-        title,
-        description,
-        pageTitle,
-        metaDescription,
-        urlHandle,
-        onlineStorePublishing: onlineStorePublishing ?? true,
-        pointOfSalePublishing: pointOfSalePublishing ?? false,
-        ...(typeof status !== 'undefined' ? { status } : {}),
-    });
+    const allowedSorts = ['manual', 'title-asc', 'title-desc', 'price-high', 'price-low', 'newest', 'oldest'];
+    if (typeof productSort !== 'undefined' && !allowedSorts.includes(productSort)) {
+        throw new error_utils_1.CustomError("Invalid productSort value", 400);
+    }
+    const normalizedProductIds = Array.isArray(productIds)
+        ? [...new Set(productIds.filter((id) => typeof id === "string" && mongoose_1.default.isValidObjectId(id)))]
+        : [];
+    if (Array.isArray(productIds) && normalizedProductIds.length !== productIds.length) {
+        throw new error_utils_1.CustomError("One or more productIds are invalid", 400);
+    }
+    if (normalizedProductIds.length > 0) {
+        const existingProducts = await product_model_1.Product.find({
+            _id: { $in: normalizedProductIds },
+            storeId,
+            isDeleted: { $ne: true },
+        })
+            .select({ _id: 1 })
+            .lean();
+        if (existingProducts.length !== normalizedProductIds.length) {
+            throw new error_utils_1.CustomError("One or more selected products are invalid for this store", 400);
+        }
+    }
+    const session = await mongoose_1.default.startSession();
+    let collection;
+    try {
+        await session.withTransaction(async () => {
+            const created = await collections_model_1.Collections.create([
+                {
+                    storeId,
+                    title,
+                    imageUrl,
+                    imageAltText,
+                    description,
+                    pageTitle,
+                    metaDescription,
+                    urlHandle,
+                    ...(typeof productSort !== 'undefined' ? { productSort } : {}),
+                    ...(typeof status !== 'undefined' ? { status } : {}),
+                },
+            ], { session });
+            collection = created[0];
+            if (normalizedProductIds.length > 0) {
+                await collection_entry_model_1.CollectionEntry.insertMany(normalizedProductIds.map((productId, index) => ({
+                    collectionId: collection._id,
+                    productId,
+                    position: index + 1,
+                })), { session, ordered: false });
+            }
+        });
+    }
+    finally {
+        await session.endSession();
+    }
     res.status(201).json({ success: true, data: collection, message: "Collection created successfully" });
 });
 // Get collections by store id

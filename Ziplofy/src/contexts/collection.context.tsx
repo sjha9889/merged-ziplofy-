@@ -5,12 +5,13 @@ export interface Collection {
   _id: string;
   storeId: string;
   title: string;
+  imageUrl?: string;
+  imageAltText?: string;
   description: string;
   pageTitle: string;
   metaDescription: string;
   urlHandle: string;
-  onlineStorePublishing: boolean;
-  pointOfSalePublishing: boolean;
+  productSort: 'manual' | 'title-asc' | 'title-desc' | 'price-high' | 'price-low' | 'newest' | 'oldest';
   status: 'draft' | 'published';
   createdAt: string;
   updatedAt: string;
@@ -20,23 +21,26 @@ export interface Collection {
 export interface CreateCollectionPayload {
   storeId: string;
   title: string;
+  imageUrl?: string;
+  imageAltText?: string;
   description: string;
   pageTitle: string;
   metaDescription: string;
   urlHandle: string;
-  onlineStorePublishing?: boolean;
-  pointOfSalePublishing?: boolean;
+  productSort?: 'manual' | 'title-asc' | 'title-desc' | 'price-high' | 'price-low' | 'newest' | 'oldest';
+  productIds?: string[];
   status?: 'draft' | 'published';
 }
 
 export interface UpdateCollectionPayload {
   title?: string;
+  imageUrl?: string;
+  imageAltText?: string;
   description?: string;
   pageTitle?: string;
   metaDescription?: string;
   urlHandle?: string;
-  onlineStorePublishing?: boolean;
-  pointOfSalePublishing?: boolean;
+  productSort?: 'manual' | 'title-asc' | 'title-desc' | 'price-high' | 'price-low' | 'newest' | 'oldest';
   status?: 'draft' | 'published';
 }
 
@@ -190,7 +194,7 @@ export const CollectionProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     try {
       setLoading(true);
       setError(null);
-      const res = await axiosi.put<UpdateCollectionResponse>(`/collections/${id}`, payload);
+      const res = await axiosi.patch<UpdateCollectionResponse>(`/collections/${id}`, payload);
       const { success, data } = res.data;
       if (!success) throw new Error('Failed to update collection');
       setCollections(prev => prev.map(c => (c._id === id ? data : c)));

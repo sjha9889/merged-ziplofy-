@@ -4,7 +4,11 @@ import { CollectionEntry } from '../models/collection-entry/collection-entry.mod
 import { asyncErrorHandler, CustomError } from '../utils/error.utils';
 
 export const createCollectionEntry = asyncErrorHandler(async (req: Request, res: Response) => {
-  const { collectionId, productId } = req.body as { collectionId?: string; productId?: string };
+  const { collectionId, productId, position } = req.body as {
+    collectionId?: string;
+    productId?: string;
+    position?: number;
+  };
 
   if (!collectionId || !productId) {
     throw new CustomError('collectionId and productId are required', 400);
@@ -13,7 +17,16 @@ export const createCollectionEntry = asyncErrorHandler(async (req: Request, res:
     throw new CustomError('Invalid collectionId or productId', 400);
   }
 
-  const entry = await CollectionEntry.create({ collectionId, productId });
+  let resolvedPosition = typeof position === 'number' && Number.isFinite(position) && position >= 0
+    ? Math.floor(position)
+    : null;
+
+  if (resolvedPosition === null) {
+    const last = await CollectionEntry.findOne({ collectionId }).sort({ position: -1 }).select({ position: 1 }).lean();
+    resolvedPosition = (last?.position || 0) + 1;
+  }
+
+  const entry = await CollectionEntry.create({ collectionId, productId, position: resolvedPosition });
   
   // Populate the product data to match product controller response format
   const populatedEntry = await CollectionEntry.findById(entry._id)
@@ -64,7 +77,7 @@ export const getCollectionEntriesByCollectionId = asyncErrorHandler(async (req: 
         { path: 'vendor', model: 'Vendor' }
       ]
     })
-    .sort({ createdAt: -1 });
+    .sort({ position: 1, createdAt: 1 });
 
   res.status(200).json({ 
     success: true, 

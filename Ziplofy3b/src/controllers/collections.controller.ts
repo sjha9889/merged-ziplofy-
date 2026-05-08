@@ -10,12 +10,14 @@ export const createCollection = asyncErrorHandler(async (req: Request, res: Resp
   const {
     storeId,
     title,
+    imageUrl,
+    imageAltText,
     description,
     pageTitle,
     metaDescription,
     urlHandle,
-    onlineStorePublishing,
-    pointOfSalePublishing,
+    productIds,
+    productSort,
     status,
   } = req.body as Partial<ICollection> & Record<string, any>;
 
@@ -27,18 +29,71 @@ export const createCollection = asyncErrorHandler(async (req: Request, res: Resp
   if (typeof status !== 'undefined' && status !== 'draft' && status !== 'published') {
     throw new CustomError("Invalid status. Allowed values are 'draft' or 'published'", 400);
   }
+  const allowedSorts = ['manual', 'title-asc', 'title-desc', 'price-high', 'price-low', 'newest', 'oldest'];
+  if (typeof productSort !== 'undefined' && !allowedSorts.includes(productSort)) {
+    throw new CustomError("Invalid productSort value", 400);
+  }
 
-  const collection = await Collections.create({
-    storeId,
-    title,
-    description,
-    pageTitle,
-    metaDescription,
-    urlHandle,
-    onlineStorePublishing: onlineStorePublishing ?? true,
-    pointOfSalePublishing: pointOfSalePublishing ?? false,
-    ...(typeof status !== 'undefined' ? { status } : {}),
-  });
+  const normalizedProductIds = Array.isArray(productIds)
+    ? [...new Set(productIds.filter((id: unknown) => typeof id === "string" && mongoose.isValidObjectId(id)))]
+    : [];
+
+  if (Array.isArray(productIds) && normalizedProductIds.length !== productIds.length) {
+    throw new CustomError("One or more productIds are invalid", 400);
+  }
+
+  if (normalizedProductIds.length > 0) {
+    const existingProducts = await Product.find({
+      _id: { $in: normalizedProductIds },
+      storeId,
+      isDeleted: { $ne: true },
+    })
+      .select({ _id: 1 })
+      .lean();
+
+    if (existingProducts.length !== normalizedProductIds.length) {
+      throw new CustomError("One or more selected products are invalid for this store", 400);
+    }
+  }
+
+  const session = await mongoose.startSession();
+  let collection: any;
+  try {
+    await session.withTransaction(async () => {
+      const created = await Collections.create(
+        [
+          {
+            storeId,
+            title,
+            imageUrl,
+            imageAltText,
+            description,
+            pageTitle,
+            metaDescription,
+            urlHandle,
+            ...(typeof productSort !== 'undefined' ? { productSort } : {}),
+            ...(typeof status !== 'undefined' ? { status } : {}),
+          },
+        ],
+        { session }
+      );
+
+      collection = created[0];
+
+      if (normalizedProductIds.length > 0) {
+        await CollectionEntry.insertMany(
+          normalizedProductIds.map((productId: string, index: number) => ({
+            collectionId: collection._id,
+            productId,
+            position: index + 1,
+          })),
+          { session, ordered: false }
+        );
+      }
+    });
+  } finally {
+    await session.endSession();
+  }
 
   res.status(201).json({ success: true, data: collection, message: "Collection created successfully" });
 });

@@ -2,18 +2,17 @@ import {
   ArrowLeftIcon,
   ChevronRightIcon,
   FolderIcon,
-  HomeIcon,
   RectangleStackIcon,
 } from '@heroicons/react/24/outline';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AddProductsToCollectionSection from '../components/collections/AddProductsToCollectionSection';
-import CollectionOverviewSection from '../components/collections/CollectionOverviewSection';
 import DeleteCollectionModal from '../components/collections/DeleteCollectionModal';
 import EditCollectionModal from '../components/collections/EditCollectionModal';
 import ProductsInCollectionSection from '../components/collections/ProductsInCollectionSection';
 import SelectedProductsToAddSection from '../components/collections/SelectedProductsToAddSection';
 import { useCollectionEntries } from '../contexts/collection-entries.context';
+import type { UpdateCollectionPayload } from '../contexts/collection.context';
 import { useCollections } from '../contexts/collection.context';
 import { useProducts } from '../contexts/product.context';
 
@@ -39,10 +38,21 @@ const ProductCollectionDetailsPage: React.FC = () => {
   const initialEdit = useMemo(
     () => ({
       title: collection?.title || '',
+      imageUrl: collection?.imageUrl || '',
+      imageAltText: collection?.imageAltText || '',
       description: collection?.description || '',
       pageTitle: collection?.pageTitle || '',
       metaDescription: collection?.metaDescription || '',
       urlHandle: collection?.urlHandle || '',
+      productSort:
+        (collection?.productSort as
+          | 'manual'
+          | 'title-asc'
+          | 'title-desc'
+          | 'price-high'
+          | 'price-low'
+          | 'newest'
+          | 'oldest') || 'manual',
       status: (collection?.status as 'draft' | 'published') || 'published',
     }),
     [collection]
@@ -51,6 +61,19 @@ const ProductCollectionDetailsPage: React.FC = () => {
   useEffect(() => {
     setEditForm(initialEdit);
   }, [initialEdit]);
+
+  const changedEditPayload = useMemo(() => {
+    const payload: Record<string, string> = {};
+    const keys = Object.keys(initialEdit) as Array<keyof typeof initialEdit>;
+    keys.forEach((key) => {
+      if (editForm[key] !== initialEdit[key]) {
+        payload[key] = editForm[key] as string;
+      }
+    });
+    return payload;
+  }, [editForm, initialEdit]);
+
+  const hasEditChanges = Object.keys(changedEditPayload).length > 0;
 
   useEffect(() => {
     if (collection?.storeId) {
@@ -161,18 +184,22 @@ const ProductCollectionDetailsPage: React.FC = () => {
       setEditOpen(false);
       return;
     }
+    if (!hasEditChanges) {
+      setEditOpen(false);
+      return;
+    }
     try {
-      await updateCollection(collection._id, {
-        title: editForm.title,
-        description: editForm.description,
-        pageTitle: editForm.pageTitle,
-        metaDescription: editForm.metaDescription,
-        urlHandle: editForm.urlHandle,
-        status: editForm.status,
-      });
+      const patchPayload: UpdateCollectionPayload = { ...changedEditPayload };
+      if (Object.prototype.hasOwnProperty.call(patchPayload, 'imageUrl')) {
+        patchPayload.imageUrl = editForm.imageUrl || undefined;
+      }
+      if (Object.prototype.hasOwnProperty.call(patchPayload, 'imageAltText')) {
+        patchPayload.imageAltText = editForm.imageAltText || undefined;
+      }
+      await updateCollection(collection._id, patchPayload);
       setEditOpen(false);
     } catch {}
-  }, [collection?._id, editForm, updateCollection]);
+  }, [collection?._id, changedEditPayload, editForm.imageAltText, editForm.imageUrl, hasEditChanges, updateCollection]);
 
   const handleProductClick = useCallback(
     (product: any) => {
@@ -244,7 +271,7 @@ const ProductCollectionDetailsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-page-background-color">
       <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8">
-        <header className="mb-6 space-y-5">
+        <header className="mb-6">
           <button
             type="button"
             onClick={handleBack}
@@ -253,99 +280,161 @@ const ProductCollectionDetailsPage: React.FC = () => {
             <ArrowLeftIcon className="h-4 w-4" aria-hidden />
             Collections
           </button>
-
-          <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-sm">
-            <button
-              type="button"
-              onClick={() => navigate('/products')}
-              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
-            >
-              <HomeIcon className="h-3.5 w-3.5" aria-hidden />
-              Products
-            </button>
-            <ChevronRightIcon className="h-3.5 w-3.5 shrink-0 text-gray-300" aria-hidden />
-            <button
-              type="button"
-              onClick={handleBack}
-              className="rounded-lg px-2 py-1 font-medium text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
-            >
-              Collections
-            </button>
-            <ChevronRightIcon className="h-3.5 w-3.5 shrink-0 text-gray-300" aria-hidden />
-            <span className="rounded-lg bg-gray-100/80 px-2 py-1 font-semibold text-gray-900" aria-current="page">
-              {collection.title}
-            </span>
-          </nav>
         </header>
 
-        <section className="mb-8 rounded-2xl border border-gray-200/80 bg-gradient-to-b from-white to-blue-50/25 p-5 shadow-sm sm:p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0 border-l-4 border-blue-500/70 pl-4">
-              <div className="flex flex-wrap items-center gap-2 gap-y-2">
-                <h1 className="text-2xl font-semibold tracking-tight text-gray-900 sm:text-3xl">
-                  {collection.title}
-                </h1>
-                <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                    collection.status === 'published'
-                      ? 'bg-emerald-100 text-emerald-800'
-                      : 'bg-gray-100 text-gray-700'
-                  }`}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
+          <div className="space-y-6 lg:col-span-8">
+            <section className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm sm:p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <RectangleStackIcon className="h-5 w-5 text-blue-600" aria-hidden />
+                  <h1 className="text-2xl font-semibold tracking-tight text-gray-900">{collection.title}</h1>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditOpen(true)}
+                  className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-gray-50"
                 >
-                  {collection.status === 'published' ? 'Published' : 'Draft'}
-                </span>
+                  Edit
+                </button>
               </div>
               {collection.description ? (
-                <p className="mt-2 max-w-3xl text-sm leading-relaxed text-gray-600">{collection.description}</p>
+                <div
+                  className="prose prose-sm mt-2 max-w-none text-gray-600
+                    [&_h1]:my-2 [&_h1]:text-2xl [&_h1]:font-semibold
+                    [&_h2]:my-2 [&_h2]:text-xl [&_h2]:font-semibold
+                    [&_h3]:my-1.5 [&_h3]:text-lg [&_h3]:font-semibold
+                    [&_p]:my-1.5 [&_p]:leading-relaxed
+                    [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5
+                    [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5
+                    [&_img]:my-2 [&_img]:max-h-64 [&_img]:max-w-full [&_img]:rounded-md [&_img]:border [&_img]:border-gray-200
+                    [&_iframe]:my-2 [&_iframe]:aspect-video [&_iframe]:w-full [&_iframe]:max-w-full [&_iframe]:rounded-md [&_iframe]:border [&_iframe]:border-gray-200"
+                  dangerouslySetInnerHTML={{ __html: collection.description }}
+                />
               ) : (
                 <p className="mt-2 text-sm text-gray-400">No description</p>
               )}
-              <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-gray-500">
-                <span className="inline-flex items-center gap-1.5 rounded-lg bg-white/80 px-2.5 py-1 font-medium text-gray-700 ring-1 ring-gray-200/80">
-                  <RectangleStackIcon className="h-3.5 w-3.5 text-blue-600" aria-hidden />
-                  {productCount} {productCount === 1 ? 'product' : 'products'}
-                </span>
-                {collection.urlHandle ? (
-                  <span className="font-mono text-gray-500">
-                    /{collection.urlHandle}
-                  </span>
-                ) : null}
+            </section>
+
+            <section className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm sm:p-6">
+              <h2 className="text-base font-semibold text-gray-900">Products</h2>
+              <div className="mt-4 space-y-4 border-t border-gray-100 pt-4">
+                <AddProductsToCollectionSection
+                  searchQuery={searchQuery}
+                  filteredProducts={filteredProducts}
+                  selectedProducts={selectedProducts}
+                  onSearchChange={handleSearchChange}
+                  onProductSelect={handleProductClick}
+                />
+                <SelectedProductsToAddSection
+                  selectedProducts={selectedProducts}
+                  loading={collectionEntriesLoading}
+                  onRemoveProduct={handleRemoveProduct}
+                  onAddProducts={handleAddProductsToCollection}
+                  onClearAll={() => setSelectedProducts([])}
+                />
+                <ProductsInCollectionSection
+                  collectionEntries={collectionEntries}
+                  loading={collectionEntriesLoading}
+                  onProductClick={handleNavigateToProduct}
+                  onRemoveProduct={handleRemoveProductWithStopPropagation}
+                />
               </div>
-            </div>
-          </div>
-        </section>
+            </section>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:gap-8">
-          <div className="space-y-6 lg:col-span-5">
-            <CollectionOverviewSection
-              collection={collection}
-              onEdit={() => setEditOpen(true)}
-              onDelete={() => setConfirmOpen(true)}
-            />
-            <AddProductsToCollectionSection
-              searchQuery={searchQuery}
-              filteredProducts={filteredProducts}
-              selectedProducts={selectedProducts}
-              onSearchChange={handleSearchChange}
-              onProductSelect={handleProductClick}
-            />
-            <SelectedProductsToAddSection
-              selectedProducts={selectedProducts}
-              loading={collectionEntriesLoading}
-              onRemoveProduct={handleRemoveProduct}
-              onAddProducts={handleAddProductsToCollection}
-              onClearAll={() => setSelectedProducts([])}
-            />
+            <section className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm sm:p-6">
+              <div className="mb-2 flex items-center justify-between">
+                <h2 className="text-base font-semibold text-gray-900">Search engine listing</h2>
+                <button
+                  type="button"
+                  onClick={() => setEditOpen(true)}
+                  className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                  aria-label="Edit search engine listing"
+                >
+                  <ChevronRightIcon className="h-4 w-4 -rotate-45" />
+                </button>
+              </div>
+              <p className="text-sm text-gray-600">{collection.pageTitle || collection.title}</p>
+              <p className="mt-1 text-xs text-gray-500">
+                https://your-store.com/collections/{collection.urlHandle || ''}
+              </p>
+              <p className="mt-2 text-sm text-gray-500">{collection.metaDescription || 'No meta description'}</p>
+            </section>
           </div>
 
-          <div className="lg:col-span-7">
-            <ProductsInCollectionSection
-              collectionEntries={collectionEntries}
-              loading={collectionEntriesLoading}
-              onProductClick={handleNavigateToProduct}
-              onRemoveProduct={handleRemoveProductWithStopPropagation}
-            />
-          </div>
+          <aside className="space-y-6 lg:col-span-4">
+            <section className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm sm:p-6">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-base font-semibold text-gray-900">Publishing</h2>
+                <button
+                  type="button"
+                  onClick={() => setEditOpen(true)}
+                  className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+                >
+                  Manage
+                </button>
+              </div>
+              <div className="space-y-2 text-sm text-gray-700">
+                <p>
+                  <span className="font-medium">Status:</span>{' '}
+                  {collection.status === 'published' ? 'Published' : 'Draft'}
+                </p>
+                <p>
+                  <span className="font-medium">Sort:</span> {collection.productSort || 'manual'}
+                </p>
+                <p>
+                  <span className="font-medium">Products:</span> {productCount}
+                </p>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm sm:p-6">
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-base font-semibold text-gray-900">Image</h2>
+                <button
+                  type="button"
+                  onClick={() => setEditOpen(true)}
+                  className="text-sm font-semibold text-blue-600 hover:text-blue-700"
+                >
+                  Edit
+                </button>
+              </div>
+              {collection.imageUrl ? (
+                <div className="overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+                  <img
+                    src={collection.imageUrl}
+                    alt={collection.imageAltText || collection.title}
+                    className="h-44 w-full object-cover"
+                  />
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400">No image</p>
+              )}
+            </section>
+
+            <section className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm sm:p-6">
+              <h2 className="text-base font-semibold text-gray-900">Theme template</h2>
+              <div className="mt-3 border-t border-gray-100 pt-3">
+                <select
+                  value="default"
+                  disabled
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700"
+                >
+                  <option value="default">Default collection</option>
+                </select>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm sm:p-6">
+              <button
+                type="button"
+                onClick={() => setConfirmOpen(true)}
+                className="w-full rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100"
+              >
+                Delete collection
+              </button>
+            </section>
+          </aside>
         </div>
       </div>
 
@@ -355,6 +444,7 @@ const ProductCollectionDetailsPage: React.FC = () => {
         onChange={handleEditFormChange}
         onClose={() => setEditOpen(false)}
         onUpdate={handleUpdateCollection}
+        hasChanges={hasEditChanges}
       />
 
       <DeleteCollectionModal

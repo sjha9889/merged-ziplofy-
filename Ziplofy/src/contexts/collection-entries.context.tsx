@@ -85,6 +85,7 @@ export interface CollectionEntry {
   _id: string;
   collectionId: string;
   productId: CollectionEntryProduct;
+  position?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -92,6 +93,7 @@ export interface CollectionEntry {
 interface CreateCollectionEntryPayload {
   collectionId: string;
   productId: string;
+  position?: number;
 }
 
 interface CreateCollectionEntryResponse {

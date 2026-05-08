@@ -20,6 +20,7 @@ collectionsRouter.post("/", createCollection);
 
 // UPDATE
 collectionsRouter.put("/:id", updateCollection);
+collectionsRouter.patch("/:id", updateCollection);
 
 // DELETE
 collectionsRouter.delete("/:id", deleteCollection);

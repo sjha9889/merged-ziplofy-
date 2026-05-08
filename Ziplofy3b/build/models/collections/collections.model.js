@@ -48,6 +48,16 @@ const collectionSchema = new mongoose_1.Schema({
         maxLength: [200, "Title cannot exceed 200 characters"],
         minLength: [2, "Title must be at least 2 characters"],
     },
+    imageUrl: {
+        type: String,
+        trim: true,
+        maxLength: [2000, "Image URL cannot exceed 2000 characters"],
+    },
+    imageAltText: {
+        type: String,
+        trim: true,
+        maxLength: [500, "Image alt text cannot exceed 500 characters"],
+    },
     description: {
         type: String,
         required: [true, "Description is required"],
@@ -76,13 +86,10 @@ const collectionSchema = new mongoose_1.Schema({
         minLength: [2, "URL handle must be at least 2 characters"],
         match: [/^[a-z0-9-]+$/, "URL handle can only contain lowercase letters, numbers, and hyphens"],
     },
-    onlineStorePublishing: {
-        type: Boolean,
-        default: true,
-    },
-    pointOfSalePublishing: {
-        type: Boolean,
-        default: false,
+    productSort: {
+        type: String,
+        enum: ['manual', 'title-asc', 'title-desc', 'price-high', 'price-low', 'newest', 'oldest'],
+        default: 'manual',
     },
     status: {
         type: String,

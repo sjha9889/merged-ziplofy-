@@ -4,12 +4,13 @@ export interface ICollection {
   _id: mongoose.Types.ObjectId;
   storeId: mongoose.Types.ObjectId;
   title: string;
+  imageUrl?: string;
+  imageAltText?: string;
   description: string;
   pageTitle: string; // base title for SEO
   metaDescription: string;
   urlHandle: string;
-  onlineStorePublishing: boolean;
-  pointOfSalePublishing: boolean;
+  productSort: 'manual' | 'title-asc' | 'title-desc' | 'price-high' | 'price-low' | 'newest' | 'oldest';
   status: 'draft' | 'published';
   createdAt: Date;
   updatedAt: Date;
@@ -27,6 +28,16 @@ const collectionSchema = new Schema<ICollection & Document>({
     trim: true,
     maxLength: [200, "Title cannot exceed 200 characters"],
     minLength: [2, "Title must be at least 2 characters"],
+  },
+  imageUrl: {
+    type: String,
+    trim: true,
+    maxLength: [2000, "Image URL cannot exceed 2000 characters"],
+  },
+  imageAltText: {
+    type: String,
+    trim: true,
+    maxLength: [500, "Image alt text cannot exceed 500 characters"],
   },
   description: {
     type: String,
@@ -56,13 +67,10 @@ const collectionSchema = new Schema<ICollection & Document>({
     minLength: [2, "URL handle must be at least 2 characters"],
     match: [/^[a-z0-9-]+$/, "URL handle can only contain lowercase letters, numbers, and hyphens"],
   },
-  onlineStorePublishing: {
-    type: Boolean,
-    default: true,
-  },
-  pointOfSalePublishing: {
-    type: Boolean,
-    default: false,
+  productSort: {
+    type: String,
+    enum: ['manual', 'title-asc', 'title-desc', 'price-high', 'price-low', 'newest', 'oldest'],
+    default: 'manual',
   },
   status: {
     type: String,

@@ -8,14 +8,21 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const collection_entry_model_1 = require("../models/collection-entry/collection-entry.model");
 const error_utils_1 = require("../utils/error.utils");
 exports.createCollectionEntry = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
-    const { collectionId, productId } = req.body;
+    const { collectionId, productId, position } = req.body;
     if (!collectionId || !productId) {
         throw new error_utils_1.CustomError('collectionId and productId are required', 400);
     }
     if (!mongoose_1.default.isValidObjectId(collectionId) || !mongoose_1.default.isValidObjectId(productId)) {
         throw new error_utils_1.CustomError('Invalid collectionId or productId', 400);
     }
-    const entry = await collection_entry_model_1.CollectionEntry.create({ collectionId, productId });
+    let resolvedPosition = typeof position === 'number' && Number.isFinite(position) && position >= 0
+        ? Math.floor(position)
+        : null;
+    if (resolvedPosition === null) {
+        const last = await collection_entry_model_1.CollectionEntry.findOne({ collectionId }).sort({ position: -1 }).select({ position: 1 }).lean();
+        resolvedPosition = (last?.position || 0) + 1;
+    }
+    const entry = await collection_entry_model_1.CollectionEntry.create({ collectionId, productId, position: resolvedPosition });
     // Populate the product data to match product controller response format
     const populatedEntry = await collection_entry_model_1.CollectionEntry.findById(entry._id)
         .populate({
@@ -59,7 +66,7 @@ exports.getCollectionEntriesByCollectionId = (0, error_utils_1.asyncErrorHandler
             { path: 'vendor', model: 'Vendor' }
         ]
     })
-        .sort({ createdAt: -1 });
+        .sort({ position: 1, createdAt: 1 });
     res.status(200).json({
         success: true,
         data: entries,
