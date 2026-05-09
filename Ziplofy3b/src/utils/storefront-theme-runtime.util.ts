@@ -6,6 +6,7 @@ import { InstalledThemes } from "../models/installed-themes.model";
 import { Theme } from "../models/theme.model";
 import { CustomTheme } from "../models/custom-theme.model";
 import { Store } from "../models/store/store.model";
+import { storeAndUserScopeOr } from "./installed-themes-query.util";
 
 export type ResolvedStorefrontThemeRuntime = {
   storeId: string;
@@ -35,9 +36,11 @@ export async function resolveStorefrontThemeRuntime(
   if (!appliedThemeId) return null;
 
   const installedTheme = await InstalledThemes.findOne({
-    $or: [{ store: storeId }, { user: storeId }],
-    theme: new Types.ObjectId(appliedThemeId),
-    uninstalledAt: null,
+    $and: [
+      { $or: storeAndUserScopeOr(String(storeId)) },
+      { theme: new Types.ObjectId(appliedThemeId) },
+      { uninstalledAt: null },
+    ],
   }).lean();
 
   const theme = await Theme.findById(appliedThemeId).lean();

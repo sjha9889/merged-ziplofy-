@@ -14,6 +14,7 @@ const installed_themes_model_1 = require("../models/installed-themes.model");
 const theme_model_1 = require("../models/theme.model");
 const custom_theme_model_1 = require("../models/custom-theme.model");
 const store_model_1 = require("../models/store/store.model");
+const installed_themes_query_util_1 = require("./installed-themes-query.util");
 /**
  * Resolve installed theme directory and public asset base URL for a store.
  * Mirrors logic in getStorefrontThemeRuntime for path consistency.
@@ -26,9 +27,11 @@ async function resolveStorefrontThemeRuntime(req, storeId) {
     if (!appliedThemeId)
         return null;
     const installedTheme = await installed_themes_model_1.InstalledThemes.findOne({
-        $or: [{ store: storeId }, { user: storeId }],
-        theme: new mongoose_1.Types.ObjectId(appliedThemeId),
-        uninstalledAt: null,
+        $and: [
+            { $or: (0, installed_themes_query_util_1.storeAndUserScopeOr)(String(storeId)) },
+            { theme: new mongoose_1.Types.ObjectId(appliedThemeId) },
+            { uninstalledAt: null },
+        ],
     }).lean();
     const theme = await theme_model_1.Theme.findById(appliedThemeId).lean();
     const customTheme = !theme ? await custom_theme_model_1.CustomTheme.findById(appliedThemeId).lean() : null;

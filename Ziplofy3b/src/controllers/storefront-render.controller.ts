@@ -86,6 +86,12 @@ export const renderStorefrontLiquidPage = asyncErrorHandler(async (req: Request,
   const store = await Store.findById(storeId).lean();
   if (!store) throw new CustomError("Store not found", 404);
 
+  /** Use explicit ObjectId so Product/Collection queries match stored refs (param is a string). */
+  const storeObjectId = mongoose.isValidObjectId(storeId)
+    ? new mongoose.Types.ObjectId(storeId)
+    : null;
+  if (!storeObjectId) throw new CustomError("Invalid store ID", 400);
+
   const publicOrigin = publicOriginFromRequest(req);
 
   const liquid = createStorefrontLiquid(resolved.runtimeBaseDir, resolved.runtimeBaseUrl);
@@ -118,9 +124,10 @@ export const renderStorefrontLiquidPage = asyncErrorHandler(async (req: Request,
   let article: Record<string, unknown> | null = null;
 
   if (tpl === "index") {
+    // Same visibility as public product list: active, not deleted. (Default product status in DB is often "draft".)
     const [productRows, collectionRows] = await Promise.all([
       Product.find({
-        storeId,
+        storeId: storeObjectId,
         isDeleted: { $ne: true },
         status: "active",
       })
@@ -129,7 +136,7 @@ export const renderStorefrontLiquidPage = asyncErrorHandler(async (req: Request,
         .populate({ path: "vendor", select: "name" })
         .populate({ path: "category", select: "name" })
         .lean(),
-      Collections.find({ storeId, status: "published" })
+      Collections.find({ storeId: storeObjectId, status: "published" })
         .sort({ createdAt: -1 })
         .limit(12)
         .lean(),
@@ -143,12 +150,12 @@ export const renderStorefrontLiquidPage = asyncErrorHandler(async (req: Request,
     if (collectionId && mongoose.isValidObjectId(collectionId)) {
       col = (await Collections.findOne({
         _id: collectionId,
-        storeId,
+        storeId: storeObjectId,
       }).lean()) as Record<string, unknown> | null;
     }
     if (!col && handle) {
       col = (await Collections.findOne({
-        storeId,
+        storeId: storeObjectId,
         urlHandle: handle,
       }).lean()) as Record<string, unknown> | null;
     }
@@ -178,7 +185,7 @@ export const renderStorefrontLiquidPage = asyncErrorHandler(async (req: Request,
         description: "",
       };
       const productRows = await Product.find({
-        storeId,
+        storeId: storeObjectId,
         isDeleted: { $ne: true },
         status: "active",
       })
@@ -199,8 +206,9 @@ export const renderStorefrontLiquidPage = asyncErrorHandler(async (req: Request,
     if (mongoose.isValidObjectId(h)) {
       pdoc = (await Product.findOne({
         _id: h,
-        storeId,
+        storeId: storeObjectId,
         isDeleted: { $ne: true },
+        status: "active",
       })
         .populate({ path: "vendor", select: "name" })
         .populate({ path: "category", select: "name" })
@@ -208,9 +216,10 @@ export const renderStorefrontLiquidPage = asyncErrorHandler(async (req: Request,
     }
     if (!pdoc) {
       pdoc = (await Product.findOne({
-        storeId,
+        storeId: storeObjectId,
         urlHandle: h,
         isDeleted: { $ne: true },
+        status: "active",
       })
         .populate({ path: "vendor", select: "name" })
         .populate({ path: "category", select: "name" })
@@ -237,7 +246,7 @@ export const renderStorefrontLiquidPage = asyncErrorHandler(async (req: Request,
 
   const ancillaryTemplates = new Set(["blog", "blog-detail", "contact", "cart", "wishlist"]);
   if (ancillaryTemplates.has(tpl) && collections.length === 0) {
-    const collectionRows = await Collections.find({ storeId, status: "published" })
+    const collectionRows = await Collections.find({ storeId: storeObjectId, status: "published" })
       .sort({ createdAt: -1 })
       .limit(8)
       .lean();

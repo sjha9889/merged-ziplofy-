@@ -13,6 +13,7 @@ const theme_model_1 = require("../models/theme.model");
 const custom_theme_model_1 = require("../models/custom-theme.model");
 const store_model_1 = require("../models/store/store.model");
 const storefront_theme_runtime_util_1 = require("../utils/storefront-theme-runtime.util");
+const installed_themes_query_util_1 = require("../utils/installed-themes-query.util");
 // import { Product } from '../models/product.model';
 // import { Store } from '../models/store.model';
 // Render storefront with theme and products
@@ -37,9 +38,11 @@ exports.renderStorefront = (0, error_utils_1.asyncErrorHandler)(async (req, res)
         throw new error_utils_1.CustomError("No applied theme found for this store", 404);
     }
     const installedTheme = await installed_themes_model_1.InstalledThemes.findOne({
-        $or: [{ store: storeId }, { user: storeId }],
-        theme: new mongoose_1.Types.ObjectId(appliedThemeId),
-        uninstalledAt: null
+        $and: [
+            { $or: (0, installed_themes_query_util_1.storeAndUserScopeOr)(String(storeId)) },
+            { theme: new mongoose_1.Types.ObjectId(appliedThemeId) },
+            { uninstalledAt: null },
+        ],
     }).populate('theme');
     const activeTheme = installedTheme?.theme;
     if (!activeTheme) {
@@ -172,9 +175,11 @@ exports.getStoreData = (0, error_utils_1.asyncErrorHandler)(async (req, res) => 
     let installedTheme = null;
     if (appliedThemeId && mongoose_1.Types.ObjectId.isValid(appliedThemeId)) {
         installedTheme = await installed_themes_model_1.InstalledThemes.findOne({
-            $or: [{ store: storeId }, { user: storeId }],
-            theme: new mongoose_1.Types.ObjectId(appliedThemeId),
-            uninstalledAt: null
+            $and: [
+                { $or: (0, installed_themes_query_util_1.storeAndUserScopeOr)(String(storeId)) },
+                { theme: new mongoose_1.Types.ObjectId(appliedThemeId) },
+                { uninstalledAt: null },
+            ],
         }).populate('theme');
     }
     // Get products (mock for now)
@@ -227,9 +232,11 @@ exports.getStorefrontThemeRuntime = (0, error_utils_1.asyncErrorHandler)(async (
         });
     }
     const installedTheme = await installed_themes_model_1.InstalledThemes.findOne({
-        $or: [{ store: storeId }, { user: storeId }],
-        theme: new mongoose_1.Types.ObjectId(appliedThemeId),
-        uninstalledAt: null,
+        $and: [
+            { $or: (0, installed_themes_query_util_1.storeAndUserScopeOr)(String(storeId)) },
+            { theme: new mongoose_1.Types.ObjectId(appliedThemeId) },
+            { uninstalledAt: null },
+        ],
     }).lean();
     const theme = await theme_model_1.Theme.findById(appliedThemeId).lean();
     const customTheme = !theme ? await custom_theme_model_1.CustomTheme.findById(appliedThemeId).lean() : null;

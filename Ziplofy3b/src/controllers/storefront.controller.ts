@@ -8,6 +8,7 @@ import { Theme } from '../models/theme.model';
 import { CustomTheme } from '../models/custom-theme.model';
 import { Store } from '../models/store/store.model';
 import { listLiquidTemplateNames, themeHasLiquidTemplates } from '../utils/storefront-theme-runtime.util';
+import { storeAndUserScopeOr } from '../utils/installed-themes-query.util';
 // import { Product } from '../models/product.model';
 // import { Store } from '../models/store.model';
 
@@ -38,9 +39,11 @@ export const renderStorefront = asyncErrorHandler(async (req: Request, res: Resp
   }
 
   const installedTheme = await InstalledThemes.findOne({
-    $or: [{ store: storeId }, { user: storeId }],
-    theme: new Types.ObjectId(appliedThemeId),
-    uninstalledAt: null
+    $and: [
+      { $or: storeAndUserScopeOr(String(storeId)) },
+      { theme: new Types.ObjectId(appliedThemeId) },
+      { uninstalledAt: null },
+    ],
   }).populate('theme');
 
   const activeTheme = installedTheme?.theme as any;
@@ -198,9 +201,11 @@ export const getStoreData = asyncErrorHandler(async (req: Request, res: Response
   let installedTheme: any = null;
   if (appliedThemeId && Types.ObjectId.isValid(appliedThemeId)) {
     installedTheme = await InstalledThemes.findOne({
-      $or: [{ store: storeId }, { user: storeId }],
-      theme: new Types.ObjectId(appliedThemeId),
-      uninstalledAt: null
+      $and: [
+        { $or: storeAndUserScopeOr(String(storeId)) },
+        { theme: new Types.ObjectId(appliedThemeId) },
+        { uninstalledAt: null },
+      ],
     }).populate('theme');
   }
   
@@ -259,9 +264,11 @@ export const getStorefrontThemeRuntime = asyncErrorHandler(async (req: Request, 
   }
 
   const installedTheme = await InstalledThemes.findOne({
-    $or: [{ store: storeId }, { user: storeId }],
-    theme: new Types.ObjectId(appliedThemeId),
-    uninstalledAt: null,
+    $and: [
+      { $or: storeAndUserScopeOr(String(storeId)) },
+      { theme: new Types.ObjectId(appliedThemeId) },
+      { uninstalledAt: null },
+    ],
   }).lean();
 
   const theme = await Theme.findById(appliedThemeId).lean();

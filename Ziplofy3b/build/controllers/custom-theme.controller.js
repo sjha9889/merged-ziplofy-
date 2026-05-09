@@ -9,7 +9,6 @@ const path_1 = __importDefault(require("path"));
 const mongoose_1 = require("mongoose");
 const extract_zip_1 = __importDefault(require("extract-zip"));
 const custom_theme_model_1 = require("../models/custom-theme.model");
-const installed_themes_model_1 = require("../models/installed-themes.model");
 const store_model_1 = require("../models/store/store.model");
 const error_utils_1 = require("../utils/error.utils");
 const activity_log_utils_1 = require("../utils/activity-log.utils");
@@ -492,31 +491,6 @@ exports.installCustomTheme = (0, error_utils_1.asyncErrorHandler)(async (req, re
     console.log('📁 Source custom theme directory:', sourceThemeDir);
     console.log('📁 Store theme directory:', storeThemeDir);
     try {
-        // IMPORTANT: Deactivate all other active themes (regular themes) for this user/store before installing custom theme
-        // This ensures only one theme is active at a time
-        // Use storeIdToUse to match where themes are installed
-        await installed_themes_model_1.InstalledThemes.updateMany({ $or: [{ store: storeIdToUse }, { user: storeIdToUse }] }, { uninstalledAt: new Date() });
-        console.log('✅ Deactivated all other active themes for this user/store');
-        // Also remove any other custom theme installations (delete installation directories)
-        const storeThemesDir = path_1.default.join(process.cwd(), 'uploads', 'stores', storeIdToUse, 'themes');
-        if (fs_1.default.existsSync(storeThemesDir)) {
-            try {
-                const themeDirs = fs_1.default.readdirSync(storeThemesDir, { withFileTypes: true })
-                    .filter(dirent => dirent.isDirectory())
-                    .map(dirent => dirent.name);
-                for (const themeDirName of themeDirs) {
-                    // Remove all other custom theme installations (but not the one we're installing)
-                    if (themeDirName.startsWith('custom-') && themeDirName !== themeIdForStore) {
-                        const customThemeDir = path_1.default.join(storeThemesDir, themeDirName);
-                        fs_1.default.rmSync(customThemeDir, { recursive: true, force: true });
-                        console.log(`✅ Removed other custom theme installation: ${themeDirName}`);
-                    }
-                }
-            }
-            catch (err) {
-                console.warn('Error removing other custom theme installations:', err);
-            }
-        }
         // Create store theme directory if it doesn't exist
         if (!fs_1.default.existsSync(storeThemeDir)) {
             fs_1.default.mkdirSync(storeThemeDir, { recursive: true });

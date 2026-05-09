@@ -20,6 +20,7 @@ const role_model_1 = require("../models/role.model");
 const user_model_1 = require("../models/user.model");
 const error_utils_1 = require("../utils/error.utils");
 const activity_log_utils_1 = require("../utils/activity-log.utils");
+const installed_themes_query_util_1 = require("../utils/installed-themes-query.util");
 // Helper function to create organized theme directory structure per requirements
 const createThemeDirectory = (themeName) => {
     // Use exact provided name for folder, avoid collisions by appending short uid if exists
@@ -791,49 +792,22 @@ You can now modify the theme files in this directory to customize your store's a
                 }
             });
         }
-        // Keep one installed theme per store: remove other theme records.
-        await installed_themes_model_1.InstalledThemes.deleteMany({
-            $or: [{ store: storeIdToUse }, { user: storeIdToUse }],
-            theme: { $ne: themeObjectId },
-        });
-        console.log('✅ Removed other installed theme records for this store');
-        // Also remove any custom theme installations (delete installation directories)
-        const storeThemesDir = path_1.default.join(process.cwd(), 'uploads', 'stores', storeIdToUse, 'themes');
-        if (fs_1.default.existsSync(storeThemesDir)) {
-            try {
-                const themeDirs = fs_1.default.readdirSync(storeThemesDir, { withFileTypes: true })
-                    .filter(dirent => dirent.isDirectory())
-                    .map(dirent => dirent.name);
-                for (const themeDirName of themeDirs) {
-                    if (themeDirName.startsWith('custom-')) {
-                        const customThemeDir = path_1.default.join(storeThemesDir, themeDirName);
-                        fs_1.default.rmSync(customThemeDir, { recursive: true, force: true });
-                        console.log(`✅ Removed custom theme installation: ${themeDirName}`);
-                    }
-                }
-            }
-            catch (err) {
-                console.warn('Error removing custom theme installations:', err);
-            }
-        }
-        // Check if there's already an installation for this user and theme
-        // Use storeIdToUse to match where themes are installed
+        // Check if there's already an installation for this store and theme (any legacy store/user shape)
         let installedTheme = await installed_themes_model_1.InstalledThemes.findOne({
-            $or: [{ store: storeIdToUse }, { user: storeIdToUse }],
-            theme: themeObjectId,
+            $and: [{ $or: (0, installed_themes_query_util_1.storeAndUserScopeOr)(storeIdToUse) }, { theme: themeObjectId }],
         });
+        const storeRef = (0, installed_themes_query_util_1.canonicalStoreRef)(storeIdToUse);
         if (installedTheme) {
             // Update existing installation
             installedTheme.uninstalledAt = undefined;
+            installedTheme.store = storeRef;
             installedTheme.storePath = storeThemeDir;
             installedTheme.installedAt = new Date();
             await installedTheme.save();
         }
         else {
-            // Create a new installation
-            // Use storeIdToUse to match where themes are installed
             installedTheme = await installed_themes_model_1.InstalledThemes.create({
-                store: storeIdToUse,
+                store: storeRef,
                 theme: themeObjectId,
                 storePath: storeThemeDir,
                 installedAt: new Date(),
@@ -887,9 +861,11 @@ exports.applyThemeToStore = (0, error_utils_1.asyncErrorHandler)(async (req, res
     }
     const themeObjectId = new mongoose_1.Types.ObjectId(themeId);
     const installedRecord = await installed_themes_model_1.InstalledThemes.findOne({
-        $or: [{ store: storeId }, { user: storeId }],
-        theme: themeObjectId,
-        uninstalledAt: null,
+        $and: [
+            { $or: (0, installed_themes_query_util_1.storeAndUserScopeOr)(String(storeId)) },
+            { theme: themeObjectId },
+            { uninstalledAt: null },
+        ],
     })
         .select("_id")
         .lean();
@@ -1050,7 +1026,7 @@ exports.getInstalledThemes = (0, error_utils_1.asyncErrorHandler)(async (req, re
     }
     // Fetch installed themes for this store.
     // By default return currently installed rows (uninstalledAt is null).
-    const filter = { $or: [{ store: storeIdToUse }, { user: storeIdToUse }] };
+    const filter = { $or: (0, installed_themes_query_util_1.storeAndUserScopeOr)(String(storeIdToUse)) };
     if (!includeInactive) {
         filter.uninstalledAt = null;
     }
@@ -1058,30 +1034,37 @@ exports.getInstalledThemes = (0, error_utils_1.asyncErrorHandler)(async (req, re
         .select("theme _id installedAt uninstalledAt")
         .sort({ installedAt: -1 }) // Most recent first
         .lean();
-    const themeIds = rows.map((r) => r.theme).filter(Boolean);
-    // Fetch regular themes
-    const themes = themeIds.length > 0 ? await theme_model_1.Theme.find({ _id: { $in: themeIds } }).lean() : [];
-    const formatted = themes.map((theme) => {
+    const themeIdStrings = [
+        ...new Set(rows.map((r) => r.theme?.toString()).filter(Boolean)),
+    ];
+    const themeObjectIds = themeIdStrings.map((id) => new mongoose_1.Types.ObjectId(id));
+    const themes = themeObjectIds.length > 0 ? await theme_model_1.Theme.find({ _id: { $in: themeObjectIds } }).lean() : [];
+    const themeById = new Map(themes.map((t) => [t._id.toString(), t]));
+    // One list entry per installation row (not per Theme doc), so multiple installs stay visible.
+    const formatted = [];
+    for (const row of rows) {
+        const tid = row.theme?.toString();
+        if (!tid)
+            continue;
+        const theme = themeById.get(tid);
+        if (!theme)
+            continue;
         const thumbnailUrl = theme.thumbnail?.filename
             ? `${req.protocol}://${req.get("host")}/uploads/themes/${theme.themePath}/thumbnail/${theme.thumbnail.filename}`
             : null;
-        // Find the corresponding installed theme record
-        const installedTheme = rows.find(row => row.theme.toString() === theme._id.toString());
-        return {
+        formatted.push({
             _id: theme._id,
             name: theme.name,
             description: theme.description,
             category: theme.category,
             thumbnailUrl,
-            installedThemeId: installedTheme?._id,
-            installedAt: installedTheme?.installedAt,
-            uninstalledAt: installedTheme?.uninstalledAt,
+            installedThemeId: row._id,
+            installedAt: row.installedAt,
+            uninstalledAt: row.uninstalledAt,
             installationCount: theme.installationCount || 0,
-            isCustomTheme: false, // Mark as regular theme
-        };
-    });
-    // IMPORTANT: Only show custom themes if there are NO active regular themes
-    // This ensures only one theme (regular OR custom) is shown at a time
+            isCustomTheme: false,
+        });
+    }
     const hasActiveRegularThemes = formatted.length > 0;
     // Also check for installed custom themes in the file system
     // Check both storeId directory (where custom themes are installed) and userId directory (fallback)
@@ -1097,9 +1080,8 @@ exports.getInstalledThemes = (0, error_utils_1.asyncErrorHandler)(async (req, re
         userDirExists: userThemesDir ? fs_1.default.existsSync(userThemesDir) : false,
         hasActiveRegularThemes,
     });
-    // Only check for custom themes if there are no active regular themes
-    // This ensures only one theme type is shown at a time
-    if (!hasActiveRegularThemes && fs_1.default.existsSync(storeThemesDir)) {
+    // List custom theme installs on disk alongside regular InstalledThemes rows.
+    if (fs_1.default.existsSync(storeThemesDir)) {
         try {
             const themeDirs = fs_1.default.readdirSync(storeThemesDir, { withFileTypes: true })
                 .filter(dirent => dirent.isDirectory())
@@ -1166,16 +1148,10 @@ exports.getInstalledThemes = (0, error_utils_1.asyncErrorHandler)(async (req, re
         }
     }
     else {
-        if (hasActiveRegularThemes) {
-            console.log('⏭️ Skipping custom themes check - active regular themes exist');
-        }
-        else {
-            console.warn(`Store themes directory does not exist: ${storeThemesDir}`);
-        }
+        console.warn(`Store themes directory does not exist: ${storeThemesDir}`);
     }
     // Also check userId directory if it's different from storeId (fallback)
-    // Only if there are no active regular themes
-    if (!hasActiveRegularThemes && userThemesDir && fs_1.default.existsSync(userThemesDir)) {
+    if (userThemesDir && fs_1.default.existsSync(userThemesDir)) {
         try {
             const themeDirs = fs_1.default.readdirSync(userThemesDir, { withFileTypes: true })
                 .filter(dirent => dirent.isDirectory())

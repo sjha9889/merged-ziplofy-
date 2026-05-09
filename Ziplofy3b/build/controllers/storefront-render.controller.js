@@ -66,6 +66,12 @@ exports.renderStorefrontLiquidPage = (0, error_utils_1.asyncErrorHandler)(async 
     const store = await store_model_1.Store.findById(storeId).lean();
     if (!store)
         throw new error_utils_1.CustomError("Store not found", 404);
+    /** Use explicit ObjectId so Product/Collection queries match stored refs (param is a string). */
+    const storeObjectId = mongoose_1.default.isValidObjectId(storeId)
+        ? new mongoose_1.default.Types.ObjectId(storeId)
+        : null;
+    if (!storeObjectId)
+        throw new error_utils_1.CustomError("Invalid store ID", 400);
     const publicOrigin = (0, public_origin_util_1.publicOriginFromRequest)(req);
     const liquid = (0, theme_liquid_renderer_1.createStorefrontLiquid)(resolved.runtimeBaseDir, resolved.runtimeBaseUrl);
     const menu = {
@@ -93,9 +99,10 @@ exports.renderStorefrontLiquidPage = (0, error_utils_1.asyncErrorHandler)(async 
     let articles = [];
     let article = null;
     if (tpl === "index") {
+        // Same visibility as public product list: active, not deleted. (Default product status in DB is often "draft".)
         const [productRows, collectionRows] = await Promise.all([
             product_model_1.Product.find({
-                storeId,
+                storeId: storeObjectId,
                 isDeleted: { $ne: true },
                 status: "active",
             })
@@ -104,7 +111,7 @@ exports.renderStorefrontLiquidPage = (0, error_utils_1.asyncErrorHandler)(async 
                 .populate({ path: "vendor", select: "name" })
                 .populate({ path: "category", select: "name" })
                 .lean(),
-            collections_model_1.Collections.find({ storeId, status: "published" })
+            collections_model_1.Collections.find({ storeId: storeObjectId, status: "published" })
                 .sort({ createdAt: -1 })
                 .limit(12)
                 .lean(),
@@ -117,12 +124,12 @@ exports.renderStorefrontLiquidPage = (0, error_utils_1.asyncErrorHandler)(async 
         if (collectionId && mongoose_1.default.isValidObjectId(collectionId)) {
             col = (await collections_model_1.Collections.findOne({
                 _id: collectionId,
-                storeId,
+                storeId: storeObjectId,
             }).lean());
         }
         if (!col && handle) {
             col = (await collections_model_1.Collections.findOne({
-                storeId,
+                storeId: storeObjectId,
                 urlHandle: handle,
             }).lean());
         }
@@ -151,7 +158,7 @@ exports.renderStorefrontLiquidPage = (0, error_utils_1.asyncErrorHandler)(async 
                 description: "",
             };
             const productRows = await product_model_1.Product.find({
-                storeId,
+                storeId: storeObjectId,
                 isDeleted: { $ne: true },
                 status: "active",
             })
@@ -171,8 +178,9 @@ exports.renderStorefrontLiquidPage = (0, error_utils_1.asyncErrorHandler)(async 
         if (mongoose_1.default.isValidObjectId(h)) {
             pdoc = (await product_model_1.Product.findOne({
                 _id: h,
-                storeId,
+                storeId: storeObjectId,
                 isDeleted: { $ne: true },
+                status: "active",
             })
                 .populate({ path: "vendor", select: "name" })
                 .populate({ path: "category", select: "name" })
@@ -180,9 +188,10 @@ exports.renderStorefrontLiquidPage = (0, error_utils_1.asyncErrorHandler)(async 
         }
         if (!pdoc) {
             pdoc = (await product_model_1.Product.findOne({
-                storeId,
+                storeId: storeObjectId,
                 urlHandle: h,
                 isDeleted: { $ne: true },
+                status: "active",
             })
                 .populate({ path: "vendor", select: "name" })
                 .populate({ path: "category", select: "name" })
@@ -207,7 +216,7 @@ exports.renderStorefrontLiquidPage = (0, error_utils_1.asyncErrorHandler)(async 
     }
     const ancillaryTemplates = new Set(["blog", "blog-detail", "contact", "cart", "wishlist"]);
     if (ancillaryTemplates.has(tpl) && collections.length === 0) {
-        const collectionRows = await collections_model_1.Collections.find({ storeId, status: "published" })
+        const collectionRows = await collections_model_1.Collections.find({ storeId: storeObjectId, status: "published" })
             .sort({ createdAt: -1 })
             .limit(8)
             .lean();
