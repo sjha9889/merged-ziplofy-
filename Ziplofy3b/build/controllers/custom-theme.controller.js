@@ -10,7 +10,7 @@ const mongoose_1 = require("mongoose");
 const extract_zip_1 = __importDefault(require("extract-zip"));
 const custom_theme_model_1 = require("../models/custom-theme.model");
 const installed_themes_model_1 = require("../models/installed-themes.model");
-const recent_installations_model_1 = require("../models/recent-installations.model");
+const store_model_1 = require("../models/store/store.model");
 const error_utils_1 = require("../utils/error.utils");
 const activity_log_utils_1 = require("../utils/activity-log.utils");
 // Helper function to create custom theme directory structure
@@ -495,10 +495,7 @@ exports.installCustomTheme = (0, error_utils_1.asyncErrorHandler)(async (req, re
         // IMPORTANT: Deactivate all other active themes (regular themes) for this user/store before installing custom theme
         // This ensures only one theme is active at a time
         // Use storeIdToUse to match where themes are installed
-        await installed_themes_model_1.InstalledThemes.updateMany({ user: storeIdToUse, isActive: true }, {
-            isActive: false,
-            uninstalledAt: new Date()
-        });
+        await installed_themes_model_1.InstalledThemes.updateMany({ $or: [{ store: storeIdToUse }, { user: storeIdToUse }] }, { uninstalledAt: new Date() });
         console.log('✅ Deactivated all other active themes for this user/store');
         // Also remove any other custom theme installations (delete installation directories)
         const storeThemesDir = path_1.default.join(process.cwd(), 'uploads', 'stores', storeIdToUse, 'themes');
@@ -555,33 +552,7 @@ exports.installCustomTheme = (0, error_utils_1.asyncErrorHandler)(async (req, re
         else if (hasExistingFiles) {
             console.log('📁 Existing theme files found - preserving user edits');
         }
-        // Record in recent installations
-        let thumbnailUrl = null;
-        if (customTheme.thumbnail?.filename) {
-            thumbnailUrl = `${req.protocol}://${req.get("host")}/uploads/custom themes/${customTheme.themePath}/thumbnail/${customTheme.thumbnail.filename}`;
-        }
-        try {
-            // Remove any existing entry for this theme (to avoid duplicates)
-            await recent_installations_model_1.RecentInstallations.deleteOne({ themeId: themeIdForStore });
-            // Create new entry
-            await recent_installations_model_1.RecentInstallations.create({
-                themeId: themeIdForStore, // Format: "custom-{customThemeId}"
-                themeName: customTheme.name,
-                thumbnailUrl: thumbnailUrl,
-                isCustomTheme: true,
-                installedAt: new Date(),
-            });
-            // Keep only the last 3 installations
-            const allRecent = await recent_installations_model_1.RecentInstallations.find().sort({ installedAt: -1 });
-            if (allRecent.length > 3) {
-                const toDelete = allRecent.slice(3);
-                await recent_installations_model_1.RecentInstallations.deleteMany({ _id: { $in: toDelete.map(r => r._id) } });
-            }
-        }
-        catch (recentError) {
-            console.warn('Failed to record recent installation:', recentError);
-            // Don't fail the installation if recent tracking fails
-        }
+        await store_model_1.Store.findByIdAndUpdate(storeIdToUse, { $set: { appliedTheme: customThemeObjectId } });
         res.status(200).json({
             success: true,
             message: 'Custom theme installed successfully',
@@ -640,6 +611,7 @@ exports.uninstallCustomTheme = (0, error_utils_1.asyncErrorHandler)(async (req, 
         else {
             console.log('⚠️ Custom theme installation directory not found (may have been already deleted)');
         }
+        await store_model_1.Store.findOneAndUpdate({ _id: storeIdToUse, appliedTheme: customThemeObjectId }, { $set: { appliedTheme: null } });
         res.status(200).json({
             success: true,
             message: 'Custom theme uninstalled successfully',

@@ -129,8 +129,8 @@ import checkoutSettingsRoute from './routes/checkout-settings.route';
 import customerAccountSettingsRouter from './routes/customer-account-settings.route';
 import localDeliveryLocationEntryRouter from './routes/local-delivery-location-entry.route';
 import localDeliverySettingsRouter from './routes/local-delivery-settings.route';
-import { closeEmailQueue } from './services/bull-mq/queues/email.queue';
-import { startEmailWorker } from './services/bull-mq/workers/email.worker';
+// import { closeEmailQueue } from './services/bull-mq/queues/email.queue';
+// import { startEmailWorker } from './services/bull-mq/workers/email.worker';
 
 // Validate environment variables
 validateEnv();
@@ -322,15 +322,15 @@ server.listen(PORT, () => {
   console.log(`🚀 Server is running on port ${PORT} in ${env.NODE_ENV} mode (using ${loadedEnvFile})`);
 });
 
-// Start BullMQ workers
-const emailWorker = startEmailWorker();
+// Start BullMQ workers (temporarily disabled while Redis is off)
+// const emailWorker = startEmailWorker();
 
 // Graceful shutdown
 const shutdown = async (signal: string) => {
   console.log(`\nReceived ${signal}. Shutting down gracefully...`);
   try {
-    await emailWorker.close();
-    await closeEmailQueue();
+    // await emailWorker.close();
+    // await closeEmailQueue();
     server.close(() => {
       console.log('HTTP server closed');
       process.exit(0);

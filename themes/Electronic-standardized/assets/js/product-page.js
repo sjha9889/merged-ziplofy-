@@ -1,0 +1,1 @@
+/* Placeholder for product page interactions in standardized runtime. */

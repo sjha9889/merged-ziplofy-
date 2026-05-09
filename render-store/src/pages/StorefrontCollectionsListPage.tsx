@@ -44,7 +44,7 @@ export default function StorefrontCollectionsListPage() {
             Collections
           </h1>
           <p className="mx-auto mt-4 max-w-[760px] text-center text-[15px] leading-[1.6] text-[#d7d7d7]">
-            Explore curated luxury watch collections tailored for every taste.
+            Browse collections from this store.
           </p>
         </div>
       </section>

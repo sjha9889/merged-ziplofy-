@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voltix — Electronics</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700;1,800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/electronic.css">
+  <link rel="stylesheet" href="assets/css/product.css">
+</head>
+
+<body>
+
+  <header class="vs-header" role="banner">
+    <div class="vs-header__inner">
+      <div class="vs-header__main">
+        <button type="button" class="vs-menu-toggle" id="vsMenuOpen" aria-label="Open menu" aria-expanded="false"
+          aria-controls="vsNavDrawer">
+          <span class="vs-menu-toggle__bar" aria-hidden="true"></span>
+          <span class="vs-menu-toggle__bar" aria-hidden="true"></span>
+          <span class="vs-menu-toggle__bar" aria-hidden="true"></span>
+        </button>
+
+        <div class="vs-header__left">
+          <a href="index.html" class="vs-logo">Voltix</a>
+          <div class="vs-location" aria-label="Delivery location">
+            <svg class="vs-pin" width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 21s7-4.35 7-10a7 7 0 1 0-14 0c0 5.65 7 10 7 10z" stroke="currentColor" stroke-width="1.4" />
+              <circle cx="12" cy="11" r="2.1" fill="#e53935" stroke="#e53935" />
+            </svg>
+            <div class="vs-location__text">
+              <span class="vs-location__line">Mashaurhi 804452</span>
+              <a href="#" class="vs-location__change">Change Location</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="vs-header__search">
+          <div class="vs-search" role="search">
+            <svg class="vs-search__icon" width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.6" />
+              <path d="M16 16l5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            </svg>
+            <input type="search" class="vs-search__input" placeholder="Search for phone, TV, home appliances..."
+              autocomplete="off" aria-label="Search products">
+            <button type="button" class="vs-search__mic" aria-label="Voice search">
+              <i class="fa-solid fa-microphone" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="vs-header__actions">
+          <div class="vs-header__extras">
+            <a href="#" class="vs-link vs-link--icon"><span>Store Locator</span></a>
+            <a href="contact.html" class="vs-link vs-link--icon"><span>Help Center</span></a>
+            <a href="#" class="vs-icon-btn" aria-label="Wishlist"><i class="fa-regular fa-heart"></i></a>
+          </div>
+          <a href="account.html" class="vs-icon-btn vs-icon-btn--account" aria-label="Account"><i
+              class="fa-regular fa-user"></i></a>
+          <a href="#" class="vs-icon-btn" aria-label="Shopping cart"><i class="fa-solid fa-cart-shopping"></i></a>
+        </div>
+      </div>
+
+      <nav class="vs-header__categories" aria-label="Primary categories">
+        <a href="category.html">Air Conditioners</a>
+        <a href="category.html">Mobiles, Tablets & Accessories</a>
+        <a href="category.html">Laptops & Accessories</a>
+        <a href="category.html">Home Appliances</a>
+        <a href="category.html">Kitchen Appliances</a>
+        <a href="category.html">TV & Entertainment</a>
+        <a href="category.html">Personal Care</a>
+        <a href="category.html">Headphones & Speakers</a>
+        <a href="category.html">Brand Stores</a>
+        <a href="category.html">Loyalty Hub</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="vs-drawer" id="vsNavDrawer" role="dialog" aria-modal="true" aria-label="Site menu" aria-hidden="true">
+    <div class="vs-drawer__backdrop" id="vsDrawerBackdrop" tabindex="-1"></div>
+    <div class="vs-drawer__panel">
+      <div class="vs-drawer__head">
+        <a href="index.html" class="vs-drawer__logo">Voltix</a>
+        <button type="button" class="vs-drawer__close" id="vsMenuClose" aria-label="Close menu">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      </div>
+      <nav class="vs-drawer__nav" aria-label="Primary categories">
+        <a href="category.html">Air Conditioners</a>
+        <a href="category.html">Mobiles, Tablets & Accessories</a>
+        <a href="category.html">Laptops & Accessories</a>
+        <a href="category.html">Home Appliances</a>
+        <a href="category.html">Kitchen Appliances</a>
+        <a href="category.html">TV & Entertainment</a>
+        <a href="category.html">Personal Care</a>
+        <a href="category.html">Headphones & Speakers</a>
+        <a href="category.html">Brand Stores</a>
+        <a href="category.html">Loyalty Hub</a>
+      </nav>
+      <div class="vs-drawer__footer">
+        <a href="#" class="vs-drawer__footer-link">Store Locator</a>
+        <a href="contact.html" class="vs-drawer__footer-link">Help Center</a>
+        <a href="#" class="vs-drawer__footer-link">Wishlist</a>
+      </div>
+    </div>
+  </div>
+
+  <main class="pdp-page" aria-label="Product detail page">
+    <section class="pdp-wrap">
+      <div class="pdp-grid">
+        <section class="pdp-gallery-panel" aria-label="Product media gallery">
+          <div class="pdp-gallery-head">
+            <nav class="pdp-breadcrumb" aria-label="Breadcrumb">
+              <a href="#">Phones &amp; Wearables</a>
+              <span>&gt;</span>
+              <a href="#">Mobile Phones</a>
+              <span>&gt;</span>
+              <a href="#">iPhones</a>
+            </nav>
+            <div class="pdp-title-icons" aria-label="Product actions">
+              <button type="button" aria-label="Add to wishlist"><i class="fa-regular fa-heart"></i></button>
+              <button type="button" aria-label="Share"><i class="fa-solid fa-share-nodes"></i></button>
+            </div>
+          </div>
+
+          <div class="pdp-gallery-layout">
+            <aside class="pdp-thumbs" aria-label="Product thumbnails">
+              <button type="button" class="pdp-thumb-arrow" aria-label="Previous image"><i class="fa-solid fa-chevron-up"></i></button>
+              <button type="button" class="pdp-thumb is-active" aria-label="Front image">
+                <img src="assets/img/Apple iPhone 17 Pro (256GB Storage, Cosmic Orange).png" alt="Apple iPhone 17 Pro thumbnail front">
+              </button>
+              <button type="button" class="pdp-thumb pdp-thumb--play" aria-label="Play product video"><i class="fa-solid fa-play"></i></button>
+              <button type="button" class="pdp-thumb" aria-label="Back image">
+                <img src="assets/img/Apple iPhone 17 Pro Max.png" alt="Apple iPhone 17 Pro thumbnail back">
+              </button>
+              <button type="button" class="pdp-thumb" aria-label="Angled image">
+                <img src="assets/img/Apple iPhone 17 Pro (256GB Storage, Cosmic Orange).png" alt="Apple iPhone 17 Pro thumbnail angle">
+              </button>
+              <button type="button" class="pdp-thumb-arrow" aria-label="Next image"><i class="fa-solid fa-chevron-down"></i></button>
+            </aside>
+
+            <div class="pdp-main-stage">
+              <figure class="pdp-main-image">
+                <img src="assets/img/Apple iPhone 17 Pro (256GB Storage, Cosmic Orange).png" alt="Apple iPhone 17 Pro Max (256GB, Cosmic Orange)">
+              </figure>
+              <div class="pdp-dots" role="tablist" aria-label="Gallery slides">
+                <button type="button" class="pdp-dot pdp-dot--video is-active" aria-label="Video" aria-current="true"><i class="fa-solid fa-video" aria-hidden="true"></i></button>
+                <button type="button" class="pdp-dot" aria-label="Slide 2"></button>
+                <button type="button" class="pdp-dot" aria-label="Slide 3"></button>
+                <button type="button" class="pdp-dot" aria-label="Slide 4"></button>
+                <button type="button" class="pdp-dot" aria-label="Slide 5"></button>
+                <button type="button" class="pdp-dot" aria-label="Slide 6"></button>
+                <button type="button" class="pdp-dot" aria-label="Slide 7"></button>
+                <button type="button" class="pdp-dot" aria-label="Slide 8"></button>
+                <button type="button" class="pdp-dot" aria-label="Slide 9"></button>
+                <button type="button" class="pdp-dot" aria-label="Slide 10"></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="pdp-gallery-actions">
+            <label class="pdp-compare"><input type="checkbox"> <span>Compare</span></label>
+            <button type="button" class="pdp-connect">Connect to Store</button>
+          </div>
+        </section>
+
+        <section class="pdp-info-panel" aria-label="Product details">
+          <header class="pdp-title-row">
+            <h1>Apple iPhone 17 Pro Max (256GB, Cosmic Orange)</h1>
+          </header>
+
+          <p class="pdp-rating-line">
+            <span class="pdp-rating-line__score">5</span>
+            <span class="pdp-rating-line__star" aria-hidden="true"><i class="fa-solid fa-star"></i></span>
+            <a href="#" class="pdp-rating-line__link">(1 Rating &amp; 1 Review)</a>
+          </p>
+
+          <div class="pdp-price-block">
+            <div class="pdp-price-row">
+              <div class="pdp-price-left">
+                <p class="pdp-price">₹149,900.00</p>
+                <p class="pdp-tax">(Incl. all Taxes)</p>
+              </div>
+              <div class="pdp-or-wrap">
+                <span class="pdp-or-line" aria-hidden="true"></span>
+                <span class="pdp-or">OR</span>
+                <span class="pdp-or-line" aria-hidden="true"></span>
+              </div>
+              <div class="pdp-price-right">
+                <p class="pdp-emi">₹7,056/mo*</p>
+                <a class="pdp-emi-link" href="#">EMI Options</a>
+              </div>
+            </div>
+            <div class="pdp-mrp-row">
+              <span class="pdp-mrp-label">MRP: <s class="pdp-mrp-value">₹189,900.00</s></span>
+              <span class="pdp-save-line">(Save ₹40,000, 21.06% off)</span>
+            </div>
+          </div>
+
+          <section class="pdp-option-group">
+            <h3>Brand Color</h3>
+            <div class="pdp-option-list">
+              <button type="button">Silver</button>
+              <button type="button" class="is-active">Cosmic Orange</button>
+              <button type="button">Deep Blue</button>
+            </div>
+          </section>
+
+          <section class="pdp-option-group">
+            <h3>RAM</h3>
+            <div class="pdp-option-list">
+              <button type="button" class="is-active">8GB</button>
+              <button type="button">12GB</button>
+            </div>
+          </section>
+
+          <section class="pdp-option-group">
+            <h3>Internal Storage</h3>
+            <div class="pdp-option-list">
+              <button type="button" class="is-active">256GB</button>
+              <button type="button">512GB</button>
+              <button type="button">1TB</button>
+              <button type="button">2TB</button>
+            </div>
+          </section>
+
+          <section class="pdp-section pdp-section--offers">
+            <h3>Super Savings (6 OFFERS)</h3>
+            <div class="pdp-offers">
+              <article class="pdp-offer-card">
+                <div class="pdp-offer-card__head">
+                  <span class="pdp-offer-card__icon" aria-hidden="true"><i class="fa-solid fa-tag"></i></span>
+                  <p class="pdp-offer-title">JP_YESBANK</p>
+                </div>
+                <p>Instant discount Rs.4000 upto 24 months Low-cost EMI on SBI, ICICI &amp; AXIS Bank Credit Card.</p>
+                <a href="#">View more</a>
+              </article>
+              <article class="pdp-offer-card">
+                <div class="pdp-offer-card__head">
+                  <span class="pdp-offer-card__icon" aria-hidden="true"><i class="fa-solid fa-tag"></i></span>
+                  <p class="pdp-offer-title">Multiple Banks</p>
+                </div>
+                <p>Instant discount Rs.4000 for 6 months No-cost EMI on SBI, ICICI &amp; AXIS Bank Credit Card.</p>
+                <a href="#">View more</a>
+              </article>
+              <article class="pdp-offer-card">
+                <div class="pdp-offer-card__head">
+                  <span class="pdp-offer-card__icon" aria-hidden="true"><i class="fa-solid fa-tag"></i></span>
+                  <p class="pdp-offer-title">Instant Discount</p>
+                </div>
+                <p>Instant discount Rs.3000 on SBI Bank debit card on select Cashback cards.</p>
+                <a href="#">View more</a>
+              </article>
+            </div>
+          </section>
+
+          <section class="pdp-section pdp-delivery">
+            <p><span class="pdp-delivery__icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
+              Delivery at: <a href="#">Mumbai, 400049</a></p>
+            <small>Will be delivered by 6 May 2026</small>
+          </section>
+
+          <section class="pdp-section pdp-section--features">
+            <h3>Key Features</h3>
+            <ul class="pdp-features-list">
+              <li><strong>Display:</strong> 6.9 inches (17.42 cm), Super Retina XDR OLED Display, 120 Hz Refresh Rate</li>
+              <li><strong>Memory:</strong> 256GB ROM</li>
+              <li><strong>Processor:</strong> Apple A19 Pro Chip, Hexa Core</li>
+              <li><strong>Camera:</strong> 48 MP + 48 MP + 48 MP Triple Rear &amp; 18 MP Front Camera</li>
+              <li><strong>Battery:</strong> 25W MagSafe Wireless Charging</li>
+              <li><strong>USP:</strong> IP68 Splash, Water &amp; Dust Resistant, Apple Intelligence</li>
+            </ul>
+          </section>
+
+          <section class="pdp-section">
+            <h3>Essential Combo</h3>
+            <div class="pdp-combo-list">
+              <div class="pdp-combo-item">
+                <span class="is-check"><i class="fa-solid fa-check"></i></span>
+                <img src="assets/img/Apple iPhone 17 Pro (256GB Storage, Cosmic Orange).png" alt="iPhone 17 Pro">
+                <p>Apple iPhone 17 Pro Max (256GB, Cosmic Orange)</p>
+                <strong>₹149,900.00</strong>
+              </div>
+              <div class="pdp-combo-item">
+                <span class="is-check"><i class="fa-solid fa-check"></i></span>
+                <img src="assets/img/Apple AirPods Pro 3.png" alt="Airpods Pro 3">
+                <p>Apple AirPods Pro 3 with MagSafe Charging Case</p>
+                <strong>₹24,900.00</strong>
+              </div>
+              <button type="button" class="pdp-combo-cta">Add 5 Items to Cart</button>
+            </div>
+          </section>
+        </section>
+      </div>
+    </section>
+
+    <section class="pdp-extra" aria-label="Additional product details">
+      <article class="pdp-accordion is-open">
+        <button type="button" class="pdp-accordion__head" aria-expanded="true">
+          <span>Specifications</span>
+          <span class="pdp-accordion__icon" aria-hidden="true"><i class="fa-solid fa-chevron-up"></i></span>
+        </button>
+        <div class="pdp-accordion__body">
+          <div class="pdp-spec-grid">
+            <div class="pdp-spec-block">
+              <h4>MOBILE CATEGORY</h4>
+              <div class="pdp-spec-row">
+                <p>Mobile Type</p>
+                <strong>Android Smartphone</strong>
+              </div>
+              <div class="pdp-spec-row">
+                <p>Mobile Design</p>
+                <strong>Touch</strong>
+              </div>
+            </div>
+
+            <div class="pdp-spec-block">
+              <h4>MANUFACTURER DETAILS</h4>
+              <div class="pdp-spec-row">
+                <p>Brand</p>
+                <strong>Vivo</strong>
+              </div>
+              <div class="pdp-spec-row">
+                <p>Model Series</p>
+                <strong>V70</strong>
+              </div>
+              <div class="pdp-spec-row">
+                <p>Model Number</p>
+                <strong>5672322</strong>
+              </div>
+            </div>
+
+            <div class="pdp-spec-block">
+              <h4>PRODUCT DIMENSIONS (OPEN)</h4>
+              <div class="pdp-spec-row">
+                <p>Dimensions In CM (WxDxH)</p>
+                <strong>-</strong>
+              </div>
+              <div class="pdp-spec-row">
+                <p>Product Weight</p>
+                <strong>-</strong>
+              </div>
+              <div class="pdp-spec-row">
+                <p>Dimensions In Inches (WxDxH)</p>
+                <strong>-</strong>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="pdp-extra__btn">View More</button>
+        </div>
+      </article>
+
+      <article class="pdp-accordion is-open">
+        <button type="button" class="pdp-accordion__head" aria-expanded="true">
+          <span>Overview</span>
+          <span class="pdp-accordion__icon" aria-hidden="true"><i class="fa-solid fa-chevron-up"></i></span>
+        </button>
+        <div class="pdp-accordion__body">
+          <div class="pdp-overview">
+            <h4>Vibrant 6.59-Inch AMOLED Display</h4>
+            <p>Designed with a large AMOLED display and a resolution of 2750x1260 pixels, this vivo V70 6.59-inch Android Smartphone delivers sharp visuals and rich colour output. In addition, featuring a 120Hz refresh rate, it ensures fluid scrolling and smooth screen transitions. Therefore, you can enjoy streaming, browsing, and gaming with clear and responsive visuals.</p>
+            <h4>Powerful 8GB RAM Performance</h4>
+            <p>Equipped with 8GB RAM, this 6.59-inch smartphone handles multitasking with stability. Moreover, with support for higher RAM configurations, it manages demanding applications efficiently. Hence, you can move between apps, stream content, and handle daily tasks without noticeable lag.</p>
+          </div>
+          <button type="button" class="pdp-extra__btn">View More</button>
+        </div>
+      </article>
+
+      <article class="pdp-accordion is-open">
+        <button type="button" class="pdp-accordion__head" aria-expanded="true">
+          <span>Reviews</span>
+          <span class="pdp-accordion__icon" aria-hidden="true"><i class="fa-solid fa-chevron-up"></i></span>
+        </button>
+        <div class="pdp-accordion__body">
+          <div class="pdp-review-box">
+            <h4>Review this product</h4>
+            <p>Help other customers make their decision</p>
+            <button type="button" class="pdp-extra__btn pdp-extra__btn--small">Write a Review</button>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <div class="pdp-sticky-buy">
+      <div class="pdp-sticky-product">
+        <img src="assets/img/Apple iPhone 17 Pro (256GB Storage, Cosmic Orange).png" alt="iPhone mini">
+        <div>
+          <p>Apple iPhone 17 Pro Max (256GB, Cosmic Orange)</p>
+          <strong>₹149,900.00</strong>
+        </div>
+      </div>
+      <div class="pdp-sticky-actions">
+        <button type="button" class="pdp-buy">Buy Now</button>
+        <button type="button" class="pdp-add">Add To Cart</button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer" aria-label="Footer">
+    <div class="site-footer__inner">
+      <section class="site-footer__connect">
+        <h3 class="site-footer__heading">CONNECT WITH US</h3>
+        <form class="site-footer__newsletter" action="#" method="post">
+          <input type="email" placeholder="Enter Email ID" aria-label="Email address">
+          <button type="submit" aria-label="Submit email"><i class="fa-solid fa-arrow-right"></i></button>
+        </form>
+
+        <div class="site-footer__socials" aria-label="Social links">
+          <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+          <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+          <a href="#" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+        </div>
+
+        <p class="site-footer__copyright">© Copyright 2026 Voltix. All rights reserved</p>
+      </section>
+
+      <section class="site-footer__links">
+        <h3 class="site-footer__heading">USEFUL LINKS</h3>
+        <div class="site-footer__link-columns">
+          <ul>
+            <li><a href="#">About Croma</a></li>
+            <li><a href="#">Help And Support</a></li>
+            <li><a href="#">FAQs</a></li>
+            <li><a href="#">Buying Guide</a></li>
+            <li><a href="#">Return Policy</a></li>
+            <li><a href="#">B2B Orders</a></li>
+            <li><a href="#">Store Locator</a></li>
+            <li><a href="#">E-Waste</a></li>
+            <li><a href="#">Franchise Opportunity</a></li>
+          </ul>
+          <ul>
+            <li><a href="#">Site Map</a></li>
+            <li><a href="#">Careers At Croma</a></li>
+            <li><a href="#">Terms Of Use</a></li>
+            <li><a href="#">Disclaimer</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Unboxed</a></li>
+            <li><a href="#">Gift Card</a></li>
+            <li><a href="#">Croma E-Star</a></li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="site-footer__products">
+        <h3 class="site-footer__heading">PRODUCTS</h3>
+        <div class="site-footer__link-columns">
+          <ul>
+            <li><a href="#">Televisions & Accessories</a></li>
+            <li><a href="#">Home Appliances</a></li>
+            <li><a href="#">Phones & Wearables</a></li>
+            <li><a href="#">Computers & Tablets</a></li>
+            <li><a href="#">Kitchen Appliances</a></li>
+            <li><a href="#">Audio & Video</a></li>
+            <li><a href="#">Health & Fitness</a></li>
+          </ul>
+          <ul>
+            <li><a href="#">Grooming & Personal Care</a></li>
+            <li><a href="#">Cameras & Accessories</a></li>
+            <li><a href="#">Smart Devices</a></li>
+            <li><a href="#">Gaming</a></li>
+            <li><a href="#">Accessories</a></li>
+            <li><a href="#">Top Brands</a></li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </footer>
+
+  <script src="assets/js/electronic.js" defer></script>
+  <script src="assets/js/product-page.js" defer></script>
+
+</body>
+
+</html>

@@ -63,6 +63,11 @@ const storeSchema = new mongoose_1.Schema({
         maxLength: [500, "Store description cannot exceed 500 characters"],
         minLength: [10, "Store description must be at least 10 characters"],
     },
+    appliedTheme: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        default: null,
+        index: true,
+    },
     storeCode: {
         type: String,
         unique: true,
@@ -82,6 +87,7 @@ const storeSchema = new mongoose_1.Schema({
 // Index for better query performance
 storeSchema.index({ userId: 1 });
 storeSchema.index({ storeName: 1 });
+storeSchema.index({ appliedTheme: 1 });
 // Ensure unique store name per user
 storeSchema.index({ userId: 1, storeName: 1 }, { unique: true });
 storeSchema.index({ storeCode: 1 }, { unique: true, sparse: true });

@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 import { InstalledThemes } from "../models/installed-themes.model";
 import { Theme } from "../models/theme.model";
 import { CustomTheme } from "../models/custom-theme.model";
-import { RecentInstallations } from "../models/recent-installations.model";
+import { Store } from "../models/store/store.model";
 import { EditVerificationOtp } from "../models/edit-verification-otp.model";
 import { Role } from "../models/role.model";
 import { User } from "../models/user.model";
@@ -222,18 +222,32 @@ interface MulterFiles {
 
 export const createTheme = asyncErrorHandler(async (req: Request, res: Response) => {
   const { name, description, category, plan, price, version, tags } = req.body as CreateThemeBody;
+  console.log('[createTheme] Request received', {
+    name,
+    category,
+    plan,
+    hasFiles: Boolean(req.files),
+  });
 
   // Check if files were uploaded
   if (!req.files) {
-    throw new CustomError("Please upload both ZIP file and thumbnail", 400);
+    throw new CustomError("Please upload ZIP file", 400);
   }
 
   const files = req.files as MulterFiles;
   const zipFile = files.zipFile ? files.zipFile[0] : null;
   const thumbnail = files.thumbnail ? files.thumbnail[0] : null;
+  console.log('[createTheme] Parsed files', {
+    zipFilePresent: Boolean(zipFile),
+    zipFileName: zipFile?.originalname,
+    zipFileMime: zipFile?.mimetype,
+    thumbnailPresent: Boolean(thumbnail),
+    thumbnailName: thumbnail?.originalname,
+    thumbnailMime: thumbnail?.mimetype,
+  });
 
-  if (!zipFile || !thumbnail) {
-    throw new CustomError("Both ZIP file and thumbnail are required", 400);
+  if (!zipFile) {
+    throw new CustomError("ZIP file is required", 400);
   }
 
   // Create unique folder structure for the theme
@@ -281,42 +295,59 @@ export const createTheme = asyncErrorHandler(async (req: Request, res: Response)
     throw new CustomError(`ZIP extraction failed: ${extractError.message}`, 500);
   }
 
-  // Move thumbnail to thumbnail directory
-  const thumbnailExt = path.extname(thumbnail.originalname);
-  const thumbnailFilename = `thumbnail${thumbnailExt}`;
-  const thumbnailDestPath = path.join(themeDirs.thumbnailDir, thumbnailFilename);
-
-  fs.renameSync(thumbnail.path, thumbnailDestPath);
+  // Thumbnail is optional; never fail upload if thumbnail move fails.
+  let thumbnailFilename: string | undefined;
+  let thumbnailDestPath: string | undefined;
+  if (thumbnail) {
+    try {
+      const thumbnailExt = path.extname(thumbnail.originalname || "") || ".jpg";
+      thumbnailFilename = `thumbnail${thumbnailExt}`;
+      thumbnailDestPath = path.join(themeDirs.thumbnailDir, thumbnailFilename);
+      fs.renameSync(thumbnail.path, thumbnailDestPath);
+    } catch (thumbnailError) {
+      console.warn("Theme upload: thumbnail save failed, continuing without thumbnail", thumbnailError);
+      thumbnailFilename = undefined;
+      thumbnailDestPath = undefined;
+    }
+  }
 
   // Create theme in database
-  const theme = await Theme.create({
-    name,
-    description,
-    category,
-    plan,
-    price: price || 0,
-    version: version || "1.0.0",
-    tags: tags ? tags.split(",").map((tag) => tag.trim()) : [],
-    themePath: themeDirs.themeDirName,
-    directories: {
-      theme: themeDirs.themeDir,
-      code: themeDirs.codeDir,
-      zipped: themeDirs.zippedDir,
-      thumbnail: themeDirs.thumbnailDir,
-    },
-    zipFile: {
-      originalName: zipFile.originalname,
-      size: zipFile.size,
-      extractedPath: themeDirs.codeDir,
-    },
-    thumbnail: {
-      filename: thumbnailFilename,
-      originalName: thumbnail.originalname,
-      path: thumbnailDestPath,
-      size: thumbnail.size,
-    },
-    uploadBy: req.user?.id ? new Types.ObjectId(req.user.id) : undefined,
-  });
+  let theme: any;
+  try {
+    theme = await Theme.create({
+      name,
+      description,
+      category,
+      plan,
+      price: price || 0,
+      version: version || "1.0.0",
+      tags: tags ? tags.split(",").map((tag) => tag.trim()) : [],
+      themePath: themeDirs.themeDirName,
+      directories: {
+        theme: themeDirs.themeDir,
+        code: themeDirs.codeDir,
+        zipped: themeDirs.zippedDir,
+        thumbnail: themeDirs.thumbnailDir,
+      },
+      zipFile: {
+        originalName: zipFile.originalname,
+        size: zipFile.size,
+        extractedPath: themeDirs.codeDir,
+      },
+      thumbnail: thumbnailFilename
+        ? {
+            filename: thumbnailFilename,
+            originalName: thumbnail?.originalname,
+            path: thumbnailDestPath,
+            size: thumbnail?.size,
+          }
+        : undefined,
+      uploadBy: req.user?.id ? new Types.ObjectId(req.user.id) : undefined,
+    });
+  } catch (dbError: any) {
+    console.error('[createTheme] Database create failed', dbError);
+    throw new CustomError(`Theme metadata save failed: ${dbError?.message || 'Unknown database error'}`, 500);
+  }
 
   const themeResponse = await Theme.findById(theme._id)
     .populate("uploadBy", "name email")
@@ -723,21 +754,21 @@ export const getThemesStatic = asyncErrorHandler(async (req: Request, res: Respo
 });
 
 export const installTheme = asyncErrorHandler(async (req: Request, res: Response) => {
-  const { themeId, userId, storeId } = req.body as { themeId: string; userId: string; storeId?: string };
-
-  if (!userId) {
-    throw new CustomError("User ID is required", 400);
-  }
+  const { themeId, storeId } = req.body as { themeId: string; storeId?: string };
   
   if (!themeId) {
     throw new CustomError("Theme ID is required", 400);
   }
 
-  console.log('🔍 Installing theme:', { themeId, userId, storeId });
+  if (!storeId) {
+    throw new CustomError("Store ID is required", 400);
+  }
+
+  const storeIdToUse = storeId;
+  console.log('🔍 Installing theme:', { themeId, storeId });
 
   // Convert string IDs to ObjectIds
   const themeObjectId = new Types.ObjectId(themeId);
-  const userObjectId = new Types.ObjectId(userId);
 
   // Load theme to both validate and build response
   const theme = await Theme.findById(themeObjectId);
@@ -746,7 +777,6 @@ export const installTheme = asyncErrorHandler(async (req: Request, res: Response
   }
 
   // Create store-specific theme directory
-  const storeIdToUse = storeId || userId; // Use storeId if provided, otherwise use userId
   const storeThemeDir = path.join(process.cwd(), 'uploads', 'stores', storeIdToUse, 'themes', themeId);
   // Use the theme's code directory (which contains unzippedTheme) as source
   const sourceThemeDir = theme.directories?.code || path.join(process.cwd(), 'uploads', 'themes', theme.themePath, 'unzippedTheme');
@@ -942,45 +972,15 @@ You can now modify the theme files in this directory to customize your store's a
       });
     }
 
-    // IMPORTANT: Deactivate all other active themes for this user/store before installing new one
-    // This ensures only one theme is active at a time (either custom or regular theme)
-    // Use storeIdToUse to match where themes are installed
-    await InstalledThemes.updateMany(
-      { user: storeIdToUse, isActive: true },
-      { 
-        isActive: false, 
-        uninstalledAt: new Date() 
-      }
-    );
-    console.log('✅ Deactivated all other active themes for this user/store');
-
-    // Also remove any custom theme installations (delete installation directories)
-    const storeThemesDir = path.join(process.cwd(), 'uploads', 'stores', storeIdToUse, 'themes');
-    if (fs.existsSync(storeThemesDir)) {
-      try {
-        const themeDirs = fs.readdirSync(storeThemesDir, { withFileTypes: true })
-          .filter(dirent => dirent.isDirectory())
-          .map(dirent => dirent.name);
-        
-        for (const themeDirName of themeDirs) {
-          if (themeDirName.startsWith('custom-')) {
-            const customThemeDir = path.join(storeThemesDir, themeDirName);
-            fs.rmSync(customThemeDir, { recursive: true, force: true });
-            console.log(`✅ Removed custom theme installation: ${themeDirName}`);
-          }
-        }
-      } catch (err) {
-        console.warn('Error removing custom theme installations:', err);
-      }
-    }
-
     // Check if there's already an installation for this user and theme
     // Use storeIdToUse to match where themes are installed
-    let installedTheme = await InstalledThemes.findOne({ user: storeIdToUse, theme: themeObjectId });
+    let installedTheme = await InstalledThemes.findOne({
+      $or: [{ store: storeIdToUse }, { user: storeIdToUse }],
+      theme: themeObjectId,
+    });
     
     if (installedTheme) {
       // Update existing installation
-      installedTheme.isActive = true;
       installedTheme.uninstalledAt = undefined;
       installedTheme.storePath = storeThemeDir;
       installedTheme.installedAt = new Date();
@@ -989,9 +989,8 @@ You can now modify the theme files in this directory to customize your store's a
       // Create a new installation
       // Use storeIdToUse to match where themes are installed
       installedTheme = await InstalledThemes.create({
-        user: storeIdToUse,
+        store: storeIdToUse,
         theme: themeObjectId,
-        isActive: true,
         storePath: storeThemeDir,
         installedAt: new Date(),
       });
@@ -999,34 +998,9 @@ You can now modify the theme files in this directory to customize your store's a
 
     console.log('✅ Theme installation completed');
 
-    // Record in recent installations
     const thumbnailUrl = theme.thumbnail?.filename
       ? `${req.protocol}://${req.get("host")}/uploads/themes/${theme.themePath}/thumbnail/${theme.thumbnail.filename}`
       : null;
-
-    try {
-      // Remove any existing entry for this theme (to avoid duplicates)
-      await RecentInstallations.deleteOne({ themeId: themeId });
-      
-      // Create new entry
-      await RecentInstallations.create({
-        themeId: themeId,
-        themeName: theme.name,
-        thumbnailUrl: thumbnailUrl,
-        isCustomTheme: false,
-        installedAt: new Date(),
-      });
-
-      // Keep only the last 3 installations
-      const allRecent = await RecentInstallations.find().sort({ installedAt: -1 });
-      if (allRecent.length > 3) {
-        const toDelete = allRecent.slice(3);
-        await RecentInstallations.deleteMany({ _id: { $in: toDelete.map(r => r._id) } });
-      }
-    } catch (recentError) {
-      console.warn('Failed to record recent installation:', recentError);
-      // Don't fail the installation if recent tracking fails
-    }
 
     logActivity(req, {
       action: "theme_install",
@@ -1054,6 +1028,50 @@ You can now modify the theme files in this directory to customize your store's a
     console.error('❌ Error installing theme:', error);
     throw new CustomError(`Failed to install theme: ${error?.message || 'Unknown error'}`, 500);
   }
+});
+
+export const applyThemeToStore = asyncErrorHandler(async (req: Request, res: Response) => {
+  const { storeId, themeId } = req.body as { storeId?: string; themeId?: string };
+
+  if (!storeId) {
+    throw new CustomError("Store ID is required", 400);
+  }
+  if (!themeId) {
+    throw new CustomError("Theme ID is required", 400);
+  }
+  if (!Types.ObjectId.isValid(themeId)) {
+    throw new CustomError("Invalid theme ID format", 400);
+  }
+
+  const store = await Store.findById(storeId).select("_id").lean();
+  if (!store) {
+    throw new CustomError("Store not found", 404);
+  }
+
+  const themeObjectId = new Types.ObjectId(themeId);
+
+  const installedRecord = await InstalledThemes.findOne({
+    $or: [{ store: storeId }, { user: storeId }],
+    theme: themeObjectId,
+    uninstalledAt: null,
+  })
+    .select("_id")
+    .lean();
+
+  const customThemeDir = path.join(process.cwd(), "uploads", "stores", storeId, "themes", `custom-${themeId}`);
+  const customThemeInstalled = fs.existsSync(customThemeDir);
+
+  if (!installedRecord && !customThemeInstalled) {
+    throw new CustomError("Theme is not installed for this store", 404);
+  }
+
+  await Store.findByIdAndUpdate(storeId, { $set: { appliedTheme: themeObjectId } });
+
+  res.status(200).json({
+    success: true,
+    message: "Theme applied successfully",
+    data: { storeId, appliedTheme: themeId },
+  });
 });
 
 export const serveInstalledThemeFiles = asyncErrorHandler(async (req: Request, res: Response) => {
@@ -1224,15 +1242,15 @@ export const getInstalledThemes = asyncErrorHandler(async (req: Request, res: Re
     throw new CustomError("Unauthorized", 401);
   }
 
-  // Fetch installed themes (active by default, or all if includeInactive is true)
-  // Use storeIdToUse for the filter to match where themes are installed
-  const filter: any = { user: storeIdToUse };
+  // Fetch installed themes for this store.
+  // By default return currently installed rows (uninstalledAt is null).
+  const filter: any = { $or: [{ store: storeIdToUse }, { user: storeIdToUse }] };
   if (!includeInactive) {
-    filter.isActive = true;
+    filter.uninstalledAt = null;
   }
 
   const rows = await InstalledThemes.find(filter)
-    .select("theme _id isActive installedAt uninstalledAt")
+    .select("theme _id installedAt uninstalledAt")
     .sort({ installedAt: -1 }) // Most recent first
     .lean();
 
@@ -1256,7 +1274,6 @@ export const getInstalledThemes = asyncErrorHandler(async (req: Request, res: Re
       category: theme.category,
       thumbnailUrl,
       installedThemeId: installedTheme?._id,
-      isActive: installedTheme?.isActive ?? true,
       installedAt: installedTheme?.installedAt,
       uninstalledAt: installedTheme?.uninstalledAt,
       installationCount: theme.installationCount || 0,
@@ -1333,7 +1350,6 @@ export const getInstalledThemes = asyncErrorHandler(async (req: Request, res: Re
                     category: 'Custom',
                     thumbnailUrl: thumbnailUrl,
                     installedThemeId: null, // Not in InstalledThemes collection
-                    isActive: true,
                     installedAt: stats.birthtime || stats.mtime,
                     uninstalledAt: null,
                     installationCount: 0,
@@ -1399,7 +1415,6 @@ export const getInstalledThemes = asyncErrorHandler(async (req: Request, res: Re
                     category: 'Custom',
                     thumbnailUrl: null, // Custom themes don't have thumbnails yet
                     installedThemeId: null, // Not in InstalledThemes collection
-                    isActive: true,
                     installedAt: stats.birthtime || stats.mtime,
                     uninstalledAt: null,
                     installationCount: 0,
@@ -1441,117 +1456,6 @@ export const getInstalledThemes = asyncErrorHandler(async (req: Request, res: Re
   res.status(200).json(allThemes);
 });
 
-// Get recent installations (last 3 themes installed)
-export const getRecentInstallations = asyncErrorHandler(async (req: Request, res: Response) => {
-  try {
-    const recent = await RecentInstallations.find()
-      .sort({ installedAt: -1 })
-      .limit(3)
-      .lean();
-
-    // Enrich with theme data
-    const enriched = await Promise.all(
-      recent.map(async (item) => {
-        if (item.isCustomTheme) {
-          // For custom themes, extract the actual custom theme ID
-          const customThemeId = item.themeId.replace(/^custom-/, '');
-          try {
-            const customTheme = await CustomTheme.findById(customThemeId).lean();
-            if (customTheme) {
-              return {
-                _id: item._id.toString(), // Use RecentInstallations _id for deletion
-                recentId: item._id.toString(),
-                themeId: item.themeId,
-                name: item.themeName,
-                thumbnailUrl: item.thumbnailUrl,
-                isCustomTheme: true,
-                customThemeId: customThemeId,
-                installedAt: item.installedAt,
-              };
-            }
-          } catch (err) {
-            console.warn(`Error loading custom theme ${customThemeId}:`, err);
-          }
-        } else {
-          // For regular themes
-          try {
-            const theme = await Theme.findById(item.themeId).lean();
-            if (theme) {
-              const thumbnailUrl = theme.thumbnail?.filename
-                ? `${req.protocol}://${req.get("host")}/uploads/themes/${theme.themePath}/thumbnail/${theme.thumbnail.filename}`
-                : item.thumbnailUrl;
-              
-              return {
-                _id: item._id.toString(), // Use RecentInstallations _id for deletion
-                recentId: item._id.toString(),
-                themeId: item.themeId,
-                name: item.themeName || theme.name,
-                description: theme.description,
-                category: theme.category,
-                thumbnailUrl: thumbnailUrl,
-                isCustomTheme: false,
-                installedAt: item.installedAt,
-              };
-            }
-          } catch (err) {
-            console.warn(`Error loading theme ${item.themeId}:`, err);
-          }
-        }
-        // Fallback if theme not found
-        return {
-          _id: item._id.toString(), // Use RecentInstallations _id for deletion
-          recentId: item._id.toString(),
-          themeId: item.themeId,
-          name: item.themeName,
-          thumbnailUrl: item.thumbnailUrl,
-          isCustomTheme: item.isCustomTheme,
-          installedAt: item.installedAt,
-        };
-      })
-    );
-
-    res.status(200).json(enriched);
-  } catch (error: any) {
-    console.error('Error fetching recent installations:', error);
-    res.status(200).json([]); // Return empty array on error
-  }
-});
-
-// Delete recent installations
-export const deleteRecentInstallations = asyncErrorHandler(async (req: Request, res: Response) => {
-  const { themeIds } = req.body as { themeIds: string[] };
-
-  if (!themeIds || !Array.isArray(themeIds) || themeIds.length === 0) {
-    throw new CustomError("Theme IDs are required", 400);
-  }
-
-  try {
-    // Convert string IDs to ObjectIds
-    const objectIds = themeIds.map(id => {
-      try {
-        return new Types.ObjectId(id);
-      } catch {
-        return null;
-      }
-    }).filter(Boolean) as Types.ObjectId[];
-
-    if (objectIds.length === 0) {
-      throw new CustomError("Invalid theme IDs provided", 400);
-    }
-
-    const result = await RecentInstallations.deleteMany({ _id: { $in: objectIds } });
-    
-    res.status(200).json({
-      success: true,
-      message: `Deleted ${result.deletedCount} theme(s) from history`,
-      deletedCount: result.deletedCount,
-    });
-  } catch (error: any) {
-    console.error('Error deleting recent installations:', error);
-    throw new CustomError(`Failed to delete recent installations: ${error?.message || 'Unknown error'}`, 500);
-  }
-});
-
 interface UninstallThemeBody {
   installedThemeId: string;
 }
@@ -1573,11 +1477,9 @@ export const uninstallTheme = asyncErrorHandler(async (req: Request, res: Respon
   }
 
   const themeId = installedTheme.theme;
-  const userId = installedTheme.user;
+  const storeId = (installedTheme as any).store || (installedTheme as any).user;
 
-  // IMPORTANT: Set isActive to false instead of deleting to preserve history
-  // This allows tracking previously installed themes
-  installedTheme.isActive = false;
+  // Mark as uninstalled; keep row for historical reference.
   installedTheme.uninstalledAt = new Date();
   await installedTheme.save();
 
@@ -1585,8 +1487,8 @@ export const uninstallTheme = asyncErrorHandler(async (req: Request, res: Respon
   // This preserves any customizations the user made to the theme
   // The files will remain available for future re-installation with customizations intact
 
-  console.log(`✅ Theme uninstalled (marked inactive): ${themeId} for user: ${userId}`);
-  console.log(`📁 Theme files preserved at: uploads/stores/${userId}/themes/${themeId}/`);
+  console.log(`✅ Theme uninstalled (marked inactive): ${themeId} for store: ${storeId}`);
+  console.log(`📁 Theme files preserved at: uploads/stores/${storeId}/themes/${themeId}/`);
 
   res.status(200).json({ success: true, installedThemeId, message: "Theme uninstalled successfully. Your customizations are preserved." });
 });

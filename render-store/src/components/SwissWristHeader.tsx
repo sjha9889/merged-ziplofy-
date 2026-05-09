@@ -1,6 +1,5 @@
 import { useEffect, useState, type SVGProps } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import logoMark from '../assets/img/logo (3).png';
 
 type HeaderUser = {
   firstName?: string;
@@ -38,8 +37,14 @@ export function SwissWristHeader({
   return (
     <header className={`${positionClass} ${headerSurface} transition-colors duration-300`}>
       <div className="mx-auto flex min-h-[72px] max-w-[1440px] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:h-[76px] lg:px-10">
-        <Link to="/" className="z-20 flex shrink-0 items-center gap-2 sm:gap-3" onClick={() => setOpen(false)}>
-          <img src={logoMark} alt={storeName} className="h-12 w-auto object-contain sm:h-[56px]" width={210} height={56} />
+        <Link
+          to="/"
+          className="z-20 flex shrink-0 items-center gap-2 sm:gap-3"
+          onClick={() => setOpen(false)}
+        >
+          <span className="max-w-[200px] truncate text-lg font-semibold tracking-tight text-white sm:max-w-xs sm:text-xl">
+            {storeName}
+          </span>
         </Link>
 
         <nav
@@ -56,6 +61,15 @@ export function SwissWristHeader({
           </NavLink>
           <NavLink to="/collection" className="whitespace-nowrap py-3 text-center text-[15px] font-medium text-white transition hover:text-white/80 md:py-0">
             Collection
+          </NavLink>
+          <NavLink to="/blog" className="whitespace-nowrap py-3 text-center text-[15px] font-medium text-white transition hover:text-white/80 md:py-0">
+            Blog
+          </NavLink>
+          <NavLink to="/contact" className="whitespace-nowrap py-3 text-center text-[15px] font-medium text-white transition hover:text-white/80 md:py-0">
+            Contact
+          </NavLink>
+          <NavLink to="/wishlist" className="whitespace-nowrap py-3 text-center text-[15px] font-medium text-white transition hover:text-white/80 md:py-0">
+            Wishlist
           </NavLink>
         </nav>
 

@@ -1,16 +1,20 @@
 import { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
+import { Types } from 'mongoose';
 import { asyncErrorHandler, CustomError } from '../utils/error.utils';
 import { InstalledThemes } from '../models/installed-themes.model';
 import { Theme } from '../models/theme.model';
+import { CustomTheme } from '../models/custom-theme.model';
+import { Store } from '../models/store/store.model';
+import { listLiquidTemplateNames, themeHasLiquidTemplates } from '../utils/storefront-theme-runtime.util';
 // import { Product } from '../models/product.model';
 // import { Store } from '../models/store.model';
 
 // Render storefront with theme and products
 export const renderStorefront = asyncErrorHandler(async (req: Request, res: Response) => {
   const { storeId } = req.params;
-  const { themeId } = req.query;
+  const { themeId } = req.query as { themeId?: string };
 
   console.log('🔍 Rendering storefront for store:', storeId, 'theme:', themeId);
 
@@ -27,31 +31,21 @@ export const renderStorefront = asyncErrorHandler(async (req: Request, res: Resp
     domain: `store${storeId}.ziplofy.com`
   };
 
-  // Get active theme for this store
-  let activeTheme;
-  if (themeId) {
-    // Get specific theme
-    const installedTheme = await InstalledThemes.findOne({
-      user: storeId,
-      theme: themeId,
-      isActive: true
-    }).populate('theme');
-    
-    if (!installedTheme) {
-      throw new CustomError("Theme not found or not installed", 404);
-    }
-    activeTheme = installedTheme.theme;
-  } else {
-    // Get the first active theme
-    const installedTheme = await InstalledThemes.findOne({
-      user: storeId,
-      isActive: true
-    }).populate('theme');
-    
-    if (!installedTheme) {
-      throw new CustomError("No active theme found for this store", 404);
-    }
-    activeTheme = installedTheme.theme;
+  const storeDoc = await Store.findById(storeId).select("appliedTheme").lean();
+  const appliedThemeId = themeId || (storeDoc?.appliedTheme ? String(storeDoc.appliedTheme) : null);
+  if (!appliedThemeId) {
+    throw new CustomError("No applied theme found for this store", 404);
+  }
+
+  const installedTheme = await InstalledThemes.findOne({
+    $or: [{ store: storeId }, { user: storeId }],
+    theme: new Types.ObjectId(appliedThemeId),
+    uninstalledAt: null
+  }).populate('theme');
+
+  const activeTheme = installedTheme?.theme as any;
+  if (!activeTheme) {
+    throw new CustomError("Applied theme is not installed for this store", 404);
   }
 
   // Get products for this store (mock for now)
@@ -198,11 +192,17 @@ export const getStoreData = asyncErrorHandler(async (req: Request, res: Response
     domain: `store${storeId}.ziplofy.com`
   };
 
-  // Get active theme
-  const installedTheme = await InstalledThemes.findOne({
-    user: storeId,
-    isActive: true
-  }).populate('theme');
+  const storeDoc = await Store.findById(storeId).select("appliedTheme").lean();
+  const appliedThemeId = storeDoc?.appliedTheme ? String(storeDoc.appliedTheme) : null;
+
+  let installedTheme: any = null;
+  if (appliedThemeId && Types.ObjectId.isValid(appliedThemeId)) {
+    installedTheme = await InstalledThemes.findOne({
+      $or: [{ store: storeId }, { user: storeId }],
+      theme: new Types.ObjectId(appliedThemeId),
+      uninstalledAt: null
+    }).populate('theme');
+  }
   
   // Get products (mock for now)
   const products = [
@@ -238,6 +238,145 @@ export const getStoreData = asyncErrorHandler(async (req: Request, res: Response
         inStock: product.inStock
       }))
     }
+  });
+});
+
+export const getStorefrontThemeRuntime = asyncErrorHandler(async (req: Request, res: Response) => {
+  const { storeId } = req.params as { storeId: string };
+
+  if (!storeId) {
+    throw new CustomError("Store ID is required", 400);
+  }
+
+  const storeDoc = await Store.findById(storeId).select("appliedTheme").lean();
+  const appliedThemeId = storeDoc?.appliedTheme ? String(storeDoc.appliedTheme) : null;
+  if (!appliedThemeId) {
+    return res.status(200).json({
+      success: true,
+      data: null,
+      message: "No applied theme for this store",
+    });
+  }
+
+  const installedTheme = await InstalledThemes.findOne({
+    $or: [{ store: storeId }, { user: storeId }],
+    theme: new Types.ObjectId(appliedThemeId),
+    uninstalledAt: null,
+  }).lean();
+
+  const theme = await Theme.findById(appliedThemeId).lean();
+  const customTheme = !theme ? await CustomTheme.findById(appliedThemeId).lean() : null;
+
+  if (!theme && !customTheme) {
+    return res.status(200).json({
+      success: true,
+      data: null,
+      message: "Applied theme record is missing",
+    });
+  }
+
+  const isCustomTheme = Boolean(!theme && customTheme);
+  const runtimeThemeKey = isCustomTheme ? `custom-${appliedThemeId}` : appliedThemeId;
+
+  const canonicalStoreThemeDir = path.join(
+    process.cwd(),
+    "uploads",
+    "stores",
+    storeId,
+    "themes",
+    String(runtimeThemeKey)
+  );
+  const storeThemeDir =
+    installedTheme?.storePath && fs.existsSync(installedTheme.storePath)
+      ? installedTheme.storePath
+      : canonicalStoreThemeDir;
+  const unzippedThemeDir = path.join(storeThemeDir, "unzippedTheme");
+  const runtimeBaseDir = fs.existsSync(unzippedThemeDir) ? unzippedThemeDir : storeThemeDir;
+  const runtimeBaseUrl = `${req.protocol}://${req.get("host")}/api/themes/installed/${encodeURIComponent(
+    storeId
+  )}/${encodeURIComponent(String(runtimeThemeKey))}/unzippedTheme`;
+
+  const listFilesRecursive = (dirPath: string, prefix = ""): string[] => {
+    if (!fs.existsSync(dirPath)) return [];
+    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+    const files: string[] = [];
+    entries.forEach((entry) => {
+      const nextPrefix = prefix ? `${prefix}/${entry.name}` : entry.name;
+      const absPath = path.join(dirPath, entry.name);
+      if (entry.isDirectory()) {
+        files.push(...listFilesRecursive(absPath, nextPrefix));
+      } else {
+        files.push(nextPrefix);
+      }
+    });
+    return files;
+  };
+
+  const cssCandidates = [
+    "assets/css/style.css",
+    "assets/css/category.css",
+    "assets/css/product.css",
+    "assets/css/cart.css",
+    "assets/css/checkout.css",
+    "assets/css/account.css",
+    "assets/css/order.css",
+    "assets/css/contact.css",
+    "assets/css/blog.css",
+    "assets/css/blog-detail.css",
+  ];
+  const jsCandidates = [
+    "assets/js/main.js",
+    "assets/js/add-to-cart.js",
+    "assets/js/cart.js",
+    "assets/js/checkout.js",
+    "assets/js/account.js",
+    "assets/js/order.js",
+    "assets/js/contact.js",
+    "assets/js/blog.js",
+    "assets/js/blog-detail.js",
+    "assets/js/products-carousel.js",
+    "assets/js/wishlist.js",
+  ];
+
+  const hasAsset = (relativePath: string) => fs.existsSync(path.join(runtimeBaseDir, relativePath));
+  const cssAssets = cssCandidates.filter(hasAsset);
+  const jsAssets = jsCandidates.filter(hasAsset);
+  const allThemeFiles = listFilesRecursive(runtimeBaseDir);
+  const htmlAssets = allThemeFiles.filter((file) => file.toLowerCase().endsWith(".html"));
+
+  return res.status(200).json({
+    success: true,
+    data: {
+      storeId,
+      themeId: String(appliedThemeId),
+      themeName: isCustomTheme ? (customTheme as any).name : (theme as any).name,
+      theme: isCustomTheme ? customTheme : theme,
+      installedTheme: {
+        _id: installedTheme?._id ? String(installedTheme._id) : null,
+        store: installedTheme ? String((installedTheme as any).store || (installedTheme as any).user) : storeId,
+        theme: String(appliedThemeId),
+        installedAt: installedTheme?.installedAt || null,
+        uninstalledAt: installedTheme?.uninstalledAt || null,
+        storePath: installedTheme?.storePath || storeThemeDir,
+      },
+      storeThemeDir,
+      runtimeBaseUrl,
+      entryHtml: htmlAssets.includes("index.html") ? "index.html" : htmlAssets[0] || null,
+      allThemeFiles,
+      cssAssets,
+      jsAssets,
+      htmlUrls: htmlAssets.map((asset) => `${runtimeBaseUrl}/${asset}`),
+      cssUrls: cssAssets.map((asset) => `${runtimeBaseUrl}/${asset}`),
+      jsUrls: jsAssets.map((asset) => `${runtimeBaseUrl}/${asset}`),
+      fileUrls: allThemeFiles.map((asset) => `${runtimeBaseUrl}/${asset}`),
+      liquid: {
+        enabled: themeHasLiquidTemplates(runtimeBaseDir),
+        /** Relative to API origin; client should prefix VITE_API_URL /api host. */
+        renderPagePath: `/storefront/${storeId}/render/page`,
+        /** Template basenames that exist under `templates/*.liquid` (client uses this to avoid 404s). */
+        templates: listLiquidTemplateNames(runtimeBaseDir),
+      },
+    },
   });
 });
 

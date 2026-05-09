@@ -36,21 +36,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.InstalledThemes = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const InstalledThemesSchema = new mongoose_1.Schema({
+    store: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: "Store",
+        required: true,
+        index: true,
+    },
+    // Deprecated field retained so old documents still deserialize cleanly.
     user: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: "User",
-        required: true,
+        required: false,
         index: true,
     },
     theme: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: "Theme",
         required: true,
-        index: true,
-    },
-    isActive: {
-        type: Boolean,
-        default: false,
         index: true,
     },
     storePath: {
@@ -66,10 +68,10 @@ const InstalledThemesSchema = new mongoose_1.Schema({
         default: null,
     },
 }, { timestamps: true, versionKey: false });
-// Ensure only one active installation per (user, theme)
-InstalledThemesSchema.index({ user: 1, theme: 1 }, { unique: true, partialFilterExpression: { isActive: true } });
+// Ensure one installation record per (store, theme)
+InstalledThemesSchema.index({ store: 1, theme: 1 }, { unique: true });
 // Helpful secondary indexes
-InstalledThemesSchema.index({ user: 1, theme: 1, createdAt: -1 });
-InstalledThemesSchema.index({ theme: 1, isActive: 1 });
+InstalledThemesSchema.index({ store: 1, theme: 1, createdAt: -1 });
+InstalledThemesSchema.index({ theme: 1, installedAt: -1 });
 exports.InstalledThemes = mongoose_1.default.models.InstalledThemes ||
     mongoose_1.default.model("InstalledThemes", InstalledThemesSchema);

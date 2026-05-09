@@ -1,0 +1,12 @@
+<section class="trending-now" aria-label="Trending now">
+  <div class="trending-now__inner">
+    <h2 class="trending-now__title">{{ section.settings.title | default: "Trending now" }}</h2>
+    <div class="trending-now__track">
+      {% for product in products %}
+        {% render 'product-card', product: product %}
+      {% else %}
+        <p>No featured products available.</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>

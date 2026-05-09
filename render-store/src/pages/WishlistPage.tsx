@@ -29,7 +29,12 @@ export function WishlistPage() {
                 <td data-label="Product">
                   <div className="wishlist-product">
                     <Link to="/products" className="wishlist-product-link">
-                      <img src="/assets/img/watch-1.jpg" alt="Product" className="wishlist-product-img" />
+                      <div
+                        className="wishlist-product-img flex items-center justify-center bg-neutral-100 text-xs text-neutral-500"
+                        aria-hidden
+                      >
+                        —
+                      </div>
                       <div className="wishlist-product-details">
                         <span className="wishlist-product-name">Add items from the shop to your wishlist</span>
                       </div>

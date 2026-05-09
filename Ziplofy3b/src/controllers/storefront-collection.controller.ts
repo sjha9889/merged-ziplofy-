@@ -5,6 +5,7 @@ import { Collections, ICollection } from "../models/collections/collections.mode
 import { CollectionEntry } from "../models/collection-entry/collection-entry.model";
 import { Product } from "../models/product/product.model";
 import { AmountOffProductsDiscount, AmountOffProductsEntry, AmountOffOrderDiscount } from "../models";
+import { absolutizeImageUrlsArray, publicOriginFromRequest } from "../utils/public-origin.util";
 
 // Get collections by store id
 export const getCollectionsByStoreId = asyncErrorHandler(async (req: Request, res: Response) => {
@@ -233,11 +234,13 @@ export const getProductsInCollection = asyncErrorHandler(async (req: Request, re
   }
 
   // Enrich products with discount info
+  const publicOrigin = publicOriginFromRequest(req);
   const enrichedProducts = products.map((product: any) => {
     const productId = String(product._id);
     const discount = productDiscountMap.get(productId);
     return {
       ...product,
+      imageUrls: absolutizeImageUrlsArray(publicOrigin, product.imageUrls),
       productDiscount: discount || null
     };
   });

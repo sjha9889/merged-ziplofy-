@@ -1,0 +1,18 @@
+<footer class="site-footer">
+  <div class="container footer-top">
+    <div class="footer-subscribe-card">
+      <h3>{{ store.newsletter_title | default: "Step into the world of UrbanKicks." }}</h3>
+      <p>{{ store.newsletter_text | default: "Get early access to new sneaker drops, exclusive deals, and limited editions." }}</p>
+      <form class="subscribe-form">
+        <input type="email" placeholder="Enter your email" aria-label="Email">
+        <button type="button">Join Now</button>
+      </form>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <div class="footer-policies">
+      <a href="#">{{ store.legal_terms_label | default: "Terms & Conditions" }}</a>
+      <a href="#">{{ store.legal_privacy_label | default: "Privacy Policy" }}</a>
+    </div>
+  </div>
+</footer>

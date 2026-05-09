@@ -27,26 +27,8 @@ const storage = multer_1.default.diskStorage({
     },
 });
 const fileFilter = (req, file, cb) => {
-    if (file.fieldname === "zipFile") {
-        if (file.mimetype === "application/zip" ||
-            file.mimetype === "application/x-zip-compressed") {
-            cb(null, true);
-        }
-        else {
-            cb(new Error("Only ZIP files are allowed"));
-        }
-    }
-    else if (file.fieldname === "thumbnail") {
-        if (file.mimetype.startsWith("image/")) {
-            cb(null, true);
-        }
-        else {
-            cb(new Error("Only image files are allowed"));
-        }
-    }
-    else {
-        cb(new Error("Unexpected field"));
-    }
+    // Keep uploads permissive for now.
+    cb(null, true);
 };
 const upload = (0, multer_1.default)({
     storage: storage,
@@ -55,10 +37,29 @@ const upload = (0, multer_1.default)({
         fileSize: 50 * 1024 * 1024, // 50MB limit
     },
 });
+const handleMulterError = (err, req, res, next) => {
+    if (err instanceof multer_1.default.MulterError) {
+        if (err.code === "LIMIT_FILE_SIZE") {
+            return res.status(413).json({
+                success: false,
+                error: "ZIP/thumbnail too large. Maximum allowed size is 50MB.",
+            });
+        }
+        return res.status(400).json({
+            success: false,
+            error: `Upload error: ${err.message}`,
+        });
+    }
+    if (err) {
+        return res.status(400).json({
+            success: false,
+            error: err.message || "File upload error",
+        });
+    }
+    return next();
+};
 // Public routes
 exports.themeRouter.route("/installed").get(theme_controller_1.getInstalledThemes);
-exports.themeRouter.route("/recent").get(theme_controller_1.getRecentInstallations);
-exports.themeRouter.route("/recent/delete").post(theme_controller_1.deleteRecentInstallations);
 exports.themeRouter.route("/").get(theme_controller_1.getThemes);
 exports.themeRouter.route("/themesStatic").get(theme_controller_1.getThemesStatic);
 // install theme - MUST come before /:id route
@@ -73,6 +74,7 @@ exports.themeRouter.route("/files/:themeId").get(auth_middleware_1.optionalAuth,
 exports.themeRouter.route("/file/:themeId").get(auth_middleware_1.optionalAuth, theme_controller_1.readThemeFile);
 // Protected routes
 exports.themeRouter.use(auth_middleware_1.protect);
+exports.themeRouter.post("/apply", theme_controller_1.applyThemeToStore);
 exports.themeRouter.route("/uninstall").delete(theme_controller_1.uninstallTheme);
 exports.themeRouter.route("/:id").get(theme_controller_1.getTheme);
 exports.themeRouter.route("/:id/thumbnail").get(theme_controller_1.getThumbnail);
@@ -88,12 +90,12 @@ exports.themeRouter.route("/").post((0, auth_middleware_1.authorizePermission)("
 upload.fields([
     { name: "zipFile", maxCount: 1 },
     { name: "thumbnail", maxCount: 1 },
-]), theme_controller_1.createTheme);
+]), handleMulterError, theme_controller_1.createTheme);
 exports.themeRouter
     .route("/:id")
     .put((0, auth_middleware_1.authorizePermission)("Theme Management", "edit"), // Also checks "Developer" → "Theme Developer" as alternative
 upload.fields([
     { name: "zipFile", maxCount: 1 },
     { name: "thumbnail", maxCount: 1 },
-]), theme_controller_1.updateTheme)
+]), handleMulterError, theme_controller_1.updateTheme)
     .delete((0, auth_middleware_1.authorizePermission)("Theme Management", "edit"), theme_controller_1.deleteTheme); // Also checks "Developer" → "Theme Developer" as alternative

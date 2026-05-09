@@ -382,11 +382,8 @@ const ThemeDeveloper: React.FC = () => {
 
 
       // Make API call
-      const response = await axiosi.post('/themes', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      // Let browser/axios set multipart boundary automatically.
+      const response = await axiosi.post('/themes', formData);
 
       if (response.data.success) {
         // Reset form
@@ -423,6 +420,8 @@ const ThemeDeveloper: React.FC = () => {
         errorMessage = 'You do not have permission to upload themes. Contact administrator.';
       } else if (error.response?.status === 400) {
         errorMessage = error.response.data?.message || 'Invalid request data. Please check all fields.';
+      } else if (!error.response) {
+        errorMessage = 'Network error while uploading. Check backend server and API URL/port.';
       } else {
         errorMessage = error.message || 'Upload failed';
       }

@@ -16,6 +16,7 @@ export interface IStore {
   userId: mongoose.Types.ObjectId;
   storeName: string;
   storeDescription: string;
+  appliedTheme?: mongoose.Types.ObjectId | null;
   storeCode?: string;
   defaultLocation?: mongoose.Types.ObjectId;
   createdAt: Date;
@@ -42,6 +43,11 @@ const storeSchema = new Schema<IStore & Document>({
     maxLength: [500, "Store description cannot exceed 500 characters"],
     minLength: [10, "Store description must be at least 10 characters"],
   },
+  appliedTheme: {
+    type: Schema.Types.ObjectId,
+    default: null,
+    index: true,
+  },
   storeCode: {
     type: String,
     unique: true,
@@ -62,6 +68,7 @@ const storeSchema = new Schema<IStore & Document>({
 // Index for better query performance
 storeSchema.index({ userId: 1 });
 storeSchema.index({ storeName: 1 });
+storeSchema.index({ appliedTheme: 1 });
 
 // Ensure unique store name per user
 storeSchema.index({ userId: 1, storeName: 1 }, { unique: true });

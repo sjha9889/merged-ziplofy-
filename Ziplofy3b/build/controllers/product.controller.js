@@ -13,6 +13,7 @@ const store_model_1 = require("../models/store/store.model");
 const error_utils_1 = require("../utils/error.utils");
 const models_1 = require("../models");
 const collection_entry_model_1 = require("../models/collection-entry/collection-entry.model");
+const public_origin_util_1 = require("../utils/public-origin.util");
 // Create a new product
 exports.createProduct = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     // Parse and type the incoming payload; allow extra fields but prefer strong typing for known ones
@@ -504,11 +505,13 @@ exports.getProductsByStoreIdPublic = (0, error_utils_1.asyncErrorHandler)(async 
         }
     }
     // ===== ENRICH PRODUCTS WITH DISCOUNT INFO =====
+    const publicOrigin = (0, public_origin_util_1.publicOriginFromRequest)(req);
     const enrichedProducts = products.map((product) => {
         const productId = String(product._id);
         const discount = productDiscountMap.get(productId);
         return {
             ...product,
+            imageUrls: (0, public_origin_util_1.absolutizeImageUrlsArray)(publicOrigin, product.imageUrls),
             productDiscount: discount || null
         };
     });
@@ -589,9 +592,18 @@ exports.getProductByIdPublic = (0, error_utils_1.asyncErrorHandler)(async (req, 
         images: 1,
     })
         .lean();
+    const publicOrigin = (0, public_origin_util_1.publicOriginFromRequest)(req);
+    const variantsOut = variants.map((v) => ({
+        ...v,
+        images: (0, public_origin_util_1.absolutizeImageUrlsArray)(publicOrigin, v.images),
+    }));
     res.status(200).json({
         success: true,
-        data: { ...product, variants },
+        data: {
+            ...product,
+            imageUrls: (0, public_origin_util_1.absolutizeImageUrlsArray)(publicOrigin, product.imageUrls),
+            variants: variantsOut,
+        },
     });
 });
 // POST /products/:id/variants - add one or more variants to an existing product

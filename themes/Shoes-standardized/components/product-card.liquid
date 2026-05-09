@@ -1,0 +1,15 @@
+<article class="product-card" data-product="{{ product.handle | default: product._id }}">
+  <div class="product-image">
+    <img src="{{ product.image | default: product.images[0] | default: '' }}" alt="{{ product.title }}">
+  </div>
+  <div class="product-info">
+    <h3>{{ product.title }}</h3>
+    <p class="price-line">
+      {% if product.compare_at_price %}
+        <del>{{ product.compare_at_price | money }}</del>
+      {% endif %}
+      <strong>{{ product.price | money }}</strong>
+    </p>
+    <p class="product-sub">{{ product.subtitle | default: product.vendor }}</p>
+  </div>
+</article>

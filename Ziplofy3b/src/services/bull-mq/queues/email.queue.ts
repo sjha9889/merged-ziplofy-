@@ -1,18 +1,19 @@
-import { ConnectionOptions, Queue } from 'bullmq';
-import { redisConfig } from '../../../config/redis.config';
-
+// Redis/BullMQ temporarily disabled for local development.
+// Keep API surface intact so callers do not crash.
 export const EMAIL_QUEUE = 'email_queue';
 
-export const emailQueue = new Queue(EMAIL_QUEUE, {
-  connection: redisConfig.connection as ConnectionOptions,
-});
-
 export async function enqueueEmailAddress(to: string, subject?: string, html?: string, text?: string) {
-  return emailQueue.add('send_email', { to, subject, html, text });
+  console.log('[email.queue] Redis disabled, skipping enqueue', {
+    to,
+    subject: subject || 'Notification from Ziplofy',
+    hasHtml: Boolean(html),
+    hasText: Boolean(text),
+  });
+  return { skipped: true };
 }
 
 export async function closeEmailQueue(): Promise<void> {
-  await emailQueue.close();
+  // no-op while Redis is disabled
 }
 
 

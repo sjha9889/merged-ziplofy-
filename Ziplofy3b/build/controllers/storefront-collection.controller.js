@@ -10,6 +10,7 @@ const collections_model_1 = require("../models/collections/collections.model");
 const collection_entry_model_1 = require("../models/collection-entry/collection-entry.model");
 const product_model_1 = require("../models/product/product.model");
 const models_1 = require("../models");
+const public_origin_util_1 = require("../utils/public-origin.util");
 // Get collections by store id
 exports.getCollectionsByStoreId = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const { storeId } = req.params;
@@ -204,11 +205,13 @@ exports.getProductsInCollection = (0, error_utils_1.asyncErrorHandler)(async (re
         }
     }
     // Enrich products with discount info
+    const publicOrigin = (0, public_origin_util_1.publicOriginFromRequest)(req);
     const enrichedProducts = products.map((product) => {
         const productId = String(product._id);
         const discount = productDiscountMap.get(productId);
         return {
             ...product,
+            imageUrls: (0, public_origin_util_1.absolutizeImageUrlsArray)(publicOrigin, product.imageUrls),
             productDiscount: discount || null
         };
     });

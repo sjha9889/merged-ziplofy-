@@ -16,6 +16,14 @@ const axiosi = axios.create({
 // Request interceptor to add auth token to every request
 axiosi.interceptors.request.use(
     (config) => {
+        // Critical for file uploads: let browser set multipart boundary.
+        if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+            if (config.headers) {
+                delete (config.headers as any)['Content-Type'];
+                delete (config.headers as any)['content-type'];
+            }
+        }
+
         const token = localStorage.getItem('admin_token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;

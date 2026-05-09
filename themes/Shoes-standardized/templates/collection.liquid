@@ -1,0 +1,22 @@
+{% layout 'main' %}
+<link rel="stylesheet" href="{{ 'assets/css/category.css' | asset_url }}">
+<section class="container category-catalog">
+  <h1>{{ collection.title }}</h1>
+  <div class="catalog-grid">
+    {% for product in products %}
+      <a class="catalog-card" href="/products/{{ product.handle | default: product._id }}">
+        <div class="catalog-media">
+          <img src="{{ product.image | default: product.images[0] | default: '' }}" alt="{{ product.title }}">
+        </div>
+        <div class="catalog-title-row">
+          <h4>{{ product.title }}</h4>
+          <span>{{ product.category | default: collection.title }}</span>
+        </div>
+        <p class="catalog-price"><strong>{{ product.price | money }}</strong></p>
+      </a>
+    {% else %}
+      <p>No products in this collection.</p>
+    {% endfor %}
+  </div>
+</section>
+<script src="{{ 'assets/js/category.js' | asset_url }}"></script>

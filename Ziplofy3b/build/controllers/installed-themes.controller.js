@@ -16,32 +16,32 @@ exports.installThemeForStore = (0, error_utils_1.asyncErrorHandler)(async (req, 
     const validTheme = await theme_model_1.Theme.findById(themeId);
     if (!validTheme)
         throw new error_utils_1.CustomError('Theme not found', 404);
-    const doc = await installed_themes_model_1.InstalledThemes.findOneAndUpdate({ storeId: new mongoose_1.default.Types.ObjectId(storeId), themeId: new mongoose_1.default.Types.ObjectId(themeId) }, { $set: { isActive: true } }, { upsert: true, new: true, setDefaultsOnInsert: true }).populate('themeId').lean();
-    if (doc && doc.themeId) {
-        const t = doc.themeId;
+    const doc = await installed_themes_model_1.InstalledThemes.findOneAndUpdate({ store: new mongoose_1.default.Types.ObjectId(storeId), theme: new mongoose_1.default.Types.ObjectId(themeId) }, { $set: { uninstalledAt: null } }, { upsert: true, new: true, setDefaultsOnInsert: true }).populate('theme').lean();
+    if (doc && doc.theme) {
+        const t = doc.theme;
         const thumbnailUrl = t?.thumbnail?.filename
             ? `${req.protocol}://${req.get('host')}/uploads/themes/${t.themePath}/thumbnail/${t.thumbnail.filename}`
             : null;
-        doc.themeId.thumbnailUrl = thumbnailUrl;
-        delete doc.themeId.thumbnail;
-        delete doc.themeId.zipFile;
-        delete doc.themeId.themePath;
-        delete doc.themeId.directories;
+        doc.theme.thumbnailUrl = thumbnailUrl;
+        delete doc.theme.thumbnail;
+        delete doc.theme.zipFile;
+        delete doc.theme.themePath;
+        delete doc.theme.directories;
     }
     return res.status(200).json({ success: true, data: doc });
 });
-// Get installed (active) themes by store id
+// Get installed themes by store id
 exports.getInstalledThemesByStore = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const { storeId } = req.params;
     if (!storeId)
         throw new error_utils_1.CustomError('storeId is required', 400);
-    const records = await installed_themes_model_1.InstalledThemes.find({ storeId: new mongoose_1.default.Types.ObjectId(storeId), isActive: true })
-        .populate('themeId')
+    const records = await installed_themes_model_1.InstalledThemes.find({ store: new mongoose_1.default.Types.ObjectId(storeId), uninstalledAt: null })
+        .populate('theme')
         .lean();
     // For each record, replace themeId.thumbnail with thumbnailUrl only
     const shaped = records.map((r) => {
-        if (r?.themeId) {
-            const t = r.themeId;
+        if (r?.theme) {
+            const t = r.theme;
             const thumbnailUrl = t?.thumbnail?.filename
                 ? `${req.protocol}://${req.get('host')}/uploads/themes/${t.themePath}/thumbnail/${t.thumbnail.filename}`
                 : null;

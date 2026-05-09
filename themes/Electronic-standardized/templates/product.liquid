@@ -1,0 +1,29 @@
+{% layout 'main' %}
+<link rel="stylesheet" href="{{ 'assets/css/product.css' | asset_url }}">
+<main class="pdp-page" aria-label="Product detail page">
+  <section class="pdp-wrap">
+    <div class="pdp-grid">
+      <section class="pdp-gallery-panel" aria-label="Product media gallery">
+        <figure class="pdp-main-image">
+          <img src="{{ product.image | default: product.images[0] | default: '' }}" alt="{{ product.title }}">
+        </figure>
+      </section>
+      <section class="pdp-info-panel" aria-label="Product details">
+        <header class="pdp-title-row">
+          <h1>{{ product.title }}</h1>
+        </header>
+        <div class="pdp-price-block">
+          <p class="pdp-price">{{ product.price | money }}</p>
+          {% if product.compare_at_price %}
+            <p class="pdp-mrp-row">MRP: <s class="pdp-mrp-value">{{ product.compare_at_price | money }}</s></p>
+          {% endif %}
+        </div>
+        <section class="pdp-section pdp-section--features">
+          <h3>Description</h3>
+          <p>{{ product.description }}</p>
+        </section>
+      </section>
+    </div>
+  </section>
+</main>
+<script src="{{ 'assets/js/product-page.js' | asset_url }}"></script>

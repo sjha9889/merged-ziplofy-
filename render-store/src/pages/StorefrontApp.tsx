@@ -1,93 +1,16 @@
 import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useStorefront } from '../contexts/store.context';
 import { useStorefrontAuth } from '../contexts/storefront-auth.context';
 import { useStorefrontCart } from '../contexts/storefront-cart.context';
 import { useStorefrontCollections } from '../contexts/storefront-collections.context';
 import { useStorefrontProducts } from '../contexts/product.context';
-import { Hero } from '../components/Hero';
-import { HomeDiscoverySection } from '../components/HomeDiscoverySection';
-import { ExploreSwisswristSection } from '../components/ExploreSwisswristSection';
-import { NewArrivalsSection } from '../components/NewArrivalsSection';
-import { InvestmentSection } from '../components/InvestmentSection';
-import { InvestmentFeatureSection } from '../components/InvestmentFeatureSection';
-import { TestimonialsSection } from '../components/TestimonialsSection';
-import { InstagramGallerySection } from '../components/InstagramGallerySection';
-import { buildCatalog } from '../data/catalog';
-import { assets, hublotImages, omegaImages, rolexImages } from '../data/images';
-import banner1 from '../assets/banners/banner-1.png';
-import banner2 from '../assets/banners/banner-2.png';
-import banner3 from '../assets/banners/banner-3.png';
+import { formatINR } from '../utils/currency';
 
-const catalog = buildCatalog(rolexImages, omegaImages, hublotImages);
-const heroBanners = [assets.heroScene, banner1, banner2, banner3];
-
-const instagramGridImages = [
-  catalog.hublot[4].image,
-  catalog.omega[1].image,
-  catalog.hublot[2].image,
-  catalog.rolex[8].image,
-  catalog.rolex[3].image,
-  catalog.omega[4].image,
-  catalog.rolex[0].image,
-  catalog.hublot[0].image,
-];
-
-const exploreSwisswristImages = [
-  catalog.hublot[2].image,
-  catalog.rolex[10].image,
-  catalog.omega[1].image,
-  catalog.rolex[7].image,
-  catalog.hublot[0].image,
-  catalog.omega[5].image,
-  catalog.rolex[5].image,
-  catalog.hublot[4].image,
-];
-
-const newArrivalProducts = [catalog.omega[2], catalog.rolex[0], catalog.omega[10], catalog.omega[7]].map((p) => ({
-  ...p,
-  brand: 'Girard Perregaux',
-  name: 'Laureato 81015 11 001 11A',
-  priceInPaisa: 230000,
-}));
-
-const testimonials = [
-  {
-    image: catalog.rolex[7].image,
-    name: 'Rahul Mehta',
-    role: 'Working Professional',
-    quote:
-      'The Design looks very premium and the finishing is impressive. I’ve received multiple compliments, and honestly it feels much more expensive than what I paid.',
-  },
-  {
-    image: catalog.hublot[4].image,
-    name: 'Rahul Mehta',
-    role: 'College Student',
-    quote:
-      'The Design looks very premium and the finishing is impressive. I’ve received multiple compliments, and honestly it feels much more expensive than what I paid.',
-  },
-  {
-    image: catalog.rolex[5].image,
-    name: 'Rahul Mehta',
-    role: 'Working Professional',
-    quote:
-      'The Design looks very premium and the finishing is impressive. I’ve received multiple compliments, and honestly it feels much more expensive than what I paid.',
-  },
-  {
-    image: catalog.rolex[10].image,
-    name: 'Rahul Mehta',
-    role: 'College Student',
-    quote:
-      'The Design looks very premium and the finishing is impressive. I’ve received multiple compliments, and honestly it feels much more expensive than what I paid.',
-  },
-  {
-    image: catalog.rolex[10].image,
-    name: 'Rahul Mehta',
-    role: 'College Student',
-    quote:
-      'The Design looks very premium and the finishing is impressive. I’ve received multiple compliments, and honestly it feels much more expensive than what I paid.',
-  },
-];
-
+/**
+ * Fallback when the installed theme is not shown in the iframe (e.g. missing HTML/Liquid).
+ * Uses only store metadata and catalog from the API — no demo/watch imagery.
+ */
 export default function StorefrontApp() {
   const { storeFrontMeta } = useStorefront();
   const { user } = useStorefrontAuth();
@@ -108,31 +31,61 @@ export default function StorefrontApp() {
     }
   }, [user?._id, getCartByCustomerId]);
 
-  const realIds = products.map((p) => p._id);
-  const getRealId = (fallbackId: string, index: number) => realIds[index] ?? fallbackId;
-
-  const catalogWithRealIds = {
-    rolex: catalog.rolex.map((p, i) => ({ ...p, id: getRealId(p.id, i) })),
-    omega: catalog.omega.map((p, i) => ({ ...p, id: getRealId(p.id, 11 + i) })),
-    hublot: catalog.hublot.map((p, i) => ({ ...p, id: getRealId(p.id, 22 + i) })),
-  }; 
-
-  const newArrivalProductsWithRealIds = newArrivalProducts.map((p, i) => ({
-    ...p,
-    id: getRealId(p.id, i),
-  }));
+  const storeLabel = storeFrontMeta?.name ?? 'Store';
 
   return (
-    <div className="min-h-svh bg-[#f7f6f4]">
-      <main>
-        <Hero bannerSources={heroBanners} />
-        <HomeDiscoverySection catalog={catalogWithRealIds} products={products} loading={productsLoading} />
-        <ExploreSwisswristSection images={exploreSwisswristImages} />
-        <NewArrivalsSection promoImage={catalog.hublot[4].image} products={newArrivalProductsWithRealIds} />
-        <InvestmentSection image={assets.heroScene} />
-        <InvestmentFeatureSection image={catalog.hublot[1].image} />
-        <TestimonialsSection testimonials={testimonials} />
-        <InstagramGallerySection images={instagramGridImages} />
+    <div className="min-h-svh bg-white">
+      <main className="mx-auto max-w-6xl px-4 py-10">
+        <h1 className="text-3xl font-semibold text-neutral-900">{storeLabel}</h1>
+        {storeFrontMeta?.description ? (
+          <p className="mt-3 max-w-2xl text-neutral-600">{storeFrontMeta.description}</p>
+        ) : null}
+
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link
+            to="/products"
+            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+          >
+            Browse products
+          </Link>
+          <Link
+            to="/collection"
+            className="rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+          >
+            Collections
+          </Link>
+        </div>
+
+        {productsLoading && products.length === 0 ? (
+          <p className="mt-10 text-neutral-500">Loading products…</p>
+        ) : (
+          <ul className="mt-10 grid list-none gap-6 p-0 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            {products.map((p) => (
+              <li key={p._id}>
+                <Link
+                  to={`/products/${p._id}`}
+                  className="block overflow-hidden rounded-xl border border-neutral-200 bg-white transition hover:border-neutral-300"
+                >
+                  {p.imageUrls?.[0] ? (
+                    <img src={p.imageUrls[0]} alt="" className="aspect-square w-full object-contain" />
+                  ) : (
+                    <div className="flex aspect-square w-full items-center justify-center bg-neutral-100 text-sm text-neutral-400">
+                      No image
+                    </div>
+                  )}
+                  <div className="p-4">
+                    <p className="font-medium text-neutral-900">{p.title}</p>
+                    <p className="mt-1 text-sm tabular-nums text-neutral-700">{formatINR(p.price)}</p>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {!productsLoading && products.length === 0 ? (
+          <p className="mt-10 text-neutral-500">No products published yet.</p>
+        ) : null}
       </main>
     </div>
   );

@@ -22,7 +22,7 @@ export function Layout({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('open-cart-drawer', handler as EventListener);
   }, []);
 
-  const storeName = storeFrontMeta?.name || 'Swisswrist';
+  const storeName = storeFrontMeta?.name || 'Store';
 
   const handleLogout = () => {
     logout();

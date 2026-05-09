@@ -54,6 +54,12 @@ const RecentInstallationsSchema = new mongoose_1.Schema({
         default: false,
         index: true,
     },
+    store: {
+        type: mongoose_1.default.Schema.Types.ObjectId,
+        ref: "Store",
+        required: false,
+        index: true,
+    },
     installedAt: {
         type: Date,
         default: Date.now,
@@ -62,5 +68,6 @@ const RecentInstallationsSchema = new mongoose_1.Schema({
 }, { timestamps: true, versionKey: false });
 // Index for sorting by installation date
 RecentInstallationsSchema.index({ installedAt: -1 });
+RecentInstallationsSchema.index({ store: 1, installedAt: -1 });
 exports.RecentInstallations = mongoose_1.default.models.RecentInstallations ||
     mongoose_1.default.model("RecentInstallations", RecentInstallationsSchema);

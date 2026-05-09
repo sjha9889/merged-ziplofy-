@@ -2,16 +2,8 @@ import { Link } from 'react-router-dom';
 import { formatINR } from '../utils/currency';
 import type { SwissWristProduct } from '../types/swisswrist-product';
 
-const line2ByBrand: Record<string, string> = {
-  Rolex: 'OYSTER CASE | STAINLESS STEEL',
-  Omega: 'CO-AXIAL MASTER | STAINLESS STEEL',
-  Hublot: 'FUSION CASE | STAINLESS STEEL',
-  'Girard Perregaux': 'SKELETON DIAL | STAINLESS STEEL',
-};
-
 export function ProductCard({ id, image, name, brand, priceInPaisa }: SwissWristProduct) {
   const line1 = name.toUpperCase();
-  const line2 = line2ByBrand[brand] ?? 'AUTOMATIC MOVEMENT | STAINLESS STEEL';
 
   return (
     <Link
@@ -19,11 +11,15 @@ export function ProductCard({ id, image, name, brand, priceInPaisa }: SwissWrist
       className="group flex flex-col overflow-hidden rounded-[14px] border border-[#E0E0E0] bg-white transition hover:border-neutral-300"
     >
       <div className="flex min-h-[200px] items-center justify-center overflow-hidden bg-white sm:min-h-[220px]">
-        <img
-          src={image}
-          alt=""
-          className="h-full w-full object-contain object-center transition-transform duration-300 group-hover:scale-[1.02]"
-        />
+        {image ? (
+          <img
+            src={image}
+            alt=""
+            className="h-full w-full object-contain object-center transition-transform duration-300 group-hover:scale-[1.02]"
+          />
+        ) : (
+          <span className="text-xs text-neutral-400">No image</span>
+        )}
       </div>
 
       <div className="flex flex-col px-4 pb-4 pt-1 sm:px-5">
@@ -34,9 +30,6 @@ export function ProductCard({ id, image, name, brand, priceInPaisa }: SwissWrist
         <div className="mt-2 space-y-0.5">
           <p className="text-[10px] font-normal uppercase leading-snug tracking-wide text-black sm:text-[11px]">
             {line1}
-          </p>
-          <p className="text-[10px] font-normal uppercase leading-snug tracking-wide text-black sm:text-[11px]">
-            {line2}
           </p>
         </div>
 

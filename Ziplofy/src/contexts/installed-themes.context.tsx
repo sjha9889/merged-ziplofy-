@@ -21,9 +21,9 @@ export interface PopulatedTheme {
 
 export interface InstalledThemeDoc {
   _id: string;
+  installedThemeId?: string;
   storeId: string;
   themeId: PopulatedTheme;
-  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -44,6 +44,7 @@ interface InstalledThemesContextType {
   error: string | null;
   fetchByStoreId: (storeId: string) => Promise<void>;
   installTheme: (storeId: string, themeId: string) => Promise<void>;
+  applyTheme: (storeId: string, themeId: string) => Promise<void>;
   uninstallTheme: (installedThemeId: string) => Promise<void>;
 }
 
@@ -74,7 +75,7 @@ export const InstalledThemesProvider: React.FC<{ children: React.ReactNode }> = 
     setLoading(true);
     setError(null);
     try {
-      const { data } = await axiosi.post(`/themes/install`, { userId: storeId, themeId, storeId });
+      const { data } = await axiosi.post(`/themes/install`, { storeId, themeId });
       if (data.success) {
         // IMPORTANT: Clear any custom theme from localStorage since we're installing a regular theme
         // This ensures only one theme (regular or custom) is active at a time
@@ -105,14 +106,28 @@ export const InstalledThemesProvider: React.FC<{ children: React.ReactNode }> = 
     }
   }, []);
 
+  const applyTheme = useCallback(async (storeId: string, themeId: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      await axiosi.post(`/themes/apply`, { storeId, themeId });
+      await fetchByStoreId(storeId);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Failed to apply theme');
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchByStoreId]);
+
   const value: InstalledThemesContextType = useMemo(() => ({
     installedThemes,
     loading,
     error,
     fetchByStoreId,
     installTheme,
+    applyTheme,
     uninstallTheme,
-  }), [installedThemes, loading, error, fetchByStoreId, installTheme, uninstallTheme]);
+  }), [installedThemes, loading, error, fetchByStoreId, installTheme, applyTheme, uninstallTheme]);
 
   return (
     <InstalledThemesContext.Provider value={value}>

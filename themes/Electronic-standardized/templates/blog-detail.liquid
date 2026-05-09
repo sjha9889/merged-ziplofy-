@@ -1,0 +1,13 @@
+{% layout 'main' %}
+<div class="container py-5">
+  {% if article %}
+    <article>
+      <h1 class="mb-4">{{ article.title }}</h1>
+      <div class="article-body">{{ article.content | raw }}</div>
+      <p class="mt-4"><a href="/blog">← Back to blog</a></p>
+    </article>
+  {% else %}
+    <p class="text-muted">Open an article from the blog listing.</p>
+    <p><a href="/blog">Go to blog</a></p>
+  {% endif %}
+</div>

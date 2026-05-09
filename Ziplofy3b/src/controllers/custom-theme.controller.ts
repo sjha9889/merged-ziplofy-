@@ -4,8 +4,7 @@ import path from "path";
 import { Types } from "mongoose";
 import extract from "extract-zip";
 import { CustomTheme } from "../models/custom-theme.model";
-import { InstalledThemes } from "../models/installed-themes.model";
-import { RecentInstallations } from "../models/recent-installations.model";
+import { Store } from "../models/store/store.model";
 import { asyncErrorHandler, CustomError } from "../utils/error.utils";
 import { logActivity } from "../utils/activity-log.utils";
 
@@ -569,39 +568,6 @@ export const installCustomTheme = asyncErrorHandler(
     console.log('📁 Store theme directory:', storeThemeDir);
 
     try {
-      // IMPORTANT: Deactivate all other active themes (regular themes) for this user/store before installing custom theme
-      // This ensures only one theme is active at a time
-      // Use storeIdToUse to match where themes are installed
-      await InstalledThemes.updateMany(
-        { user: storeIdToUse, isActive: true },
-        { 
-          isActive: false, 
-          uninstalledAt: new Date() 
-        }
-      );
-      console.log('✅ Deactivated all other active themes for this user/store');
-
-      // Also remove any other custom theme installations (delete installation directories)
-      const storeThemesDir = path.join(process.cwd(), 'uploads', 'stores', storeIdToUse, 'themes');
-      if (fs.existsSync(storeThemesDir)) {
-        try {
-          const themeDirs = fs.readdirSync(storeThemesDir, { withFileTypes: true })
-            .filter(dirent => dirent.isDirectory())
-            .map(dirent => dirent.name);
-          
-          for (const themeDirName of themeDirs) {
-            // Remove all other custom theme installations (but not the one we're installing)
-            if (themeDirName.startsWith('custom-') && themeDirName !== themeIdForStore) {
-              const customThemeDir = path.join(storeThemesDir, themeDirName);
-              fs.rmSync(customThemeDir, { recursive: true, force: true });
-              console.log(`✅ Removed other custom theme installation: ${themeDirName}`);
-            }
-          }
-        } catch (err) {
-          console.warn('Error removing other custom theme installations:', err);
-        }
-      }
-
       // Create store theme directory if it doesn't exist
       if (!fs.existsSync(storeThemeDir)) {
         fs.mkdirSync(storeThemeDir, { recursive: true });
@@ -640,35 +606,7 @@ export const installCustomTheme = asyncErrorHandler(
         console.log('📁 Existing theme files found - preserving user edits');
       }
 
-      // Record in recent installations
-      let thumbnailUrl = null;
-      if (customTheme.thumbnail?.filename) {
-        thumbnailUrl = `${req.protocol}://${req.get("host")}/uploads/custom themes/${customTheme.themePath}/thumbnail/${customTheme.thumbnail.filename}`;
-      }
-
-      try {
-        // Remove any existing entry for this theme (to avoid duplicates)
-        await RecentInstallations.deleteOne({ themeId: themeIdForStore });
-        
-        // Create new entry
-        await RecentInstallations.create({
-          themeId: themeIdForStore, // Format: "custom-{customThemeId}"
-          themeName: customTheme.name,
-          thumbnailUrl: thumbnailUrl,
-          isCustomTheme: true,
-          installedAt: new Date(),
-        });
-
-        // Keep only the last 3 installations
-        const allRecent = await RecentInstallations.find().sort({ installedAt: -1 });
-        if (allRecent.length > 3) {
-          const toDelete = allRecent.slice(3);
-          await RecentInstallations.deleteMany({ _id: { $in: toDelete.map(r => r._id) } });
-        }
-      } catch (recentError) {
-        console.warn('Failed to record recent installation:', recentError);
-        // Don't fail the installation if recent tracking fails
-      }
+      await Store.findByIdAndUpdate(storeIdToUse, { $set: { appliedTheme: customThemeObjectId } });
 
       res.status(200).json({
         success: true,
@@ -753,6 +691,11 @@ export const uninstallCustomTheme = asyncErrorHandler(
       } else {
         console.log('⚠️ Custom theme installation directory not found (may have been already deleted)');
       }
+
+      await Store.findOneAndUpdate(
+        { _id: storeIdToUse, appliedTheme: customThemeObjectId },
+        { $set: { appliedTheme: null } }
+      );
 
       res.status(200).json({
         success: true,

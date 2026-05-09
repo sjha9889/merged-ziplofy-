@@ -1,0 +1,12 @@
+<footer class="site-footer" aria-label="Footer">
+  <div class="site-footer__inner">
+    <section class="site-footer__connect">
+      <h3 class="site-footer__heading">{{ store.footer_newsletter_title | default: "STAY CONNECTED" }}</h3>
+      <form class="site-footer__newsletter" action="#" method="post">
+        <input type="email" placeholder="{{ store.footer_newsletter_placeholder | default: 'Enter your email for latest deals' }}" aria-label="Email address">
+        <button type="submit" aria-label="Submit email"><i class="fa-solid fa-arrow-right"></i></button>
+      </form>
+      <p>{{ store.footer_newsletter_text | default: "Subscribe for latest gadgets, offers, and tech news." }}</p>
+    </section>
+  </div>
+</footer>

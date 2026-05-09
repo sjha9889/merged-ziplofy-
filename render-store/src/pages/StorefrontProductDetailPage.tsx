@@ -320,9 +320,9 @@ const StorefrontProductDetailPage: React.FC = () => {
                         <p>{product.description || 'No description available for this product yet.'}</p>
                       ) : section.key === 'specification' ? (
                         <ul className="space-y-1">
-                          <li><strong>Brand:</strong> {product.vendor?.name || 'Swisswrist'}</li>
+                          <li><strong>Brand:</strong> {product.vendor?.name || '—'}</li>
                           <li><strong>SKU:</strong> {product._id}</li>
-                          <li><strong>Category:</strong> {product.category?.name || 'Watches'}</li>
+                          <li><strong>Category:</strong> {product.category?.name || '—'}</li>
                         </ul>
                       ) : (
                         <ul className="space-y-1">
@@ -346,9 +346,9 @@ const StorefrontProductDetailPage: React.FC = () => {
                 <ProductCard
                   key={rel._id}
                   id={rel._id}
-                  image={rel.imageUrls?.[0] || '/assets/img/watch-1.jpg'}
+                  image={rel.imageUrls?.[0] || ''}
                   name={rel.title}
-                  brand={rel.vendor?.name || 'Swisswrist'}
+                  brand={rel.vendor?.name || 'Brand'}
                   priceInPaisa={rel.price}
                 />
               ))}

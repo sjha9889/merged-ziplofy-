@@ -1,6 +1,15 @@
-import React, { useEffect } from 'react';
-import { Toaster } from 'react-hot-toast';
-import { Navigate, Route, BrowserRouter as Router, Routes, Outlet, useLocation } from 'react-router-dom';
+import React, { useEffect, useRef } from 'react';
+import { toast, Toaster } from 'react-hot-toast';
+import {
+  Navigate,
+  Route,
+  BrowserRouter as Router,
+  Routes,
+  Outlet,
+  useLocation,
+  useParams,
+  useSearchParams,
+} from 'react-router-dom';
 import { AmountOffOrderProvider } from './contexts/amount-off-order.context';
 import { AmountOffProductProvider } from './contexts/amount-off-product.context';
 import { CustomerAddressProvider } from './contexts/customer-address-storefront.context';
@@ -18,7 +27,8 @@ import { PaymentProvider } from './contexts/payment.context';
 import ScrollToTop from './components/ScrollToTop';
 import { ProductOffersProvider } from './contexts/product-offers.context';
 import { Layout } from './ui/Layout';
-import { reinitThemeRuntime } from './theme/themeRuntime';
+import { LiquidThemePage } from './components/LiquidThemePage';
+import { applyInstalledThemeAssets, reinitThemeRuntime } from './theme/themeRuntime';
 import "./index.css";
 import StorefrontApp from './pages/StorefrontApp';
 import StorefrontCollectionPage from './pages/StorefrontCollectionPage';
@@ -45,6 +55,11 @@ function ThemeRuntimeOnRouteChange() {
   return null;
 }
 
+/** Full-bleed theme: no React header/footer — Liquid layout includes its own chrome. */
+function ThemeShell() {
+  return <Outlet />;
+}
+
 function LayoutShell() {
   return (
     <Layout>
@@ -55,13 +70,11 @@ function LayoutShell() {
 
 const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, checkAuth, loading } = useStorefrontAuth();
-  
-  // Check auth on mount to ensure user state is initialized
+
   useEffect(() => {
     checkAuth().catch(() => {});
   }, [checkAuth]);
-  
-  // Show loading state while checking auth
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#fefcf8]">
@@ -69,13 +82,11 @@ const AuthRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       </div>
     );
   }
-  
-  // If user is logged in, redirect to home page
+
   if (user) {
     return <Navigate to="/" replace />;
   }
-  
-  // Otherwise, show the auth page (login/signup)
+
   return <>{children}</>;
 };
 
@@ -83,28 +94,86 @@ const RedirectToHome: React.FC = () => {
   return <Navigate to="/" replace />;
 };
 
+function ProductThemePage() {
+  const { id } = useParams();
+  return (
+    <LiquidThemePage
+      candidates={['product.html']}
+      liquidTemplate="product"
+      liquidQuery={{ handle: id }}
+      fallback={<StorefrontProductDetailPage />}
+    />
+  );
+}
+
+function CollectionThemePage() {
+  const { collectionId, urlHandle } = useParams();
+  return (
+    <LiquidThemePage
+      candidates={['collection.html', 'category.html']}
+      liquidTemplate="collection"
+      liquidQuery={{ collectionId, handle: urlHandle }}
+      fallback={<StorefrontCollectionPage />}
+    />
+  );
+}
+
+function BlogDetailThemePage() {
+  const [searchParams] = useSearchParams();
+  const slug = searchParams.get('slug') ?? undefined;
+  return (
+    <LiquidThemePage
+      candidates={['blog-detail.html']}
+      liquidTemplate="blog-detail"
+      liquidQuery={slug ? { slug } : undefined}
+      fallback={<BlogDetailPage />}
+    />
+  );
+}
+
 const StorefrontRoutes: React.FC = () => (
   <Router>
     <ScrollToTop />
     <ThemeRuntimeOnRouteChange />
     <Toaster position="top-center" toastOptions={{ duration: 4000, style: { background: '#363636', color: '#fff' } }} />
     <Routes>
-      {/* Full-screen checkout: no store header / footer / cart chrome */}
       <Route path="/checkout/payment" element={<CheckoutPaymentPage />} />
-      <Route element={<LayoutShell />}>
-        <Route path="/" element={<StorefrontApp />} />
-        <Route path="/products/:id" element={<StorefrontProductDetailPage />} />
-        <Route path="/products" element={<StorefrontCollectionPage />} />
-        <Route path="/collection" element={<StorefrontCollectionsListPage />} />
+
+      <Route element={<ThemeShell />}>
+        <Route path="/" element={<LiquidThemePage candidates={['index.html']} liquidTemplate="index" fallback={<StorefrontApp />} />} />
+        <Route path="/products/:id" element={<ProductThemePage />} />
+        <Route
+          path="/products"
+          element={
+            <LiquidThemePage
+              candidates={['category.html', 'products.html']}
+              liquidTemplate="collection"
+              fallback={<StorefrontCollectionPage />}
+            />
+          }
+        />
+        <Route
+          path="/collection"
+          element={<LiquidThemePage candidates={['collection.html', 'category.html']} liquidTemplate="collection" fallback={<StorefrontCollectionsListPage />} />}
+        />
         <Route path="/category" element={<Navigate to="/products" replace />} />
-        <Route path="/collections/:collectionId/:urlHandle" element={<StorefrontCollectionPage />} />
+        <Route path="/collections/:collectionId/:urlHandle" element={<CollectionThemePage />} />
+        <Route
+          path="/wishlist"
+          element={<LiquidThemePage candidates={['wishlist.html']} liquidTemplate="wishlist" fallback={<WishlistPage />} />}
+        />
+        <Route path="/blog" element={<LiquidThemePage candidates={['blog.html']} liquidTemplate="blog" fallback={<BlogPage />} />} />
+        <Route path="/blog-detail" element={<BlogDetailThemePage />} />
+        <Route
+          path="/contact"
+          element={<LiquidThemePage candidates={['contact.html']} liquidTemplate="contact" fallback={<ContactPage />} />}
+        />
+      </Route>
+
+      <Route element={<LayoutShell />}>
         <Route path="/profile" element={<StorefrontProfilePage />} />
         <Route path="/my-orders" element={<StorefrontMyOrdersPage />} />
         <Route path="/order-success" element={<OrderSuccessPage />} />
-        <Route path="/wishlist" element={<WishlistPage />} />
-        <Route path="/blog" element={<BlogPage />} />
-        <Route path="/blog-detail" element={<BlogDetailPage />} />
-        <Route path="/contact" element={<ContactPage />} />
         <Route path="/auth/login" element={<AuthRoute><StorefrontLoginPage /></AuthRoute>} />
         <Route path="/auth/signup" element={<AuthRoute><StorefrontSignupPage /></AuthRoute>} />
         <Route path="/auth/forgot-password" element={<AuthRoute><StorefrontForgotPasswordPage /></AuthRoute>} />
@@ -116,7 +185,27 @@ const StorefrontRoutes: React.FC = () => (
 );
 
 const StorefrontEntry: React.FC = () => {
-  const { isStoreFront, storeFrontChecked, storeFrontMeta } = useStorefront();
+  const {
+    isStoreFront,
+    storeFrontChecked,
+    storeFrontMeta,
+    activeThemeId,
+    activeThemeName,
+    activeThemeEntryHtmlUrl,
+    activeThemeCssUrls,
+    activeThemeJsUrls,
+  } = useStorefront();
+  const announcedThemeRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!activeThemeId) return;
+    if (activeThemeEntryHtmlUrl) return;
+    applyInstalledThemeAssets(activeThemeCssUrls, activeThemeJsUrls);
+    if (activeThemeName && announcedThemeRef.current !== activeThemeId) {
+      announcedThemeRef.current = activeThemeId;
+      toast.success(`This store is using "${activeThemeName}" theme`);
+    }
+  }, [activeThemeId, activeThemeName, activeThemeEntryHtmlUrl, activeThemeCssUrls, activeThemeJsUrls]);
 
   if (!storeFrontChecked) {
     return null;

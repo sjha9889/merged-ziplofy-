@@ -8,7 +8,6 @@ import {
 import {
   Bars3Icon,
   CheckCircleIcon,
-  ClockIcon,
   FunnelIcon,
   MagnifyingGlassIcon,
   PhotoIcon,
@@ -76,13 +75,9 @@ const AllThemes: React.FC = () => {
     isCustomTheme: false,
   });
   const { themes, loading: themesLoading, error: themesError, fetchAll } = useThemes();
-  const { installedThemes, installTheme, uninstallTheme, fetchByStoreId } = useInstalledThemes();
+  const { installedThemes, installTheme, applyTheme, uninstallTheme, fetchByStoreId } = useInstalledThemes();
   const { activeStoreId } = useStore();
   const { customThemes, loading: customThemesLoading, fetchAll: fetchCustomThemes, deleteTheme: deleteCustomTheme, installTheme: installCustomTheme, uninstallTheme: uninstallCustomTheme, updateTheme } = useCustomThemes();
-  const [recentInstallations, setRecentInstallations] = useState<any[]>([]);
-  const [loadingRecent, setLoadingRecent] = useState<boolean>(false);
-  const [selectionMode, setSelectionMode] = useState<boolean>(false);
-  const [selectedRecentIds, setSelectedRecentIds] = useState<Set<string>>(new Set());
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [thumbnailUpdateModal, setThumbnailUpdateModal] = useState<{
     isOpen: boolean;
@@ -103,10 +98,6 @@ const AllThemes: React.FC = () => {
   const handleInstallClick = async (themeId: string) => {
     if (!activeStoreId) return;
     await installTheme(activeStoreId, themeId);
-    // Refresh recent installations after installing
-    setTimeout(() => {
-      fetchRecentInstallations();
-    }, 500);
   };
 
   const handlePreviewClick = (themeId: string, themeName: string, isInstalled: boolean = false, isCustomTheme: boolean = false) => {
@@ -363,68 +354,6 @@ const AllThemes: React.FC = () => {
     fetchAll();
   }, [fetchAll]);
 
-  // Fetch recent installations
-  const fetchRecentInstallations = async () => {
-    setLoadingRecent(true);
-    try {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-      const response = await fetch(`${apiBase}/themes/recent`);
-      if (response.ok) {
-        const data = await response.json();
-        setRecentInstallations(data || []);
-      }
-    } catch (error) {
-      console.error('Error fetching recent installations:', error);
-      setRecentInstallations([]);
-    } finally {
-      setLoadingRecent(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchRecentInstallations();
-  }, []);
-
-  // Handle delete selected recent installations
-  const handleDeleteSelectedRecent = async () => {
-    if (selectedRecentIds.size === 0) {
-      alert('Please select at least one theme to delete');
-      return;
-    }
-
-    if (!confirm(`Are you sure you want to delete ${selectedRecentIds.size} theme(s) from history?`)) {
-      return;
-    }
-
-    try {
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-      const response = await fetch(`${apiBase}/themes/recent/delete`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ themeIds: Array.from(selectedRecentIds) }),
-      });
-
-      if (response.ok) {
-        // Remove deleted items from state
-        setRecentInstallations(prev => prev.filter(rt => {
-          const idToCheck = rt.recentId || rt._id;
-          return !selectedRecentIds.has(idToCheck);
-        }));
-        setSelectedRecentIds(new Set());
-        setSelectionMode(false);
-      } else {
-        const error = await response.json();
-        alert(error.message || 'Failed to delete themes from history');
-      }
-    } catch (error) {
-      console.error('Error deleting recent installations:', error);
-      alert('Failed to delete themes from history');
-    }
-  };
-
   useEffect(() => {
     if (activeStoreId) {
       fetchByStoreId(activeStoreId);
@@ -482,15 +411,10 @@ const AllThemes: React.FC = () => {
   // Total themes = sum of custom themes + marketplace themes
   const totalCount = customThemes.length + themes.length;
   const customThemesCount = customThemes.length;
-  // Installed (marketplace only, excluding custom); builder themes appear only in Your creations
-  const installedMarketplaceOnly = installedThemes.filter(
-    (it: any) => !(it.isCustomTheme || it._id?.startsWith('custom-'))
-  );
-  const recentInstallationsMarketplaceOnly = recentInstallations.filter(
-    (rt: any) => !(rt.isCustomTheme || rt._id?.startsWith('custom-'))
-  );
+  // Installed for selected store (regular + custom), resolved from InstalledThemes flow
+  const installedForStore = installedThemes;
   const customDrafts = customThemes.filter((ct: any) => ct.status === 'draft');
-  const showingCount = installedMarketplaceOnly.length + customThemes.length + filteredThemes.length;
+  const showingCount = installedForStore.length + customThemes.length + filteredThemes.length;
 
   return (
     <div className="w-full space-y-6 pb-8">
@@ -541,7 +465,7 @@ const AllThemes: React.FC = () => {
         </div>
         <div className="mt-4 hidden rounded-xl border border-blue-100/80 bg-blue-50/40 px-4 py-2.5 sm:block">
           <p className="text-xs leading-relaxed text-blue-950/80">
-            <span className="font-semibold text-blue-950">Tip:</span> use <strong>Try theme</strong> to install a
+            <span className="font-semibold text-blue-950">Tip:</span> use <strong>Install theme</strong> to install a
             template, then <strong>Edit</strong> to customize it for your brand.
           </p>
         </div>
@@ -620,19 +544,20 @@ const AllThemes: React.FC = () => {
         </div>
       </div>
 
-        {/* Installed Themes - Section 1 (marketplace only; custom themes appear only in Your creations) */}
-        {Array.isArray(installedThemes) && installedMarketplaceOnly.length > 0 && (
+        {/* Installed Themes - Section 1 (store-installed themes) */}
+        {Array.isArray(installedThemes) && (
           <section className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
             <ThemeSectionHeader
               icon={CheckCircleIcon}
               title="Installed themes"
-              description="Live on your store — open the storefront preview or jump into the theme builder."
+              description="Themes currently installed for this store."
             />
             <div className="bg-gray-50/30 p-4 sm:p-5">
+          {installedForStore.length > 0 ? (
           <div className={`themes-layout ${viewMode}`}>
-            {installedMarketplaceOnly.map((it: any) => {
+            {installedForStore.map((it: any) => {
               const t = it; // The theme data is directly in it, not nested under themeId
-              const isCustomTheme = false; // Installed section shows only marketplace themes
+              const isCustomTheme = Boolean(t.isCustomTheme || t._id?.startsWith('custom-'));
               const actualThemeId = isCustomTheme && t.customThemeId ? t.customThemeId : t._id;
               
               return (
@@ -693,6 +618,19 @@ const AllThemes: React.FC = () => {
                     >
                       Open
                     </button>
+                    <button
+                      className="action-btn secondary"
+                      onClick={async () => {
+                        if (!activeStoreId) {
+                          alert('Please select a store first.');
+                          return;
+                        }
+                        const themeIdToApply = isCustomTheme ? actualThemeId : t._id;
+                        await applyTheme(activeStoreId, themeIdToApply);
+                      }}
+                    >
+                      Apply theme
+                    </button>
                     {isCustomTheme ? (
                       <button 
                         className="action-btn secondary" 
@@ -735,129 +673,11 @@ const AllThemes: React.FC = () => {
               </div>
             );})}
           </div>
-            </div>
-          </section>
-        )}
-
-        {/* Recent Installations - Section 2 (marketplace only) */}
-        {recentInstallationsMarketplaceOnly.length > 0 && (
-          <section className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
-            <div className="flex flex-col gap-3 border-b border-gray-100 bg-linear-to-r from-gray-50/90 to-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex min-w-0 items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50">
-                  <ClockIcon className="h-5 w-5 text-blue-600" aria-hidden />
-                </div>
-                <div className="min-w-0 pt-0.5">
-                  <h2 className="text-sm font-semibold text-gray-900">Recently installed</h2>
-                  <p className="mt-0.5 text-xs text-gray-500">History of themes you tried on this store.</p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                {selectionMode && (
-                  <button
-                    onClick={() => {
-                      setSelectionMode(false);
-                      setSelectedRecentIds(new Set());
-                    }}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                )}
-                <button
-                  onClick={() => {
-                    if (selectionMode) {
-                      handleDeleteSelectedRecent();
-                    } else {
-                      setSelectionMode(true);
-                    }
-                  }}
-                  className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                    selectionMode
-                      ? 'bg-red-600 text-white hover:bg-red-700'
-                      : 'text-gray-700 border border-gray-200 hover:bg-gray-50'
-                  }`}
-                >
-                  {selectionMode ? 'Delete Selected' : 'Delete Selected'}
-                </button>
-              </div>
-            </div>
-            <div className="space-y-3 bg-gray-50/30 p-4 sm:p-5">
-          {selectionMode && (
-            <div className="themes-selection-hint rounded-xl border border-amber-200/80 bg-amber-50/80 px-3 py-2.5 text-xs font-medium text-amber-950">
-              Select themes to delete from history
+          ) : (
+            <div className="flex min-h-[120px] items-center justify-center rounded-xl border border-dashed border-gray-200 bg-white/80 px-4 py-6 text-sm text-gray-500">
+              No themes installed for this store yet.
             </div>
           )}
-          <div className={`themes-layout ${viewMode} themes-section-body`}>
-            {recentInstallationsMarketplaceOnly.map((rt: any) => {
-              const isCustomTheme = rt.isCustomTheme || rt._id?.startsWith('custom-');
-              const actualThemeId = isCustomTheme && rt.customThemeId ? rt.customThemeId : rt._id;
-
-              return (
-                <div key={rt._id} className="theme-card" style={{ position: 'relative' }}>
-                  {selectionMode && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '12px',
-                      right: '12px',
-                      zIndex: 10,
-                    }}>
-                      <input
-                        type="checkbox"
-                        checked={selectedRecentIds.has(rt.recentId || rt._id)}
-                        onChange={(e) => {
-                          const newSelected = new Set(selectedRecentIds);
-                          const idToUse = rt.recentId || rt._id;
-                          if (e.target.checked) {
-                            newSelected.add(idToUse);
-                          } else {
-                            newSelected.delete(idToUse);
-                          }
-                          setSelectedRecentIds(newSelected);
-                        }}
-                        style={{
-                          width: '20px',
-                          height: '20px',
-                          cursor: 'pointer',
-                          accentColor: '#16a34a',
-                        }}
-                      />
-                    </div>
-                  )}
-                  <div className="theme-thumbnail">
-                    {rt.thumbnailUrl ? (
-                      <img
-                        src={rt.thumbnailUrl}
-                        alt={rt.name || ''}
-                        className="theme-image"
-                        onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-                          e.currentTarget.src =
-                            'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 300 200"><rect width="300" height="200" fill="%23f3f4f6"/><text x="150" y="100" text-anchor="middle" fill="%236b7280" font-family="Arial" font-size="14">No Preview</text></svg>';
-                        }}
-                      />
-                    ) : (
-                      <div className="theme-image-placeholder">
-                        <span>{rt.name}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="theme-info">
-                    <div className="theme-header-info">
-                      <h3 className="theme-name">{rt.name}</h3>
-                    </div>
-
-                    {rt.description && <p className="theme-description">{rt.description}</p>}
-
-                    <div className="theme-meta">
-                      <span className="theme-category">{rt.category || 'Custom'}</span>
-                      <span className="theme-price">Free</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
             </div>
           </section>
         )}
@@ -1142,8 +962,6 @@ const AllThemes: React.FC = () => {
                             await new Promise(resolve => setTimeout(resolve, 500));
                             // Refresh installed themes list
                             await fetchByStoreId(activeStoreId);
-                            // Refresh recent installations
-                            fetchRecentInstallations();
                             // Toast notification is already shown by installCustomTheme
                           }
                         }}
@@ -1260,7 +1078,7 @@ const AllThemes: React.FC = () => {
                     className="action-btn primary"
                     onClick={() => handleInstallClick(theme._id)}
                   >
-                    Try theme
+                    Install theme
                   </button>
                 )}
                 <button 

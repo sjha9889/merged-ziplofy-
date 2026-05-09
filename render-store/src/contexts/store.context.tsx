@@ -6,6 +6,25 @@ interface StorefrontContextType {
   isStoreFront: boolean;
   storeFrontChecked: boolean;
   storeFrontMeta: { name: string; description: string; storeId: string } | null;
+  activeThemeId: string | null;
+  activeThemeName: string | null;
+  activeThemeEntryHtmlUrl: string | null;
+  activeThemeCssUrls: string[];
+  activeThemeJsUrls: string[];
+  activeThemeHtmlUrls: string[];
+  /** Public base URL for installed theme files (same as theme-runtime `runtimeBaseUrl`). */
+  themeRuntimeBaseUrl: string | null;
+  /** Phase 2: server-side Liquid render endpoint is available for this theme */
+  liquidThemeEnabled: boolean;
+  /** Path after /api, e.g. /storefront/{storeId}/render/page */
+  liquidRenderPagePath: string | null;
+  /**
+   * Basenames from theme `templates/*.liquid` — used to avoid requesting missing templates.
+   * Empty array means the API did not send the list (legacy); client then allows any template name.
+   */
+  liquidTemplateNames: string[];
+  /** True when theme-runtime returned an explicit `liquid.templates` array (may be empty). */
+  liquidTemplatesListProvided: boolean;
 }
 
 const StorefrontContext = createContext<StorefrontContextType | undefined>(undefined);
@@ -14,6 +33,23 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isStoreFront, setIsStoreFront] = useState<boolean>(false);
   const [storeFrontChecked, setStoreFrontChecked] = useState<boolean>(false);
   const [storeFrontMeta, setStoreFrontMeta] = useState<{ name: string; description: string; storeId: string } | null>(null);
+  const [activeThemeId, setActiveThemeId] = useState<string | null>(null);
+  const [activeThemeName, setActiveThemeName] = useState<string | null>(null);
+  const [activeThemeEntryHtmlUrl, setActiveThemeEntryHtmlUrl] = useState<string | null>(null);
+  const [activeThemeCssUrls, setActiveThemeCssUrls] = useState<string[]>([]);
+  const [activeThemeJsUrls, setActiveThemeJsUrls] = useState<string[]>([]);
+  const [activeThemeHtmlUrls, setActiveThemeHtmlUrls] = useState<string[]>([]);
+  const [themeRuntimeBaseUrl, setThemeRuntimeBaseUrl] = useState<string | null>(null);
+  const [liquidThemeEnabled, setLiquidThemeEnabled] = useState<boolean>(false);
+  const [liquidRenderPagePath, setLiquidRenderPagePath] = useState<string | null>(null);
+  const [liquidTemplateNames, setLiquidTemplateNames] = useState<string[]>([]);
+  const [liquidTemplatesListProvided, setLiquidTemplatesListProvided] = useState(false);
+
+  useEffect(() => {
+    if (storeFrontMeta?.name) {
+      document.title = storeFrontMeta.name;
+    }
+  }, [storeFrontMeta?.name]);
 
   useEffect(() => {
     const hostname = window.location.hostname;
@@ -39,10 +75,76 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         if (data.success && data.data) {
           setIsStoreFront(true);
           setStoreFrontMeta({ name: data.data.name, description: data.data.description, storeId: data.data.storeId });
+          try {
+            const runtimeRes = await axiosi.get<{
+              success: boolean;
+              data?: {
+                themeId: string;
+                themeName: string;
+                runtimeBaseUrl?: string;
+                entryHtml?: string | null;
+                htmlUrls?: string[];
+                cssUrls?: string[];
+                jsUrls?: string[];
+                liquid?: { enabled?: boolean; renderPagePath?: string; templates?: string[] };
+              } | null;
+            }>(`/storefront/${data.data.storeId}/theme-runtime`, {
+              params: { _t: Date.now() },
+            });
+            setActiveThemeId(runtimeRes.data?.data?.themeId || null);
+            setActiveThemeName(runtimeRes.data?.data?.themeName || null);
+            const entryHtml = runtimeRes.data?.data?.entryHtml;
+            const runtimeBaseUrl = runtimeRes.data?.data?.runtimeBaseUrl;
+            setActiveThemeEntryHtmlUrl(
+              entryHtml && runtimeBaseUrl ? `${runtimeBaseUrl}/${entryHtml}` : null
+            );
+            setActiveThemeCssUrls(runtimeRes.data?.data?.cssUrls || []);
+            setActiveThemeJsUrls(runtimeRes.data?.data?.jsUrls || []);
+            setActiveThemeHtmlUrls(runtimeRes.data?.data?.htmlUrls || []);
+            const rb = runtimeRes.data?.data?.runtimeBaseUrl;
+            setThemeRuntimeBaseUrl(typeof rb === "string" && rb.length > 0 ? rb.replace(/\/$/, "") : null);
+            const liq = runtimeRes.data?.data?.liquid;
+            setLiquidThemeEnabled(Boolean(liq?.enabled));
+            setLiquidRenderPagePath(
+              typeof liq?.renderPagePath === "string" && liq.renderPagePath.length > 0
+                ? (liq.renderPagePath.startsWith("/") ? liq.renderPagePath : `/${liq.renderPagePath}`)
+                : null
+            );
+            if (Array.isArray(liq?.templates)) {
+              setLiquidTemplateNames(liq.templates);
+              setLiquidTemplatesListProvided(true);
+            } else {
+              setLiquidTemplateNames([]);
+              setLiquidTemplatesListProvided(false);
+            }
+          } catch {
+            setActiveThemeId(null);
+            setActiveThemeName(null);
+            setActiveThemeEntryHtmlUrl(null);
+            setActiveThemeCssUrls([]);
+            setActiveThemeJsUrls([]);
+            setActiveThemeHtmlUrls([]);
+            setThemeRuntimeBaseUrl(null);
+            setLiquidThemeEnabled(false);
+            setLiquidRenderPagePath(null);
+            setLiquidTemplateNames([]);
+            setLiquidTemplatesListProvided(false);
+          }
         }
       } catch {
         setIsStoreFront(false);
         setStoreFrontMeta(null);
+        setActiveThemeId(null);
+        setActiveThemeName(null);
+        setActiveThemeEntryHtmlUrl(null);
+        setActiveThemeCssUrls([]);
+        setActiveThemeJsUrls([]);
+        setActiveThemeHtmlUrls([]);
+        setThemeRuntimeBaseUrl(null);
+        setLiquidThemeEnabled(false);
+        setLiquidRenderPagePath(null);
+        setLiquidTemplateNames([]);
+        setLiquidTemplatesListProvided(false);
       } finally {
         setStoreFrontChecked(true);
       }
@@ -53,6 +155,17 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     isStoreFront,
     storeFrontChecked,
     storeFrontMeta,
+    activeThemeId,
+    activeThemeName,
+    activeThemeEntryHtmlUrl,
+    activeThemeCssUrls,
+    activeThemeJsUrls,
+    activeThemeHtmlUrls,
+    themeRuntimeBaseUrl,
+    liquidThemeEnabled,
+    liquidRenderPagePath,
+    liquidTemplateNames,
+    liquidTemplatesListProvided,
   };
 
   return (

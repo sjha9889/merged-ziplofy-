@@ -1,9 +1,10 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface IInstalledThemes extends Document {
-  user: mongoose.Types.ObjectId;
+  store: mongoose.Types.ObjectId;
+  // Deprecated: kept temporarily for backward compatibility with old records.
+  user?: mongoose.Types.ObjectId;
   theme: mongoose.Types.ObjectId;
-  isActive: boolean;
   storePath?: string;
   installedAt?: Date;
   createdAt?: Date;
@@ -13,21 +14,23 @@ export interface IInstalledThemes extends Document {
 
 const InstalledThemesSchema: Schema<IInstalledThemes> = new Schema<IInstalledThemes>(
   {
+    store: {
+      type: Schema.Types.ObjectId,
+      ref: "Store",
+      required: true,
+      index: true,
+    },
+    // Deprecated field retained so old documents still deserialize cleanly.
     user: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
       index: true,
     },
     theme: {
       type: Schema.Types.ObjectId,
       ref: "Theme",
       required: true,
-      index: true,
-    },
-    isActive: {
-      type: Boolean,
-      default: false,
       index: true,
     },
     storePath: {
@@ -46,15 +49,12 @@ const InstalledThemesSchema: Schema<IInstalledThemes> = new Schema<IInstalledThe
   { timestamps: true, versionKey: false }
 );
 
-// Ensure only one active installation per (user, theme)
-InstalledThemesSchema.index(
-  { user: 1, theme: 1 },
-  { unique: true, partialFilterExpression: { isActive: true } }
-);
+// Ensure one installation record per (store, theme)
+InstalledThemesSchema.index({ store: 1, theme: 1 }, { unique: true });
 
 // Helpful secondary indexes
-InstalledThemesSchema.index({ user: 1, theme: 1, createdAt: -1 });
-InstalledThemesSchema.index({ theme: 1, isActive: 1 });
+InstalledThemesSchema.index({ store: 1, theme: 1, createdAt: -1 });
+InstalledThemesSchema.index({ theme: 1, installedAt: -1 });
 
 export const InstalledThemes: Model<IInstalledThemes> =
   mongoose.models.InstalledThemes ||

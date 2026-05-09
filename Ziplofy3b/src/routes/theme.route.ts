@@ -2,7 +2,7 @@ import { Router } from "express";
 import fs from "fs";
 import multer from "multer";
 import path from "path";
-import { createTheme, deleteRecentInstallations, deleteTheme, downloadTheme, getInstalledThemes, getRecentInstallations, getTheme, getThemes, getThemesStatic, getThemeStats, getThumbnail, getThemePreview, installTheme, serveInstalledThemeFiles, serveThemePreviewFiles, uninstallTheme, updateTheme, listThemeFiles, readThemeFile, saveUserFileEdit } from "../controllers/theme.controller";
+import { applyThemeToStore, createTheme, deleteTheme, downloadTheme, getInstalledThemes, getTheme, getThemes, getThemesStatic, getThemeStats, getThumbnail, getThemePreview, installTheme, serveInstalledThemeFiles, serveThemePreviewFiles, uninstallTheme, updateTheme, listThemeFiles, readThemeFile, saveUserFileEdit } from "../controllers/theme.controller";
 import { authorize, authorizePermission, optionalAuth, protect } from "../middlewares/auth.middleware";
 import { RoleType } from "../types";
 
@@ -23,24 +23,8 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  if (file.fieldname === "zipFile") {
-    if (
-      file.mimetype === "application/zip" ||
-      file.mimetype === "application/x-zip-compressed"
-    ) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only ZIP files are allowed"));
-    }
-  } else if (file.fieldname === "thumbnail") {
-    if (file.mimetype.startsWith("image/")) {
-      cb(null, true);
-    } else {
-      cb(new Error("Only image files are allowed"));
-    }
-  } else {
-    cb(new Error("Unexpected field"));
-  }
+  // Keep uploads permissive for now.
+  cb(null, true);
 };
 
 const upload = multer({
@@ -51,10 +35,30 @@ const upload = multer({
   },
 });
 
+const handleMulterError = (err: any, req: any, res: any, next: any) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(413).json({
+        success: false,
+        error: "ZIP/thumbnail too large. Maximum allowed size is 50MB.",
+      });
+    }
+    return res.status(400).json({
+      success: false,
+      error: `Upload error: ${err.message}`,
+    });
+  }
+  if (err) {
+    return res.status(400).json({
+      success: false,
+      error: err.message || "File upload error",
+    });
+  }
+  return next();
+};
+
 // Public routes
 themeRouter.route("/installed").get(getInstalledThemes);
-themeRouter.route("/recent").get(getRecentInstallations);
-themeRouter.route("/recent/delete").post(deleteRecentInstallations);
 themeRouter.route("/").get(getThemes);
 
 themeRouter.route("/themesStatic").get(getThemesStatic);
@@ -76,6 +80,7 @@ themeRouter.route("/file/:themeId").get(optionalAuth as any, readThemeFile);
 // Protected routes
 themeRouter.use(protect);
 
+themeRouter.post("/apply", applyThemeToStore);
 themeRouter.route("/uninstall").delete(uninstallTheme);
 
 themeRouter.route("/:id").get(getTheme);
@@ -97,6 +102,7 @@ themeRouter.route("/").post(
     { name: "zipFile", maxCount: 1 },
     { name: "thumbnail", maxCount: 1 },
   ]),
+  handleMulterError,
   createTheme
 );
 
@@ -108,6 +114,7 @@ themeRouter
       { name: "zipFile", maxCount: 1 },
       { name: "thumbnail", maxCount: 1 },
     ]),
+    handleMulterError,
     updateTheme
   )
   .delete(authorizePermission("Theme Management", "edit"), deleteTheme); // Also checks "Developer" → "Theme Developer" as alternative

@@ -8,6 +8,7 @@ import { Store } from "../models/store/store.model";
 import { asyncErrorHandler, CustomError } from "../utils/error.utils";
 import { AmountOffProductsDiscount, AmountOffProductsEntry, AmountOffOrderDiscount } from "../models";
 import { CollectionEntry } from "../models/collection-entry/collection-entry.model";
+import { absolutizeImageUrlsArray, publicOriginFromRequest } from "../utils/public-origin.util";
 
 // Create a new product
 export const createProduct = asyncErrorHandler(async (req: Request, res: Response) => {
@@ -555,11 +556,13 @@ export const getProductsByStoreIdPublic = asyncErrorHandler(async (req: Request,
   }
 
   // ===== ENRICH PRODUCTS WITH DISCOUNT INFO =====
+  const publicOrigin = publicOriginFromRequest(req);
   const enrichedProducts = products.map((product: any) => {
     const productId = String(product._id);
     const discount = productDiscountMap.get(productId);
     return {
       ...product,
+      imageUrls: absolutizeImageUrlsArray(publicOrigin, product.imageUrls),
       productDiscount: discount || null
     };
   });
@@ -654,9 +657,19 @@ export const getProductByIdPublic = asyncErrorHandler(async (req: Request, res: 
     })
     .lean();
 
+  const publicOrigin = publicOriginFromRequest(req);
+  const variantsOut = variants.map((v: any) => ({
+    ...v,
+    images: absolutizeImageUrlsArray(publicOrigin, v.images),
+  }));
+
   res.status(200).json({
     success: true,
-    data: { ...product, variants },
+    data: {
+      ...product,
+      imageUrls: absolutizeImageUrlsArray(publicOrigin, (product as any).imageUrls),
+      variants: variantsOut,
+    },
   });
 });
 

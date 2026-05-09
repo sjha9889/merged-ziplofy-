@@ -13,39 +13,39 @@ export const installThemeForStore = asyncErrorHandler(async (req: Request, res: 
   if (!validTheme) throw new CustomError('Theme not found', 404);
 
   const doc = await InstalledThemes.findOneAndUpdate(
-    { storeId: new mongoose.Types.ObjectId(storeId), themeId: new mongoose.Types.ObjectId(themeId) },
-    { $set: { isActive: true } },
+    { store: new mongoose.Types.ObjectId(storeId), theme: new mongoose.Types.ObjectId(themeId) },
+    { $set: { uninstalledAt: null } },
     { upsert: true, new: true, setDefaultsOnInsert: true }
-  ).populate('themeId').lean();
+  ).populate('theme').lean();
 
-  if (doc && (doc as any).themeId) {
-    const t: any = (doc as any).themeId;
+  if (doc && (doc as any).theme) {
+    const t: any = (doc as any).theme;
     const thumbnailUrl = t?.thumbnail?.filename
       ? `${req.protocol}://${req.get('host')}/uploads/themes/${t.themePath}/thumbnail/${t.thumbnail.filename}`
       : null;
-    (doc as any).themeId.thumbnailUrl = thumbnailUrl;
-    delete (doc as any).themeId.thumbnail;
-    delete (doc as any).themeId.zipFile;
-    delete (doc as any).themeId.themePath;
-    delete (doc as any).themeId.directories;
+    (doc as any).theme.thumbnailUrl = thumbnailUrl;
+    delete (doc as any).theme.thumbnail;
+    delete (doc as any).theme.zipFile;
+    delete (doc as any).theme.themePath;
+    delete (doc as any).theme.directories;
   }
 
   return res.status(200).json({ success: true, data: doc });
 });
 
-// Get installed (active) themes by store id
+// Get installed themes by store id
 export const getInstalledThemesByStore = asyncErrorHandler(async (req: Request, res: Response) => {
   const { storeId } = req.params as { storeId: string };
   if (!storeId) throw new CustomError('storeId is required', 400);
 
-  const records = await InstalledThemes.find({ storeId: new mongoose.Types.ObjectId(storeId), isActive: true })
-    .populate('themeId')
+  const records = await InstalledThemes.find({ store: new mongoose.Types.ObjectId(storeId), uninstalledAt: null })
+    .populate('theme')
     .lean();
 
   // For each record, replace themeId.thumbnail with thumbnailUrl only
   const shaped = records.map((r: any) => {
-    if (r?.themeId) {
-      const t = r.themeId as any;
+    if (r?.theme) {
+      const t = r.theme as any;
       const thumbnailUrl = t?.thumbnail?.filename
         ? `${req.protocol}://${req.get('host')}/uploads/themes/${t.themePath}/thumbnail/${t.thumbnail.filename}`
         : null;

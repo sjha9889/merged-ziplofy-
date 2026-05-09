@@ -7,7 +7,7 @@ type Props = {
 };
 
 export function StorefrontListingCard({ product }: Props) {
-  const image = product.imageUrls?.[0] || '/assets/img/watch-1.jpg';
+  const image = product.imageUrls?.[0] || '';
   const hoverImage = product.imageUrls?.[1] || image;
   const label = product.createdAt
     ? (new Date().getTime() - new Date(product.createdAt).getTime()) / (1000 * 60 * 60 * 24) < 45
@@ -27,16 +27,22 @@ export function StorefrontListingCard({ product }: Props) {
 
       <Link to={`/products/${product._id}`} className="block">
         <div className="relative h-[290px] overflow-hidden bg-[#f7f7f7]">
-          <img
-            src={image}
-            alt={product.title}
-            className="absolute inset-0 h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-0"
-          />
-          <img
-            src={hoverImage}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-          />
+          {image ? (
+            <>
+              <img
+                src={image}
+                alt={product.title}
+                className="absolute inset-0 h-full w-full object-cover transition-opacity duration-300 group-hover:opacity-0"
+              />
+              <img
+                src={hoverImage}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+              />
+            </>
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-sm text-[#999]">No image</div>
+          )}
         </div>
 
         <div className="border-t border-[#efefef] px-5 pb-5 pt-4">
@@ -45,7 +51,7 @@ export function StorefrontListingCard({ product }: Props) {
             {product.title}
           </h3>
           <p className="mt-1 text-[12px] text-[#585858]">
-            {product.vendor?.name || 'Swisswrist'} - {product.category?.name || 'Watch'}
+            {product.vendor?.name || 'Vendor'} — {product.category?.name || 'Product'}
           </p>
           <p className="mt-3 text-[20px] font-semibold text-[#111]">{formatINR(product.price)}</p>
         </div>

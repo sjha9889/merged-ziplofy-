@@ -102,7 +102,7 @@ const ThemeCard: React.FC<ThemeCardProps> = ({ theme, installedThemes, onInstall
             type="button"
             className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:from-blue-700 hover:to-indigo-700 hover:shadow-md active:scale-[0.99]"
           >
-            Try theme
+            Install theme
           </button>
           <div className="grid grid-cols-2 gap-2">
             <button

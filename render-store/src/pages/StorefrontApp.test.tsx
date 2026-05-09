@@ -4,8 +4,6 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import StorefrontApp from './StorefrontApp';
 
-vi.mock('../components/StorefrontNavbar', () => ({ default: () => <nav data-testid="navbar">Navbar</nav> }));
-vi.mock('../components/AuthPopup', () => ({ default: () => null }));
 vi.mock('../contexts/store.context', () => ({
   useStorefront: () => ({
     storeFrontMeta: { storeId: 's1', name: 'Test Store', description: 'Store desc' },
@@ -50,61 +48,28 @@ vi.mock('../contexts/storefront-collections.context', () => ({
     fetchCollectionsByStoreId: vi.fn(),
   }),
 }));
-vi.mock('../contexts/product-variant.context', () => ({
-  useStorefrontProductVariants: () => ({
-    fetchVariantsByProductId: vi.fn().mockResolvedValue([{ _id: 'v1', isSynthetic: false }]),
-  }),
-}));
 
-vi.mock('framer-motion', () => {
-  const R = require('react');
-  const strip = (p: Record<string, unknown> = {}) => {
-    const { whileInView, whileHover, whileTap, animate, initial, transition, layout, layoutId, ...rest } = p;
-    return rest;
-  };
-  const tags = ['div', 'section', 'span', 'button', 'h1', 'h2', 'h3', 'h4', 'p', 'img', 'input', 'footer'];
-  const motion = Object.fromEntries(
-    tags.map((tag) => [
-      tag,
-      tag === 'img' ? (props: any) => R.createElement(tag, strip(props))
-        : ({ children, ...props }: any) => R.createElement(tag, strip(props), children),
-    ])
-  );
-  return { motion };
-});
-
-const Wrapper = ({ children }: { children: React.ReactNode }) => (
-  <MemoryRouter>{children}</MemoryRouter>
-);
+const Wrapper = ({ children }: { children: React.ReactNode }) => <MemoryRouter>{children}</MemoryRouter>;
 
 describe('StorefrontApp', () => {
-  it('renders store name in hero', () => {
+  it('renders store name', () => {
     render(<StorefrontApp />, { wrapper: Wrapper });
     expect(screen.getByRole('heading', { name: /test store/i })).toBeInTheDocument();
   });
 
-  it('renders navbar', () => {
+  it('renders store description', () => {
     render(<StorefrontApp />, { wrapper: Wrapper });
-    expect(screen.getByTestId('navbar')).toBeInTheDocument();
+    expect(screen.getByText('Store desc')).toBeInTheDocument();
   });
 
-  it('renders Featured Products section', () => {
-    render(<StorefrontApp />, { wrapper: Wrapper });
-    expect(screen.getByText('Featured Products')).toBeInTheDocument();
-  });
-
-  it('renders product when products loaded', () => {
+  it('renders product from API', () => {
     render(<StorefrontApp />, { wrapper: Wrapper });
     expect(screen.getByText('Product One')).toBeInTheDocument();
   });
 
-  it('renders Shop Now button', () => {
+  it('links to products and collections', () => {
     render(<StorefrontApp />, { wrapper: Wrapper });
-    expect(screen.getByRole('button', { name: /shop now/i })).toBeInTheDocument();
-  });
-
-  it('renders Why Choose Us section', () => {
-    render(<StorefrontApp />, { wrapper: Wrapper });
-    expect(screen.getByText('Why Choose Us')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /browse products/i })).toHaveAttribute('href', '/products');
+    expect(screen.getByRole('link', { name: /collections/i })).toHaveAttribute('href', '/collection');
   });
 });

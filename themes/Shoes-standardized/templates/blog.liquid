@@ -1,0 +1,12 @@
+{% layout 'main' %}
+<div class="container py-5">
+  <h1 class="mb-4">{{ page.title | default: 'Blog' }}</h1>
+  {% for a in articles %}
+    <article class="mb-5 border-bottom pb-4">
+      <h2 class="h4"><a href="{{ a.url }}">{{ a.title }}</a></h2>
+      {% if a.excerpt %}<p class="text-muted">{{ a.excerpt }}</p>{% endif %}
+    </article>
+  {% else %}
+    <p class="text-muted">New posts will appear here soon.</p>
+  {% endfor %}
+</div>
