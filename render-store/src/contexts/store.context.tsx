@@ -25,6 +25,20 @@ interface StorefrontContextType {
   liquidTemplateNames: string[];
   /** True when theme-runtime returned an explicit `liquid.templates` array (may be empty). */
   liquidTemplatesListProvided: boolean;
+  /** Active React pack resolved from network payload (/storefront/:storeId/react-theme-pack). */
+  activeReactThemePackId: "theme1" | "theme2" | null;
+  /** Full list of network theme packs available to this store. */
+  reactThemePacks: Array<{
+    id: "theme1" | "theme2";
+    name: string;
+    version: string;
+    description: string;
+    homeEntry: "theme1" | "theme2";
+    productEntry: "theme1" | "theme2";
+    profileEntry: "theme1" | "theme2";
+    ordersEntry: "theme1" | "theme2";
+    preferencesEntry: "theme1" | "theme2";
+  }>;
 }
 
 const StorefrontContext = createContext<StorefrontContextType | undefined>(undefined);
@@ -44,6 +58,8 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [liquidRenderPagePath, setLiquidRenderPagePath] = useState<string | null>(null);
   const [liquidTemplateNames, setLiquidTemplateNames] = useState<string[]>([]);
   const [liquidTemplatesListProvided, setLiquidTemplatesListProvided] = useState(false);
+  const [activeReactThemePackId, setActiveReactThemePackId] = useState<"theme1" | "theme2" | null>(null);
+  const [reactThemePacks, setReactThemePacks] = useState<StorefrontContextType["reactThemePacks"]>([]);
 
   useEffect(() => {
     if (storeFrontMeta?.name) {
@@ -75,6 +91,23 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         if (data.success && data.data) {
           setIsStoreFront(true);
           setStoreFrontMeta({ name: data.data.name, description: data.data.description, storeId: data.data.storeId });
+          try {
+            const reactPackRes = await axiosi.get<{
+              success: boolean;
+              data?: {
+                activePackId: "theme1" | "theme2";
+                packs: StorefrontContextType["reactThemePacks"];
+              };
+            }>(`/storefront/${data.data.storeId}/react-theme-pack`, {
+              params: { _t: Date.now() },
+            });
+            setActiveReactThemePackId(reactPackRes.data?.data?.activePackId || null);
+            setReactThemePacks(reactPackRes.data?.data?.packs || []);
+          } catch {
+            setActiveReactThemePackId(null);
+            setReactThemePacks([]);
+          }
+
           try {
             const runtimeRes = await axiosi.get<{
               success: boolean;
@@ -145,6 +178,8 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setLiquidRenderPagePath(null);
         setLiquidTemplateNames([]);
         setLiquidTemplatesListProvided(false);
+        setActiveReactThemePackId(null);
+        setReactThemePacks([]);
       } finally {
         setStoreFrontChecked(true);
       }
@@ -166,6 +201,8 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     liquidRenderPagePath,
     liquidTemplateNames,
     liquidTemplatesListProvided,
+    activeReactThemePackId,
+    reactThemePacks,
   };
 
   return (

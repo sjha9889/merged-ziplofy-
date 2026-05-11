@@ -58,6 +58,7 @@ import './utils/env.utils';
 import { env, loadedEnvFile, validateEnv } from './utils/env.utils';
 // Ensure Mongoose registers dependent models used via refs (e.g., Supplier)
 import { getAllThemesPublic } from './controllers/theme.controller';
+import { getStoreTheme } from './controllers/storefront-theme-pack.controller';
 import './models/supplier/supplier.model';
 import actionRouter from './routes/action.route';
 import { activityLogRouter } from './routes/activity-log.route';
@@ -307,6 +308,8 @@ app.get('/api/health', (req: Request, res: Response) => {
     uptime: process.uptime()
   });
 });
+
+app.get('/api/get-store-theme', getStoreTheme);
 
 
 io.use(socketAuthMiddleware);

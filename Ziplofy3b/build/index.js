@@ -63,6 +63,7 @@ require("./utils/env.utils");
 const env_utils_1 = require("./utils/env.utils");
 // Ensure Mongoose registers dependent models used via refs (e.g., Supplier)
 const theme_controller_1 = require("./controllers/theme.controller");
+const storefront_theme_pack_controller_1 = require("./controllers/storefront-theme-pack.controller");
 require("./models/supplier/supplier.model");
 const action_route_1 = __importDefault(require("./routes/action.route"));
 const activity_log_route_1 = require("./routes/activity-log.route");
@@ -292,6 +293,7 @@ app.get('/api/health', (req, res) => {
         uptime: process.uptime()
     });
 });
+app.get('/api/get-store-theme', storefront_theme_pack_controller_1.getStoreTheme);
 io.use(socket_auth_middleware_1.socketAuthMiddleware);
 // Socket.IO connection handling
 (0, socket_1.registerSocketHandlers)(io);

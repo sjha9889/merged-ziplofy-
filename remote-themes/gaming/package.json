@@ -1,0 +1,22 @@
+{
+  "name": "@ziplofy/theme-gaming",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "description": "Gaming storefront theme — Vite library bundle (not a standalone app). Consumes @render-store/sdk at runtime.",
+  "scripts": {
+    "build": "vite build"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.5",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.4"
+  }
+}
