@@ -16,4 +16,5 @@ export interface ThemeContract {
   ProfilePage: ThemeComponent;
   OrdersPage: ThemeComponent;
   PreferencesPage: ThemeComponent;
+  CartPage: ThemeComponent;
 }

@@ -3,7 +3,7 @@ import type { ComponentType } from "react";
 export type ThemeComponent = ComponentType;
 
 export interface ThemeContract {
-  id: "gaming";
+  id: "gaming" | "beauty";
   Header: ThemeComponent;
   Footer: ThemeComponent;
   HeroSection: ThemeComponent;
@@ -16,4 +16,5 @@ export interface ThemeContract {
   ProfilePage: ThemeComponent;
   OrdersPage: ThemeComponent;
   PreferencesPage: ThemeComponent;
+  CartPage: ThemeComponent;
 }

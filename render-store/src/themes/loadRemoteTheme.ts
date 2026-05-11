@@ -8,10 +8,11 @@ export async function loadRemoteTheme(moduleUrl: string): Promise<ThemeContract>
   const mod = (await import(/* @vite-ignore */ moduleUrl)) as {
     default?: ThemeContract;
     gamingThemeContract?: ThemeContract;
+    beautyThemeContract?: ThemeContract;
   };
-  const contract = mod.default ?? mod.gamingThemeContract;
-  if (!contract?.HomePage || !contract.ProductPage) {
-    throw new Error('Invalid theme module: expected default export ThemeContract with HomePage, ProductPage, …');
+  const contract = mod.default ?? mod.gamingThemeContract ?? mod.beautyThemeContract;
+  if (!contract?.HomePage || !contract.ProductPage || !contract.CartPage) {
+    throw new Error('Invalid theme module: expected default export ThemeContract with HomePage, ProductPage, CartPage, …');
   }
   return contract;
 }

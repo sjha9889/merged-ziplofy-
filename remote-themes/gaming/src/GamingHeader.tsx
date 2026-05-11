@@ -25,7 +25,9 @@ export const GamingHeader = () => {
           <Link to="/preferences" style={{ color: '#f3f3f3' }}>
             Preferences
           </Link>
-          <span style={{ color: '#f9d66e' }}>Cart: {cartCount}</span>
+          <Link to="/cart" style={{ color: '#f9d66e', textDecoration: 'none', fontWeight: 700 }}>
+            Cart: {cartCount}
+          </Link>
           {user ? (
             <button
               type="button"

@@ -1,4 +1,5 @@
 import type { ThemeContract } from './contract';
+import { GamingCartPage } from './GamingCartPage';
 import { GamingFooter } from './GamingFooter';
 import { GamingHeader } from './GamingHeader';
 import { GamingHeroSection } from './GamingHeroSection';
@@ -26,4 +27,5 @@ export const gamingThemeContract: ThemeContract = {
   ProfilePage: GamingProfilePage,
   OrdersPage: GamingOrdersPage,
   PreferencesPage: GamingPreferencesPage,
+  CartPage: GamingCartPage,
 };

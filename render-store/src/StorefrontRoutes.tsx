@@ -38,6 +38,12 @@ const StorefrontPreferencesRoute = () => {
   return <Page />;
 };
 
+const StorefrontCartRoute = () => {
+  const theme = useLoadedThemeContract();
+  const Page = theme.CartPage;
+  return <Page />;
+};
+
 export const StorefrontRoutes = () => (
   <Router>
     <Routes>
@@ -51,6 +57,7 @@ export const StorefrontRoutes = () => (
       <Route path="/profile" element={<StorefrontProfileRoute />} />
       <Route path="/my-orders" element={<StorefrontOrdersRoute />} />
       <Route path="/preferences" element={<StorefrontPreferencesRoute />} />
+      <Route path="/cart" element={<StorefrontCartRoute />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   </Router>
