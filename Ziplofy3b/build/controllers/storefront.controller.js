@@ -256,6 +256,12 @@ exports.getStorefrontThemeRuntime = (0, error_utils_1.asyncErrorHandler)(async (
     const unzippedThemeDir = path_1.default.join(storeThemeDir, "unzippedTheme");
     const runtimeBaseDir = fs_1.default.existsSync(unzippedThemeDir) ? unzippedThemeDir : storeThemeDir;
     const runtimeBaseUrl = `${req.protocol}://${req.get("host")}/api/themes/installed/${encodeURIComponent(storeId)}/${encodeURIComponent(String(runtimeThemeKey))}/unzippedTheme`;
+    const remoteDistDir = path_1.default.join(storeThemeDir, "remoteThemeDist");
+    const remoteJsDisk = path_1.default.join(remoteDistDir, "theme.js");
+    const remoteCssDisk = path_1.default.join(remoteDistDir, "theme.css");
+    const remoteDistPublicBase = `/api/themes/installed/${encodeURIComponent(storeId)}/${encodeURIComponent(String(runtimeThemeKey))}/remoteThemeDist`;
+    const remoteThemeJsUrl = fs_1.default.existsSync(remoteJsDisk) ? `${remoteDistPublicBase}/theme.js` : null;
+    const remoteThemeCssUrl = fs_1.default.existsSync(remoteCssDisk) ? `${remoteDistPublicBase}/theme.css` : null;
     const listFilesRecursive = (dirPath, prefix = "") => {
         if (!fs_1.default.existsSync(dirPath))
             return [];
@@ -335,6 +341,9 @@ exports.getStorefrontThemeRuntime = (0, error_utils_1.asyncErrorHandler)(async (
                 /** Template basenames that exist under `templates/*.liquid` (client uses this to avoid 404s). */
                 templates: (0, storefront_theme_runtime_util_1.listLiquidTemplateNames)(runtimeBaseDir),
             },
+            /** Paths under `/api/...` — client resolves with `VITE_API_URL` or same-origin proxy. */
+            remoteThemeJsUrl,
+            remoteThemeCssUrl,
         },
     });
 });

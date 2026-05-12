@@ -11,5 +11,8 @@
     "skipLibCheck": true,
     "noErrorTruncation": true,
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": [
+    "src/data/storefront-theme-sources/**/*"
+  ]
 }

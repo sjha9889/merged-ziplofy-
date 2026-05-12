@@ -9,171 +9,107 @@ import {
   type ReactNode,
 } from 'react';
 import type { ThemeContract } from './contract';
+import { useStorefront } from '../contexts/store.context';
+import { getStorefrontAssetOrigin } from '../config/storefrontAssetOrigin';
 import { loadRemoteTheme } from './loadRemoteTheme';
-
-export type RemoteThemeId = 'gaming' | 'beauty';
+import { rewriteRemoteThemeImports } from './rewriteRemoteThemeImports';
 
 type LoadedThemeContextValue = {
   contract: ThemeContract;
   reload: () => Promise<void>;
-  switchTheme: (id: RemoteThemeId) => void;
   switching: boolean;
 };
 
 const LoadedThemeContext = createContext<LoadedThemeContextValue | null>(null);
 
-function themeModuleUrl(id: RemoteThemeId): string {
-  const origin = window.location.origin;
-  return id === 'beauty' ? `${origin}/__remote_theme/beauty.mjs` : `${origin}/__remote_theme/theme.mjs`;
-}
-
-function readStoredThemeId(): RemoteThemeId | null {
-  try {
-    const v = localStorage.getItem('ziplofyThemeId');
-    if (v === 'gaming' || v === 'beauty') return v;
-  } catch {
-    /* ignore */
-  }
-  return null;
-}
-
-function normalizeToAbsoluteUrl(url: string): string {
-  const trimmed = url.trim();
+/** Resolve `/api/...` paths for fetch/import (Vite dev proxy or `VITE_API_URL`). */
+function resolveThemeAssetUrl(href: string): string {
+  const trimmed = href.trim();
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
-  const origin = window.location.origin;
-  return `${origin}${trimmed.startsWith('/') ? trimmed : `/${trimmed}`}`;
-}
-
-function initialModuleUrl(): string {
-  const stored = readStoredThemeId();
-  if (stored) return themeModuleUrl(stored);
-  const fromEnv = import.meta.env.VITE_LOCAL_REMOTE_THEME_URL;
-  if (typeof fromEnv === 'string' && fromEnv.trim().length > 0) {
-    return normalizeToAbsoluteUrl(fromEnv);
-  }
-  return themeModuleUrl('gaming');
-}
-
-function stylesheetHrefForContract(contract: ThemeContract): string {
-  const fromEnv = import.meta.env.VITE_LOCAL_REMOTE_THEME_CSS_URL;
-  if (typeof fromEnv === 'string' && fromEnv.trim().length > 0) {
-    return normalizeToAbsoluteUrl(fromEnv);
-  }
-  const origin = window.location.origin;
-  return contract.id === 'beauty' ? `${origin}/__remote_theme/beauty.css` : `${origin}/__remote_theme/theme.css`;
-}
-
-function ThemeSwitcherBar() {
-  const ctx = useContext(LoadedThemeContext);
-  const show =
-    import.meta.env.DEV || String(import.meta.env.VITE_SHOW_THEME_SWITCHER ?? '').toLowerCase() === 'true';
-  if (!ctx || !show) return null;
-
-  const { contract, switchTheme, switching } = ctx;
-  const active: RemoteThemeId = contract.id === 'beauty' ? 'beauty' : 'gaming';
-
-  const btn = (id: RemoteThemeId, label: string) => {
-    const on = active === id;
-    return (
-      <button
-        type="button"
-        disabled={switching || on}
-        onClick={() => switchTheme(id)}
-        style={{
-          fontFamily: 'system-ui, sans-serif',
-          fontSize: 12,
-          fontWeight: 600,
-          letterSpacing: '0.04em',
-          padding: '8px 14px',
-          borderRadius: 8,
-          border: on ? '1px solid #111' : '1px solid #ddd',
-          background: on ? '#111' : '#fff',
-          color: on ? '#fff' : '#222',
-          cursor: switching || on ? 'default' : 'pointer',
-          opacity: switching && !on ? 0.55 : 1,
-        }}
-      >
-        {label}
-      </button>
-    );
-  };
-
-  return (
-    <div
-      role="group"
-      aria-label="Theme switcher"
-      style={{
-        position: 'fixed',
-        right: 16,
-        bottom: 16,
-        zIndex: 9999,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '10px 12px',
-        borderRadius: 12,
-        background: 'rgba(255,255,255,0.92)',
-        border: '1px solid rgba(0,0,0,0.08)',
-        boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
-        backdropFilter: 'blur(8px)',
-      }}
-    >
-      <span style={{ fontSize: 11, color: '#666', marginRight: 4, fontFamily: 'system-ui, sans-serif' }}>Theme</span>
-      {btn('gaming', 'Gaming')}
-      {btn('beauty', 'Beauty')}
-      {switching ? (
-        <span style={{ fontSize: 11, color: '#888', marginLeft: 4, fontFamily: 'system-ui, sans-serif' }}>Loading…</span>
-      ) : null}
-    </div>
-  );
+  const viteApi = import.meta.env.VITE_API_URL;
+  const base = typeof viteApi === 'string' && viteApi.trim() !== '' ? viteApi.replace(/\/$/, '') : '';
+  if (base) return `${base}${trimmed.startsWith('/') ? trimmed : `/${trimmed}`}`;
+  return `${window.location.origin}${trimmed.startsWith('/') ? trimmed : `/${trimmed}`}`;
 }
 
 /**
- * Loads the remote theme bundle (local dev: `/__remote_theme/theme.mjs` or `beauty.mjs` from the Vite plugin).
+ * Loads the React theme bundle from the API (`theme-runtime` → installed `remoteThemeDist/theme.js`).
  * Renders children only after a valid ThemeContract is available.
  */
 export function RemoteThemeProvider({ children }: { children: ReactNode }) {
-  const [moduleUrl, setModuleUrl] = useState(initialModuleUrl);
+  const { remoteThemeJsUrl, remoteThemeCssUrl, activeThemeId } = useStorefront();
   const [contract, setContract] = useState<ThemeContract | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const contractRef = useRef<ThemeContract | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     contractRef.current = contract;
   }, [contract]);
 
+  const revokeBlob = () => {
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
+  };
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
+    revokeBlob();
+
+    if (!remoteThemeJsUrl) {
+      setError(
+        new Error(
+          activeThemeId
+            ? 'This theme has no uploaded React bundle (remoteThemeDist/theme.js). Upload theme.js in admin or apply a theme that includes it.'
+            : 'No theme is applied to this store. Apply a theme in admin, then reload.'
+        )
+      );
+      setContract(null);
+      setLoading(false);
+      return;
+    }
+
     try {
-      const next = await loadRemoteTheme(moduleUrl);
-      setContract(next);
-      try {
-        localStorage.setItem('ziplofyThemeId', next.id === 'beauty' ? 'beauty' : 'gaming');
-      } catch {
-        /* ignore */
+      const jsUrl = resolveThemeAssetUrl(remoteThemeJsUrl);
+      const res = await fetch(jsUrl, { credentials: 'include' });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch theme bundle (${res.status}): ${jsUrl}`);
       }
+      const raw = await res.text();
+      const body = rewriteRemoteThemeImports(raw, getStorefrontAssetOrigin());
+      const blob = new Blob([body], { type: 'application/javascript' });
+      const blobUrl = URL.createObjectURL(blob);
+      blobUrlRef.current = blobUrl;
+      const next = await loadRemoteTheme(blobUrl);
+      setContract(next);
     } catch (e) {
       setError(e instanceof Error ? e : new Error(String(e)));
       const cur = contractRef.current;
       if (cur) {
-        setModuleUrl(themeModuleUrl(cur.id === 'beauty' ? 'beauty' : 'gaming'));
+        setContract(cur);
+      } else {
+        setContract(null);
       }
     } finally {
       setLoading(false);
     }
-  }, [moduleUrl]);
+  }, [remoteThemeJsUrl, activeThemeId]);
 
   useEffect(() => {
     void load();
+    return () => {
+      revokeBlob();
+    };
   }, [load]);
 
-  const switchTheme = useCallback((id: RemoteThemeId) => {
-    setModuleUrl(themeModuleUrl(id));
-  }, []);
-
-  const cssHref = useMemo(() => (contract ? stylesheetHrefForContract(contract) : ''), [contract]);
+  const cssHref = useMemo(() => {
+    if (!remoteThemeCssUrl) return '';
+    return resolveThemeAssetUrl(remoteThemeCssUrl);
+  }, [remoteThemeCssUrl]);
 
   useEffect(() => {
     const linkId = 'ziplofy-remote-theme-css';
@@ -199,8 +135,8 @@ export function RemoteThemeProvider({ children }: { children: ReactNode }) {
 
   const providerValue = useMemo((): LoadedThemeContextValue | null => {
     if (!contract) return null;
-    return { contract, reload: load, switchTheme, switching: loading };
-  }, [contract, load, switchTheme, loading]);
+    return { contract, reload: load, switching: loading };
+  }, [contract, load, loading]);
 
   const blockingLoad = loading && !contract;
 
@@ -216,12 +152,11 @@ export function RemoteThemeProvider({ children }: { children: ReactNode }) {
     return (
       <div style={{ padding: 24, maxWidth: 560, fontFamily: 'system-ui, sans-serif' }}>
         <h1 style={{ fontSize: 18, marginTop: 0 }}>Theme load failed</h1>
-        <p style={{ color: '#444' }}>Could not dynamically import the theme bundle.</p>
+        <p style={{ color: '#444' }}>Could not load the theme bundle from the server.</p>
         <pre style={{ overflow: 'auto', background: '#f5f5f5', padding: 12, fontSize: 13 }}>{error?.message}</pre>
         <p style={{ color: '#666', fontSize: 14 }}>
-          Build a theme bundle, then reload. Examples: <code>cd remote-themes/gaming && npm run build</code> or{' '}
-          <code>cd remote-themes/beauty && npm run build</code>. Use <code>VITE_LOCAL_REMOTE_THEME_URL</code> for a custom module URL (e.g.{' '}
-          <code>/__remote_theme/beauty.mjs</code>); optional <code>VITE_LOCAL_REMOTE_THEME_CSS_URL</code> overrides stylesheet detection.
+          Ensure the store has an applied theme and the theme was uploaded with <code>theme.js</code> (and optionally{' '}
+          <code>theme.css</code>) under <code>remoteThemeDist</code>, then install the theme for this store.
         </p>
         <button type="button" onClick={() => void load()} style={{ marginTop: 12, padding: '8px 14px' }}>
           Retry
@@ -230,12 +165,7 @@ export function RemoteThemeProvider({ children }: { children: ReactNode }) {
     );
   }
 
-  return (
-    <LoadedThemeContext.Provider value={providerValue}>
-      {children}
-      <ThemeSwitcherBar />
-    </LoadedThemeContext.Provider>
-  );
+  return <LoadedThemeContext.Provider value={providerValue}>{children}</LoadedThemeContext.Provider>;
 }
 
 export function useLoadedThemeContract(): ThemeContract {
@@ -246,12 +176,15 @@ export function useLoadedThemeContract(): ThemeContract {
   return ctx.contract;
 }
 
-/** Switch theme at runtime (same origin `/__remote_theme/*.mjs` URLs). Only valid after the theme has loaded once. */
-export function useRemoteThemeSwitcher(): Pick<LoadedThemeContextValue, 'switchTheme' | 'switching'> & { activeThemeId: RemoteThemeId } {
+/** @deprecated Local gaming/beauty/shoes switcher was removed; theme comes from the applied store theme only. */
+export function useRemoteThemeSwitcher(): { switchTheme: () => void; switching: boolean; activeThemeId: ThemeContract['id'] } {
   const ctx = useContext(LoadedThemeContext);
   if (!ctx) {
     throw new Error('useRemoteThemeSwitcher must be used within RemoteThemeProvider after a successful theme load');
   }
-  const activeThemeId: RemoteThemeId = ctx.contract.id === 'beauty' ? 'beauty' : 'gaming';
-  return { switchTheme: ctx.switchTheme, switching: ctx.switching, activeThemeId };
+  return {
+    switchTheme: () => {},
+    switching: ctx.switching,
+    activeThemeId: ctx.contract.id,
+  };
 }

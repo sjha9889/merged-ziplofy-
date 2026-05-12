@@ -9,8 +9,9 @@ export async function loadRemoteTheme(moduleUrl: string): Promise<ThemeContract>
     default?: ThemeContract;
     gamingThemeContract?: ThemeContract;
     beautyThemeContract?: ThemeContract;
+    shoesThemeContract?: ThemeContract;
   };
-  const contract = mod.default ?? mod.gamingThemeContract ?? mod.beautyThemeContract;
+  const contract = mod.default ?? mod.gamingThemeContract ?? mod.beautyThemeContract ?? mod.shoesThemeContract;
   if (!contract?.HomePage || !contract.ProductPage || !contract.CartPage) {
     throw new Error('Invalid theme module: expected default export ThemeContract with HomePage, ProductPage, CartPage, …');
   }

@@ -303,6 +303,15 @@ export const getStorefrontThemeRuntime = asyncErrorHandler(async (req: Request, 
     storeId
   )}/${encodeURIComponent(String(runtimeThemeKey))}/unzippedTheme`;
 
+  const remoteDistDir = path.join(storeThemeDir, "remoteThemeDist");
+  const remoteJsDisk = path.join(remoteDistDir, "theme.js");
+  const remoteCssDisk = path.join(remoteDistDir, "theme.css");
+  const remoteDistPublicBase = `/api/themes/installed/${encodeURIComponent(storeId)}/${encodeURIComponent(
+    String(runtimeThemeKey)
+  )}/remoteThemeDist`;
+  const remoteThemeJsUrl = fs.existsSync(remoteJsDisk) ? `${remoteDistPublicBase}/theme.js` : null;
+  const remoteThemeCssUrl = fs.existsSync(remoteCssDisk) ? `${remoteDistPublicBase}/theme.css` : null;
+
   const listFilesRecursive = (dirPath: string, prefix = ""): string[] => {
     if (!fs.existsSync(dirPath)) return [];
     const entries = fs.readdirSync(dirPath, { withFileTypes: true });
@@ -383,6 +392,9 @@ export const getStorefrontThemeRuntime = asyncErrorHandler(async (req: Request, 
         /** Template basenames that exist under `templates/*.liquid` (client uses this to avoid 404s). */
         templates: listLiquidTemplateNames(runtimeBaseDir),
       },
+      /** Paths under `/api/...` — client resolves with `VITE_API_URL` or same-origin proxy. */
+      remoteThemeJsUrl,
+      remoteThemeCssUrl,
     },
   });
 });

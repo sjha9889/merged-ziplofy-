@@ -3,7 +3,6 @@ import react from '@vitejs/plugin-react-swc'
 import { defineConfig } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
-import { localRemoteThemePlugin } from './vite-plugin-local-remote-theme'
 
 const proxyTarget = process.env.VITE_PROXY_TARGET || 'http://127.0.0.1:5000'
 
@@ -28,7 +27,7 @@ function createDevProxy() {
 }
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), localRemoteThemePlugin()],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),

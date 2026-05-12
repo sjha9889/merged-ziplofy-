@@ -40,7 +40,7 @@ const handleMulterError = (err: any, req: any, res: any, next: any) => {
     if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(413).json({
         success: false,
-        error: "ZIP/thumbnail too large. Maximum allowed size is 50MB.",
+        error: "ZIP/thumbnail/theme.js/theme.css too large. Maximum allowed size is 50MB.",
       });
     }
     return res.status(400).json({
@@ -100,6 +100,8 @@ themeRouter.route("/").post(
   authorizePermission("Theme Management", "upload"), // Middleware will also check "Developer" → "Theme Developer" as alternative
   upload.fields([
     { name: "zipFile", maxCount: 1 },
+    { name: "reactThemeJs", maxCount: 1 },
+    { name: "reactThemeCss", maxCount: 1 },
     { name: "thumbnail", maxCount: 1 },
   ]),
   handleMulterError,
@@ -112,6 +114,8 @@ themeRouter
     authorizePermission("Theme Management", "edit"), // Also checks "Developer" → "Theme Developer" as alternative
     upload.fields([
       { name: "zipFile", maxCount: 1 },
+      { name: "reactThemeJs", maxCount: 1 },
+      { name: "reactThemeCss", maxCount: 1 },
       { name: "thumbnail", maxCount: 1 },
     ]),
     handleMulterError,

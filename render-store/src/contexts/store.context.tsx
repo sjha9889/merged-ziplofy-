@@ -12,6 +12,10 @@ interface StorefrontContextType {
   activeThemeCssUrls: string[];
   activeThemeJsUrls: string[];
   activeThemeHtmlUrls: string[];
+  /** `/api/themes/installed/.../remoteThemeDist/theme.js` when the installed theme includes a React bundle. */
+  remoteThemeJsUrl: string | null;
+  /** `/api/themes/installed/.../remoteThemeDist/theme.css` when present. */
+  remoteThemeCssUrl: string | null;
   /** Public base URL for installed theme files (same as theme-runtime `runtimeBaseUrl`). */
   themeRuntimeBaseUrl: string | null;
   /** Phase 2: server-side Liquid render endpoint is available for this theme */
@@ -54,6 +58,8 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [activeThemeJsUrls, setActiveThemeJsUrls] = useState<string[]>([]);
   const [activeThemeHtmlUrls, setActiveThemeHtmlUrls] = useState<string[]>([]);
   const [themeRuntimeBaseUrl, setThemeRuntimeBaseUrl] = useState<string | null>(null);
+  const [remoteThemeJsUrl, setRemoteThemeJsUrl] = useState<string | null>(null);
+  const [remoteThemeCssUrl, setRemoteThemeCssUrl] = useState<string | null>(null);
   const [liquidThemeEnabled, setLiquidThemeEnabled] = useState<boolean>(false);
   const [liquidRenderPagePath, setLiquidRenderPagePath] = useState<string | null>(null);
   const [liquidTemplateNames, setLiquidTemplateNames] = useState<string[]>([]);
@@ -120,6 +126,8 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 cssUrls?: string[];
                 jsUrls?: string[];
                 liquid?: { enabled?: boolean; renderPagePath?: string; templates?: string[] };
+                remoteThemeJsUrl?: string | null;
+                remoteThemeCssUrl?: string | null;
               } | null;
             }>(`/storefront/${data.data.storeId}/theme-runtime`, {
               params: { _t: Date.now() },
@@ -150,6 +158,13 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
               setLiquidTemplateNames([]);
               setLiquidTemplatesListProvided(false);
             }
+            const rt = runtimeRes.data?.data;
+            setRemoteThemeJsUrl(
+              typeof rt?.remoteThemeJsUrl === "string" && rt.remoteThemeJsUrl.length > 0 ? rt.remoteThemeJsUrl : null
+            );
+            setRemoteThemeCssUrl(
+              typeof rt?.remoteThemeCssUrl === "string" && rt.remoteThemeCssUrl.length > 0 ? rt.remoteThemeCssUrl : null
+            );
           } catch {
             setActiveThemeId(null);
             setActiveThemeName(null);
@@ -158,6 +173,8 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             setActiveThemeJsUrls([]);
             setActiveThemeHtmlUrls([]);
             setThemeRuntimeBaseUrl(null);
+            setRemoteThemeJsUrl(null);
+            setRemoteThemeCssUrl(null);
             setLiquidThemeEnabled(false);
             setLiquidRenderPagePath(null);
             setLiquidTemplateNames([]);
@@ -174,6 +191,8 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setActiveThemeJsUrls([]);
         setActiveThemeHtmlUrls([]);
         setThemeRuntimeBaseUrl(null);
+        setRemoteThemeJsUrl(null);
+        setRemoteThemeCssUrl(null);
         setLiquidThemeEnabled(false);
         setLiquidRenderPagePath(null);
         setLiquidTemplateNames([]);
@@ -197,6 +216,8 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     activeThemeJsUrls,
     activeThemeHtmlUrls,
     themeRuntimeBaseUrl,
+    remoteThemeJsUrl,
+    remoteThemeCssUrl,
     liquidThemeEnabled,
     liquidRenderPagePath,
     liquidTemplateNames,

@@ -42,7 +42,7 @@ const handleMulterError = (err, req, res, next) => {
         if (err.code === "LIMIT_FILE_SIZE") {
             return res.status(413).json({
                 success: false,
-                error: "ZIP/thumbnail too large. Maximum allowed size is 50MB.",
+                error: "ZIP/thumbnail/theme.js/theme.css too large. Maximum allowed size is 50MB.",
             });
         }
         return res.status(400).json({
@@ -89,6 +89,8 @@ exports.themeRouter.route("/:themeId/save-edit").post(theme_controller_1.saveUse
 exports.themeRouter.route("/").post((0, auth_middleware_1.authorizePermission)("Theme Management", "upload"), // Middleware will also check "Developer" → "Theme Developer" as alternative
 upload.fields([
     { name: "zipFile", maxCount: 1 },
+    { name: "reactThemeJs", maxCount: 1 },
+    { name: "reactThemeCss", maxCount: 1 },
     { name: "thumbnail", maxCount: 1 },
 ]), handleMulterError, theme_controller_1.createTheme);
 exports.themeRouter
@@ -96,6 +98,8 @@ exports.themeRouter
     .put((0, auth_middleware_1.authorizePermission)("Theme Management", "edit"), // Also checks "Developer" → "Theme Developer" as alternative
 upload.fields([
     { name: "zipFile", maxCount: 1 },
+    { name: "reactThemeJs", maxCount: 1 },
+    { name: "reactThemeCss", maxCount: 1 },
     { name: "thumbnail", maxCount: 1 },
 ]), handleMulterError, theme_controller_1.updateTheme)
     .delete((0, auth_middleware_1.authorizePermission)("Theme Management", "edit"), theme_controller_1.deleteTheme); // Also checks "Developer" → "Theme Developer" as alternative

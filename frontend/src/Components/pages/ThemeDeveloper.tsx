@@ -68,6 +68,8 @@ const ThemeDeveloper: React.FC = () => {
     tags: ""
   });
   const [zipFile, setZipFile] = useState<File | null>(null);
+  const [reactThemeJsFile, setReactThemeJsFile] = useState<File | null>(null);
+  const [reactThemeCssFile, setReactThemeCssFile] = useState<File | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -251,11 +253,15 @@ const ThemeDeveloper: React.FC = () => {
   };
 
   // Handle file selection
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'zip' | 'thumbnail') => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'zip' | 'thumbnail' | 'reactThemeJs' | 'reactThemeCss') => {
     const file = e.target.files?.[0];
     if (file) {
       if (type === 'zip') {
         setZipFile(file);
+      } else if (type === 'reactThemeJs') {
+        setReactThemeJsFile(file);
+      } else if (type === 'reactThemeCss') {
+        setReactThemeCssFile(file);
       } else {
         setThumbnailFile(file);
       }
@@ -378,6 +384,12 @@ const ThemeDeveloper: React.FC = () => {
       formData.append('version', uploadForm.version);
       formData.append('tags', uploadForm.tags);
       formData.append('zipFile', zipFile);
+      if (reactThemeJsFile) {
+        formData.append('reactThemeJs', reactThemeJsFile);
+      }
+      if (reactThemeCssFile) {
+        formData.append('reactThemeCss', reactThemeCssFile);
+      }
       formData.append('thumbnail', thumbnailFile);
 
 
@@ -397,6 +409,8 @@ const ThemeDeveloper: React.FC = () => {
           tags: ""
         });
         setZipFile(null);
+        setReactThemeJsFile(null);
+        setReactThemeCssFile(null);
         setThumbnailFile(null);
         setIsUploadOpen(false);
         
@@ -990,7 +1004,7 @@ const ThemeDeveloper: React.FC = () => {
                 placeholder="tag1, tag2, tag3"
               />
 
-              <label>Upload ZIP *</label>
+              <label>Liquid / static theme ZIP *</label>
               <input 
                 type="file" 
                 accept=".zip" 
@@ -1002,6 +1016,38 @@ const ThemeDeveloper: React.FC = () => {
                   Selected: {zipFile.name}
                 </div>
               )}
+              <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px', lineHeight: 1.45 }}>
+                Full theme package (HTML, Liquid templates, assets, etc.), not the remote React build.
+              </p>
+
+              <label>Remote theme: theme.js (optional)</label>
+              <input
+                type="file"
+                accept=".js,application/javascript,text/javascript"
+                onChange={(e) => handleFileChange(e, 'reactThemeJs')}
+              />
+              {reactThemeJsFile && (
+                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                  Selected: {reactThemeJsFile.name}
+                </div>
+              )}
+
+              <label>Remote theme: theme.css (optional)</label>
+              <input
+                type="file"
+                accept=".css,text/css"
+                onChange={(e) => handleFileChange(e, 'reactThemeCss')}
+              />
+              {reactThemeCssFile && (
+                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                  Selected: {reactThemeCssFile.name}
+                </div>
+              )}
+              <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px', lineHeight: 1.45 }}>
+                Upload the built files from your remote theme dist folder (for example{' '}
+                <code style={{ fontSize: '11px' }}>remote-themes/gaming/dist/theme.js</code> and{' '}
+                <code style={{ fontSize: '11px' }}>theme.css</code> after <code style={{ fontSize: '11px' }}>npm run build</code>). No zip needed.
+              </p>
 
               <label>Thumbnail (JPG/PNG) *</label>
               <input 

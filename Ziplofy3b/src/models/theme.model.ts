@@ -18,11 +18,23 @@ export interface ITheme extends Document {
     code: string;
     zipped: string;
     thumbnail: string;
+    /** Built React remote theme assets (`theme.js`, `theme.css`) live here. */
+    remoteThemeDist?: string;
   };
   zipFile?: {
     originalName?: string;
     size?: number;
     extractedPath?: string;
+    uploadDate?: Date;
+  };
+  reactThemeJs?: {
+    originalName?: string;
+    size?: number;
+    uploadDate?: Date;
+  };
+  reactThemeCss?: {
+    originalName?: string;
+    size?: number;
     uploadDate?: Date;
   };
   thumbnail?: {
@@ -90,11 +102,28 @@ const ThemeSchema: Schema<ITheme> = new Schema<ITheme>({
     code: { type: String, required: true },
     zipped: { type: String, required: true },
     thumbnail: { type: String, required: true },
+    remoteThemeDist: { type: String, required: false },
   },
   zipFile: {
     originalName: String,
     size: Number,
     extractedPath: String,
+    uploadDate: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  reactThemeJs: {
+    originalName: String,
+    size: Number,
+    uploadDate: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  reactThemeCss: {
+    originalName: String,
+    size: Number,
     uploadDate: {
       type: Date,
       default: Date.now,

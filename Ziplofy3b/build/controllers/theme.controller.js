@@ -41,7 +41,8 @@ const createThemeDirectory = (themeName) => {
     const codeDirPath = path_1.default.join(themeDirPath, "unzippedTheme");
     const zippedDirPath = path_1.default.join(themeDirPath, "zipped");
     const thumbnailDirPath = path_1.default.join(themeDirPath, "thumbnail");
-    [codeDirPath, zippedDirPath, thumbnailDirPath].forEach((p) => {
+    const remoteThemeDistDirPath = path_1.default.join(themeDirPath, "remoteThemeDist");
+    [codeDirPath, zippedDirPath, thumbnailDirPath, remoteThemeDistDirPath].forEach((p) => {
         if (!fs_1.default.existsSync(p))
             fs_1.default.mkdirSync(p, { recursive: true });
     });
@@ -50,9 +51,51 @@ const createThemeDirectory = (themeName) => {
         codeDir: codeDirPath,
         zippedDir: zippedDirPath,
         thumbnailDir: thumbnailDirPath,
+        remoteThemeDistDir: remoteThemeDistDirPath,
         themeDirName,
     };
 };
+/** If the zip contained a single top-level folder, lift its contents into `targetDir`. */
+function normalizeExtractedSingleTopLevelWrapper(targetDir) {
+    const items = fs_1.default.readdirSync(targetDir);
+    if (items.length !== 1)
+        return;
+    const onlyItemPath = path_1.default.join(targetDir, items[0]);
+    const stat = fs_1.default.statSync(onlyItemPath);
+    if (!stat.isDirectory())
+        return;
+    const moveUp = (src, dest) => {
+        const entries = fs_1.default.readdirSync(src);
+        entries.forEach((entry) => {
+            const srcPath = path_1.default.join(src, entry);
+            const destPath = path_1.default.join(dest, entry);
+            const s = fs_1.default.statSync(srcPath);
+            if (s.isDirectory()) {
+                if (!fs_1.default.existsSync(destPath))
+                    fs_1.default.mkdirSync(destPath, { recursive: true });
+                moveUp(srcPath, destPath);
+            }
+            else {
+                fs_1.default.renameSync(srcPath, destPath);
+            }
+        });
+    };
+    moveUp(onlyItemPath, targetDir);
+    fs_1.default.rmSync(onlyItemPath, { recursive: true, force: true });
+    console.log("Normalized extracted structure by removing top-level wrapper folder");
+}
+function validateReactThemeJsUpload(file) {
+    const ext = path_1.default.extname(file.originalname || "").toLowerCase();
+    if (ext !== ".js") {
+        throw new error_utils_1.CustomError("Remote theme JavaScript must be a .js file (e.g. dist/theme.js).", 400);
+    }
+}
+function validateReactThemeCssUpload(file) {
+    const ext = path_1.default.extname(file.originalname || "").toLowerCase();
+    if (ext !== ".css") {
+        throw new error_utils_1.CustomError("Remote theme stylesheet must be a .css file (e.g. dist/theme.css).", 400);
+    }
+}
 exports.getThemes = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const { search, category, plan, page = "1", limit = "10", sort = "createdAt", order = "desc", } = req.query;
     // Build filter object
@@ -169,11 +212,15 @@ exports.createTheme = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     }
     const files = req.files;
     const zipFile = files.zipFile ? files.zipFile[0] : null;
+    const reactThemeJsFile = files.reactThemeJs?.[0] ?? null;
+    const reactThemeCssFile = files.reactThemeCss?.[0] ?? null;
     const thumbnail = files.thumbnail ? files.thumbnail[0] : null;
     console.log('[createTheme] Parsed files', {
         zipFilePresent: Boolean(zipFile),
         zipFileName: zipFile?.originalname,
         zipFileMime: zipFile?.mimetype,
+        reactThemeJsPresent: Boolean(reactThemeJsFile),
+        reactThemeCssPresent: Boolean(reactThemeCssFile),
         thumbnailPresent: Boolean(thumbnail),
         thumbnailName: thumbnail?.originalname,
         thumbnailMime: thumbnail?.mimetype,
@@ -190,33 +237,7 @@ exports.createTheme = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
         fs_1.default.renameSync(zipFile.path, zipDestPath);
         await (0, extract_zip_1.default)(zipDestPath, { dir: themeDirs.codeDir });
         console.log("ZIP extraction complete to:", themeDirs.codeDir);
-        // Normalize extraction: if a single top-level folder exists, move its contents up
-        const items = fs_1.default.readdirSync(themeDirs.codeDir);
-        if (items.length === 1) {
-            const onlyItemPath = path_1.default.join(themeDirs.codeDir, items[0]);
-            const stat = fs_1.default.statSync(onlyItemPath);
-            if (stat.isDirectory()) {
-                const moveUp = (src, dest) => {
-                    const entries = fs_1.default.readdirSync(src);
-                    entries.forEach((entry) => {
-                        const srcPath = path_1.default.join(src, entry);
-                        const destPath = path_1.default.join(dest, entry);
-                        const s = fs_1.default.statSync(srcPath);
-                        if (s.isDirectory()) {
-                            if (!fs_1.default.existsSync(destPath))
-                                fs_1.default.mkdirSync(destPath, { recursive: true });
-                            moveUp(srcPath, destPath);
-                        }
-                        else {
-                            fs_1.default.renameSync(srcPath, destPath);
-                        }
-                    });
-                };
-                moveUp(onlyItemPath, themeDirs.codeDir);
-                fs_1.default.rmSync(onlyItemPath, { recursive: true, force: true });
-                console.log("Normalized extracted structure by removing top-level wrapper folder");
-            }
-        }
+        normalizeExtractedSingleTopLevelWrapper(themeDirs.codeDir);
     }
     catch (extractError) {
         // Clean up if extraction fails
@@ -224,6 +245,40 @@ exports.createTheme = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
             fs_1.default.rmSync(themeDirs.themeDir, { recursive: true, force: true });
         }
         throw new error_utils_1.CustomError(`ZIP extraction failed: ${extractError.message}`, 500);
+    }
+    let reactThemeJsMeta;
+    let reactThemeCssMeta;
+    if (reactThemeJsFile || reactThemeCssFile) {
+        try {
+            if (reactThemeJsFile) {
+                validateReactThemeJsUpload(reactThemeJsFile);
+                const destJs = path_1.default.join(themeDirs.remoteThemeDistDir, "theme.js");
+                fs_1.default.renameSync(reactThemeJsFile.path, destJs);
+                reactThemeJsMeta = {
+                    originalName: reactThemeJsFile.originalname,
+                    size: reactThemeJsFile.size,
+                    uploadDate: new Date(),
+                };
+            }
+            if (reactThemeCssFile) {
+                validateReactThemeCssUpload(reactThemeCssFile);
+                const destCss = path_1.default.join(themeDirs.remoteThemeDistDir, "theme.css");
+                fs_1.default.renameSync(reactThemeCssFile.path, destCss);
+                reactThemeCssMeta = {
+                    originalName: reactThemeCssFile.originalname,
+                    size: reactThemeCssFile.size,
+                    uploadDate: new Date(),
+                };
+            }
+        }
+        catch (reactFileError) {
+            if (fs_1.default.existsSync(themeDirs.themeDir)) {
+                fs_1.default.rmSync(themeDirs.themeDir, { recursive: true, force: true });
+            }
+            if (reactFileError instanceof error_utils_1.CustomError)
+                throw reactFileError;
+            throw new error_utils_1.CustomError(`Remote theme file save failed: ${reactFileError?.message || "unknown error"}`, 500);
+        }
     }
     // Thumbnail is optional; never fail upload if thumbnail move fails.
     let thumbnailFilename;
@@ -258,12 +313,15 @@ exports.createTheme = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
                 code: themeDirs.codeDir,
                 zipped: themeDirs.zippedDir,
                 thumbnail: themeDirs.thumbnailDir,
+                remoteThemeDist: themeDirs.remoteThemeDistDir,
             },
             zipFile: {
                 originalName: zipFile.originalname,
                 size: zipFile.size,
                 extractedPath: themeDirs.codeDir,
             },
+            reactThemeJs: reactThemeJsMeta,
+            reactThemeCss: reactThemeCssMeta,
             thumbnail: thumbnailFilename
                 ? {
                     filename: thumbnailFilename,
@@ -338,6 +396,40 @@ exports.updateTheme = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
                 uploadDate: new Date(),
             };
         }
+        if (files.reactThemeJs || files.reactThemeCss) {
+            const prevDirs = theme.directories;
+            const remoteDir = prevDirs.remoteThemeDist || path_1.default.join(prevDirs.theme, "remoteThemeDist");
+            if (!fs_1.default.existsSync(remoteDir)) {
+                fs_1.default.mkdirSync(remoteDir, { recursive: true });
+            }
+            if (files.reactThemeJs) {
+                const js = files.reactThemeJs[0];
+                validateReactThemeJsUpload(js);
+                const destJs = path_1.default.join(remoteDir, "theme.js");
+                fs_1.default.renameSync(js.path, destJs);
+                updateData.reactThemeJs = {
+                    originalName: js.originalname,
+                    size: js.size,
+                    uploadDate: new Date(),
+                };
+            }
+            if (files.reactThemeCss) {
+                const css = files.reactThemeCss[0];
+                validateReactThemeCssUpload(css);
+                const destCss = path_1.default.join(remoteDir, "theme.css");
+                fs_1.default.renameSync(css.path, destCss);
+                updateData.reactThemeCss = {
+                    originalName: css.originalname,
+                    size: css.size,
+                    uploadDate: new Date(),
+                };
+            }
+            updateData.directories = {
+                ...prevDirs,
+                remoteThemeDist: remoteDir,
+            };
+            updateData.$unset = { ...updateData.$unset, reactThemeZip: 1 };
+        }
         if (files.thumbnail) {
             // Delete old thumbnail directory
             if (theme.directories.thumbnail &&
@@ -365,7 +457,7 @@ exports.updateTheme = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
                 uploadDate: new Date(),
             };
             updateData.directories = {
-                ...theme.directories,
+                ...(updateData.directories || { ...theme.directories }),
                 thumbnail: thumbnailDirPath,
             };
         }
@@ -792,6 +884,33 @@ You can now modify the theme files in this directory to customize your store's a
                 }
             });
         }
+        const sourceRemoteDir = theme.directories?.remoteThemeDist ||
+            path_1.default.join(process.cwd(), "uploads", "themes", theme.themePath, "remoteThemeDist");
+        const destRemoteDir = path_1.default.join(storeThemeDir, "remoteThemeDist");
+        const hasRemoteBundle = fs_1.default.existsSync(sourceRemoteDir) &&
+            fs_1.default.readdirSync(sourceRemoteDir).filter((f) => f !== ".DS_Store").length > 0;
+        if (hasRemoteBundle) {
+            const copyRecursiveRemote = (src, dest) => {
+                const stats = fs_1.default.statSync(src);
+                if (stats.isDirectory()) {
+                    if (!fs_1.default.existsSync(dest)) {
+                        fs_1.default.mkdirSync(dest, { recursive: true });
+                    }
+                    for (const file of fs_1.default.readdirSync(src)) {
+                        copyRecursiveRemote(path_1.default.join(src, file), path_1.default.join(dest, file));
+                    }
+                }
+                else {
+                    fs_1.default.copyFileSync(src, dest);
+                }
+            };
+            if (fs_1.default.existsSync(destRemoteDir)) {
+                fs_1.default.rmSync(destRemoteDir, { recursive: true, force: true });
+            }
+            fs_1.default.mkdirSync(destRemoteDir, { recursive: true });
+            copyRecursiveRemote(sourceRemoteDir, destRemoteDir);
+            console.log("✅ React remote theme dist copied to store (remoteThemeDist)");
+        }
         // Check if there's already an installation for this store and theme (any legacy store/user shape)
         let installedTheme = await installed_themes_model_1.InstalledThemes.findOne({
             $and: [{ $or: (0, installed_themes_query_util_1.storeAndUserScopeOr)(storeIdToUse) }, { theme: themeObjectId }],
@@ -936,9 +1055,31 @@ exports.serveInstalledThemeFiles = (0, error_utils_1.asyncErrorHandler)(async (r
             const codeDir = path_1.default.resolve(theme.directories.code);
             // If incoming path was prefixed with 'unzippedTheme/', strip it for fallback
             const stripped = filePath.startsWith('unzippedTheme/') ? filePath.replace(/^unzippedTheme\//, '') : filePath;
-            const fallbackPath = path_1.default.resolve(path_1.default.join(codeDir, stripped));
-            if (!fallbackPath.startsWith(codeDir) || !fs_1.default.existsSync(fallbackPath) || fs_1.default.statSync(fallbackPath).isDirectory()) {
-                throw new error_utils_1.CustomError("File not found", 404);
+            let fallbackPath = path_1.default.resolve(path_1.default.join(codeDir, stripped));
+            if (!fallbackPath.startsWith(codeDir) ||
+                !fs_1.default.existsSync(fallbackPath) ||
+                fs_1.default.statSync(fallbackPath).isDirectory()) {
+                const remoteDirRaw = theme.directories.remoteThemeDist;
+                const remoteDir = remoteDirRaw ? path_1.default.resolve(remoteDirRaw) : null;
+                let resolvedFromRemote = null;
+                if (remoteDir && fs_1.default.existsSync(remoteDir)) {
+                    let rel = stripped;
+                    if (rel.startsWith("remoteThemeDist/")) {
+                        rel = rel.replace(/^remoteThemeDist\//, "");
+                    }
+                    const tryPath = path_1.default.resolve(path_1.default.join(remoteDir, rel));
+                    if (tryPath.startsWith(remoteDir) &&
+                        fs_1.default.existsSync(tryPath) &&
+                        !fs_1.default.statSync(tryPath).isDirectory()) {
+                        resolvedFromRemote = tryPath;
+                    }
+                }
+                if (resolvedFromRemote) {
+                    fallbackPath = resolvedFromRemote;
+                }
+                else {
+                    throw new error_utils_1.CustomError("File not found", 404);
+                }
             }
             // Serve fallback file
             const extFallback = path_1.default.extname(fallbackPath).toLowerCase();

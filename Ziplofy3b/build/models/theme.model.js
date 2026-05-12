@@ -79,11 +79,28 @@ const ThemeSchema = new mongoose_1.Schema({
         code: { type: String, required: true },
         zipped: { type: String, required: true },
         thumbnail: { type: String, required: true },
+        remoteThemeDist: { type: String, required: false },
     },
     zipFile: {
         originalName: String,
         size: Number,
         extractedPath: String,
+        uploadDate: {
+            type: Date,
+            default: Date.now,
+        },
+    },
+    reactThemeJs: {
+        originalName: String,
+        size: Number,
+        uploadDate: {
+            type: Date,
+            default: Date.now,
+        },
+    },
+    reactThemeCss: {
+        originalName: String,
+        size: Number,
         uploadDate: {
             type: Date,
             default: Date.now,

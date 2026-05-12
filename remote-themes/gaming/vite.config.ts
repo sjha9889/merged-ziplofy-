@@ -24,6 +24,7 @@ export default defineConfig({
     },
   },
   build: {
+    // library mode
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: 'ZiplofyThemeGaming',
