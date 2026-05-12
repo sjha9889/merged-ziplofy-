@@ -6,6 +6,14 @@ import path from 'path'
 
 const proxyTarget = process.env.VITE_PROXY_TARGET || 'http://127.0.0.1:5000'
 
+/** Extra Rollup inputs so remote theme blob imports resolve in production (no /src/*.ts on static host). */
+const remoteThemeRuntimeInputs = {
+  'remote-shim-react-jsx-runtime': path.resolve(__dirname, 'src/themes/remote-runtime-shims/react-jsx-runtime.ts'),
+  'remote-shim-react': path.resolve(__dirname, 'src/themes/remote-runtime-shims/react.ts'),
+  'remote-shim-react-router-dom': path.resolve(__dirname, 'src/themes/remote-runtime-shims/react-router-dom.ts'),
+  'remote-shim-sdk': path.resolve(__dirname, 'src/sdk/index.ts'),
+} as const
+
 function attachForwardedHeaders(proxy: any) {
   proxy.on('proxyReq', (proxyReq: any, req: any) => {
     const host = req?.headers?.host
@@ -28,6 +36,45 @@ function createDevProxy() {
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  build: {
+    rollupOptions: {
+      /** Blob-loaded themes import these URLs at runtime; Rollup must not drop their exports. */
+      preserveEntrySignatures: 'exports-only',
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        ...remoteThemeRuntimeInputs,
+      },
+      output: {
+        /** Keep a single React / router graph so remote theme modules share the host runtime. */
+        manualChunks(id) {
+          const n = id.replace(/\\/g, '/');
+          if (n.includes('node_modules/react-dom/')) return 'vendor-react-dom';
+          if (n.includes('node_modules/react-router')) return 'vendor-react-router';
+          if (n.includes('node_modules/react/jsx-runtime') || n.includes('node_modules/react/jsx-dev-runtime')) {
+            return 'vendor-react-jsx-runtime';
+          }
+          if (n.includes('node_modules/react/')) return 'vendor-react';
+          return undefined;
+        },
+        chunkFileNames(chunkInfo) {
+          if (chunkInfo.name === 'vendor-react-jsx-runtime') return 'assets/vendor-react-jsx-runtime.js';
+          return 'assets/[name]-[hash].js';
+        },
+        entryFileNames(chunkInfo) {
+          if (chunkInfo.name in remoteThemeRuntimeInputs) {
+            const map: Record<string, string> = {
+              'remote-shim-react-jsx-runtime': 'remote-theme-runtime/react-jsx-runtime.js',
+              'remote-shim-react': 'remote-theme-runtime/react.js',
+              'remote-shim-react-router-dom': 'remote-theme-runtime/react-router-dom.js',
+              'remote-shim-sdk': 'remote-theme-runtime/sdk.js',
+            };
+            return map[chunkInfo.name] ?? 'assets/[name]-[hash].js';
+          }
+          return 'assets/[name]-[hash].js';
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),

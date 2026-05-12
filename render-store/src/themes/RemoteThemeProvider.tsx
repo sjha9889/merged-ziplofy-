@@ -87,7 +87,19 @@ export function RemoteThemeProvider({ children }: { children: ReactNode }) {
       const next = await loadRemoteTheme(blobUrl);
       setContract(next);
     } catch (e) {
-      setError(e instanceof Error ? e : new Error(String(e)));
+      let err = e instanceof Error ? e : new Error(String(e));
+      if (
+        typeof err.message === 'string' &&
+        err.message.includes('Failed to fetch dynamically imported module') &&
+        err.message.includes('blob:')
+      ) {
+        err = new Error(
+          `${err.message}\n\n` +
+            'The theme script was fetched, but a follow-up import failed (often a 404 on a dependency URL). ' +
+            'Deploy a render-store build that includes `/remote-theme-runtime/*.js` and the matching `/assets/vendor-*.js` chunks, and hard-refresh the browser.'
+        );
+      }
+      setError(err);
       const cur = contractRef.current;
       if (cur) {
         setContract(cur);
