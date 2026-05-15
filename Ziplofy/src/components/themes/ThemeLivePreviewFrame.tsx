@@ -114,6 +114,10 @@ export const ThemeLivePreviewFrame: React.FC<ThemeLivePreviewFrameProps> = ({
         setLoadError(null);
         postInit();
       }
+      if (data.type === 'ZIPLOFY_PREVIEW_LOADED') {
+        setReady(true);
+        setLoadError(null);
+      }
       if (data.type === 'ZIPLOFY_PREVIEW_ERROR') {
         setLoadError(data.payload?.message ?? 'Preview failed to load');
       }
@@ -178,6 +182,9 @@ export const ThemeLivePreviewFrame: React.FC<ThemeLivePreviewFrameProps> = ({
         src={previewSrc}
         className="block h-full min-h-[480px] w-full border-0 bg-white"
         sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+        onLoad={() => {
+          window.setTimeout(() => postInit(), 50);
+        }}
       />
     </div>
   );

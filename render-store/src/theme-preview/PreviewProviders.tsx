@@ -20,13 +20,28 @@ type PreviewProvidersProps = {
   storeId: string;
   storeName?: string;
   themeConfig: Record<string, unknown> | null;
+  jsUrl?: string | null;
+  cssUrl?: string | null;
   children: ReactNode;
 };
 
 /** Same provider stack as production storefront, with preview-specific store bootstrap. */
-export function PreviewProviders({ storeId, storeName, themeConfig, children }: PreviewProvidersProps) {
+export function PreviewProviders({
+  storeId,
+  storeName,
+  themeConfig,
+  jsUrl,
+  cssUrl,
+  children,
+}: PreviewProvidersProps) {
   return (
-    <PreviewStorefrontProvider storeId={storeId} storeName={storeName} themeConfig={themeConfig}>
+    <PreviewStorefrontProvider
+      storeId={storeId}
+      storeName={storeName}
+      themeConfig={themeConfig}
+      jsUrl={jsUrl}
+      cssUrl={cssUrl}
+    >
       <Toaster position="top-right" />
       <StorefrontAuthProvider>
         <PaymentProvider>

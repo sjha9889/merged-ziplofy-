@@ -43,7 +43,19 @@ export function ThemePreviewRuntime({ jsUrl, cssUrl, page, configRevision }: The
     revokeBlob();
     try {
       const url = resolveAssetUrl(jsUrl);
-      const res = await fetch(url, { credentials: 'include' });
+      const isCrossOrigin =
+        typeof window !== 'undefined' &&
+        (() => {
+          try {
+            return new URL(url, window.location.href).origin !== window.location.origin;
+          } catch {
+            return true;
+          }
+        })();
+      const res = await fetch(url, {
+        credentials: isCrossOrigin ? 'omit' : 'include',
+        mode: 'cors',
+      });
       if (!res.ok) throw new Error(`Failed to fetch theme.js (${res.status})`);
       const raw = await res.text();
       const body = rewriteRemoteThemeImports(raw, getStorefrontAssetOrigin());

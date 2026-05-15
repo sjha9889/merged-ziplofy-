@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { PreviewProviders } from './PreviewProviders';
+import { PreviewErrorBoundary } from './PreviewErrorBoundary';
 import { ThemePreviewRuntime } from './ThemePreviewRuntime';
 import {
   isParentPreviewMessage,
@@ -24,10 +25,16 @@ export function ThemePreviewApp() {
     document.body.style.margin = '0';
     document.body.style.background = 'transparent';
 
+    let readyInterval: ReturnType<typeof setInterval> | null = null;
+
     const onMessage = (event: MessageEvent) => {
       if (!isParentPreviewMessage(event.data)) return;
       const msg = event.data;
       if (msg.type === 'ZIPLOFY_PREVIEW_INIT') {
+        if (readyInterval) {
+          window.clearInterval(readyInterval);
+          readyInterval = null;
+        }
         setInit(msg.payload);
         applyConfig(msg.payload.config);
         setPage(msg.payload.page ?? 'index');
@@ -41,10 +48,15 @@ export function ThemePreviewApp() {
       }
     };
 
+    const signalReady = () =>
+      postToParent({ source: 'ziplofy-theme-preview', type: 'ZIPLOFY_PREVIEW_READY' });
+
     window.addEventListener('message', onMessage);
-    postToParent({ source: 'ziplofy-theme-preview', type: 'ZIPLOFY_PREVIEW_READY' });
+    signalReady();
+    readyInterval = window.setInterval(signalReady, 400);
 
     return () => {
+      if (readyInterval) window.clearInterval(readyInterval);
       window.removeEventListener('message', onMessage);
       document.documentElement.classList.remove('ziplofy-theme-preview-root');
     };
@@ -69,13 +81,21 @@ export function ThemePreviewApp() {
   }
 
   return (
-    <PreviewProviders storeId={init.storeId} storeName={init.storeName} themeConfig={config}>
-      <ThemePreviewRuntime
-        jsUrl={init.jsUrl}
-        cssUrl={init.cssUrl}
-        page={page}
-        configRevision={configRevision}
-      />
+    <PreviewProviders
+      storeId={init.storeId}
+      storeName={init.storeName}
+      themeConfig={config}
+      jsUrl={init.jsUrl}
+      cssUrl={init.cssUrl}
+    >
+      <PreviewErrorBoundary>
+        <ThemePreviewRuntime
+          jsUrl={init.jsUrl}
+          cssUrl={init.cssUrl}
+          page={page}
+          configRevision={configRevision}
+        />
+      </PreviewErrorBoundary>
     </PreviewProviders>
   );
 }
