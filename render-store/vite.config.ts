@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react-swc'
 import { defineConfig } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
+import { themePreviewFrameHeadersPlugin } from './src/vite-theme-preview-headers.plugin'
 
 const proxyTarget = process.env.VITE_PROXY_TARGET || 'http://127.0.0.1:5000'
 
@@ -35,7 +36,14 @@ function createDevProxy() {
 }
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), themePreviewFrameHeadersPlugin()],
+  preview: {
+    port: 5180,
+    headers: {
+      'Content-Security-Policy':
+        "frame-ancestors 'self' http://localhost:5173 https://admin.ziplofy.com https://dashboard.ziplofy.com https://*.ziplofy.com",
+    },
+  },
   build: {
     rollupOptions: {
       /** Blob-loaded themes import these URLs at runtime; Rollup must not drop their exports. */

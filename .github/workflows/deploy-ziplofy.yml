@@ -37,6 +37,9 @@ jobs:
         run: npm ci
 
       - name: Build Ziplofy
+        env:
+          # Theme editor live preview iframe (must allow framing — not merchant *.ziplofy.com store URLs).
+          VITE_RENDER_STORE_ORIGIN: https://preview.ziplofy.com
         run: npm run build
 
       - name: Deploy to EC2

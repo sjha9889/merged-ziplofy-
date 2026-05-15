@@ -8,7 +8,7 @@ export type ThemePreviewPage = 'index' | 'product' | 'cart';
 export type ThemeLivePreviewFrameProps = {
   storeId: string;
   storeName?: string;
-  /** Storefront base URL from subdomain API, e.g. http://developer-pgdp.localhost:5180 */
+  /** Live storefront URL for "View store" links only — never used as iframe src. */
   storefrontOrigin?: string | null;
   jsUrl: string | null | undefined;
   cssUrl?: string | null;
@@ -19,53 +19,60 @@ export type ThemeLivePreviewFrameProps = {
 
 const DEFAULT_RENDER_STORE_PORT = '5180';
 
-function originFromUrl(url: string): string | null {
-  try {
-    const parsed = new URL(url);
-    return parsed.origin;
-  } catch {
-    return null;
+function readEnvOrigin(...keys: string[]): string | null {
+  for (const key of keys) {
+    const raw = import.meta.env[key] as string | undefined;
+    if (typeof raw === 'string' && raw.trim()) {
+      return raw.trim().replace(/\/$/, '');
+    }
   }
+  return null;
 }
 
-/** Resolve render-store origin — never fall back to admin (5173). */
-function resolvePreviewOrigin(storefrontOrigin?: string | null): string {
-  const fromEnv = import.meta.env.VITE_RENDER_STORE_ORIGIN as string | undefined;
-  if (fromEnv?.trim()) return fromEnv.trim().replace(/\/$/, '');
-
-  const fromStorefront = storefrontOrigin ? originFromUrl(storefrontOrigin) : null;
-  if (fromStorefront) return fromStorefront;
+/**
+ * Origin for the preview iframe (render-store `/theme-preview`).
+ * Must NOT be a merchant store subdomain — those send X-Frame-Options: SAMEORIGIN.
+ */
+export function resolveThemePreviewOrigin(): string {
+  const explicit = readEnvOrigin('VITE_RENDER_STORE_ORIGIN', 'VITE_THEME_PREVIEW_ORIGIN');
+  if (explicit) return explicit;
 
   if (typeof window !== 'undefined') {
-    const { protocol, hostname, port } = window.location;
-    // Admin often runs on *.localhost:5173; render-store uses :5180 (see storeRenderMicroserviceUrlSuffix).
+    const { protocol, hostname } = window.location;
+
     if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.localhost')) {
       return `${protocol}//localhost:${DEFAULT_RENDER_STORE_PORT}`;
     }
-    if (port === '5173') {
-      return `${protocol}//${hostname.replace(/^admin\./, '')}:${DEFAULT_RENDER_STORE_PORT}`;
+
+    // Production admin on ziplofy.com → dedicated preview host (same render-store app, embeddable headers).
+    if (hostname === 'admin.ziplofy.com' || hostname === 'dashboard.ziplofy.com') {
+      return `${protocol}//preview.ziplofy.com`;
+    }
+
+    if (hostname.endsWith('.ziplofy.com')) {
+      return `${protocol}//preview.ziplofy.com`;
     }
   }
 
   return `http://localhost:${DEFAULT_RENDER_STORE_PORT}`;
 }
 
-function buildPreviewSrc(storefrontOrigin?: string | null): string {
-  const origin = resolvePreviewOrigin(storefrontOrigin);
-  return `${origin}/theme-preview`;
+function buildPreviewSrc(): string {
+  return `${resolveThemePreviewOrigin()}/theme-preview`;
 }
 
 export const ThemeLivePreviewFrame: React.FC<ThemeLivePreviewFrameProps> = ({
   storeId,
   storeName,
-  storefrontOrigin,
+  storefrontOrigin: _storefrontOrigin,
   jsUrl,
   cssUrl,
   config,
   page = 'index',
   className = '',
 }) => {
-  const previewSrc = buildPreviewSrc(storefrontOrigin);
+  const previewSrc = buildPreviewSrc();
+  const previewOrigin = resolveThemePreviewOrigin();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -145,9 +152,8 @@ export const ThemeLivePreviewFrame: React.FC<ThemeLivePreviewFrameProps> = ({
   useEffect(() => {
     initSentRef.current = false;
     setReady(false);
-  }, [jsUrl, storeId]);
+  }, [jsUrl, storeId, previewSrc]);
 
-  /** Re-send init when jsUrl arrives after the iframe already signaled ready. */
   useEffect(() => {
     if (ready && jsUrl && storeId) {
       postInit();
@@ -167,8 +173,9 @@ export const ThemeLivePreviewFrame: React.FC<ThemeLivePreviewFrameProps> = ({
   return (
     <div className={`relative overflow-hidden rounded-xl border border-gray-200 bg-white ${className}`}>
       {!ready && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 text-sm text-gray-500">
-          Loading live preview…
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-white/80 px-4 text-center text-sm text-gray-500">
+          <span>Loading live preview…</span>
+          <span className="text-xs text-gray-400">from {previewOrigin}</span>
         </div>
       )}
       {loadError && (
