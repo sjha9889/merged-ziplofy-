@@ -7,7 +7,12 @@ import { InstalledThemes } from '../models/installed-themes.model';
 import { Theme } from '../models/theme.model';
 import { CustomTheme } from '../models/custom-theme.model';
 import { Store } from '../models/store/store.model';
-import { listLiquidTemplateNames, themeHasLiquidTemplates } from '../utils/storefront-theme-runtime.util';
+import {
+  listLiquidTemplateNames,
+  resolveAppliedStorefrontTheme,
+  themeHasLiquidTemplates,
+} from '../utils/storefront-liquid.util';
+import { ensureCatalogRemoteDistDir } from '../utils/theme-zip-from-s3.util';
 import { storeAndUserScopeOr } from '../utils/installed-themes-query.util';
 // import { Product } from '../models/product.model';
 // import { Store } from '../models/store.model';
@@ -253,28 +258,8 @@ export const getStorefrontThemeRuntime = asyncErrorHandler(async (req: Request, 
     throw new CustomError("Store ID is required", 400);
   }
 
-  const storeDoc = await Store.findById(storeId).select("appliedTheme").lean();
-  const appliedThemeId = storeDoc?.appliedTheme ? String(storeDoc.appliedTheme) : null;
-  if (!appliedThemeId) {
-    return res.status(200).json({
-      success: true,
-      data: null,
-      message: "No applied theme for this store",
-    });
-  }
-
-  const installedTheme = await InstalledThemes.findOne({
-    $and: [
-      { $or: storeAndUserScopeOr(String(storeId)) },
-      { theme: new Types.ObjectId(appliedThemeId) },
-      { uninstalledAt: null },
-    ],
-  }).lean();
-
-  const theme = await Theme.findById(appliedThemeId).lean();
-  const customTheme = !theme ? await CustomTheme.findById(appliedThemeId).lean() : null;
-
-  if (!theme && !customTheme) {
+  const resolved = await resolveAppliedStorefrontTheme(req, storeId);
+  if (!resolved) {
     return res.status(200).json({
       success: true,
       data: null,
@@ -282,28 +267,39 @@ export const getStorefrontThemeRuntime = asyncErrorHandler(async (req: Request, 
     });
   }
 
-  const isCustomTheme = Boolean(!theme && customTheme);
-  const runtimeThemeKey = isCustomTheme ? `custom-${appliedThemeId}` : appliedThemeId;
+  const {
+    appliedThemeId: resolvedThemeId,
+    runtimeThemeKey,
+    isCustomTheme,
+    runtimeBaseDir,
+    runtimeBaseUrl,
+  } = resolved;
 
-  const canonicalStoreThemeDir = path.join(
-    process.cwd(),
-    "uploads",
-    "stores",
-    storeId,
-    "themes",
-    String(runtimeThemeKey)
-  );
-  const storeThemeDir =
-    installedTheme?.storePath && fs.existsSync(installedTheme.storePath)
-      ? installedTheme.storePath
-      : canonicalStoreThemeDir;
-  const unzippedThemeDir = path.join(storeThemeDir, "unzippedTheme");
-  const runtimeBaseDir = fs.existsSync(unzippedThemeDir) ? unzippedThemeDir : storeThemeDir;
-  const runtimeBaseUrl = `${req.protocol}://${req.get("host")}/api/themes/installed/${encodeURIComponent(
-    storeId
-  )}/${encodeURIComponent(String(runtimeThemeKey))}/unzippedTheme`;
+  const installedTheme = await InstalledThemes.findOne({
+    store: new Types.ObjectId(storeId),
+    theme: new Types.ObjectId(resolvedThemeId),
+    uninstalledAt: null,
+  }).lean();
 
-  const remoteDistDir = path.join(storeThemeDir, "remoteThemeDist");
+  const theme = await Theme.findById(resolvedThemeId).lean();
+  const customTheme = !theme ? await CustomTheme.findById(resolvedThemeId).lean() : null;
+
+  let remoteDistDir: string;
+  if (isCustomTheme) {
+    const storeThemeDir = path.join(
+      process.cwd(),
+      "uploads",
+      "stores",
+      storeId,
+      "themes",
+      String(runtimeThemeKey)
+    );
+    remoteDistDir = path.join(storeThemeDir, "remoteThemeDist");
+  } else if (theme) {
+    remoteDistDir = await ensureCatalogRemoteDistDir(theme);
+  } else {
+    remoteDistDir = "";
+  }
   const remoteJsDisk = path.join(remoteDistDir, "theme.js");
   const remoteCssDisk = path.join(remoteDistDir, "theme.css");
   const remoteDistPublicBase = `/api/themes/installed/${encodeURIComponent(storeId)}/${encodeURIComponent(
@@ -364,18 +360,18 @@ export const getStorefrontThemeRuntime = asyncErrorHandler(async (req: Request, 
     success: true,
     data: {
       storeId,
-      themeId: String(appliedThemeId),
-      themeName: isCustomTheme ? (customTheme as any).name : (theme as any).name,
+      themeId: String(resolvedThemeId),
+      themeName: resolved.themeName,
       theme: isCustomTheme ? customTheme : theme,
-      installedTheme: {
-        _id: installedTheme?._id ? String(installedTheme._id) : null,
-        store: installedTheme ? String((installedTheme as any).store || (installedTheme as any).user) : storeId,
-        theme: String(appliedThemeId),
-        installedAt: installedTheme?.installedAt || null,
-        uninstalledAt: installedTheme?.uninstalledAt || null,
-        storePath: installedTheme?.storePath || storeThemeDir,
-      },
-      storeThemeDir,
+      installedTheme: installedTheme
+        ? {
+            _id: String((installedTheme as { _id: unknown })._id),
+            store: String((installedTheme as { store?: unknown }).store),
+            theme: String((installedTheme as { theme?: unknown }).theme),
+            installedAt: (installedTheme as { installedAt?: Date | null }).installedAt || null,
+            uninstalledAt: (installedTheme as { uninstalledAt?: Date | null }).uninstalledAt || null,
+          }
+        : null,
       runtimeBaseUrl,
       entryHtml: htmlAssets.includes("index.html") ? "index.html" : htmlAssets[0] || null,
       allThemeFiles,

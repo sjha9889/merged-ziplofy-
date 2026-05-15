@@ -2,14 +2,12 @@ import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface IInstalledThemes extends Document {
   store: mongoose.Types.ObjectId;
-  // Deprecated: kept temporarily for backward compatibility with old records.
-  user?: mongoose.Types.ObjectId;
   theme: mongoose.Types.ObjectId;
-  storePath?: string;
   installedAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
-  uninstalledAt?: Date;
+  /** Set when the store removes the theme; row kept for history. */
+  uninstalledAt?: Date | null;
 }
 
 const InstalledThemesSchema: Schema<IInstalledThemes> = new Schema<IInstalledThemes>(
@@ -20,22 +18,11 @@ const InstalledThemesSchema: Schema<IInstalledThemes> = new Schema<IInstalledThe
       required: true,
       index: true,
     },
-    // Deprecated field retained so old documents still deserialize cleanly.
-    user: {
-      type: Schema.Types.ObjectId,
-      ref: "User",
-      required: false,
-      index: true,
-    },
     theme: {
       type: Schema.Types.ObjectId,
       ref: "Theme",
       required: true,
       index: true,
-    },
-    storePath: {
-      type: String,
-      default: null,
     },
     installedAt: {
       type: Date,

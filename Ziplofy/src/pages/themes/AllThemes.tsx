@@ -75,7 +75,14 @@ const AllThemes: React.FC = () => {
     isCustomTheme: false,
   });
   const { themes, loading: themesLoading, error: themesError, fetchAll } = useThemes();
-  const { installedThemes, installTheme, applyTheme, uninstallTheme, fetchByStoreId } = useInstalledThemes();
+  const {
+    installedThemes,
+    installingThemeId,
+    installTheme,
+    applyTheme,
+    uninstallTheme,
+    fetchByStoreId,
+  } = useInstalledThemes();
   const { activeStoreId } = useStore();
   const { customThemes, loading: customThemesLoading, fetchAll: fetchCustomThemes, deleteTheme: deleteCustomTheme, installTheme: installCustomTheme, uninstallTheme: uninstallCustomTheme, updateTheme } = useCustomThemes();
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -1074,11 +1081,12 @@ const AllThemes: React.FC = () => {
                     Installed
                   </button>
                 ) : (
-                  <button 
+                  <button
                     className="action-btn primary"
+                    disabled={String(installingThemeId) === String(theme._id)}
                     onClick={() => handleInstallClick(theme._id)}
                   >
-                    Install theme
+                    {String(installingThemeId) === String(theme._id) ? 'Installing…' : 'Install theme'}
                   </button>
                 )}
                 <button 

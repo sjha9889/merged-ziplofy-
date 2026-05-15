@@ -19,10 +19,16 @@ export interface ThemeCardTheme {
 interface ThemeCardProps {
   theme: ThemeCardTheme;
   installedThemes: any[];
+  installingThemeId?: string | null;
   onInstallClick: (themeId: string) => void;
 }
 
-const ThemeCard: React.FC<ThemeCardProps> = ({ theme, installedThemes, onInstallClick }) => {
+const ThemeCard: React.FC<ThemeCardProps> = ({
+  theme,
+  installedThemes,
+  installingThemeId = null,
+  onInstallClick,
+}) => {
   const handleImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     e.currentTarget.src =
       'data:image/svg+xml,' +
@@ -33,7 +39,10 @@ const ThemeCard: React.FC<ThemeCardProps> = ({ theme, installedThemes, onInstall
 
   const isInstalled =
     Array.isArray(installedThemes) &&
-    installedThemes.some((it: any) => String((it.themeId || {})._id) === String(theme._id));
+    installedThemes.some((it: { _id?: string; themeId?: { _id?: string } }) =>
+      String(it._id ?? it.themeId?._id) === String(theme._id)
+    );
+  const isInstalling = installingThemeId != null && String(installingThemeId) === String(theme._id);
 
   const avg = Number(theme?.rating?.average ?? 0);
   const fullStars = Math.min(5, Math.max(0, Math.round(avg)));
@@ -100,9 +109,11 @@ const ThemeCard: React.FC<ThemeCardProps> = ({ theme, installedThemes, onInstall
         <div className="mt-auto flex flex-col gap-2">
           <button
             type="button"
-            className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:from-blue-700 hover:to-indigo-700 hover:shadow-md active:scale-[0.99]"
+            disabled={isInstalled || isInstalling}
+            onClick={() => onInstallClick(theme._id)}
+            className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:from-blue-700 hover:to-indigo-700 hover:shadow-md active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Install theme
+            {isInstalling ? 'Installing…' : isInstalled ? 'Installed' : 'Install theme'}
           </button>
           <div className="grid grid-cols-2 gap-2">
             <button
@@ -122,10 +133,11 @@ const ThemeCard: React.FC<ThemeCardProps> = ({ theme, installedThemes, onInstall
             ) : (
               <button
                 type="button"
+                disabled={isInstalling}
                 onClick={() => onInstallClick(theme._id)}
-                className="rounded-xl border border-gray-200 bg-white py-2 text-xs font-semibold text-gray-800 transition-colors hover:border-blue-200 hover:bg-blue-50/60 hover:text-blue-800"
+                className="rounded-xl border border-gray-200 bg-white py-2 text-xs font-semibold text-gray-800 transition-colors hover:border-blue-200 hover:bg-blue-50/60 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Install
+                {isInstalling ? 'Installing…' : 'Install'}
               </button>
             )}
           </div>

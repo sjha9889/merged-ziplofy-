@@ -1,4 +1,5 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
+import toast from 'react-hot-toast';
 import { axiosi } from '../config/axios.config';
 
 export interface PopulatedTheme {
@@ -21,11 +22,14 @@ export interface PopulatedTheme {
 
 export interface InstalledThemeDoc {
   _id: string;
-  installedThemeId?: string;
-  storeId: string;
-  themeId: PopulatedTheme;
-  createdAt: string;
-  updatedAt: string;
+  name: string;
+  description?: string;
+  category?: string;
+  thumbnailUrl?: string | null;
+  installedThemeId: string;
+  installedAt?: string;
+  uninstalledAt?: string | null;
+  isCustomTheme?: boolean;
 }
 
 interface ApiListResponse {
@@ -41,6 +45,8 @@ interface ApiSingleResponse {
 interface InstalledThemesContextType {
   installedThemes: InstalledThemeDoc[];
   loading: boolean;
+  /** Theme catalog id currently being installed (null when idle). */
+  installingThemeId: string | null;
   error: string | null;
   fetchByStoreId: (storeId: string) => Promise<void>;
   installTheme: (storeId: string, themeId: string) => Promise<void>;
@@ -53,45 +59,59 @@ const InstalledThemesContext = createContext<InstalledThemesContextType | undefi
 export const InstalledThemesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [installedThemes, setInstalledThemes] = useState<InstalledThemeDoc[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [installingThemeId, setInstallingThemeId] = useState<string | null>(null);
+  const installInFlightRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
+
+  const loadInstalledThemes = useCallback(async (storeId: string) => {
+    const { data: body } = await axiosi.get<ApiListResponse>(
+      `/installed-themes/store/${storeId}?_t=${Date.now()}`
+    );
+    setInstalledThemes(body?.data ?? []);
+  }, []);
 
   const fetchByStoreId = useCallback(async (storeId: string) => {
     setLoading(true);
     setError(null);
     try {
-      // Pass both userId and storeId to ensure backend checks both directories
-      // Add cache-busting parameter to ensure fresh data
-      const { data } = await axiosi.get(`/themes/installed?userId=${storeId}&storeId=${storeId}&_t=${Date.now()}`);
-      setInstalledThemes(data || []);
+      await loadInstalledThemes(storeId);
     } catch (err: any) {
       setError(err?.response?.data?.message || 'Failed to fetch installed themes');
       setInstalledThemes([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [loadInstalledThemes]);
 
   const installTheme = useCallback(async (storeId: string, themeId: string) => {
-    setLoading(true);
+    if (installInFlightRef.current) return;
+
+    installInFlightRef.current = true;
+    setInstallingThemeId(themeId);
     setError(null);
+    const toastId = toast.loading('Installing theme...');
+
     try {
       const { data } = await axiosi.post(`/themes/install`, { storeId, themeId });
       if (data.success) {
-        // IMPORTANT: Clear any custom theme from localStorage since we're installing a regular theme
-        // This ensures only one theme (regular or custom) is active at a time
         localStorage.removeItem('ziplofy.appliedCustomThemeId');
         localStorage.removeItem('ziplofy.appliedCustomThemeStoreId');
-        // Wait a moment for backend to complete cleanup (delete custom theme directories)
-        await new Promise(resolve => setTimeout(resolve, 500));
-        // Refresh the installed themes list
-        await fetchByStoreId(storeId);
+        await loadInstalledThemes(storeId);
+        toast.success('Theme installed', { id: toastId });
+      } else {
+        const message = data?.message || 'Failed to install theme';
+        setError(message);
+        toast.error(message, { id: toastId });
       }
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Failed to install theme');
+      const message = err?.response?.data?.message || 'Failed to install theme';
+      setError(message);
+      toast.error(message, { id: toastId });
     } finally {
-      setLoading(false);
+      installInFlightRef.current = false;
+      setInstallingThemeId(null);
     }
-  }, [fetchByStoreId]);
+  }, [loadInstalledThemes]);
 
   const uninstallTheme = useCallback(async (installedThemeId: string) => {
     setLoading(true);
@@ -122,12 +142,13 @@ export const InstalledThemesProvider: React.FC<{ children: React.ReactNode }> = 
   const value: InstalledThemesContextType = useMemo(() => ({
     installedThemes,
     loading,
+    installingThemeId,
     error,
     fetchByStoreId,
     installTheme,
     applyTheme,
     uninstallTheme,
-  }), [installedThemes, loading, error, fetchByStoreId, installTheme, applyTheme, uninstallTheme]);
+  }), [installedThemes, loading, installingThemeId, error, fetchByStoreId, installTheme, applyTheme, uninstallTheme]);
 
   return (
     <InstalledThemesContext.Provider value={value}>

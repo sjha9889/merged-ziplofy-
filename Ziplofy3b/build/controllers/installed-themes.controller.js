@@ -8,7 +8,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const installed_themes_model_1 = require("../models/installed-themes.model");
 const theme_model_1 = require("../models/theme.model");
 const error_utils_1 = require("../utils/error.utils");
-// Install (activate) a theme for a store
+const installed_themes_list_util_1 = require("../utils/installed-themes-list.util");
 exports.installThemeForStore = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const { storeId, themeId } = req.body;
     if (!storeId || !themeId)
@@ -16,34 +16,23 @@ exports.installThemeForStore = (0, error_utils_1.asyncErrorHandler)(async (req, 
     const validTheme = await theme_model_1.Theme.findById(themeId);
     if (!validTheme)
         throw new error_utils_1.CustomError('Theme not found', 404);
-    const doc = await installed_themes_model_1.InstalledThemes.findOneAndUpdate({ store: new mongoose_1.default.Types.ObjectId(storeId), theme: new mongoose_1.default.Types.ObjectId(themeId) }, { $set: { uninstalledAt: null } }, { upsert: true, new: true, setDefaultsOnInsert: true }).populate('theme').lean();
-    if (doc && doc.theme) {
-        const t = doc.theme;
-        const thumbnailUrl = t?.s3Assets?.thumbnail?.url || null;
-        doc.theme.thumbnailUrl = thumbnailUrl;
-        delete doc.theme.s3Assets;
-    }
-    return res.status(200).json({ success: true, data: doc });
+    await installed_themes_model_1.InstalledThemes.findOneAndUpdate({ store: new mongoose_1.default.Types.ObjectId(storeId), theme: new mongoose_1.default.Types.ObjectId(themeId) }, {
+        $set: {
+            store: new mongoose_1.default.Types.ObjectId(storeId),
+            theme: new mongoose_1.default.Types.ObjectId(themeId),
+            uninstalledAt: null,
+            installedAt: new Date(),
+        },
+    }, { upsert: true, new: true, setDefaultsOnInsert: true });
+    const data = await (0, installed_themes_list_util_1.listInstalledThemesForStore)(storeId);
+    return res.status(200).json({ success: true, data });
 });
-// Get installed themes by store id
 exports.getInstalledThemesByStore = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const { storeId } = req.params;
     if (!storeId)
         throw new error_utils_1.CustomError('storeId is required', 400);
-    const records = await installed_themes_model_1.InstalledThemes.find({ store: new mongoose_1.default.Types.ObjectId(storeId), uninstalledAt: null })
-        .populate('theme')
-        .lean();
-    // For each record, replace themeId.thumbnail with thumbnailUrl only
-    const shaped = records.map((r) => {
-        if (r?.theme) {
-            const t = r.theme;
-            const thumbnailUrl = t?.s3Assets?.thumbnail?.url || null;
-            t.thumbnailUrl = thumbnailUrl;
-            delete t.s3Assets;
-        }
-        return r;
-    });
-    return res.status(200).json({ success: true, data: shaped });
+    const data = await (0, installed_themes_list_util_1.listInstalledThemesForStore)(storeId);
+    return res.status(200).json({ success: true, data });
 });
 // Uninstall (deactivate) theme for a store
 exports.uninstallThemeForStore = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {

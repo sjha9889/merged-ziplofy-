@@ -42,22 +42,11 @@ const InstalledThemesSchema = new mongoose_1.Schema({
         required: true,
         index: true,
     },
-    // Deprecated field retained so old documents still deserialize cleanly.
-    user: {
-        type: mongoose_1.Schema.Types.ObjectId,
-        ref: "User",
-        required: false,
-        index: true,
-    },
     theme: {
         type: mongoose_1.Schema.Types.ObjectId,
         ref: "Theme",
         required: true,
         index: true,
-    },
-    storePath: {
-        type: String,
-        default: null,
     },
     installedAt: {
         type: Date,

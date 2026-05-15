@@ -15,11 +15,8 @@ const theme_model_1 = require("../models/theme.model");
 const custom_theme_model_1 = require("../models/custom-theme.model");
 const store_model_1 = require("../models/store/store.model");
 const installed_themes_query_util_1 = require("./installed-themes-query.util");
-const store_theme_runtime_util_1 = require("./store-theme-runtime.util");
-/**
- * Resolve installed theme directory and public asset base URL for a store.
- * Mirrors logic in getStorefrontThemeRuntime for path consistency.
- */
+const theme_catalog_cache_util_1 = require("./theme-catalog-cache.util");
+/** Resolve applied theme paths for storefront (catalog = shared S3 cache, not per-store copy). */
 async function resolveStorefrontThemeRuntime(req, storeId) {
     if (!storeId)
         return null;
@@ -41,38 +38,34 @@ async function resolveStorefrontThemeRuntime(req, storeId) {
     const isCustomTheme = Boolean(!theme && customTheme);
     const runtimeThemeKey = isCustomTheme ? `custom-${appliedThemeId}` : appliedThemeId;
     const host = req.get("host") || "localhost";
-    let storeThemeDir;
     let runtimeBaseDir;
     if (isCustomTheme) {
-        storeThemeDir = path_1.default.join(process.cwd(), "uploads", "stores", storeId, "themes", String(runtimeThemeKey));
+        const storeThemeDir = path_1.default.join(process.cwd(), "uploads", "stores", storeId, "themes", String(runtimeThemeKey));
         const unzippedThemeDir = path_1.default.join(storeThemeDir, "unzippedTheme");
         runtimeBaseDir = fs_1.default.existsSync(unzippedThemeDir) ? unzippedThemeDir : storeThemeDir;
     }
     else {
-        const layout = await (0, store_theme_runtime_util_1.ensureStoreCatalogThemeMaterialized)(storeId, appliedThemeId, theme);
-        storeThemeDir = layout.storeThemeDir;
-        runtimeBaseDir = layout.runtimeBaseDir;
+        runtimeBaseDir = await (0, theme_catalog_cache_util_1.ensureCatalogThemeCodeDir)(theme);
     }
     const runtimeBaseUrl = `${req.protocol}://${host}/api/themes/installed/${encodeURIComponent(storeId)}/${encodeURIComponent(String(runtimeThemeKey))}/runtime`;
-    const themeName = isCustomTheme ? customTheme?.name ?? null : theme?.name ?? null;
+    const themeName = isCustomTheme
+        ? customTheme?.name ?? null
+        : theme?.name ?? null;
     return {
         storeId,
         appliedThemeId,
         runtimeThemeKey,
         isCustomTheme,
         themeName,
-        storeThemeDir,
         runtimeBaseDir,
         runtimeBaseUrl,
         installedThemeRecord: installedTheme,
     };
 }
 function themeHasLiquidTemplates(runtimeBaseDir) {
-    const p = path_1.default.join(runtimeBaseDir, "templates", "index.liquid");
-    return fs_1.default.existsSync(p);
+    return fs_1.default.existsSync(path_1.default.join(runtimeBaseDir, "templates", "index.liquid"));
 }
 const LIQUID_TEMPLATE_NAME = /^[a-z][a-z0-9_-]{0,63}$/;
-/** Basenames of `templates/*.liquid` (e.g. `index`, `blog-detail`). */
 function listLiquidTemplateNames(runtimeBaseDir) {
     const dir = path_1.default.join(runtimeBaseDir, "templates");
     if (!fs_1.default.existsSync(dir))

@@ -9,9 +9,9 @@ import { Collections } from "../models/collections/collections.model";
 import { CollectionEntry } from "../models/collection-entry/collection-entry.model";
 import {
   isSafeLiquidTemplateName,
-  resolveStorefrontThemeRuntime,
+  resolveAppliedStorefrontTheme,
   themeHasLiquidTemplates,
-} from "../utils/storefront-theme-runtime.util";
+} from "../utils/storefront-liquid.util";
 import { createStorefrontLiquid, renderLiquidThemePage } from "../services/theme-liquid/theme-liquid.renderer";
 import {
   absolutizeImageUrlsArray,
@@ -65,7 +65,7 @@ export const renderStorefrontLiquidPage = asyncErrorHandler(async (req: Request,
 
   if (!storeId) throw new CustomError("Store ID is required", 400);
 
-  const resolved = await resolveStorefrontThemeRuntime(req, storeId);
+  const resolved = await resolveAppliedStorefrontTheme(req, storeId);
   if (!resolved) {
     throw new CustomError("No applied theme for this store", 404);
   }

@@ -12,7 +12,7 @@ const store_model_1 = require("../models/store/store.model");
 const product_model_1 = require("../models/product/product.model");
 const collections_model_1 = require("../models/collections/collections.model");
 const collection_entry_model_1 = require("../models/collection-entry/collection-entry.model");
-const storefront_theme_runtime_util_1 = require("../utils/storefront-theme-runtime.util");
+const storefront_liquid_util_1 = require("../utils/storefront-liquid.util");
 const theme_liquid_renderer_1 = require("../services/theme-liquid/theme-liquid.renderer");
 const public_origin_util_1 = require("../utils/public-origin.util");
 function toLiquidProduct(p, publicOrigin) {
@@ -48,15 +48,15 @@ exports.renderStorefrontLiquidPage = (0, error_utils_1.asyncErrorHandler)(async 
     const { template = "index", collectionId, handle, slug, } = req.query;
     if (!storeId)
         throw new error_utils_1.CustomError("Store ID is required", 400);
-    const resolved = await (0, storefront_theme_runtime_util_1.resolveStorefrontThemeRuntime)(req, storeId);
+    const resolved = await (0, storefront_liquid_util_1.resolveAppliedStorefrontTheme)(req, storeId);
     if (!resolved) {
         throw new error_utils_1.CustomError("No applied theme for this store", 404);
     }
-    if (!(0, storefront_theme_runtime_util_1.themeHasLiquidTemplates)(resolved.runtimeBaseDir)) {
+    if (!(0, storefront_liquid_util_1.themeHasLiquidTemplates)(resolved.runtimeBaseDir)) {
         throw new error_utils_1.CustomError("Theme does not support Liquid templates (missing templates/index.liquid)", 404);
     }
     const tpl = String(template || "index").trim().toLowerCase();
-    if (!(0, storefront_theme_runtime_util_1.isSafeLiquidTemplateName)(tpl)) {
+    if (!(0, storefront_liquid_util_1.isSafeLiquidTemplateName)(tpl)) {
         throw new error_utils_1.CustomError("Invalid template name", 400);
     }
     const templateFile = path_1.default.join(resolved.runtimeBaseDir, "templates", `${tpl}.liquid`);

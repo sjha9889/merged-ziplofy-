@@ -64,3 +64,85 @@ export async function downloadS3ZipAndExtractToDir(zipKey: string, destCodeDir: 
   fs.unlinkSync(tmpZip);
   normalizeExtractedSingleTopLevelWrapper(destCodeDir);
 }
+
+function catalogCacheRoot(themeId: string): string {
+  return path.join(tmpdir(), 'ziplofy-catalog-themes', themeId);
+}
+
+/** Download catalog theme from S3 to temp (preview / storefront render only — not on install). */
+export async function ensureCatalogThemeCodeDir(theme: {
+  _id: unknown;
+  s3Assets?: {
+    zip?: { key?: string };
+    contentRoot?: { prefix?: string; fileCount?: number };
+  };
+}): Promise<string> {
+  const id = String(theme._id);
+  const zipKey = theme.s3Assets?.zip?.key;
+  const folderPrefix = theme.s3Assets?.contentRoot?.prefix;
+  if (!zipKey && !folderPrefix) throw new CustomError('Theme has no S3 package', 404);
+
+  const cacheRoot = catalogCacheRoot(id);
+  const codeDir = path.join(cacheRoot, 'code');
+  const metaPath = path.join(cacheRoot, '.meta.json');
+  const mode = zipKey ? 'zip' : 'folder';
+  const ref = zipKey ?? folderPrefix ?? '';
+  const folderFileCount = theme.s3Assets?.contentRoot?.fileCount;
+
+  let skip = false;
+  if (fs.existsSync(metaPath)) {
+    try {
+      const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+      if (
+        meta.mode === mode &&
+        meta.ref === ref &&
+        (mode !== 'folder' || meta.folderFileCount === folderFileCount) &&
+        fs.existsSync(codeDir) &&
+        fs.readdirSync(codeDir).length > 0
+      ) {
+        skip = true;
+      }
+    } catch {
+      /* re-sync */
+    }
+  }
+  if (!skip) {
+    if (fs.existsSync(cacheRoot)) fs.rmSync(cacheRoot, { recursive: true, force: true });
+    fs.mkdirSync(codeDir, { recursive: true });
+    if (zipKey) {
+      await downloadS3ZipAndExtractToDir(zipKey, codeDir);
+    } else {
+      await downloadS3PrefixToLocalDir(folderPrefix!, codeDir);
+    }
+    fs.writeFileSync(
+      metaPath,
+      JSON.stringify({
+        mode,
+        ref,
+        folderFileCount: mode === 'folder' ? folderFileCount : undefined,
+        ts: Date.now(),
+      })
+    );
+  }
+  return codeDir;
+}
+
+export async function ensureCatalogRemoteDistDir(theme: {
+  _id: unknown;
+  s3Assets?: { reactThemeJs?: { key?: string }; reactThemeCss?: { key?: string } };
+}): Promise<string> {
+  const id = String(theme._id);
+  const distDir = path.join(catalogCacheRoot(id), 'remoteThemeDist');
+  const jsKey = theme.s3Assets?.reactThemeJs?.key;
+  const cssKey = theme.s3Assets?.reactThemeCss?.key;
+  if (!jsKey && !cssKey) return distDir;
+
+  fs.mkdirSync(distDir, { recursive: true });
+  if (jsKey && !fs.existsSync(path.join(distDir, 'theme.js'))) {
+    await downloadS3KeyToFile(jsKey, path.join(distDir, 'theme.js'));
+  }
+  if (cssKey && !fs.existsSync(path.join(distDir, 'theme.css'))) {
+    await downloadS3KeyToFile(cssKey, path.join(distDir, 'theme.css'));
+  }
+  return distDir;
+}
