@@ -74,7 +74,14 @@ function assertStagingThemeFolderKeys(files, userId, sessionId) {
 function assertStagingFolderAndAuxiliaryKeys(files, aux, userId, sessionId) {
     const fileKeys = assertStagingThemeFolderKeys(files, userId, sessionId);
     const prefix = stagingPrefix(userId, sessionId);
-    const auxKeys = [aux.thumbnailKey, aux.reactJsKey, aux.reactCssKey].filter((k) => typeof k === 'string' && k.length > 0);
+    const auxKeys = [
+        aux.thumbnailKey,
+        aux.reactJsKey,
+        aux.reactCssKey,
+        aux.themeSchemaKey,
+        aux.themeDefaultConfigKey,
+        aux.themeManifestKey,
+    ].filter((k) => typeof k === 'string' && k.length > 0);
     for (const k of auxKeys) {
         if (!k.startsWith(prefix)) {
             throw new error_utils_1.CustomError('Invalid S3 key: must belong to your staging upload session.', 403);
@@ -85,7 +92,15 @@ function assertStagingFolderAndAuxiliaryKeys(files, aux, userId, sessionId) {
 /** Ensures every non-empty key starts with the caller's staging prefix; returns defined keys. */
 function assertStagingKeys(keys, userId, sessionId) {
     const prefix = stagingPrefix(userId, sessionId);
-    const all = [keys.zipKey, keys.thumbnailKey, keys.reactJsKey, keys.reactCssKey].filter((k) => typeof k === 'string' && k.length > 0);
+    const all = [
+        keys.zipKey,
+        keys.thumbnailKey,
+        keys.reactJsKey,
+        keys.reactCssKey,
+        keys.themeSchemaKey,
+        keys.themeDefaultConfigKey,
+        keys.themeManifestKey,
+    ].filter((k) => typeof k === 'string' && k.length > 0);
     for (const k of all) {
         if (!k.startsWith(prefix)) {
             throw new error_utils_1.CustomError('Invalid S3 key: must belong to your staging upload session.', 403);
@@ -146,6 +161,7 @@ async function listAllObjectKeysUnderPrefix(prefix) {
 /** Thumbnail + remote React dist only (ZIP or folder promotion composes this). */
 async function promoteStagingAuxiliaryToCatalog(themeId, keys) {
     const base = `themes/catalog/${themeId}`;
+    const distBase = `${base}/remote-theme-dist`;
     const stamp = () => new Date();
     const out = {};
     if (keys.thumbnailKey) {
@@ -162,7 +178,7 @@ async function promoteStagingAuxiliaryToCatalog(themeId, keys) {
         };
     }
     if (keys.reactJsKey) {
-        const destKey = `${base}/remote-theme-dist/theme.js`;
+        const destKey = `${distBase}/theme.js`;
         await copyS3ObjectSameBucket(keys.reactJsKey, destKey);
         const h = await headS3Object(destKey);
         out.reactThemeJs = {
@@ -181,6 +197,42 @@ async function promoteStagingAuxiliaryToCatalog(themeId, keys) {
             key: destKey,
             url: publicObjectUrlForKey(destKey),
             contentType: 'text/css',
+            size: h.size,
+            uploadedAt: stamp(),
+        };
+    }
+    if (keys.themeSchemaKey) {
+        const destKey = `${distBase}/theme.schema.json`;
+        await copyS3ObjectSameBucket(keys.themeSchemaKey, destKey);
+        const h = await headS3Object(destKey);
+        out.reactThemeSchema = {
+            key: destKey,
+            url: publicObjectUrlForKey(destKey),
+            contentType: 'application/json',
+            size: h.size,
+            uploadedAt: stamp(),
+        };
+    }
+    if (keys.themeDefaultConfigKey) {
+        const destKey = `${distBase}/theme.default-config.json`;
+        await copyS3ObjectSameBucket(keys.themeDefaultConfigKey, destKey);
+        const h = await headS3Object(destKey);
+        out.reactThemeDefaultConfig = {
+            key: destKey,
+            url: publicObjectUrlForKey(destKey),
+            contentType: 'application/json',
+            size: h.size,
+            uploadedAt: stamp(),
+        };
+    }
+    if (keys.themeManifestKey) {
+        const destKey = `${distBase}/theme.manifest.json`;
+        await copyS3ObjectSameBucket(keys.themeManifestKey, destKey);
+        const h = await headS3Object(destKey);
+        out.reactThemeManifest = {
+            key: destKey,
+            url: publicObjectUrlForKey(destKey),
+            contentType: 'application/json',
             size: h.size,
             uploadedAt: stamp(),
         };
@@ -235,7 +287,15 @@ async function promoteStagingThemeAssetsToCatalog(themeId, keys) {
 async function collectCatalogAssetKeysAsync(s3) {
     if (!s3)
         return [];
-    const keys = [s3.zip?.key, s3.thumbnail?.key, s3.reactThemeJs?.key, s3.reactThemeCss?.key].filter((k) => typeof k === 'string' && k.length > 0);
+    const keys = [
+        s3.zip?.key,
+        s3.thumbnail?.key,
+        s3.reactThemeJs?.key,
+        s3.reactThemeCss?.key,
+        s3.reactThemeSchema?.key,
+        s3.reactThemeDefaultConfig?.key,
+        s3.reactThemeManifest?.key,
+    ].filter((k) => typeof k === 'string' && k.length > 0);
     if (s3.contentRoot?.prefix) {
         const under = await listAllObjectKeysUnderPrefix(s3.contentRoot.prefix);
         keys.push(...under);

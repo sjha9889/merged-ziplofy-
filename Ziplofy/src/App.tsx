@@ -31,6 +31,7 @@ const CustomThemeBuilder = lazy(() => import("./pages/themes/CustomThemeBuilder"
 const ThemeCodeEditor = lazy(() => import("./pages/themes/ThemeCodeEditor"));
 const ThemeCodeEditorFullScreen = lazy(() => import("./pages/themes/ThemeCodeEditorFullScreen"));
 const ThemeEditor = lazy(() => import("./pages/themes/ThemeEditor"));
+const StoreThemeConfigEditor = lazy(() => import("./pages/themes/StoreThemeConfigEditor"));
 const ThemeLayoutEditor = lazy(() => import("./pages/themes/ThemeLayoutEditor"));
 const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
 const ContentPage = lazy(() => import("./pages/ContentPage"));
@@ -260,7 +261,9 @@ const AdminApp: React.FC = () => {
   const isCodeFullScreen = location.pathname.startsWith('/themes/code-fullscreen/');
   const isBuilderFullScreen = location.pathname.startsWith('/themes/builder');
   const isBasicElementor = location.pathname.startsWith('/themes/basic-elementor');
-  const isFullScreen = isCodeFullScreen || isBuilderFullScreen || isBasicElementor;
+  const isThemeSchemaEditor = /^\/themes\/[^/]+\/editor$/.test(location.pathname);
+  const isFullScreen =
+    isCodeFullScreen || isBuilderFullScreen || isBasicElementor || isThemeSchemaEditor;
   const isSettings = location.pathname.startsWith('/settings');
   const showNavbar = !isFullScreen;
   const showSidebar = !isFullScreen && !isSettings;
@@ -427,6 +430,7 @@ const AdminApp: React.FC = () => {
             <Route path="/themes/builder" element={<CustomThemeBuilder />} />
             <Route path="/themes/basic-elementor" element={<BasicElementor />} />
             <Route path="/themes/edit/:themeId" element={<ThemeEditor />} />
+            <Route path="/themes/:themeId/editor" element={<StoreThemeConfigEditor />} />
             <Route path="/themes/layout/:themeId" element={<ThemeLayoutEditor />} />
             <Route path="/themes/code/:themeId" element={<ThemeCodeEditor />} />
             <Route path="/themes/code-fullscreen/:themeId" element={<ThemeCodeEditorFullScreen />} />

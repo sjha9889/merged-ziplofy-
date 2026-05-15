@@ -84,6 +84,9 @@ const ThemeSchema = new mongoose_1.Schema({
             thumbnail: { type: s3AssetPartSchema, required: false },
             reactThemeJs: { type: s3AssetPartSchema, required: false },
             reactThemeCss: { type: s3AssetPartSchema, required: false },
+            reactThemeSchema: { type: s3AssetPartSchema, required: false },
+            reactThemeDefaultConfig: { type: s3AssetPartSchema, required: false },
+            reactThemeManifest: { type: s3AssetPartSchema, required: false },
         }, { _id: false }),
         required: true,
         validate: {

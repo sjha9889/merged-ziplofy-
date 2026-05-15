@@ -20,6 +20,12 @@ const StorefrontAuthRoute = () => {
   return <Page />;
 };
 
+const StorefrontForgotRoute = () => {
+  const theme = useLoadedThemeContract();
+  const Page = theme.ForgotPasswordPage ?? theme.LoginPage;
+  return <Page />;
+};
+
 const StorefrontProfileRoute = () => {
   const theme = useLoadedThemeContract();
   const Page = theme.ProfilePage;
@@ -54,6 +60,7 @@ export const StorefrontRoutes = () => (
       <Route path="/collections/:collectionId/:urlHandle" element={<StorefrontHomeRoute />} />
       <Route path="/auth/login" element={<StorefrontAuthRoute />} />
       <Route path="/auth/signup" element={<StorefrontAuthRoute />} />
+      <Route path="/auth/forgot" element={<StorefrontForgotRoute />} />
       <Route path="/profile" element={<StorefrontProfileRoute />} />
       <Route path="/my-orders" element={<StorefrontOrdersRoute />} />
       <Route path="/preferences" element={<StorefrontPreferencesRoute />} />

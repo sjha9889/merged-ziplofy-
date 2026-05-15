@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getThemeStats = exports.saveUserFileEdit = exports.serveThemePreviewFiles = exports.readThemeFile = exports.listThemeFiles = exports.getThemePreview = exports.uninstallTheme = exports.getInstalledThemes = exports.serveInstalledThemeFiles = exports.applyThemeToStore = exports.installTheme = exports.getThemesStatic = exports.getThumbnail = exports.getThemeStructure = exports.downloadTheme = exports.deleteTheme = exports.updateTheme = exports.createThemeFromS3 = exports.createTheme = exports.getTheme = exports.getAllThemesPublic = exports.getThemes = void 0;
+exports.getThemeStats = exports.putStoreThemeConfig = exports.getStoreThemeConfig = exports.getThemeEditorPack = exports.saveUserFileEdit = exports.serveThemePreviewFiles = exports.readThemeFile = exports.listThemeFiles = exports.getThemePreview = exports.uninstallTheme = exports.getInstalledThemes = exports.serveInstalledThemeFiles = exports.applyThemeToStore = exports.installTheme = exports.getThemesStatic = exports.getThumbnail = exports.getThemeStructure = exports.downloadTheme = exports.deleteTheme = exports.updateTheme = exports.createThemeFromS3 = exports.createTheme = exports.getTheme = exports.getAllThemesPublic = exports.getThemes = void 0;
 const fs_1 = __importDefault(require("fs"));
 const mongoose_1 = require("mongoose");
 const path_1 = __importDefault(require("path"));
@@ -21,7 +21,9 @@ const installed_themes_query_util_1 = require("../utils/installed-themes-query.u
 const theme_s3_ingest_1 = require("../utils/theme-s3-ingest");
 const theme_zip_from_s3_util_1 = require("../utils/theme-zip-from-s3.util");
 const installed_themes_list_util_1 = require("../utils/installed-themes-list.util");
+const storefront_liquid_util_1 = require("../utils/storefront-liquid.util");
 const theme_zip_from_s3_util_2 = require("../utils/theme-zip-from-s3.util");
+const store_theme_config_service_1 = require("../services/store-theme-config.service");
 const os_1 = require("os");
 const archiver_1 = __importDefault(require("archiver"));
 const THEME_FILE_CONTENT_TYPES = {
@@ -69,9 +71,19 @@ function resolveThemeZipUrl(_req, theme) {
     return theme?.s3Assets?.zip?.url || null;
 }
 /** Normalize a theme document for list/detail APIs (S3-first catalog shape). */
+function withResolvedS3Urls(s3) {
+    const out = { ...s3 };
+    for (const field of ["reactThemeJs", "reactThemeCss", "reactThemeSchema", "reactThemeDefaultConfig", "reactThemeManifest"]) {
+        const part = out[field];
+        if (part?.key && !part.url) {
+            out[field] = { ...part, url: (0, theme_s3_ingest_1.publicObjectUrlForKey)(part.key) };
+        }
+    }
+    return out;
+}
 function formatThemeForClient(theme) {
     const obj = theme?.toObject ? theme.toObject() : { ...theme };
-    const s3 = obj.s3Assets ?? {};
+    const s3 = withResolvedS3Urls(obj.s3Assets ?? {});
     const hasFolder = Boolean(s3.contentRoot?.prefix);
     const hasZip = Boolean(s3.zip?.key);
     return {
@@ -200,23 +212,42 @@ exports.createThemeFromS3 = (0, error_utils_1.asyncErrorHandler)(async (req, res
     if (hasZip === hasFiles) {
         throw new error_utils_1.CustomError("Provide exactly one of: s3.zipKey (legacy ZIP) or s3.files (folder upload)", 400);
     }
+    const requireEditorConfigKeys = () => {
+        const missing = [];
+        if (typeof s3.themeSchemaKey !== "string" || !s3.themeSchemaKey.length) {
+            missing.push("themeSchemaKey (theme.schema.json)");
+        }
+        if (typeof s3.themeDefaultConfigKey !== "string" || !s3.themeDefaultConfigKey.length) {
+            missing.push("themeDefaultConfigKey (theme.default-config.json)");
+        }
+        if (typeof s3.themeManifestKey !== "string" || !s3.themeManifestKey.length) {
+            missing.push("themeManifestKey (theme.manifest.json)");
+        }
+        if (missing.length) {
+            throw new error_utils_1.CustomError(`Editor theme config is required: ${missing.join(", ")}`, 400);
+        }
+    };
+    if (hasFiles) {
+        requireEditorConfigKeys();
+    }
     const newId = new mongoose_1.Types.ObjectId();
     const themePath = makeThemePathSlug(name);
     let stagingKeys;
     let s3Assets;
     try {
         if (hasZip) {
-            stagingKeys = (0, theme_s3_ingest_1.assertStagingKeys)({
-                zipKey: s3.zipKey,
+            const auxKeys = {
                 thumbnailKey: s3.thumbnailKey,
                 reactJsKey: s3.reactJsKey,
                 reactCssKey: s3.reactCssKey,
-            }, userId, s3SessionId);
+                themeSchemaKey: s3.themeSchemaKey,
+                themeDefaultConfigKey: s3.themeDefaultConfigKey,
+                themeManifestKey: s3.themeManifestKey,
+            };
+            stagingKeys = (0, theme_s3_ingest_1.assertStagingKeys)({ zipKey: s3.zipKey, ...auxKeys }, userId, s3SessionId);
             s3Assets = await (0, theme_s3_ingest_1.promoteStagingThemeAssetsToCatalog)(newId.toString(), {
                 zipKey: s3.zipKey,
-                thumbnailKey: s3.thumbnailKey,
-                reactJsKey: s3.reactJsKey,
-                reactCssKey: s3.reactCssKey,
+                ...auxKeys,
             });
         }
         else {
@@ -234,12 +265,18 @@ exports.createThemeFromS3 = (0, error_utils_1.asyncErrorHandler)(async (req, res
                 thumbnailKey: s3.thumbnailKey,
                 reactJsKey: s3.reactJsKey,
                 reactCssKey: s3.reactCssKey,
+                themeSchemaKey: s3.themeSchemaKey,
+                themeDefaultConfigKey: s3.themeDefaultConfigKey,
+                themeManifestKey: s3.themeManifestKey,
             }, userId, s3SessionId);
             const folderPart = await (0, theme_s3_ingest_1.promoteStagingThemeFolderToCatalog)(newId.toString(), files.map((f) => ({ key: f.key, relativePath: f.relativePath })));
             const aux = await (0, theme_s3_ingest_1.promoteStagingAuxiliaryToCatalog)(newId.toString(), {
                 thumbnailKey: s3.thumbnailKey,
                 reactJsKey: s3.reactJsKey,
                 reactCssKey: s3.reactCssKey,
+                themeSchemaKey: s3.themeSchemaKey,
+                themeDefaultConfigKey: s3.themeDefaultConfigKey,
+                themeManifestKey: s3.themeManifestKey,
             });
             s3Assets = { ...folderPart, ...aux };
         }
@@ -643,31 +680,18 @@ exports.serveInstalledThemeFiles = (0, error_utils_1.asyncErrorHandler)(async (r
     const theme = await theme_model_1.Theme.findById(catalogThemeId).lean();
     if (!theme)
         throw new error_utils_1.CustomError("Theme not found", 404);
-    if (rel.startsWith("remoteThemeDist/")) {
-        const remoteRel = rel.slice("remoteThemeDist/".length);
-        if (!remoteRel || remoteRel.includes(".."))
-            throw new error_utils_1.CustomError("Access denied", 403);
-        const distDir = await (0, theme_zip_from_s3_util_2.ensureCatalogRemoteDistDir)(theme);
-        const diskPath = path_1.default.join(distDir, remoteRel);
-        assertPathWithinRoot(diskPath, distDir);
-        if (!fs_1.default.existsSync(diskPath) || fs_1.default.statSync(diskPath).isDirectory()) {
-            throw new error_utils_1.CustomError("File not found", 404);
-        }
-        return sendThemeStaticFile(res, diskPath);
-    }
-    const codeDir = path_1.default.resolve(await (0, theme_zip_from_s3_util_2.ensureCatalogThemeCodeDir)(theme));
     const customizationPath = path_1.default.resolve(path_1.default.join(process.cwd(), "uploads", "stores", storeId, "themes", catalogThemeId, "customizations", rel));
     const customizationRoot = path_1.default.resolve(path_1.default.join(process.cwd(), "uploads", "stores", storeId, "themes", catalogThemeId, "customizations"));
-    let diskPath = path_1.default.resolve(path_1.default.join(codeDir, rel));
     if (customizationPath.startsWith(customizationRoot) &&
         fs_1.default.existsSync(customizationPath) &&
         fs_1.default.statSync(customizationPath).isFile()) {
-        diskPath = customizationPath;
+        return sendThemeStaticFile(res, customizationPath);
     }
-    else if (!diskPath.startsWith(codeDir) || !fs_1.default.existsSync(diskPath) || fs_1.default.statSync(diskPath).isDirectory()) {
+    const s3Assets = theme.s3Assets;
+    const publicUrl = (0, storefront_liquid_util_1.catalogPublicUrlForRelativePath)(s3Assets, rel.startsWith("remoteThemeDist/") ? rel.replace(/^remoteThemeDist\//, "") : rel);
+    if (!publicUrl)
         throw new error_utils_1.CustomError("File not found", 404);
-    }
-    return sendThemeStaticFile(res, diskPath);
+    return res.redirect(302, publicUrl);
 });
 exports.getInstalledThemes = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const storeId = (0, installed_themes_list_util_1.resolveInstalledThemesStoreId)(req);
@@ -920,6 +944,32 @@ exports.saveUserFileEdit = (0, error_utils_1.asyncErrorHandler)(async (req, res)
         success: true,
         message: 'File saved successfully',
         path: savedPath
+    });
+});
+/** GET /themes/:themeId/editor-pack — catalog schema, defaults, manifest, and runtime URLs. */
+exports.getThemeEditorPack = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
+    const { themeId } = req.params;
+    const data = await (0, store_theme_config_service_1.loadCatalogThemeEditorPack)(themeId);
+    res.status(200).json({ success: true, data });
+});
+/** GET /themes/:themeId/store-config?storeId= — merchant edits for an installed theme. */
+exports.getStoreThemeConfig = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
+    const { themeId } = req.params;
+    const storeId = String(req.query.storeId || "");
+    const data = await (0, store_theme_config_service_1.loadStoreThemeConfig)(storeId, themeId);
+    res.status(200).json({ success: true, data });
+});
+/** PUT /themes/:themeId/store-config — body: { storeId, config } */
+exports.putStoreThemeConfig = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
+    const { themeId } = req.params;
+    const { storeId, config, overrides, values } = req.body;
+    if (!storeId)
+        throw new error_utils_1.CustomError("storeId is required", 400);
+    const data = await (0, store_theme_config_service_1.saveStoreThemeConfig)(storeId, themeId, { config, overrides, values });
+    res.status(200).json({
+        success: true,
+        message: "Theme configuration saved",
+        data,
     });
 });
 exports.getThemeStats = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {

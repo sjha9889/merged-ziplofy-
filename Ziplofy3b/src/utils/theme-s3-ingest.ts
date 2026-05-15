@@ -68,13 +68,27 @@ export function assertStagingThemeFolderKeys(
 /** Folder theme files + optional thumbnail / remote dist keys under the same staging session. */
 export function assertStagingFolderAndAuxiliaryKeys(
   files: { key: string }[],
-  aux: { thumbnailKey?: string; reactJsKey?: string; reactCssKey?: string },
+  aux: {
+    thumbnailKey?: string;
+    reactJsKey?: string;
+    reactCssKey?: string;
+    themeSchemaKey?: string;
+    themeDefaultConfigKey?: string;
+    themeManifestKey?: string;
+  },
   userId: string,
   sessionId: string
 ): string[] {
   const fileKeys = assertStagingThemeFolderKeys(files, userId, sessionId);
   const prefix = stagingPrefix(userId, sessionId);
-  const auxKeys = [aux.thumbnailKey, aux.reactJsKey, aux.reactCssKey].filter(
+  const auxKeys = [
+    aux.thumbnailKey,
+    aux.reactJsKey,
+    aux.reactCssKey,
+    aux.themeSchemaKey,
+    aux.themeDefaultConfigKey,
+    aux.themeManifestKey,
+  ].filter(
     (k): k is string => typeof k === 'string' && k.length > 0
   );
   for (const k of auxKeys) {
@@ -87,12 +101,28 @@ export function assertStagingFolderAndAuxiliaryKeys(
 
 /** Ensures every non-empty key starts with the caller's staging prefix; returns defined keys. */
 export function assertStagingKeys(
-  keys: { zipKey: string; thumbnailKey?: string; reactJsKey?: string; reactCssKey?: string },
+  keys: {
+    zipKey: string;
+    thumbnailKey?: string;
+    reactJsKey?: string;
+    reactCssKey?: string;
+    themeSchemaKey?: string;
+    themeDefaultConfigKey?: string;
+    themeManifestKey?: string;
+  },
   userId: string,
   sessionId: string
 ): string[] {
   const prefix = stagingPrefix(userId, sessionId);
-  const all = [keys.zipKey, keys.thumbnailKey, keys.reactJsKey, keys.reactCssKey].filter(
+  const all = [
+    keys.zipKey,
+    keys.thumbnailKey,
+    keys.reactJsKey,
+    keys.reactCssKey,
+    keys.themeSchemaKey,
+    keys.themeDefaultConfigKey,
+    keys.themeManifestKey,
+  ].filter(
     (k): k is string => typeof k === 'string' && k.length > 0
   );
   for (const k of all) {
@@ -126,6 +156,9 @@ export type ThemeCatalogS3Assets = {
   thumbnail?: { key: string; url: string; contentType: string; size: number; uploadedAt: Date };
   reactThemeJs?: { key: string; url: string; contentType: string; size: number; uploadedAt: Date };
   reactThemeCss?: { key: string; url: string; contentType: string; size: number; uploadedAt: Date };
+  reactThemeSchema?: { key: string; url: string; contentType: string; size: number; uploadedAt: Date };
+  reactThemeDefaultConfig?: { key: string; url: string; contentType: string; size: number; uploadedAt: Date };
+  reactThemeManifest?: { key: string; url: string; contentType: string; size: number; uploadedAt: Date };
 };
 
 /** Copy an object to another key in the same bucket (used to promote staging → catalog). */
@@ -177,11 +210,37 @@ export async function listAllObjectKeysUnderPrefix(prefix: string): Promise<stri
 /** Thumbnail + remote React dist only (ZIP or folder promotion composes this). */
 export async function promoteStagingAuxiliaryToCatalog(
   themeId: string,
-  keys: { thumbnailKey?: string; reactJsKey?: string; reactCssKey?: string }
-): Promise<Pick<ThemeCatalogS3Assets, 'thumbnail' | 'reactThemeJs' | 'reactThemeCss'>> {
+  keys: {
+    thumbnailKey?: string;
+    reactJsKey?: string;
+    reactCssKey?: string;
+    themeSchemaKey?: string;
+    themeDefaultConfigKey?: string;
+    themeManifestKey?: string;
+  }
+): Promise<
+  Pick<
+    ThemeCatalogS3Assets,
+    | 'thumbnail'
+    | 'reactThemeJs'
+    | 'reactThemeCss'
+    | 'reactThemeSchema'
+    | 'reactThemeDefaultConfig'
+    | 'reactThemeManifest'
+  >
+> {
   const base = `themes/catalog/${themeId}`;
+  const distBase = `${base}/remote-theme-dist`;
   const stamp = () => new Date();
-  const out: Pick<ThemeCatalogS3Assets, 'thumbnail' | 'reactThemeJs' | 'reactThemeCss'> = {};
+  const out: Pick<
+    ThemeCatalogS3Assets,
+    | 'thumbnail'
+    | 'reactThemeJs'
+    | 'reactThemeCss'
+    | 'reactThemeSchema'
+    | 'reactThemeDefaultConfig'
+    | 'reactThemeManifest'
+  > = {};
 
   if (keys.thumbnailKey) {
     const ext = path.extname(keys.thumbnailKey) || '.jpg';
@@ -198,7 +257,7 @@ export async function promoteStagingAuxiliaryToCatalog(
   }
 
   if (keys.reactJsKey) {
-    const destKey = `${base}/remote-theme-dist/theme.js`;
+    const destKey = `${distBase}/theme.js`;
     await copyS3ObjectSameBucket(keys.reactJsKey, destKey);
     const h = await headS3Object(destKey);
     out.reactThemeJs = {
@@ -218,6 +277,45 @@ export async function promoteStagingAuxiliaryToCatalog(
       key: destKey,
       url: publicObjectUrlForKey(destKey),
       contentType: 'text/css',
+      size: h.size,
+      uploadedAt: stamp(),
+    };
+  }
+
+  if (keys.themeSchemaKey) {
+    const destKey = `${distBase}/theme.schema.json`;
+    await copyS3ObjectSameBucket(keys.themeSchemaKey, destKey);
+    const h = await headS3Object(destKey);
+    out.reactThemeSchema = {
+      key: destKey,
+      url: publicObjectUrlForKey(destKey),
+      contentType: 'application/json',
+      size: h.size,
+      uploadedAt: stamp(),
+    };
+  }
+
+  if (keys.themeDefaultConfigKey) {
+    const destKey = `${distBase}/theme.default-config.json`;
+    await copyS3ObjectSameBucket(keys.themeDefaultConfigKey, destKey);
+    const h = await headS3Object(destKey);
+    out.reactThemeDefaultConfig = {
+      key: destKey,
+      url: publicObjectUrlForKey(destKey),
+      contentType: 'application/json',
+      size: h.size,
+      uploadedAt: stamp(),
+    };
+  }
+
+  if (keys.themeManifestKey) {
+    const destKey = `${distBase}/theme.manifest.json`;
+    await copyS3ObjectSameBucket(keys.themeManifestKey, destKey);
+    const h = await headS3Object(destKey);
+    out.reactThemeManifest = {
+      key: destKey,
+      url: publicObjectUrlForKey(destKey),
+      contentType: 'application/json',
       size: h.size,
       uploadedAt: stamp(),
     };
@@ -257,7 +355,15 @@ export async function promoteStagingThemeFolderToCatalog(
  */
 export async function promoteStagingThemeAssetsToCatalog(
   themeId: string,
-  keys: { zipKey: string; thumbnailKey?: string; reactJsKey?: string; reactCssKey?: string }
+  keys: {
+    zipKey: string;
+    thumbnailKey?: string;
+    reactJsKey?: string;
+    reactCssKey?: string;
+    themeSchemaKey?: string;
+    themeDefaultConfigKey?: string;
+    themeManifestKey?: string;
+  }
 ): Promise<ThemeCatalogS3Assets> {
   const base = `themes/catalog/${themeId}`;
   const stamp = () => new Date();
@@ -285,7 +391,15 @@ export async function collectCatalogAssetKeysAsync(
   s3: Partial<ThemeCatalogS3Assets> | null | undefined
 ): Promise<string[]> {
   if (!s3) return [];
-  const keys = [s3.zip?.key, s3.thumbnail?.key, s3.reactThemeJs?.key, s3.reactThemeCss?.key].filter(
+  const keys = [
+    s3.zip?.key,
+    s3.thumbnail?.key,
+    s3.reactThemeJs?.key,
+    s3.reactThemeCss?.key,
+    s3.reactThemeSchema?.key,
+    s3.reactThemeDefaultConfig?.key,
+    s3.reactThemeManifest?.key,
+  ].filter(
     (k): k is string => typeof k === 'string' && k.length > 0
   );
   if (s3.contentRoot?.prefix) {

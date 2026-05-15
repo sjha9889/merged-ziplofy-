@@ -104,7 +104,7 @@ export const generateThemeUploadSignedUrl = asyncErrorHandler(async (req: Reques
     sessionId?: string;
     fileName?: string;
     fileType?: string;
-    assetKind?: 'zip' | 'thumbnail' | 'reactJs' | 'reactCss' | 'themeFile';
+    assetKind?: 'zip' | 'thumbnail' | 'reactJs' | 'reactCss' | 'themeSchema' | 'themeDefaultConfig' | 'themeManifest' | 'themeFile';
     relativePath?: string;
     expiresInSeconds?: number;
   };
@@ -123,8 +123,23 @@ export const generateThemeUploadSignedUrl = asyncErrorHandler(async (req: Reques
   if (!fileType || typeof fileType !== 'string') {
     throw new CustomError('fileType is required', 400);
   }
-  if (!assetKind || !['zip', 'thumbnail', 'reactJs', 'reactCss', 'themeFile'].includes(assetKind)) {
-    throw new CustomError('assetKind must be zip | thumbnail | reactJs | reactCss | themeFile', 400);
+  if (
+    !assetKind ||
+    ![
+      'zip',
+      'thumbnail',
+      'reactJs',
+      'reactCss',
+      'themeSchema',
+      'themeDefaultConfig',
+      'themeManifest',
+      'themeFile',
+    ].includes(assetKind)
+  ) {
+    throw new CustomError(
+      'assetKind must be zip | thumbnail | reactJs | reactCss | themeSchema | themeDefaultConfig | themeManifest | themeFile',
+      400
+    );
   }
 
   const safeExpires = Math.min(Math.max(Number(expiresInSeconds) || 900, 60), 3600);
@@ -252,6 +267,43 @@ export const generateThemeUploadSignedUrl = asyncErrorHandler(async (req: Reques
       throw new CustomError('Unsupported JavaScript MIME type for reactJs.', 400);
     }
     const key = `themes/staging/${userId}/${sessionId}/remote-theme-${randomUUID()}.js`;
+    const command = new PutObjectCommand({
+      Bucket: awsBucket,
+      Key: key,
+      ContentType: ct,
+    });
+    const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: safeExpires });
+    const objectUrl = `https://${awsBucket}.s3.${awsRegion}.amazonaws.com/${key}`;
+    return res.status(200).json({
+      success: true,
+      message: 'Signed URL generated',
+      data: {
+        signedUrl,
+        key,
+        bucket: awsBucket,
+        region: awsRegion,
+        method: 'PUT' as const,
+        contentType: ct,
+        expiresInSeconds: safeExpires,
+        objectUrl,
+      },
+    });
+  }
+
+  const jsonThemeAssetKinds = ['themeSchema', 'themeDefaultConfig', 'themeManifest'] as const;
+  if (jsonThemeAssetKinds.includes(assetKind as (typeof jsonThemeAssetKinds)[number])) {
+    if (ext !== '.json') {
+      throw new CustomError('Theme metadata files must be .json', 400);
+    }
+    const fixedName =
+      assetKind === 'themeSchema'
+        ? 'theme.schema.json'
+        : assetKind === 'themeDefaultConfig'
+          ? 'theme.default-config.json'
+          : 'theme.manifest.json';
+    let ct = (fileType && fileType.trim()) || 'application/json';
+    if (ct === 'application/octet-stream') ct = 'application/json';
+    const key = `themes/staging/${userId}/${sessionId}/${fixedName}`;
     const command = new PutObjectCommand({
       Bucket: awsBucket,
       Key: key,

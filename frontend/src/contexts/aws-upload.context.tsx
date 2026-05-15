@@ -12,7 +12,15 @@ export interface GenerateThemeAssetSignedUrlPayload {
   sessionId: string;
   fileName: string;
   fileType: string;
-  assetKind: 'zip' | 'thumbnail' | 'reactJs' | 'reactCss' | 'themeFile';
+  assetKind:
+    | 'zip'
+    | 'thumbnail'
+    | 'reactJs'
+    | 'reactCss'
+    | 'themeSchema'
+    | 'themeDefaultConfig'
+    | 'themeManifest'
+    | 'themeFile';
   /** Path within the selected theme folder (required when assetKind is themeFile). */
   relativePath?: string;
   expiresInSeconds?: number;

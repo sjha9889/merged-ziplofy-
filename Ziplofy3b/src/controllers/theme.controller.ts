@@ -23,12 +23,35 @@ import {
   promoteStagingAuxiliaryToCatalog,
   promoteStagingThemeAssetsToCatalog,
   promoteStagingThemeFolderToCatalog,
+  publicObjectUrlForKey,
   stagingThemeFileKey,
 } from "../utils/theme-s3-ingest";
 import { downloadS3PrefixToLocalDir, downloadS3ZipAndExtractToDir } from "../utils/theme-zip-from-s3.util";
 import { listInstalledThemesForStore, resolveInstalledThemesStoreId } from "../utils/installed-themes-list.util";
 import { catalogPublicUrlForRelativePath } from "../utils/storefront-liquid.util";
+import {
+  REACT_THEME_CONFIG_SCHEMA,
+  formValuesFromConfig,
+  readStoreThemeConfigFile,
+  writeStoreThemeConfigFile,
+} from "../utils/theme-config.util";
+import {
+  computeStoreOverrides,
+  flattenEditorSchema,
+  formValuesFromPackConfig,
+  loadThemePack,
+  mergedConfigFromFormValues,
+  mergeThemePackConfig,
+  normalizeStoreOverrides,
+  resolveStoreThemeConfig,
+} from "../utils/theme-pack.util";
 import { ensureCatalogThemeCodeDir } from "../utils/theme-zip-from-s3.util";
+import { StoreThemeConfig } from "../models/store-theme-config.model";
+import {
+  loadCatalogThemeEditorPack,
+  loadStoreThemeConfig,
+  saveStoreThemeConfig,
+} from "../services/store-theme-config.service";
 import { tmpdir } from "os";
 import archiver from "archiver";
 
@@ -84,9 +107,20 @@ function resolveThemeZipUrl(_req: Request, theme: any) {
 }
 
 /** Normalize a theme document for list/detail APIs (S3-first catalog shape). */
+function withResolvedS3Urls(s3: Record<string, any>) {
+  const out = { ...s3 };
+  for (const field of ["reactThemeJs", "reactThemeCss", "reactThemeSchema", "reactThemeDefaultConfig", "reactThemeManifest"] as const) {
+    const part = out[field];
+    if (part?.key && !part.url) {
+      out[field] = { ...part, url: publicObjectUrlForKey(part.key) };
+    }
+  }
+  return out;
+}
+
 function formatThemeForClient(theme: any) {
   const obj = theme?.toObject ? theme.toObject() : { ...theme };
-  const s3 = obj.s3Assets ?? {};
+  const s3 = withResolvedS3Urls(obj.s3Assets ?? {});
   const hasFolder = Boolean(s3.contentRoot?.prefix);
   const hasZip = Boolean(s3.zip?.key);
   return {
@@ -263,6 +297,9 @@ interface CreateThemeFromS3Body extends CreateThemeBody {
     thumbnailKey?: string;
     reactJsKey?: string;
     reactCssKey?: string;
+    themeSchemaKey?: string;
+    themeDefaultConfigKey?: string;
+    themeManifestKey?: string;
   };
 }
 
@@ -301,6 +338,29 @@ export const createThemeFromS3 = asyncErrorHandler(async (req: Request, res: Res
     throw new CustomError("Provide exactly one of: s3.zipKey (legacy ZIP) or s3.files (folder upload)", 400);
   }
 
+  const requireEditorConfigKeys = () => {
+    const missing: string[] = [];
+    if (typeof s3.themeSchemaKey !== "string" || !s3.themeSchemaKey.length) {
+      missing.push("themeSchemaKey (theme.schema.json)");
+    }
+    if (typeof s3.themeDefaultConfigKey !== "string" || !s3.themeDefaultConfigKey.length) {
+      missing.push("themeDefaultConfigKey (theme.default-config.json)");
+    }
+    if (typeof s3.themeManifestKey !== "string" || !s3.themeManifestKey.length) {
+      missing.push("themeManifestKey (theme.manifest.json)");
+    }
+    if (missing.length) {
+      throw new CustomError(
+        `Editor theme config is required: ${missing.join(", ")}`,
+        400
+      );
+    }
+  };
+
+  if (hasFiles) {
+    requireEditorConfigKeys();
+  }
+
   const newId = new Types.ObjectId();
   const themePath = makeThemePathSlug(name);
 
@@ -309,21 +369,22 @@ export const createThemeFromS3 = asyncErrorHandler(async (req: Request, res: Res
 
   try {
     if (hasZip) {
+      const auxKeys = {
+        thumbnailKey: s3.thumbnailKey,
+        reactJsKey: s3.reactJsKey,
+        reactCssKey: s3.reactCssKey,
+        themeSchemaKey: s3.themeSchemaKey,
+        themeDefaultConfigKey: s3.themeDefaultConfigKey,
+        themeManifestKey: s3.themeManifestKey,
+      };
       stagingKeys = assertStagingKeys(
-        {
-          zipKey: s3.zipKey as string,
-          thumbnailKey: s3.thumbnailKey,
-          reactJsKey: s3.reactJsKey,
-          reactCssKey: s3.reactCssKey,
-        },
+        { zipKey: s3.zipKey as string, ...auxKeys },
         userId,
         s3SessionId
       );
       s3Assets = await promoteStagingThemeAssetsToCatalog(newId.toString(), {
         zipKey: s3.zipKey as string,
-        thumbnailKey: s3.thumbnailKey,
-        reactJsKey: s3.reactJsKey,
-        reactCssKey: s3.reactCssKey,
+        ...auxKeys,
       });
     } else {
       const files = s3.files as { key: string; relativePath: string }[];
@@ -342,6 +403,9 @@ export const createThemeFromS3 = asyncErrorHandler(async (req: Request, res: Res
           thumbnailKey: s3.thumbnailKey,
           reactJsKey: s3.reactJsKey,
           reactCssKey: s3.reactCssKey,
+          themeSchemaKey: s3.themeSchemaKey,
+          themeDefaultConfigKey: s3.themeDefaultConfigKey,
+          themeManifestKey: s3.themeManifestKey,
         },
         userId,
         s3SessionId
@@ -354,6 +418,9 @@ export const createThemeFromS3 = asyncErrorHandler(async (req: Request, res: Res
         thumbnailKey: s3.thumbnailKey,
         reactJsKey: s3.reactJsKey,
         reactCssKey: s3.reactCssKey,
+        themeSchemaKey: s3.themeSchemaKey,
+        themeDefaultConfigKey: s3.themeDefaultConfigKey,
+        themeManifestKey: s3.themeManifestKey,
       });
       s3Assets = { ...folderPart, ...aux };
     }
@@ -1156,6 +1223,39 @@ export const saveUserFileEdit = asyncErrorHandler(async (req: Request, res: Resp
     success: true, 
     message: 'File saved successfully',
     path: savedPath 
+  });
+});
+
+/** GET /themes/:themeId/editor-pack — catalog schema, defaults, manifest, and runtime URLs. */
+export const getThemeEditorPack = asyncErrorHandler(async (req: Request, res: Response) => {
+  const { themeId } = req.params as { themeId: string };
+  const data = await loadCatalogThemeEditorPack(themeId);
+  res.status(200).json({ success: true, data });
+});
+
+/** GET /themes/:themeId/store-config?storeId= — merchant edits for an installed theme. */
+export const getStoreThemeConfig = asyncErrorHandler(async (req: Request, res: Response) => {
+  const { themeId } = req.params as { themeId: string };
+  const storeId = String(req.query.storeId || "");
+  const data = await loadStoreThemeConfig(storeId, themeId);
+  res.status(200).json({ success: true, data });
+});
+
+/** PUT /themes/:themeId/store-config — body: { storeId, config } */
+export const putStoreThemeConfig = asyncErrorHandler(async (req: Request, res: Response) => {
+  const { themeId } = req.params as { themeId: string };
+  const { storeId, config, overrides, values } = req.body as {
+    storeId?: string;
+    config?: Record<string, unknown>;
+    overrides?: Record<string, unknown>;
+    values?: Record<string, string | boolean>;
+  };
+  if (!storeId) throw new CustomError("storeId is required", 400);
+  const data = await saveStoreThemeConfig(storeId, themeId, { config, overrides, values });
+  res.status(200).json({
+    success: true,
+    message: "Theme configuration saved",
+    data,
   });
 });
 

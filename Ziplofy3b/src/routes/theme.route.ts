@@ -20,6 +20,9 @@ import {
   listThemeFiles,
   readThemeFile,
   saveUserFileEdit,
+  getStoreThemeConfig,
+  getThemeEditorPack,
+  putStoreThemeConfig,
 } from "../controllers/theme.controller";
 import { authorize, authorizePermission, optionalAuth, protect } from "../middlewares/auth.middleware";
 import { RoleType } from "../types";
@@ -58,6 +61,10 @@ themeRouter.post(
 
 themeRouter.post("/apply", applyThemeToStore);
 themeRouter.route("/uninstall").delete(uninstallTheme);
+
+themeRouter.get("/:themeId/editor-pack", getThemeEditorPack);
+themeRouter.get("/:themeId/store-config", getStoreThemeConfig);
+themeRouter.put("/:themeId/store-config", putStoreThemeConfig);
 
 themeRouter.route("/:id").get(getTheme);
 themeRouter.route("/:id/thumbnail").get(getThumbnail);

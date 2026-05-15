@@ -61,6 +61,27 @@ export interface ThemeCatalogS3AssetsDoc {
     size?: number;
     uploadedAt?: Date;
   };
+  reactThemeSchema?: {
+    key: string;
+    url: string;
+    contentType?: string;
+    size?: number;
+    uploadedAt?: Date;
+  };
+  reactThemeDefaultConfig?: {
+    key: string;
+    url: string;
+    contentType?: string;
+    size?: number;
+    uploadedAt?: Date;
+  };
+  reactThemeManifest?: {
+    key: string;
+    url: string;
+    contentType?: string;
+    size?: number;
+    uploadedAt?: Date;
+  };
 }
 
 export interface ITheme extends Document {
@@ -124,6 +145,9 @@ const ThemeSchema: Schema<ITheme> = new Schema<ITheme>({
         thumbnail: { type: s3AssetPartSchema, required: false },
         reactThemeJs: { type: s3AssetPartSchema, required: false },
         reactThemeCss: { type: s3AssetPartSchema, required: false },
+        reactThemeSchema: { type: s3AssetPartSchema, required: false },
+        reactThemeDefaultConfig: { type: s3AssetPartSchema, required: false },
+        reactThemeManifest: { type: s3AssetPartSchema, required: false },
       },
       { _id: false }
     ),

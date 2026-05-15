@@ -138,6 +138,9 @@ export interface CreateThemeFromS3Payload {
     thumbnailKey?: string;
     reactJsKey?: string;
     reactCssKey?: string;
+    themeSchemaKey?: string;
+    themeDefaultConfigKey?: string;
+    themeManifestKey?: string;
   };
 }
 

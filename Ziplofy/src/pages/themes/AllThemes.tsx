@@ -18,7 +18,7 @@ import {
   SwatchIcon,
 } from "@heroicons/react/24/outline";
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useThemes } from "../../contexts/themes.context";
 import { useInstalledThemes } from "../../contexts/installed-themes.context";
 import { useStore } from "../../contexts/store.context";
@@ -53,6 +53,7 @@ const ThemeSectionHeader: React.FC<{
 );
 
 const AllThemes: React.FC = () => {
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [previewModal, setPreviewModal] = useState<{
@@ -222,6 +223,10 @@ const AllThemes: React.FC = () => {
   };
 
   const handleEditTheme = (themeId: string, isInstalled: boolean = false, isCustomTheme: boolean = false) => {
+    if (isInstalled && !isCustomTheme) {
+      navigate(`/themes/${themeId}/editor`);
+      return;
+    }
     setEditChoice({ isOpen: true, themeId, isInstalled, isCustomTheme });
   };
 

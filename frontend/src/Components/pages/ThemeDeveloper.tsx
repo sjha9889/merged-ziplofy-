@@ -88,6 +88,9 @@ const ThemeDeveloper: React.FC = () => {
   const [themeFolderFiles, setThemeFolderFiles] = useState<File[]>([]);
   const [reactThemeJsFile, setReactThemeJsFile] = useState<File | null>(null);
   const [reactThemeCssFile, setReactThemeCssFile] = useState<File | null>(null);
+  const [themeSchemaFile, setThemeSchemaFile] = useState<File | null>(null);
+  const [themeDefaultConfigFile, setThemeDefaultConfigFile] = useState<File | null>(null);
+  const [themeManifestFile, setThemeManifestFile] = useState<File | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -246,17 +249,18 @@ const ThemeDeveloper: React.FC = () => {
   };
 
   // Handle file selection
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'thumbnail' | 'reactThemeJs' | 'reactThemeCss') => {
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: 'thumbnail' | 'reactThemeJs' | 'reactThemeCss' | 'themeSchema' | 'themeDefaultConfig' | 'themeManifest'
+  ) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (type === 'reactThemeJs') {
-        setReactThemeJsFile(file);
-      } else if (type === 'reactThemeCss') {
-        setReactThemeCssFile(file);
-      } else {
-        setThumbnailFile(file);
-      }
-    }
+    if (!file) return;
+    if (type === 'reactThemeJs') setReactThemeJsFile(file);
+    else if (type === 'reactThemeCss') setReactThemeCssFile(file);
+    else if (type === 'themeSchema') setThemeSchemaFile(file);
+    else if (type === 'themeDefaultConfig') setThemeDefaultConfigFile(file);
+    else if (type === 'themeManifest') setThemeManifestFile(file);
+    else setThumbnailFile(file);
   };
 
   const handleThemeFolderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -365,6 +369,11 @@ const ThemeDeveloper: React.FC = () => {
       if (themeFolderFiles.length === 0 || !thumbnailFile) {
         throw new Error("Please select a theme folder and thumbnail");
       }
+      if (!themeSchemaFile || !themeDefaultConfigFile || !themeManifestFile) {
+        throw new Error(
+          "Please select theme.schema.json, theme.default-config.json, and theme.manifest.json"
+        );
+      }
 
       const themeCount = themeFolderFiles.length;
       progressRows = themeFolderFiles.map((f, i) => ({
@@ -392,6 +401,21 @@ const ThemeDeveloper: React.FC = () => {
         });
       }
       progressRows.push({
+        id: "theme-schema",
+        label: `Theme schema · ${themeSchemaFile.name}`,
+        status: "pending",
+      });
+      progressRows.push({
+        id: "theme-default-config",
+        label: `Default config · ${themeDefaultConfigFile.name}`,
+        status: "pending",
+      });
+      progressRows.push({
+        id: "theme-manifest",
+        label: `Manifest · ${themeManifestFile.name}`,
+        status: "pending",
+      });
+      progressRows.push({
         id: "finalize",
         label: "Register theme in catalog",
         status: "pending",
@@ -411,7 +435,7 @@ const ThemeDeveloper: React.FC = () => {
               : upIdx === themeCount
                 ? "Uploading thumbnail"
                 : upIdx < totalSteps - 1
-                  ? "Uploading optional remote theme assets"
+                  ? "Uploading theme config and remote assets"
                   : "Finalizing on server";
 
         const fileCounter =
@@ -478,6 +502,9 @@ const ThemeDeveloper: React.FC = () => {
 
       let reactJsKey: string | undefined;
       let reactCssKey: string | undefined;
+      let themeSchemaKey: string | undefined;
+      let themeDefaultConfigKey: string | undefined;
+      let themeManifestKey: string | undefined;
       let idx = thumbIdx + 1;
       if (reactThemeJsFile) {
         setRow(idx, "uploading");
@@ -506,6 +533,54 @@ const ThemeDeveloper: React.FC = () => {
         idx++;
       }
 
+      setRow(idx, "uploading");
+      const schemaSigned = await generateThemeAssetSignedUrl({
+        sessionId,
+        fileName: themeSchemaFile.name,
+        fileType: themeSchemaFile.type || "application/json",
+        assetKind: "themeSchema",
+      });
+      await uploadFileToSignedUrl(
+        schemaSigned.signedUrl,
+        themeSchemaFile,
+        schemaSigned.contentType
+      );
+      themeSchemaKey = schemaSigned.key;
+      setRow(idx, "done");
+      idx++;
+
+      setRow(idx, "uploading");
+      const defaultConfigSigned = await generateThemeAssetSignedUrl({
+        sessionId,
+        fileName: themeDefaultConfigFile.name,
+        fileType: themeDefaultConfigFile.type || "application/json",
+        assetKind: "themeDefaultConfig",
+      });
+      await uploadFileToSignedUrl(
+        defaultConfigSigned.signedUrl,
+        themeDefaultConfigFile,
+        defaultConfigSigned.contentType
+      );
+      themeDefaultConfigKey = defaultConfigSigned.key;
+      setRow(idx, "done");
+      idx++;
+
+      setRow(idx, "uploading");
+      const manifestSigned = await generateThemeAssetSignedUrl({
+        sessionId,
+        fileName: themeManifestFile.name,
+        fileType: themeManifestFile.type || "application/json",
+        assetKind: "themeManifest",
+      });
+      await uploadFileToSignedUrl(
+        manifestSigned.signedUrl,
+        themeManifestFile,
+        manifestSigned.contentType
+      );
+      themeManifestKey = manifestSigned.key;
+      setRow(idx, "done");
+      idx++;
+
       const finalizeIdx = progressRows.length - 1;
       setRow(finalizeIdx, "uploading");
       const priceNum = uploadForm.price === "" ? 0 : Number(uploadForm.price);
@@ -524,6 +599,9 @@ const ThemeDeveloper: React.FC = () => {
           thumbnailKey: thumbSigned.key,
           reactJsKey,
           reactCssKey,
+          themeSchemaKey,
+          themeDefaultConfigKey,
+          themeManifestKey,
         },
       });
 
@@ -551,6 +629,9 @@ const ThemeDeveloper: React.FC = () => {
         setThemeFolderFiles([]);
         setReactThemeJsFile(null);
         setReactThemeCssFile(null);
+        setThemeSchemaFile(null);
+        setThemeDefaultConfigFile(null);
+        setThemeManifestFile(null);
         setThumbnailFile(null);
         setUploadProgress(null);
         setIsUploadOpen(false);
@@ -1305,9 +1386,52 @@ const ThemeDeveloper: React.FC = () => {
               )}
               <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px', lineHeight: 1.45 }}>
                 Upload the built files from your remote theme dist folder (for example{' '}
-                <code style={{ fontSize: '11px' }}>remote-themes/gaming/dist/theme.js</code> and{' '}
-                <code style={{ fontSize: '11px' }}>theme.css</code> after <code style={{ fontSize: '11px' }}>npm run build</code>). No zip needed.
+                <code style={{ fontSize: '11px' }}>remote-themes/makeup/dist/theme.js</code> and{' '}
+                <code style={{ fontSize: '11px' }}>theme.css</code> after <code style={{ fontSize: '11px' }}>npm run build</code>).
               </p>
+
+              <label>theme.schema.json (optional, for editor)</label>
+              <input
+                type="file"
+                accept=".json,application/json"
+                onChange={(e) => handleFileChange(e, 'themeSchema')}
+              />
+              {themeSchemaFile && (
+                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                  Selected: {themeSchemaFile.name}
+                </div>
+              )}
+
+              <label>theme.default-config.json *</label>
+              <input
+                type="file"
+                accept=".json,application/json"
+                onChange={(e) => handleFileChange(e, 'themeDefaultConfig')}
+                required
+              />
+              {themeDefaultConfigFile && (
+                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                  Selected: {themeDefaultConfigFile.name}
+                </div>
+              )}
+
+              <label>theme.manifest.json *</label>
+              <input
+                type="file"
+                accept=".json,application/json"
+                onChange={(e) => handleFileChange(e, 'themeManifest')}
+                required
+              />
+              <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px', lineHeight: 1.45 }}>
+                Required for the section editor: schema defines settings, default-config is the baseline
+                layout, and manifest points to built assets (for example{' '}
+                <code style={{ fontSize: '11px' }}>remote-themes/makeup/theme.schema.json</code>).
+              </p>
+              {themeManifestFile && (
+                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                  Selected: {themeManifestFile.name}
+                </div>
+              )}
 
               <label>Thumbnail (JPG/PNG) *</label>
               <input 

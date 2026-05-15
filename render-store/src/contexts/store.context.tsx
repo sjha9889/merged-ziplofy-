@@ -1,8 +1,9 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { axiosi } from "../config/axios.config";
 import { StorefrontProductProvider } from "./product.context";
+import { ThemeConfigProvider } from "./theme-config.context";
 
-interface StorefrontContextType {
+export interface StorefrontContextType {
   isStoreFront: boolean;
   storeFrontChecked: boolean;
   storeFrontMeta: { name: string; description: string; storeId: string } | null;
@@ -43,6 +44,8 @@ interface StorefrontContextType {
     ordersEntry: "theme1" | "theme2";
     preferencesEntry: "theme1" | "theme2";
   }>;
+  /** Merchant overrides from theme editor (merged with defaults on API). */
+  themeConfig: Record<string, unknown> | null;
 }
 
 const StorefrontContext = createContext<StorefrontContextType | undefined>(undefined);
@@ -66,6 +69,7 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [liquidTemplatesListProvided, setLiquidTemplatesListProvided] = useState(false);
   const [activeReactThemePackId, setActiveReactThemePackId] = useState<"theme1" | "theme2" | null>(null);
   const [reactThemePacks, setReactThemePacks] = useState<StorefrontContextType["reactThemePacks"]>([]);
+  const [themeConfig, setThemeConfig] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     if (storeFrontMeta?.name) {
@@ -128,6 +132,7 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 liquid?: { enabled?: boolean; renderPagePath?: string; templates?: string[] };
                 remoteThemeJsUrl?: string | null;
                 remoteThemeCssUrl?: string | null;
+                themeConfig?: Record<string, unknown> | null;
               } | null;
             }>(`/storefront/${data.data.storeId}/theme-runtime`, {
               params: { _t: Date.now() },
@@ -165,6 +170,8 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             setRemoteThemeCssUrl(
               typeof rt?.remoteThemeCssUrl === "string" && rt.remoteThemeCssUrl.length > 0 ? rt.remoteThemeCssUrl : null
             );
+            const tc = rt?.themeConfig;
+            setThemeConfig(tc && typeof tc === "object" ? tc : null);
           } catch {
             setActiveThemeId(null);
             setActiveThemeName(null);
@@ -175,6 +182,7 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             setThemeRuntimeBaseUrl(null);
             setRemoteThemeJsUrl(null);
             setRemoteThemeCssUrl(null);
+            setThemeConfig(null);
             setLiquidThemeEnabled(false);
             setLiquidRenderPagePath(null);
             setLiquidTemplateNames([]);
@@ -193,6 +201,7 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setThemeRuntimeBaseUrl(null);
         setRemoteThemeJsUrl(null);
         setRemoteThemeCssUrl(null);
+        setThemeConfig(null);
         setLiquidThemeEnabled(false);
         setLiquidRenderPagePath(null);
         setLiquidTemplateNames([]);
@@ -224,11 +233,14 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     liquidTemplatesListProvided,
     activeReactThemePackId,
     reactThemePacks,
+    themeConfig,
   };
 
   return (
     <StorefrontContext.Provider value={value}>
-      <StorefrontProductProvider>{children}</StorefrontProductProvider>
+      <ThemeConfigProvider config={themeConfig}>
+        <StorefrontProductProvider>{children}</StorefrontProductProvider>
+      </ThemeConfigProvider>
     </StorefrontContext.Provider>
   );
 };

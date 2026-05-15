@@ -13,6 +13,9 @@ import {
   resolveAppliedStoreTheme,
 } from '../utils/storefront-liquid.util';
 import { publicObjectUrlForKey } from '../utils/theme-s3-ingest';
+import { readStoreThemeConfigFile } from '../utils/theme-config.util';
+import { resolveStoreThemeConfig } from '../utils/theme-pack.util';
+import { StoreThemeConfig } from '../models/store-theme-config.model';
 import { storeAndUserScopeOr } from '../utils/installed-themes-query.util';
 // import { Product } from '../models/product.model';
 // import { Store } from '../models/store.model';
@@ -331,6 +334,19 @@ export const getStorefrontThemeRuntime = asyncErrorHandler(async (req: Request, 
       ).replace(/\/$/, "")
     : null;
 
+  const configRow = await StoreThemeConfig.findOne({
+    store: new Types.ObjectId(storeId),
+    theme: new Types.ObjectId(resolved.appliedThemeId),
+  }).lean();
+  const configFromFile = readStoreThemeConfigFile(storeId, resolved.appliedThemeId);
+  const themePath = theme ? String((theme as { themePath?: string }).themePath ?? '') : null;
+  const s3Assets = theme ? (theme as { s3Assets?: Record<string, unknown> }).s3Assets : null;
+  const themeConfig = await resolveStoreThemeConfig(
+    (configRow?.config as Record<string, unknown>) ?? configFromFile ?? undefined,
+    themePath,
+    s3Assets as Parameters<typeof resolveStoreThemeConfig>[2]
+  );
+
   return res.status(200).json({
     success: true,
     data: {
@@ -363,6 +379,7 @@ export const getStorefrontThemeRuntime = asyncErrorHandler(async (req: Request, 
       },
       remoteThemeJsUrl,
       remoteThemeCssUrl,
+      themeConfig,
     },
   });
 });

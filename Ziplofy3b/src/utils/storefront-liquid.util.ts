@@ -46,6 +46,12 @@ export async function resolveAppliedStoreTheme(storeId: string): Promise<Resolve
   const isCustomTheme = Boolean(!theme && customTheme);
   const runtimeThemeKey = isCustomTheme ? `custom-${appliedThemeId}` : appliedThemeId;
   const s3 = (theme?.s3Assets ?? null) as ThemeS3AssetsShape | null;
+  const jsUrl =
+    s3?.reactThemeJs?.url ??
+    (s3?.reactThemeJs?.key ? publicObjectUrlForKey(s3.reactThemeJs.key) : null);
+  const cssUrl =
+    s3?.reactThemeCss?.url ??
+    (s3?.reactThemeCss?.key ? publicObjectUrlForKey(s3.reactThemeCss.key) : null);
 
   return {
     storeId,
@@ -56,8 +62,8 @@ export async function resolveAppliedStoreTheme(storeId: string): Promise<Resolve
     isCustomTheme,
     runtimeThemeKey,
     s3Assets: s3,
-    remoteThemeJsUrl: s3?.reactThemeJs?.url ?? null,
-    remoteThemeCssUrl: s3?.reactThemeCss?.url ?? null,
+    remoteThemeJsUrl: jsUrl,
+    remoteThemeCssUrl: cssUrl,
   };
 }
 

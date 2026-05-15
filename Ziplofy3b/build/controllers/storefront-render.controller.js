@@ -48,18 +48,19 @@ exports.renderStorefrontLiquidPage = (0, error_utils_1.asyncErrorHandler)(async 
     const { template = "index", collectionId, handle, slug, } = req.query;
     if (!storeId)
         throw new error_utils_1.CustomError("Store ID is required", 400);
-    const resolved = await (0, storefront_liquid_util_1.resolveAppliedStorefrontTheme)(req, storeId);
+    const resolved = await (0, storefront_liquid_util_1.resolveAppliedStoreTheme)(storeId);
     if (!resolved) {
         throw new error_utils_1.CustomError("No applied theme for this store", 404);
     }
-    if (!(0, storefront_liquid_util_1.themeHasLiquidTemplates)(resolved.runtimeBaseDir)) {
+    const liquidRoots = await (0, storefront_liquid_util_1.resolveStorefrontLiquidRenderRoot)(storeId, resolved);
+    if (!liquidRoots || !(0, storefront_liquid_util_1.themeHasLiquidTemplates)(liquidRoots.runtimeBaseDir)) {
         throw new error_utils_1.CustomError("Theme does not support Liquid templates (missing templates/index.liquid)", 404);
     }
     const tpl = String(template || "index").trim().toLowerCase();
     if (!(0, storefront_liquid_util_1.isSafeLiquidTemplateName)(tpl)) {
         throw new error_utils_1.CustomError("Invalid template name", 400);
     }
-    const templateFile = path_1.default.join(resolved.runtimeBaseDir, "templates", `${tpl}.liquid`);
+    const templateFile = path_1.default.join(liquidRoots.runtimeBaseDir, "templates", `${tpl}.liquid`);
     if (!fs_1.default.existsSync(templateFile)) {
         throw new error_utils_1.CustomError(`Liquid template not found: templates/${tpl}.liquid`, 404);
     }
@@ -73,7 +74,7 @@ exports.renderStorefrontLiquidPage = (0, error_utils_1.asyncErrorHandler)(async 
     if (!storeObjectId)
         throw new error_utils_1.CustomError("Invalid store ID", 400);
     const publicOrigin = (0, public_origin_util_1.publicOriginFromRequest)(req);
-    const liquid = (0, theme_liquid_renderer_1.createStorefrontLiquid)(resolved.runtimeBaseDir, resolved.runtimeBaseUrl);
+    const liquid = (0, theme_liquid_renderer_1.createStorefrontLiquid)(liquidRoots.runtimeBaseDir, liquidRoots.runtimeBaseUrl);
     const menu = {
         primary: [
             { label: "Home", url: "/" },
@@ -253,7 +254,7 @@ exports.renderStorefrontLiquidPage = (0, error_utils_1.asyncErrorHandler)(async 
         article,
         section: { settings: {} },
     };
-    const html = await (0, theme_liquid_renderer_1.renderLiquidThemePage)(liquid, resolved.runtimeBaseDir, tpl, context);
+    const html = await (0, theme_liquid_renderer_1.renderLiquidThemePage)(liquid, liquidRoots.runtimeBaseDir, tpl, context);
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.setHeader("Cache-Control", "no-cache");
     res.send(html);

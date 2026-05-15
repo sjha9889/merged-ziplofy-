@@ -13,6 +13,7 @@ export interface ThemeContract {
   ProductPage: ThemeComponent;
   LoginPage: ThemeComponent;
   SignupPage: ThemeComponent;
+  ForgotPasswordPage?: ThemeComponent;
   ProfilePage: ThemeComponent;
   OrdersPage: ThemeComponent;
   PreferencesPage: ThemeComponent;
