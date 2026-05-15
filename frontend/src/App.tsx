@@ -12,6 +12,8 @@ import { AssignedDevelopersProvider } from "./contexts/assign-developer.context"
 import { NotificationsProvider } from "./contexts/notification.context";
 import { SocketProvider } from "./contexts/socket.context";
 import { SupportDevelopersProvider } from "./contexts/supportdeveloper.context";
+import { AwsUploadProvider } from "./contexts/aws-upload.context";
+import { ThemesProvider } from "./contexts/themes.context";
 
 const App = () => {
   const AuthedApp = () => {
@@ -74,15 +76,19 @@ const App = () => {
     <BrowserRouter>
       <ThemeProvider>
         <AdminAuthProvider>
-          <NotificationsProvider>
-          <SocketProvider>
-            <SupportDevelopersProvider>
-              <AssignedDevelopersProvider>
-                <AuthedApp />
-              </AssignedDevelopersProvider>
-            </SupportDevelopersProvider>
-          </SocketProvider>
-          </NotificationsProvider>
+          <ThemesProvider>
+            <AwsUploadProvider>
+              <NotificationsProvider>
+                <SocketProvider>
+                  <SupportDevelopersProvider>
+                    <AssignedDevelopersProvider>
+                      <AuthedApp />
+                    </AssignedDevelopersProvider>
+                  </SupportDevelopersProvider>
+                </SocketProvider>
+              </NotificationsProvider>
+            </AwsUploadProvider>
+          </ThemesProvider>
         </AdminAuthProvider>
       </ThemeProvider>
     </BrowserRouter>

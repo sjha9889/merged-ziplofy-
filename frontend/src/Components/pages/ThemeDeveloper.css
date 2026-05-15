@@ -350,6 +350,27 @@
   border-radius: 20px;
 }
 
+.theme-package-badge,
+.theme-remote-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.02em;
+}
+
+.theme-package-badge {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.theme-remote-badge {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
 .theme-card-footer-enhanced {
   display: flex;
   justify-content: space-between;
@@ -1289,6 +1310,219 @@
   background: var(--td-primary-hover);
 }
 
+.themeUpload-overlay--busy {
+  cursor: default;
+}
+
+.themeUpload-close--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.themeUpload-fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.themeUpload-fieldset:disabled {
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+/* Upload progress (folder + assets) */
+.themeUpload-progress {
+  margin-bottom: 18px;
+  border: 1px solid #c7d2fe;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.08);
+  overflow: hidden;
+}
+
+.themeUpload-progress__top {
+  padding: 16px 18px 14px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.themeUpload-progress__titleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.themeUpload-progress__spinner {
+  flex-shrink: 0;
+  color: var(--td-primary);
+  animation: themeUpload-spin 0.85s linear infinite;
+}
+
+.themeUpload-progress__check {
+  flex-shrink: 0;
+  color: #059669;
+}
+
+.themeUpload-progress__titles {
+  min-width: 0;
+  flex: 1;
+}
+
+.themeUpload-progress__headline {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+}
+
+.themeUpload-progress__counter {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  font-variant-numeric: tabular-nums;
+}
+
+.themeUpload-progress__barTrack {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.35);
+  overflow: hidden;
+}
+
+.themeUpload-progress__barFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #6366f1 0%, #4f46e5 45%, #4338ca 100%);
+  transition: width 0.25s ease-out;
+  box-shadow: 0 0 12px rgba(99, 102, 241, 0.45);
+}
+
+.themeUpload-progress__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.themeUpload-progress__pct {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #334155;
+}
+
+.themeUpload-progress__current {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  color: #475569;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.themeUpload-progress__listHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.65);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.themeUpload-progress__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.themeUpload-progress__row {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(241, 245, 249, 0.9);
+}
+
+.themeUpload-progress__row:last-child {
+  border-bottom: none;
+}
+
+.themeUpload-progress__rowIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+}
+
+.themeUpload-progress__row--uploading .themeUpload-progress__rowIcon {
+  color: var(--td-primary);
+}
+
+.themeUpload-progress__row--done .themeUpload-progress__rowIcon {
+  color: #059669;
+}
+
+.themeUpload-progress__row--error .themeUpload-progress__rowIcon {
+  color: #dc2626;
+}
+
+.themeUpload-progress__rowSpin {
+  animation: themeUpload-spin 0.75s linear infinite;
+}
+
+.themeUpload-progress__rowDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #cbd5e1;
+}
+
+.themeUpload-progress__rowLabel {
+  min-width: 0;
+  color: #334155;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.themeUpload-progress__rowState {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.themeUpload-progress__row--uploading .themeUpload-progress__rowState {
+  color: var(--td-primary);
+}
+
+.themeUpload-progress__row--done .themeUpload-progress__rowState {
+  color: #059669;
+}
+
+.themeUpload-progress__row--error .themeUpload-progress__rowState {
+  color: #b91c1c;
+}
+
 .themeUpload-submit:disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -1297,6 +1531,11 @@
 @keyframes themeUpload-slideIn {
   from { transform: translateX(100%); }
   to { transform: translateX(0); }
+}
+
+@keyframes themeUpload-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* Animations */

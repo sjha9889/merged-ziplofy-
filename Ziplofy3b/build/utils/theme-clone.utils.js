@@ -13,6 +13,8 @@ const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const util_1 = require("util");
 const installed_themes_model_1 = require("../models/installed-themes.model");
+const theme_model_1 = require("../models/theme.model");
+const theme_zip_from_s3_util_1 = require("./theme-zip-from-s3.util");
 const error_utils_1 = require("./error.utils");
 const copyFile = (0, util_1.promisify)(fs_1.default.copyFile);
 const mkdir = (0, util_1.promisify)(fs_1.default.mkdir);
@@ -56,34 +58,40 @@ async function copyDirectory(src, dest) {
  */
 async function cloneThemeToStore(themeId, clientId, storeId) {
     try {
-        // Define paths
-        const themesBasePath = path_1.default.join(__dirname, '../../uploads/themes');
-        const sourceThemePath = path_1.default.join(themesBasePath, themeId);
-        const clientStorePath = path_1.default.join(__dirname, '../../uploads/stores', storeId);
-        const destinationThemePath = path_1.default.join(clientStorePath, 'themes', themeId);
-        // Check if source theme exists
-        if (!fs_1.default.existsSync(sourceThemePath)) {
+        const theme = await theme_model_1.Theme.findById(themeId).lean();
+        if (!theme) {
             throw new Error(`Theme with ID ${themeId} not found`);
         }
-        // Create client store directory structure
+        const zipKey = theme.s3Assets?.zip?.key;
+        const contentPrefix = theme.s3Assets?.contentRoot?.prefix;
+        if (!zipKey && !contentPrefix) {
+            throw new Error(`Theme ${themeId} has no S3 package to clone`);
+        }
+        const clientStorePath = path_1.default.join(process.cwd(), 'uploads', 'stores', storeId);
+        const destinationThemePath = path_1.default.join(clientStorePath, 'themes', themeId);
         await mkdir(path_1.default.join(clientStorePath, 'themes'), { recursive: true });
-        // Copy theme directory
-        await copyDirectory(sourceThemePath, destinationThemePath);
-        // Create client-specific directories for customization
+        if (fs_1.default.existsSync(destinationThemePath)) {
+            await fs_1.default.promises.rm(destinationThemePath, { recursive: true, force: true });
+        }
+        await mkdir(destinationThemePath, { recursive: true });
+        const unzippedRoot = path_1.default.join(destinationThemePath, 'unzippedTheme');
+        if (zipKey) {
+            await (0, theme_zip_from_s3_util_1.downloadS3ZipAndExtractToDir)(zipKey, unzippedRoot);
+        }
+        else {
+            await (0, theme_zip_from_s3_util_1.downloadS3PrefixToLocalDir)(contentPrefix, unzippedRoot);
+        }
         const customizationsPath = path_1.default.join(destinationThemePath, 'customizations');
         const clientCodePath = path_1.default.join(destinationThemePath, 'client-code');
         const assetsPath = path_1.default.join(destinationThemePath, 'assets');
         const stylesPath = path_1.default.join(destinationThemePath, 'styles');
         const scriptsPath = path_1.default.join(destinationThemePath, 'scripts');
-        // Create directories for client customization
         await mkdir(customizationsPath, { recursive: true });
         await mkdir(clientCodePath, { recursive: true });
         await mkdir(assetsPath, { recursive: true });
         await mkdir(stylesPath, { recursive: true });
         await mkdir(scriptsPath, { recursive: true });
-        // Copy theme source files to client-code directory for easy access
-        await copyDirectory(sourceThemePath, clientCodePath);
-        // Create theme configuration file for the client
+        await copyDirectory(unzippedRoot, clientCodePath);
         const themeConfig = {
             themeId,
             clientId,
@@ -102,7 +110,6 @@ async function cloneThemeToStore(themeId, clientId, storeId) {
         };
         const configPath = path_1.default.join(destinationThemePath, 'theme-config.json');
         await fs_1.default.promises.writeFile(configPath, JSON.stringify(themeConfig, null, 2));
-        // Create a README file for client guidance
         const readmeContent = `# Theme Customization Guide
 
 ## Directory Structure
@@ -111,24 +118,6 @@ async function cloneThemeToStore(themeId, clientId, storeId) {
 - \`assets/\` - Images, fonts, and other assets
 - \`styles/\` - CSS files for styling
 - \`scripts/\` - JavaScript files for functionality
-
-## How to Customize
-1. Copy files from \`client-code/\` to the root directory
-2. Modify the copied files according to your needs
-3. Use \`customizations/\` folder for additional custom files
-4. Update \`assets/\`, \`styles/\`, and \`scripts/\` as needed
-
-## File Types You Can Modify
-- HTML files (index.html, about.html, etc.)
-- CSS files (styles.css, custom.css)
-- JavaScript files (script.js, main.js)
-- Image files (logo.png, background.jpg)
-- Configuration files (config.json)
-
-## Important Notes
-- Always backup your changes
-- Test your modifications before going live
-- Keep original files in \`client-code/\` for reference
 `;
         const readmePath = path_1.default.join(destinationThemePath, 'README.md');
         await fs_1.default.promises.writeFile(readmePath, readmeContent);

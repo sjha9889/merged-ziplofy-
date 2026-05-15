@@ -3,7 +3,6 @@
 import cors from 'cors';
 import express, { Request, Response } from 'express';
 import { createServer } from 'http';
-import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
 import { config } from './config';
 import { connectDB } from './config/database.config';
@@ -164,17 +163,6 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// ✅ serve uploaded theme assets as static
-app.use(
-  "/uploads/themes",
-  express.static(path.join(process.cwd(), "uploads/themes"))
-);
-app.use(
-  "/uploads",
-  express.static(path.join(process.cwd(), "uploads"))
-);
-
 
 // route middlewares
 app.use("/api/stores", storeRouter);

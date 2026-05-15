@@ -9,7 +9,6 @@ exports.io = exports.userIdToSocketIdMap = void 0;
 const cors_1 = __importDefault(require("cors"));
 const express_1 = __importDefault(require("express"));
 const http_1 = require("http");
-const path_1 = __importDefault(require("path"));
 const socket_io_1 = require("socket.io");
 const config_1 = require("./config");
 const database_config_1 = require("./config/database.config");
@@ -159,9 +158,6 @@ app.use((0, cors_1.default)({
 }));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
-// ✅ serve uploaded theme assets as static
-app.use("/uploads/themes", express_1.default.static(path_1.default.join(process.cwd(), "uploads/themes")));
-app.use("/uploads", express_1.default.static(path_1.default.join(process.cwd(), "uploads")));
 // route middlewares
 app.use("/api/stores", store_route_1.storeRouter);
 app.use("/api/auth", auth_route_1.authRouter);

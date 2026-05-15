@@ -35,6 +35,18 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Theme = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
+const s3AssetPartSchema = new mongoose_1.Schema({
+    key: { type: String, required: true },
+    url: { type: String, required: true },
+    contentType: { type: String },
+    size: { type: Number },
+    uploadedAt: { type: Date, default: Date.now },
+}, { _id: false });
+const contentRootSchema = new mongoose_1.Schema({
+    prefix: { type: String, required: true },
+    fileCount: { type: Number, required: true },
+    uploadedAt: { type: Date, default: Date.now },
+}, { _id: false });
 const ThemeSchema = new mongoose_1.Schema({
     name: {
         type: String,
@@ -49,16 +61,7 @@ const ThemeSchema = new mongoose_1.Schema({
     category: {
         type: String,
         required: [true, "Category is required"],
-        enum: [
-            "travel",
-            "business",
-            "portfolio",
-            "ecommerce",
-            "blog",
-            "education",
-            "health",
-            "food",
-        ],
+        enum: ["travel", "business", "portfolio", "ecommerce", "blog", "education", "health", "food"],
     },
     plan: {
         type: String,
@@ -74,46 +77,24 @@ const ThemeSchema = new mongoose_1.Schema({
         required: true,
         unique: true,
     },
-    directories: {
-        theme: { type: String, required: true },
-        code: { type: String, required: true },
-        zipped: { type: String, required: true },
-        thumbnail: { type: String, required: true },
-        remoteThemeDist: { type: String, required: false },
-    },
-    zipFile: {
-        originalName: String,
-        size: Number,
-        extractedPath: String,
-        uploadDate: {
-            type: Date,
-            default: Date.now,
-        },
-    },
-    reactThemeJs: {
-        originalName: String,
-        size: Number,
-        uploadDate: {
-            type: Date,
-            default: Date.now,
-        },
-    },
-    reactThemeCss: {
-        originalName: String,
-        size: Number,
-        uploadDate: {
-            type: Date,
-            default: Date.now,
-        },
-    },
-    thumbnail: {
-        filename: String,
-        originalName: String,
-        path: String,
-        size: Number,
-        uploadDate: {
-            type: Date,
-            default: Date.now,
+    s3Assets: {
+        type: new mongoose_1.Schema({
+            contentRoot: { type: contentRootSchema, required: false },
+            zip: { type: s3AssetPartSchema, required: false },
+            thumbnail: { type: s3AssetPartSchema, required: false },
+            reactThemeJs: { type: s3AssetPartSchema, required: false },
+            reactThemeCss: { type: s3AssetPartSchema, required: false },
+        }, { _id: false }),
+        required: true,
+        validate: {
+            validator(v) {
+                if (!v)
+                    return false;
+                const hasZip = Boolean(v.zip?.key);
+                const hasFolder = Boolean(v.contentRoot?.prefix);
+                return hasZip !== hasFolder;
+            },
+            message: "s3Assets must have exactly one of: zip (legacy) or contentRoot (folder upload)",
         },
     },
     version: {

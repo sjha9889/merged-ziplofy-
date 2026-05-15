@@ -1,7 +1,5 @@
 // @ts-nocheck
-import archiver from "archiver";
 import { Request, Response } from "express";
-import extract from "extract-zip";
 import fs from "fs";
 import mongoose, { Types } from "mongoose";
 import path from "path";
@@ -16,84 +14,129 @@ import { User } from "../models/user.model";
 import { asyncErrorHandler, CustomError } from "../utils/error.utils";
 import { logActivity } from "../utils/activity-log.utils";
 import { canonicalStoreRef, storeAndUserScopeOr } from "../utils/installed-themes-query.util";
+import {
+  assertStagingFolderAndAuxiliaryKeys,
+  assertStagingKeys,
+  collectCatalogAssetKeysAsync,
+  deleteS3Keys,
+  downloadS3KeyToFile,
+  promoteStagingAuxiliaryToCatalog,
+  promoteStagingThemeAssetsToCatalog,
+  promoteStagingThemeFolderToCatalog,
+  stagingThemeFileKey,
+} from "../utils/theme-s3-ingest";
+import { downloadS3PrefixToLocalDir, downloadS3ZipAndExtractToDir } from "../utils/theme-zip-from-s3.util";
+import { tmpdir } from "os";
+import archiver from "archiver";
 
-// Helper function to create organized theme directory structure per requirements
-const createThemeDirectory = (themeName: string) => {
-  // Use exact provided name for folder, avoid collisions by appending short uid if exists
-  const baseDir = path.join(process.cwd(), "uploads/themes/");
-  const safeName = themeName; // keep exact name
-  let themeDirName = safeName;
-  let themeDirPath = path.join(baseDir, themeDirName);
+function makeThemePathSlug(themeName: string): string {
+  const base =
+    themeName
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "") || "theme";
+  return `${base}-${uuidv4().slice(0, 8)}`;
+}
 
-  if (fs.existsSync(themeDirPath)) {
-    const suffix = uuidv4().slice(0, 6);
-    themeDirName = `${safeName}-${suffix}`;
-    themeDirPath = path.join(baseDir, themeDirName);
-  }
-
-  // Create main theme directory
-  if (!fs.existsSync(themeDirPath)) {
-    fs.mkdirSync(themeDirPath, { recursive: true });
-  }
-
-  // Create subdirectories as specified
-  const codeDirPath = path.join(themeDirPath, "unzippedTheme");
-  const zippedDirPath = path.join(themeDirPath, "zipped");
-  const thumbnailDirPath = path.join(themeDirPath, "thumbnail");
-  const remoteThemeDistDirPath = path.join(themeDirPath, "remoteThemeDist");
-
-  [codeDirPath, zippedDirPath, thumbnailDirPath, remoteThemeDistDirPath].forEach((p) => {
-    if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
-  });
-
-  return {
-    themeDir: themeDirPath,
-    codeDir: codeDirPath,
-    zippedDir: zippedDirPath,
-    thumbnailDir: thumbnailDirPath,
-    remoteThemeDistDir: remoteThemeDistDirPath,
-    themeDirName,
+/** Cached catalog theme sources under OS temp (ZIP extract or S3 folder sync; not uploads/). */
+async function ensureCatalogThemeCodeDir(theme: {
+  _id: any;
+  s3Assets?: {
+    zip?: { key?: string };
+    contentRoot?: { prefix?: string; fileCount?: number };
   };
-};
+}): Promise<string> {
+  const id = String(theme._id);
+  const zipKey = theme.s3Assets?.zip?.key;
+  const folderPrefix = theme.s3Assets?.contentRoot?.prefix;
+  if (!zipKey && !folderPrefix) throw new CustomError("Theme has no S3 package", 404);
 
-/** If the zip contained a single top-level folder, lift its contents into `targetDir`. */
-function normalizeExtractedSingleTopLevelWrapper(targetDir: string) {
-  const items = fs.readdirSync(targetDir);
-  if (items.length !== 1) return;
-  const onlyItemPath = path.join(targetDir, items[0]);
-  const stat = fs.statSync(onlyItemPath);
-  if (!stat.isDirectory()) return;
-  const moveUp = (src: string, dest: string) => {
-    const entries = fs.readdirSync(src);
-    entries.forEach((entry) => {
-      const srcPath = path.join(src, entry);
-      const destPath = path.join(dest, entry);
-      const s = fs.statSync(srcPath);
-      if (s.isDirectory()) {
-        if (!fs.existsSync(destPath)) fs.mkdirSync(destPath, { recursive: true });
-        moveUp(srcPath, destPath);
-      } else {
-        fs.renameSync(srcPath, destPath);
+  const cacheRoot = path.join(tmpdir(), "ziplofy-catalog-themes", id);
+  const codeDir = path.join(cacheRoot, "code");
+  const metaPath = path.join(cacheRoot, ".meta.json");
+
+  const mode = zipKey ? "zip" : "folder";
+  const ref = zipKey ?? folderPrefix ?? "";
+  const folderFileCount = theme.s3Assets?.contentRoot?.fileCount;
+
+  let skip = false;
+  if (fs.existsSync(metaPath)) {
+    try {
+      const meta = JSON.parse(fs.readFileSync(metaPath, "utf8"));
+      if (
+        meta.mode === mode &&
+        meta.ref === ref &&
+        (mode !== "folder" || meta.folderFileCount === folderFileCount) &&
+        fs.existsSync(codeDir) &&
+        fs.readdirSync(codeDir).length > 0
+      ) {
+        skip = true;
       }
-    });
+    } catch {
+      /* re-sync */
+    }
+  }
+  if (!skip) {
+    if (fs.existsSync(cacheRoot)) fs.rmSync(cacheRoot, { recursive: true, force: true });
+    fs.mkdirSync(codeDir, { recursive: true });
+    if (zipKey) {
+      await downloadS3ZipAndExtractToDir(zipKey, codeDir);
+    } else {
+      await downloadS3PrefixToLocalDir(folderPrefix!, codeDir);
+    }
+    fs.writeFileSync(
+      metaPath,
+      JSON.stringify({
+        mode,
+        ref,
+        folderFileCount: mode === "folder" ? folderFileCount : undefined,
+        ts: Date.now(),
+      })
+    );
+  }
+  return codeDir;
+}
+
+function resolveThemeThumbnailUrl(_req: Request, theme: any) {
+  return theme?.s3Assets?.thumbnail?.url || null;
+}
+
+function resolveThemeZipUrl(_req: Request, theme: any) {
+  return theme?.s3Assets?.zip?.url || null;
+}
+
+/** Normalize a theme document for list/detail APIs (S3-first catalog shape). */
+function formatThemeForClient(theme: any) {
+  const obj = theme?.toObject ? theme.toObject() : { ...theme };
+  const s3 = obj.s3Assets ?? {};
+  const hasFolder = Boolean(s3.contentRoot?.prefix);
+  const hasZip = Boolean(s3.zip?.key);
+  return {
+    _id: obj._id,
+    name: obj.name,
+    description: obj.description,
+    category: obj.category,
+    plan: obj.plan,
+    price: obj.price,
+    version: obj.version,
+    tags: obj.tags,
+    themePath: obj.themePath,
+    isActive: obj.isActive,
+    downloads: obj.downloads,
+    installationCount: obj.installationCount,
+    rating: obj.rating,
+    createdAt: obj.createdAt,
+    updatedAt: obj.updatedAt,
+    uploadBy: obj.uploadBy,
+    s3Assets: s3,
+    thumbnailUrl: s3.thumbnail?.url ?? null,
+    zipUrl: s3.zip?.url ?? null,
+    packageType: hasFolder ? ("folder" as const) : hasZip ? ("zip" as const) : null,
+    contentFileCount: hasFolder ? s3.contentRoot?.fileCount ?? 0 : undefined,
+    hasRemoteTheme: Boolean(s3.reactThemeJs?.key || s3.reactThemeCss?.key),
+    previewUrl: s3.zip?.url ?? null,
   };
-  moveUp(onlyItemPath, targetDir);
-  fs.rmSync(onlyItemPath, { recursive: true, force: true });
-  console.log("Normalized extracted structure by removing top-level wrapper folder");
-}
-
-function validateReactThemeJsUpload(file: Express.Multer.File) {
-  const ext = path.extname(file.originalname || "").toLowerCase();
-  if (ext !== ".js") {
-    throw new CustomError("Remote theme JavaScript must be a .js file (e.g. dist/theme.js).", 400);
-  }
-}
-
-function validateReactThemeCssUpload(file: Express.Multer.File) {
-  const ext = path.extname(file.originalname || "").toLowerCase();
-  if (ext !== ".css") {
-    throw new CustomError("Remote theme stylesheet must be a .css file (e.g. dist/theme.css).", 400);
-  }
 }
 
 interface GetThemesQuery {
@@ -136,22 +179,24 @@ export const getThemes = asyncErrorHandler(async (req: Request, res: Response) =
   const sortConfig: any = {};
   sortConfig[sort] = order === "desc" ? -1 : 1;
 
-  // Execute query with pagination
+  const limitNum = parseInt(limit);
+  const pageNum = parseInt(page);
+
   const themes = await Theme.find(filter)
     .populate("uploadBy", "name email")
-    .select("-directories -zipFile.extractedPath -thumbnail.path")
-    .limit(parseInt(limit))
-    .skip((parseInt(page) - 1) * parseInt(limit))
-    .sort(sortConfig);
+    .limit(limitNum)
+    .skip((pageNum - 1) * limitNum)
+    .sort(sortConfig)
+    .lean();
 
-  // Get total documents count
   const count = await Theme.countDocuments(filter);
+  const data = themes.map((t) => formatThemeForClient(t));
 
   res.status(200).json({
     success: true,
-    data: themes,
-    totalPages: Math.ceil(count / parseInt(limit)),
-    currentPage: parseInt(page),
+    data,
+    totalPages: Math.ceil(count / limitNum),
+    currentPage: pageNum,
     total: count,
   });
 });
@@ -185,30 +230,7 @@ export const getAllThemesPublic = asyncErrorHandler(async (req: Request, res: Re
 
   const count = await Theme.countDocuments(filter);
 
-  const mapped = docs.map((t: any) => {
-    const thumbnailUrl = t.thumbnail?.filename
-      ? `${req.protocol}://${req.get("host")}/uploads/themes/${t.themePath}/thumbnail/${t.thumbnail.filename}`
-      : null;
-    const zipUrl = t.zipFile?.originalName
-      ? `${req.protocol}://${req.get("host")}/uploads/themes/${t.themePath}/zipped/${t.zipFile.originalName}`
-      : null;
-    return {
-      _id: t._id,
-      name: t.name,
-      description: t.description,
-      category: t.category,
-      plan: t.plan,
-      price: t.price,
-      version: t.version,
-      tags: t.tags,
-      downloads: t.downloads,
-      rating: t.rating,
-      uploadBy: t.uploadBy,
-      createdAt: t.createdAt,
-      thumbnailUrl,
-      zipUrl,
-    };
-  });
+  const mapped = docs.map((t: any) => formatThemeForClient(t));
 
   res.status(200).json({
     success: true,
@@ -226,25 +248,15 @@ interface GetThemeParams {
 export const getTheme = asyncErrorHandler(async (req: Request, res: Response) => {
   const { id } = req.params as unknown as GetThemeParams;
 
-  const theme = await Theme.findById(id)
-    .populate("uploadBy", "name email")
-    .select("-directories -zipFile.extractedPath -thumbnail.path");
+  const theme = await Theme.findById(id).populate("uploadBy", "name email");
 
   if (!theme) {
     throw new CustomError("Theme not found", 404);
   }
 
-  // Dynamically build preview URL
-  const previewUrl = `${req.protocol}://${req.get("host")}/uploads/themes/${
-    theme.themePath
-  }/code/Theme2/index.html`;
-
   res.status(200).json({
     success: true,
-    data: {
-      ...theme.toObject(), // convert Mongoose doc to plain JS object
-      previewUrl, // add computed preview URL
-    },
+    data: formatThemeForClient(theme),
   });
 });
 
@@ -258,178 +270,160 @@ interface CreateThemeBody {
   tags?: string;
 }
 
-interface MulterFiles {
-  zipFile?: Express.Multer.File[];
-  reactThemeJs?: Express.Multer.File[];
-  reactThemeCss?: Express.Multer.File[];
-  thumbnail?: Express.Multer.File[];
+export const createTheme = asyncErrorHandler(async (_req: Request, res: Response) => {
+  res.status(410).json({
+    success: false,
+    message:
+      "Multipart theme upload is no longer supported. Upload assets with presigned PUT to S3, then POST /api/themes/from-s3 with s3 keys.",
+  });
+});
+
+interface CreateThemeFromS3Body extends CreateThemeBody {
+  s3SessionId: string;
+  s3: {
+    zipKey?: string;
+    files?: { key: string; relativePath: string }[];
+    thumbnailKey?: string;
+    reactJsKey?: string;
+    reactCssKey?: string;
+  };
 }
 
-export const createTheme = asyncErrorHandler(async (req: Request, res: Response) => {
-  const { name, description, category, plan, price, version, tags } = req.body as CreateThemeBody;
-  console.log('[createTheme] Request received', {
+/** Create catalog theme: copy browser-staged S3 objects into themes/catalog/{id}/… (no local uploads/). */
+export const createThemeFromS3 = asyncErrorHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.id as string | undefined;
+  if (!userId) {
+    throw new CustomError("Unauthorized", 401);
+  }
+
+  const {
     name,
+    description,
     category,
     plan,
-    hasFiles: Boolean(req.files),
-  });
+    price,
+    version,
+    tags,
+    s3SessionId,
+    s3,
+  } = req.body as CreateThemeFromS3Body;
 
-  // Check if files were uploaded
-  if (!req.files) {
-    throw new CustomError("Please upload ZIP file", 400);
+  if (!name || !category || !plan) {
+    throw new CustomError("name, category, and plan are required", 400);
+  }
+  if (!s3SessionId || typeof s3SessionId !== "string") {
+    throw new CustomError("s3SessionId is required (same value used when requesting signed URLs)", 400);
+  }
+  if (!s3 || typeof s3 !== "object") {
+    throw new CustomError("s3 payload is required", 400);
   }
 
-  const files = req.files as MulterFiles;
-  const zipFile = files.zipFile ? files.zipFile[0] : null;
-  const reactThemeJsFile = files.reactThemeJs?.[0] ?? null;
-  const reactThemeCssFile = files.reactThemeCss?.[0] ?? null;
-  const thumbnail = files.thumbnail ? files.thumbnail[0] : null;
-  console.log('[createTheme] Parsed files', {
-    zipFilePresent: Boolean(zipFile),
-    zipFileName: zipFile?.originalname,
-    zipFileMime: zipFile?.mimetype,
-    reactThemeJsPresent: Boolean(reactThemeJsFile),
-    reactThemeCssPresent: Boolean(reactThemeCssFile),
-    thumbnailPresent: Boolean(thumbnail),
-    thumbnailName: thumbnail?.originalname,
-    thumbnailMime: thumbnail?.mimetype,
-  });
-
-  if (!zipFile) {
-    throw new CustomError("ZIP file is required", 400);
+  const hasZip = typeof s3.zipKey === "string" && s3.zipKey.length > 0;
+  const hasFiles = Array.isArray(s3.files) && s3.files.length > 0;
+  if (hasZip === hasFiles) {
+    throw new CustomError("Provide exactly one of: s3.zipKey (legacy ZIP) or s3.files (folder upload)", 400);
   }
 
-  // Create unique folder structure for the theme
-  const themeDirs = createThemeDirectory(name);
+  const newId = new Types.ObjectId();
+  const themePath = makeThemePathSlug(name);
 
-  // Extract ZIP file to unzippedTheme directory and keep original zip in 'zipped'
+  let stagingKeys: string[];
+  let s3Assets: any;
+
   try {
-    // Move original zip into zipped dir with original filename
-    const zipDestPath = path.join(themeDirs.zippedDir, zipFile.originalname);
-    fs.renameSync(zipFile.path, zipDestPath);
-
-    await extract(zipDestPath, { dir: themeDirs.codeDir });
-    console.log("ZIP extraction complete to:", themeDirs.codeDir);
-
-    normalizeExtractedSingleTopLevelWrapper(themeDirs.codeDir);
-  } catch (extractError: any) {
-    // Clean up if extraction fails
-    if (fs.existsSync(themeDirs.themeDir)) {
-      fs.rmSync(themeDirs.themeDir, { recursive: true, force: true });
-    }
-    throw new CustomError(`ZIP extraction failed: ${extractError.message}`, 500);
-  }
-
-  let reactThemeJsMeta: { originalName: string; size: number; uploadDate: Date } | undefined;
-  let reactThemeCssMeta: { originalName: string; size: number; uploadDate: Date } | undefined;
-  if (reactThemeJsFile || reactThemeCssFile) {
-    try {
-      if (reactThemeJsFile) {
-        validateReactThemeJsUpload(reactThemeJsFile);
-        const destJs = path.join(themeDirs.remoteThemeDistDir, "theme.js");
-        fs.renameSync(reactThemeJsFile.path, destJs);
-        reactThemeJsMeta = {
-          originalName: reactThemeJsFile.originalname,
-          size: reactThemeJsFile.size,
-          uploadDate: new Date(),
-        };
-      }
-      if (reactThemeCssFile) {
-        validateReactThemeCssUpload(reactThemeCssFile);
-        const destCss = path.join(themeDirs.remoteThemeDistDir, "theme.css");
-        fs.renameSync(reactThemeCssFile.path, destCss);
-        reactThemeCssMeta = {
-          originalName: reactThemeCssFile.originalname,
-          size: reactThemeCssFile.size,
-          uploadDate: new Date(),
-        };
-      }
-    } catch (reactFileError: any) {
-      if (fs.existsSync(themeDirs.themeDir)) {
-        fs.rmSync(themeDirs.themeDir, { recursive: true, force: true });
-      }
-      if (reactFileError instanceof CustomError) throw reactFileError;
-      throw new CustomError(
-        `Remote theme file save failed: ${reactFileError?.message || "unknown error"}`,
-        500
+    if (hasZip) {
+      stagingKeys = assertStagingKeys(
+        {
+          zipKey: s3.zipKey as string,
+          thumbnailKey: s3.thumbnailKey,
+          reactJsKey: s3.reactJsKey,
+          reactCssKey: s3.reactCssKey,
+        },
+        userId,
+        s3SessionId
       );
+      s3Assets = await promoteStagingThemeAssetsToCatalog(newId.toString(), {
+        zipKey: s3.zipKey as string,
+        thumbnailKey: s3.thumbnailKey,
+        reactJsKey: s3.reactJsKey,
+        reactCssKey: s3.reactCssKey,
+      });
+    } else {
+      const files = s3.files as { key: string; relativePath: string }[];
+      for (const f of files) {
+        if (!f.key || typeof f.key !== "string" || !f.relativePath || typeof f.relativePath !== "string") {
+          throw new CustomError("Each s3.files entry requires key and relativePath", 400);
+        }
+        const expected = stagingThemeFileKey(userId, s3SessionId, f.relativePath);
+        if (f.key !== expected) {
+          throw new CustomError("s3.files key does not match relativePath for this session", 400);
+        }
+      }
+      stagingKeys = assertStagingFolderAndAuxiliaryKeys(
+        files,
+        {
+          thumbnailKey: s3.thumbnailKey,
+          reactJsKey: s3.reactJsKey,
+          reactCssKey: s3.reactCssKey,
+        },
+        userId,
+        s3SessionId
+      );
+      const folderPart = await promoteStagingThemeFolderToCatalog(
+        newId.toString(),
+        files.map((f) => ({ key: f.key, relativePath: f.relativePath }))
+      );
+      const aux = await promoteStagingAuxiliaryToCatalog(newId.toString(), {
+        thumbnailKey: s3.thumbnailKey,
+        reactJsKey: s3.reactJsKey,
+        reactCssKey: s3.reactCssKey,
+      });
+      s3Assets = { ...folderPart, ...aux };
     }
+  } catch (promoteErr: any) {
+    console.error("[createThemeFromS3] promote staging → catalog failed:", promoteErr);
+    if (promoteErr instanceof CustomError) throw promoteErr;
+    throw new CustomError(
+      `Could not finalize theme files in S3: ${promoteErr?.message || "unknown error"}`,
+      500
+    );
   }
 
-  // Thumbnail is optional; never fail upload if thumbnail move fails.
-  let thumbnailFilename: string | undefined;
-  let thumbnailDestPath: string | undefined;
-  if (thumbnail) {
-    try {
-      const thumbnailExt = path.extname(thumbnail.originalname || "") || ".jpg";
-      thumbnailFilename = `thumbnail${thumbnailExt}`;
-      thumbnailDestPath = path.join(themeDirs.thumbnailDir, thumbnailFilename);
-      fs.renameSync(thumbnail.path, thumbnailDestPath);
-    } catch (thumbnailError) {
-      console.warn("Theme upload: thumbnail save failed, continuing without thumbnail", thumbnailError);
-      thumbnailFilename = undefined;
-      thumbnailDestPath = undefined;
-    }
-  }
+  const theme = await Theme.create({
+    _id: newId,
+    name,
+    description,
+    category,
+    plan,
+    price: price || 0,
+    version: version || "1.0.0",
+    tags: tags ? tags.split(",").map((tag) => tag.trim()) : [],
+    themePath,
+    s3Assets,
+    uploadBy: req.user?.id ? new Types.ObjectId(req.user.id) : undefined,
+  });
 
-  // Create theme in database
-  let theme: any;
   try {
-    theme = await Theme.create({
-      name,
-      description,
-      category,
-      plan,
-      price: price || 0,
-      version: version || "1.0.0",
-      tags: tags ? tags.split(",").map((tag) => tag.trim()) : [],
-      themePath: themeDirs.themeDirName,
-      directories: {
-        theme: themeDirs.themeDir,
-        code: themeDirs.codeDir,
-        zipped: themeDirs.zippedDir,
-        thumbnail: themeDirs.thumbnailDir,
-        remoteThemeDist: themeDirs.remoteThemeDistDir,
-      },
-      zipFile: {
-        originalName: zipFile.originalname,
-        size: zipFile.size,
-        extractedPath: themeDirs.codeDir,
-      },
-      reactThemeJs: reactThemeJsMeta,
-      reactThemeCss: reactThemeCssMeta,
-      thumbnail: thumbnailFilename
-        ? {
-            filename: thumbnailFilename,
-            originalName: thumbnail?.originalname,
-            path: thumbnailDestPath,
-            size: thumbnail?.size,
-          }
-        : undefined,
-      uploadBy: req.user?.id ? new Types.ObjectId(req.user.id) : undefined,
-    });
-  } catch (dbError: any) {
-    console.error('[createTheme] Database create failed', dbError);
-    throw new CustomError(`Theme metadata save failed: ${dbError?.message || 'Unknown database error'}`, 500);
+    await deleteS3Keys(stagingKeys);
+  } catch (delErr) {
+    console.warn("[createThemeFromS3] Failed to delete staging S3 keys:", delErr);
   }
 
-  const themeResponse = await Theme.findById(theme._id)
-    .populate("uploadBy", "name email")
-    .select("-directories -zipFile.extractedPath -thumbnail.path");
+  const themeResponse = await Theme.findById(theme._id).populate("uploadBy", "name email");
 
   logActivity(req, {
     action: "theme_upload",
     entityType: "theme",
     entityId: theme._id.toString(),
     entityName: name,
-    summary: `Uploaded theme "${name}" (${category}, ${plan})`,
-    details: { themeId: theme._id.toString(), name, category, plan, version: version || "1.0.0" },
+    summary: `Uploaded theme "${name}" (${category}, ${plan}) via S3`,
+    details: { themeId: theme._id.toString(), name, category, plan, version: version || "1.0.0", source: "s3" },
   }).catch(() => {});
 
   res.status(201).json({
     success: true,
-    data: themeResponse,
-    message: "Theme uploaded and organized successfully",
+    data: themeResponse ? formatThemeForClient(themeResponse) : null,
+    message: "Theme created from S3 successfully",
   });
 });
 
@@ -446,13 +440,6 @@ interface UpdateThemeBody {
   version?: string;
   tags?: string;
   isActive?: boolean;
-}
-
-interface UpdateThemeFiles {
-  zipFile?: Express.Multer.File[];
-  reactThemeJs?: Express.Multer.File[];
-  reactThemeCss?: Express.Multer.File[];
-  thumbnail?: Express.Multer.File[];
 }
 
 export const updateTheme = asyncErrorHandler(async (req: Request, res: Response) => {
@@ -480,131 +467,10 @@ export const updateTheme = asyncErrorHandler(async (req: Request, res: Response)
     updatedAt: new Date(),
   };
 
-  // Handle file updates if provided
-  if (req.files) {
-    const theme = await Theme.findById(id);
-    if (!theme) {
-      throw new CustomError("Theme not found", 404);
-    }
-
-    const files = req.files as UpdateThemeFiles;
-
-    if (files.zipFile) {
-      // Delete old code directory
-      if (theme.directories.code && fs.existsSync(theme.directories.code)) {
-        fs.rmSync(theme.directories.code, { recursive: true, force: true });
-      }
-
-      const zipFile = files.zipFile[0];
-
-      // Recreate code directory
-      const codeDirPath = path.join(theme.directories.theme, "code");
-      if (!fs.existsSync(codeDirPath)) {
-        fs.mkdirSync(codeDirPath, { recursive: true });
-      }
-
-      // Extract new ZIP file
-      await extract(zipFile.path, { dir: codeDirPath });
-      fs.unlinkSync(zipFile.path);
-
-      updateData.zipFile = {
-        originalName: zipFile.originalname,
-        size: zipFile.size,
-        extractedPath: codeDirPath,
-        uploadDate: new Date(),
-      };
-    }
-
-    if (files.reactThemeJs || files.reactThemeCss) {
-      const prevDirs = theme.directories as {
-        theme: string;
-        code: string;
-        zipped: string;
-        thumbnail: string;
-        remoteThemeDist?: string;
-      };
-      const remoteDir =
-        prevDirs.remoteThemeDist || path.join(prevDirs.theme, "remoteThemeDist");
-      if (!fs.existsSync(remoteDir)) {
-        fs.mkdirSync(remoteDir, { recursive: true });
-      }
-
-      if (files.reactThemeJs) {
-        const js = files.reactThemeJs[0];
-        validateReactThemeJsUpload(js);
-        const destJs = path.join(remoteDir, "theme.js");
-        fs.renameSync(js.path, destJs);
-        updateData.reactThemeJs = {
-          originalName: js.originalname,
-          size: js.size,
-          uploadDate: new Date(),
-        };
-      }
-      if (files.reactThemeCss) {
-        const css = files.reactThemeCss[0];
-        validateReactThemeCssUpload(css);
-        const destCss = path.join(remoteDir, "theme.css");
-        fs.renameSync(css.path, destCss);
-        updateData.reactThemeCss = {
-          originalName: css.originalname,
-          size: css.size,
-          uploadDate: new Date(),
-        };
-      }
-
-      updateData.directories = {
-        ...prevDirs,
-        remoteThemeDist: remoteDir,
-      };
-      (updateData as any).$unset = { ...(updateData as any).$unset, reactThemeZip: 1 };
-    }
-
-    if (files.thumbnail) {
-      // Delete old thumbnail directory
-      if (
-        theme.directories.thumbnail &&
-        fs.existsSync(theme.directories.thumbnail)
-      ) {
-        fs.rmSync(theme.directories.thumbnail, {
-          recursive: true,
-          force: true,
-        });
-      }
-
-      // Recreate thumbnail directory
-      const thumbnailDirPath = path.join(theme.directories.theme, "thumbnail");
-      if (!fs.existsSync(thumbnailDirPath)) {
-        fs.mkdirSync(thumbnailDirPath, { recursive: true });
-      }
-
-      const thumbnail = files.thumbnail[0];
-      const thumbnailExt = path.extname(thumbnail.originalname);
-      const thumbnailFilename = `thumbnail${thumbnailExt}`;
-      const thumbnailDestPath = path.join(thumbnailDirPath, thumbnailFilename);
-
-      fs.renameSync(thumbnail.path, thumbnailDestPath);
-
-      updateData.thumbnail = {
-        filename: thumbnailFilename,
-        originalName: thumbnail.originalname,
-        path: thumbnailDestPath,
-        size: thumbnail.size,
-        uploadDate: new Date(),
-      };
-
-      updateData.directories = {
-        ...(updateData.directories || { ...(theme.directories as object) }),
-        thumbnail: thumbnailDirPath,
-      };
-    }
-  }
-
   const theme = await Theme.findByIdAndUpdate(id, updateData, {
     new: true,
     runValidators: true,
-  })
-    .populate("uploadBy", "name email")
-    .select("-directories -zipFile.extractedPath -thumbnail.path");
+  }).populate("uploadBy", "name email");
 
   if (!theme) {
     throw new CustomError("Theme not found", 404);
@@ -679,20 +545,17 @@ export const deleteTheme = asyncErrorHandler(async (req: Request, res: Response)
   console.log('✅ Theme found:', { 
     name: theme.name, 
     themePath: theme.themePath,
-    directories: theme.directories 
   });
 
   // Delete all installed instances of this theme
   const deletedInstances = await InstalledThemes.deleteMany({ theme: id });
   console.log('🗑️ Deleted installed instances:', deletedInstances.deletedCount);
 
-  // Delete entire theme directory
-  if (theme.directories.theme && fs.existsSync(theme.directories.theme)) {
-    console.log('🗂️ Deleting theme directory:', theme.directories.theme);
-    fs.rmSync(theme.directories.theme, { recursive: true, force: true });
-    console.log('✅ Theme directory deleted');
-  } else {
-    console.log('⚠️ Theme directory not found or already deleted:', theme.directories.theme);
+  try {
+    const keys = await collectCatalogAssetKeysAsync(theme.s3Assets as any);
+    await deleteS3Keys(keys);
+  } catch (s3Err) {
+    console.warn("[deleteTheme] Failed to delete some catalog S3 objects:", s3Err);
   }
 
   // Delete the theme from database
@@ -724,44 +587,54 @@ export const downloadTheme = asyncErrorHandler(async (req: Request, res: Respons
     throw new CustomError("Premium theme requires appropriate subscription", 403);
   }
 
-  const extractPath = theme.zipFile?.extractedPath;
-
-  if (!fs.existsSync(extractPath || "")) {
-    throw new CustomError("Theme files not found", 404);
+  const zipUrl = theme.s3Assets?.zip?.url;
+  const folderPrefix = theme.s3Assets?.contentRoot?.prefix;
+  if (!zipUrl && !folderPrefix) {
+    throw new CustomError("Theme download is not available", 404);
   }
 
-  // Increment download count
-  if(theme.downloads) {
+  if (theme.downloads) {
     theme.downloads += 1;
   } else {
     theme.downloads = 1;
   }
   await theme.save();
 
-  // Set response headers
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename="${theme.name}-${theme.version}.zip"`
-  );
-  res.setHeader("Content-Type", "application/zip");
+  if (zipUrl) {
+    res.redirect(302, zipUrl);
+    return;
+  }
 
-  // Create ZIP archive from extracted files
-  const archive = archiver("zip", {
-    zlib: { level: 9 },
-  });
-
-  archive.on("error", (err:any) => {
-    throw new CustomError("Error creating download package", 500);
-  });
-
-  // Pipe archive to response
-  archive.pipe(res);
-
-  // Add all files from extracted directory to archive
-  archive.directory(extractPath || "", false);
-
-  // Finalize the archive
-  archive.finalize();
+  const tmpBase = path.join(tmpdir(), `ziplofy-theme-dl-${id}-${Date.now()}`);
+  fs.mkdirSync(tmpBase, { recursive: true });
+  const folderDir = path.join(tmpBase, "files");
+  try {
+    await downloadS3PrefixToLocalDir(folderPrefix!, folderDir);
+    const safeName = `${theme.themePath || theme.name || "theme"}.zip`.replace(/[^\w.\-]+/g, "_");
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader("Content-Disposition", `attachment; filename="${safeName}"`);
+    const archive = archiver("zip", { zlib: { level: 9 } });
+    archive.on("error", (err) => {
+      console.error("[downloadTheme] archiver:", err);
+    });
+    archive.on("end", () => {
+      try {
+        fs.rmSync(tmpBase, { recursive: true, force: true });
+      } catch {
+        /* ignore */
+      }
+    });
+    archive.pipe(res);
+    archive.directory(folderDir, false);
+    await archive.finalize();
+  } catch (e) {
+    try {
+      fs.rmSync(tmpBase, { recursive: true, force: true });
+    } catch {
+      /* ignore */
+    }
+    throw e;
+  }
 });
 
 export const getThemeStructure = asyncErrorHandler(async (req: Request, res: Response) => {
@@ -772,11 +645,7 @@ export const getThemeStructure = asyncErrorHandler(async (req: Request, res: Res
     throw new CustomError("Theme not found", 404);
   }
 
-  const extractPath = theme.directories.code;
-
-  if (!fs.existsSync(extractPath)) {
-    throw new CustomError("Theme files not found", 404);
-  }
+  const extractPath = await ensureCatalogThemeCodeDir(theme);
 
   // Recursive function to get directory structure
   const getStructure = (dirPath: string, relativePath = ""): any[] => {
@@ -828,25 +697,19 @@ export const getThumbnail = asyncErrorHandler(async (req: Request, res: Response
     throw new CustomError("Theme not found", 404);
   }
 
-  if (!theme.thumbnail?.path || !fs.existsSync(theme.thumbnail.path)) {
+  const url = theme.s3Assets?.thumbnail?.url;
+  if (!url) {
     throw new CustomError("Thumbnail not found", 404);
   }
 
-  res.sendFile(path.resolve(theme.thumbnail.path));
+  res.redirect(302, url);
 });
 
 export const getThemesStatic = asyncErrorHandler(async (req: Request, res: Response) => {
   const themes = await Theme.find();
 
   const updatedThemes = themes.map((theme) => {
-    let thumbnailUrl = null;
-
-    if (theme.thumbnail?.filename) {
-      // ✅ build a URL relative to /uploads/themes
-      thumbnailUrl = `${req.protocol}://${req.get("host")}/uploads/themes/${
-        theme.themePath
-      }/thumbnail/${theme.thumbnail.filename}`;
-    }
+    const thumbnailUrl = resolveThemeThumbnailUrl(req, theme);
 
     return {
       _id: theme._id,
@@ -888,10 +751,12 @@ export const installTheme = asyncErrorHandler(async (req: Request, res: Response
 
   // Create store-specific theme directory
   const storeThemeDir = path.join(process.cwd(), 'uploads', 'stores', storeIdToUse, 'themes', themeId);
-  // Use the theme's code directory (which contains unzippedTheme) as source
-  const sourceThemeDir = theme.directories?.code || path.join(process.cwd(), 'uploads', 'themes', theme.themePath, 'unzippedTheme');
+  const zipKey = theme.s3Assets?.zip?.key;
+  const contentPrefix = theme.s3Assets?.contentRoot?.prefix;
+  if (!zipKey && !contentPrefix) {
+    throw new CustomError("Theme has no S3 package to install", 404);
+  }
 
-  console.log('📁 Source theme directory:', sourceThemeDir);
   console.log('📁 Store theme directory:', storeThemeDir);
 
   try {
@@ -901,25 +766,19 @@ export const installTheme = asyncErrorHandler(async (req: Request, res: Response
       console.log('✅ Created store theme directory');
     }
 
-    // Copy theme files to store directory
-    // IMPORTANT: Only copy if store directory doesn't exist or is empty
-    // This preserves user customizations when re-installing after uninstall
     const unzippedThemeDir = path.join(storeThemeDir, 'unzippedTheme');
-    
-    // Check for existing customizations in BOTH possible locations:
-    // 1. New format: storeThemeDir/unzippedTheme/ (where saves go)
-    // 2. Old format: storeThemeDir/ (root level - legacy installations)
-    const hasFilesInUnzipped = fs.existsSync(unzippedThemeDir) && 
+
+    const hasFilesInUnzipped = fs.existsSync(unzippedThemeDir) &&
                                fs.readdirSync(unzippedThemeDir).filter(f => f !== '.DS_Store').length > 0;
-    const hasFilesInRoot = fs.existsSync(storeThemeDir) && 
+    const hasFilesInRoot = fs.existsSync(storeThemeDir) &&
                           fs.readdirSync(storeThemeDir).filter(f => {
                             const fullPath = path.join(storeThemeDir, f);
-                            return fs.existsSync(fullPath) && 
-                                   fs.statSync(fullPath).isFile() && 
+                            return fs.existsSync(fullPath) &&
+                                   fs.statSync(fullPath).isFile() &&
                                    f !== '.DS_Store';
                           }).length > 0;
     const hasExistingFiles = hasFilesInUnzipped || hasFilesInRoot;
-    
+
     console.log('🔍 Checking for existing customizations:', {
       storeThemeDir,
       unzippedThemeDir,
@@ -927,50 +786,34 @@ export const installTheme = asyncErrorHandler(async (req: Request, res: Response
       hasFilesInRoot,
       hasExistingFiles
     });
-    
-    if (fs.existsSync(sourceThemeDir) && !hasExistingFiles) {
-      // Create unzippedTheme subdirectory
+
+    if (!hasExistingFiles) {
       if (!fs.existsSync(unzippedThemeDir)) {
         fs.mkdirSync(unzippedThemeDir, { recursive: true });
       }
-      
-      // Copy all files from source to store directory
-      const copyRecursive = (src: string, dest: string) => {
-        const stats = fs.statSync(src);
-        if (stats.isDirectory()) {
-          if (!fs.existsSync(dest)) {
-            fs.mkdirSync(dest, { recursive: true });
-          }
-          const files = fs.readdirSync(src);
-          files.forEach(file => {
-            copyRecursive(path.join(src, file), path.join(dest, file));
-          });
-        } else {
-          fs.copyFileSync(src, dest);
-        }
-      };
-
-      copyRecursive(sourceThemeDir, unzippedThemeDir);
-      console.log('✅ Theme files copied to store directory (unzippedTheme)');
+      if (zipKey) {
+        await downloadS3ZipAndExtractToDir(zipKey, unzippedThemeDir);
+      } else {
+        await downloadS3PrefixToLocalDir(contentPrefix!, unzippedThemeDir);
+      }
+      console.log('✅ Theme Liquid files extracted from S3 to store (unzippedTheme)');
     } else if (hasExistingFiles) {
       console.log('📁 Existing theme files/customizations found - preserving user edits (not overwriting)');
       console.log(`   - Files in unzippedTheme: ${hasFilesInUnzipped ? 'YES' : 'NO'}`);
       console.log(`   - Files in root: ${hasFilesInRoot ? 'YES' : 'NO'}`);
-      
-      // If files exist in root but not in unzippedTheme, migrate them
+
       if (hasFilesInRoot && !hasFilesInUnzipped) {
         console.log('📦 Migrating files from root to unzippedTheme directory...');
         if (!fs.existsSync(unzippedThemeDir)) {
           fs.mkdirSync(unzippedThemeDir, { recursive: true });
         }
-        
+
         const migrateRecursive = (src: string, dest: string) => {
           const stats = fs.statSync(src);
           if (stats.isDirectory()) {
             const dirName = path.basename(src);
-            // Skip unzippedTheme directory itself to avoid recursion
             if (dirName === 'unzippedTheme') return;
-            
+
             if (!fs.existsSync(dest)) {
               fs.mkdirSync(dest, { recursive: true });
             }
@@ -982,7 +825,7 @@ export const installTheme = asyncErrorHandler(async (req: Request, res: Response
             fs.copyFileSync(src, dest);
           }
         };
-        
+
         const files = fs.readdirSync(storeThemeDir);
         files.forEach(file => {
           const srcPath = path.join(storeThemeDir, file);
@@ -993,124 +836,19 @@ export const installTheme = asyncErrorHandler(async (req: Request, res: Response
         });
         console.log('✅ Files migrated to unzippedTheme directory');
       }
-    } else {
-      console.log('⚠️ Source theme directory not found, creating empty structure');
-      // Create basic theme structure
-      const basicFiles = [
-        'index.html',
-        'style.css',
-        'script.js',
-        'README.md'
-      ];
-      
-      basicFiles.forEach(file => {
-        const filePath = path.join(storeThemeDir, file);
-        if (file === 'index.html') {
-          // Read the default theme template
-          const templatePath = path.join(process.cwd(), 'src', 'templates', 'default-theme.html');
-          let templateContent = '';
-          
-          if (fs.existsSync(templatePath)) {
-            templateContent = fs.readFileSync(templatePath, 'utf8');
-          } else {
-            // Fallback template
-            templateContent = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{store.name}} - ${theme.name}</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <h1>Welcome to {{store.name}}</h1>
-    <p>{{store.description}}</p>
-    <div id="products-container">
-        <!-- Products will be loaded here -->
-    </div>
-    <script src="script.js"></script>
-</body>
-</html>`;
-          }
-          
-          fs.writeFileSync(filePath, templateContent);
-        } else if (file === 'style.css') {
-          fs.writeFileSync(filePath, `/* ${theme.name} Theme Styles */
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background-color: #f5f5f5;
-}
-
-h1 {
-    color: #333;
-    text-align: center;
-}
-
-p {
-    color: #666;
-    text-align: center;
-    max-width: 600px;
-    margin: 0 auto;
-}`);
-        } else if (file === 'script.js') {
-          fs.writeFileSync(filePath, `// ${theme.name} Theme Scripts
-console.log('${theme.name} theme loaded successfully!');
-
-// Add your custom JavaScript here
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Theme is ready!');
-});`);
-        } else if (file === 'README.md') {
-          fs.writeFileSync(filePath, `# ${theme.name}
-
-${theme.description}
-
-## Installation
-This theme has been installed to your store.
-
-## Customization
-You can now modify the theme files in this directory to customize your store's appearance.
-
-## Files
-- \`index.html\` - Main HTML template
-- \`style.css\` - CSS styles
-- \`script.js\` - JavaScript functionality
-`);
-        }
-      });
     }
 
-    const sourceRemoteDir =
-      (theme.directories as { remoteThemeDist?: string })?.remoteThemeDist ||
-      path.join(process.cwd(), "uploads", "themes", theme.themePath, "remoteThemeDist");
     const destRemoteDir = path.join(storeThemeDir, "remoteThemeDist");
-
-    const hasRemoteBundle =
-      fs.existsSync(sourceRemoteDir) &&
-      fs.readdirSync(sourceRemoteDir).filter((f) => f !== ".DS_Store").length > 0;
-
-    if (hasRemoteBundle) {
-      const copyRecursiveRemote = (src: string, dest: string) => {
-        const stats = fs.statSync(src);
-        if (stats.isDirectory()) {
-          if (!fs.existsSync(dest)) {
-            fs.mkdirSync(dest, { recursive: true });
-          }
-          for (const file of fs.readdirSync(src)) {
-            copyRecursiveRemote(path.join(src, file), path.join(dest, file));
-          }
-        } else {
-          fs.copyFileSync(src, dest);
-        }
-      };
+    const jsKey = theme.s3Assets?.reactThemeJs?.key;
+    const cssKey = theme.s3Assets?.reactThemeCss?.key;
+    if (jsKey || cssKey) {
       if (fs.existsSync(destRemoteDir)) {
         fs.rmSync(destRemoteDir, { recursive: true, force: true });
       }
       fs.mkdirSync(destRemoteDir, { recursive: true });
-      copyRecursiveRemote(sourceRemoteDir, destRemoteDir);
-      console.log("✅ React remote theme dist copied to store (remoteThemeDist)");
+      if (jsKey) await downloadS3KeyToFile(jsKey, path.join(destRemoteDir, "theme.js"));
+      if (cssKey) await downloadS3KeyToFile(cssKey, path.join(destRemoteDir, "theme.css"));
+      console.log("✅ React remote theme dist downloaded from S3 to store (remoteThemeDist)");
     }
 
     // Check if there's already an installation for this store and theme (any legacy store/user shape)
@@ -1138,9 +876,7 @@ You can now modify the theme files in this directory to customize your store's a
 
     console.log('✅ Theme installation completed');
 
-    const thumbnailUrl = theme.thumbnail?.filename
-      ? `${req.protocol}://${req.get("host")}/uploads/themes/${theme.themePath}/thumbnail/${theme.thumbnail.filename}`
-      : null;
+    const thumbnailUrl = resolveThemeThumbnailUrl(req, theme);
 
     logActivity(req, {
       action: "theme_install",
@@ -1270,43 +1006,38 @@ export const serveInstalledThemeFiles = asyncErrorHandler(async (req: Request, r
         throw new CustomError("File not found", 404);
       }
     } else {
-      // For normal themes, fall back to original theme code directory
-    const theme = await Theme.findById(themeId).lean();
-    if (!theme) {
-      throw new CustomError("File not found", 404);
-    }
-    const codeDir = path.resolve(theme.directories.code);
-    // If incoming path was prefixed with 'unzippedTheme/', strip it for fallback
-    const stripped = filePath.startsWith('unzippedTheme/') ? filePath.replace(/^unzippedTheme\//, '') : filePath;
-    let fallbackPath = path.resolve(path.join(codeDir, stripped));
-    if (
-      !fallbackPath.startsWith(codeDir) ||
-      !fs.existsSync(fallbackPath) ||
-      fs.statSync(fallbackPath).isDirectory()
-    ) {
-      const remoteDirRaw = (theme.directories as { remoteThemeDist?: string }).remoteThemeDist;
-      const remoteDir = remoteDirRaw ? path.resolve(remoteDirRaw) : null;
-      let resolvedFromRemote: string | null = null;
-      if (remoteDir && fs.existsSync(remoteDir)) {
+      const theme = await Theme.findById(themeId);
+      if (!theme) {
+        throw new CustomError("File not found", 404);
+      }
+      const codeDir = path.resolve(await ensureCatalogThemeCodeDir(theme));
+      const stripped = filePath.startsWith("unzippedTheme/") ? filePath.replace(/^unzippedTheme\//, "") : filePath;
+      let fallbackPath = path.resolve(path.join(codeDir, stripped));
+      if (
+        !fallbackPath.startsWith(codeDir) ||
+        !fs.existsSync(fallbackPath) ||
+        fs.statSync(fallbackPath).isDirectory()
+      ) {
+        let resolvedFromRemote: string | null = null;
         let rel = stripped;
         if (rel.startsWith("remoteThemeDist/")) {
           rel = rel.replace(/^remoteThemeDist\//, "");
         }
-        const tryPath = path.resolve(path.join(remoteDir, rel));
-        if (
-          tryPath.startsWith(remoteDir) &&
-          fs.existsSync(tryPath) &&
-          !fs.statSync(tryPath).isDirectory()
-        ) {
-          resolvedFromRemote = tryPath;
+        if (rel === "theme.js" && theme.s3Assets?.reactThemeJs?.key) {
+          const tmp = path.join(tmpdir(), `ziplofy-fb-${themeId}-theme.js`);
+          await downloadS3KeyToFile(theme.s3Assets.reactThemeJs.key, tmp);
+          resolvedFromRemote = tmp;
+        } else if (rel === "theme.css" && theme.s3Assets?.reactThemeCss?.key) {
+          const tmp = path.join(tmpdir(), `ziplofy-fb-${themeId}-theme.css`);
+          await downloadS3KeyToFile(theme.s3Assets.reactThemeCss.key, tmp);
+          resolvedFromRemote = tmp;
+        }
+        if (resolvedFromRemote && fs.existsSync(resolvedFromRemote)) {
+          fallbackPath = resolvedFromRemote;
+        } else {
+          throw new CustomError("File not found", 404);
         }
       }
-      if (resolvedFromRemote) {
-        fallbackPath = resolvedFromRemote;
-      } else {
-        throw new CustomError("File not found", 404);
-      }
-    }
     // Serve fallback file
     const extFallback = path.extname(fallbackPath).toLowerCase();
     const contentTypes: { [key: string]: string } = {
@@ -1436,9 +1167,7 @@ export const getInstalledThemes = asyncErrorHandler(async (req: Request, res: Re
     if (!tid) continue;
     const theme = themeById.get(tid);
     if (!theme) continue;
-    const thumbnailUrl = theme.thumbnail?.filename
-      ? `${req.protocol}://${req.get("host")}/uploads/themes/${theme.themePath}/thumbnail/${theme.thumbnail.filename}`
-      : null;
+    const thumbnailUrl = resolveThemeThumbnailUrl(req, theme);
     formatted.push({
       _id: theme._id,
       name: theme.name,
@@ -1676,8 +1405,9 @@ export const getThemePreview = asyncErrorHandler(async (req: Request, res: Respo
   }
 
   // Get the main HTML file (index.html) from the theme's unzipped directory
-  const themeIndexPath = path.join(theme.directories.code, 'index.html');
-  
+  const codeDir = await ensureCatalogThemeCodeDir(theme);
+  const themeIndexPath = path.join(codeDir, "index.html");
+
   if (!fs.existsSync(themeIndexPath)) {
     throw new CustomError("Theme preview not available - index.html not found", 404);
   }
@@ -1746,29 +1476,27 @@ function resolveThemeBasePathForUser(theme: any, userId?: string, storeId?: stri
     }
   }
   
-  // Priority 3: Fallback to original uploaded theme code dir
-  const fallback = theme.directories?.code || path.join(process.cwd(), 'uploads', 'themes', theme.themePath, 'unzippedTheme');
-  return fallback;
+  return "";
 }
 
 // List all theme files for editor
 export const listThemeFiles = asyncErrorHandler(async (req: Request, res: Response) => {
   const themeId = req.params.themeId;
   const theme = await Theme.findById(themeId).lean();
-  if (!theme) throw new CustomError('Theme not found', 404);
+  if (!theme) throw new CustomError("Theme not found", 404);
   const userId = (req.user as any)?.id;
   const storeId = req.query.storeId as string | undefined;
   const installedBaseDir = resolveThemeBasePathForUser(theme, userId, storeId);
-  const themeBaseDir = theme.directories?.code;
 
   const fileSet = new Set<string>();
   if (installedBaseDir && fs.existsSync(installedBaseDir)) {
     listFilesRecursive(installedBaseDir).forEach((p) => fileSet.add(p));
   }
-  if (themeBaseDir && fs.existsSync(themeBaseDir)) {
-    listFilesRecursive(themeBaseDir).forEach((p) => fileSet.add(p));
+  if (fileSet.size === 0 && (theme.s3Assets?.zip?.key || theme.s3Assets?.contentRoot?.prefix)) {
+    const catDir = await ensureCatalogThemeCodeDir(theme);
+    listFilesRecursive(catDir).forEach((p) => fileSet.add(p));
   }
-  if (fileSet.size === 0) throw new CustomError('Theme source not found', 404);
+  if (fileSet.size === 0) throw new CustomError("Theme source not found", 404);
 
   const files = Array.from(fileSet);
   res.json({ success: true, count: files.length, files });
@@ -1777,36 +1505,45 @@ export const listThemeFiles = asyncErrorHandler(async (req: Request, res: Respon
 // Read a specific theme file content
 export const readThemeFile = asyncErrorHandler(async (req: Request, res: Response) => {
   const themeId = req.params.themeId;
-  const relPath = String((req.query.path || '') as string);
-  if (!relPath) throw new CustomError('path is required', 400);
+  const relPath = String((req.query.path || "") as string);
+  if (!relPath) throw new CustomError("path is required", 400);
   const theme = await Theme.findById(themeId).lean();
-  if (!theme) throw new CustomError('Theme not found', 404);
+  if (!theme) throw new CustomError("Theme not found", 404);
   const userId = (req.user as any)?.id;
   const storeId = req.query.storeId as string | undefined;
-  const baseDir = resolveThemeBasePathForUser(theme, userId, storeId);
+  let baseDir = resolveThemeBasePathForUser(theme, userId, storeId);
+  if (!baseDir || !fs.existsSync(baseDir)) {
+    if (theme.s3Assets?.zip?.key || theme.s3Assets?.contentRoot?.prefix) {
+      baseDir = await ensureCatalogThemeCodeDir(theme);
+    }
+  }
   let abs = path.resolve(path.join(baseDir, relPath));
   const baseResolved = path.resolve(baseDir);
-  if (!abs.startsWith(baseResolved)) throw new CustomError('Access denied', 403);
+  if (!abs.startsWith(baseResolved)) throw new CustomError("Access denied", 403);
 
   if (!fs.existsSync(abs) || fs.statSync(abs).isDirectory()) {
-    // Fallback to original theme code dir
-    const themeCode = path.resolve(theme.directories.code);
+    if (!theme.s3Assets?.zip?.key && !theme.s3Assets?.contentRoot?.prefix) throw new CustomError("File not found", 404);
+    const themeCode = path.resolve(await ensureCatalogThemeCodeDir(theme));
     const fallbackAbs = path.resolve(path.join(themeCode, relPath));
-    if (!fallbackAbs.startsWith(themeCode) || !fs.existsSync(fallbackAbs) || fs.statSync(fallbackAbs).isDirectory()) {
-      throw new CustomError('File not found', 404);
+    if (
+      !fallbackAbs.startsWith(themeCode) ||
+      !fs.existsSync(fallbackAbs) ||
+      fs.statSync(fallbackAbs).isDirectory()
+    ) {
+      throw new CustomError("File not found", 404);
     }
     abs = fallbackAbs;
   }
 
-  const content = fs.readFileSync(abs, 'utf8');
-  res.type('text/plain').send(content);
+  const content = fs.readFileSync(abs, "utf8");
+  res.type("text/plain").send(content);
 });
 
 // Serve theme preview static files (CSS, JS, images, etc.)
 export const serveThemePreviewFiles = asyncErrorHandler(async (req: Request, res: Response) => {
   const { themeId } = req.params;
   const filePath = req.params[0]; // Get the wildcard parameter
-  
+
   if (!themeId) {
     throw new CustomError("Theme ID is required", 400);
   }
@@ -1820,16 +1557,14 @@ export const serveThemePreviewFiles = asyncErrorHandler(async (req: Request, res
     throw new CustomError("Theme not found", 404);
   }
 
-  // Check if theme is active
   if (!theme.isActive) {
     throw new CustomError("Theme is not available for preview", 403);
   }
 
-  // Construct the full file path
-  const fullFilePath = path.join(theme.directories.code, filePath);
-  
-  // Security check: ensure the file is within the theme directory
-  const themeDir = path.resolve(theme.directories.code);
+  const codeDir = await ensureCatalogThemeCodeDir(theme);
+  const fullFilePath = path.join(codeDir, filePath);
+
+  const themeDir = path.resolve(codeDir);
   const requestedFile = path.resolve(fullFilePath);
   
   if (!requestedFile.startsWith(themeDir)) {

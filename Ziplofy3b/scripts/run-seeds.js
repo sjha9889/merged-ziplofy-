@@ -15,7 +15,9 @@
  *   optional       — packaging, store-codes
  *   demo           — products-demo, discounts-demo (products first)
  *   full           — base → geo → notifications → india-tax → optional (recommended order)
- *   all            — full → demo (one-shot complete seeding)
+ *   all            — full → demo (one-shot complete seeding; includes roles → admins → user-codes)
+ *
+ * Prefer a single entry for new DBs: `npm run seed:database` (runs build/seed/run-all-seeds.js).
  */
 const { execSync } = require('child_process');
 const path = require('path');
@@ -50,6 +52,9 @@ const PRESETS = {
     'seed:country-tax',
     'seed:packaging',
     'seed:store-codes',
+    'seed:roles',
+    'seed:admins',
+    'seed:user-codes',
   ],
   all: [
     'seed:permissions',
@@ -65,6 +70,9 @@ const PRESETS = {
     'seed:country-tax',
     'seed:packaging',
     'seed:store-codes',
+    'seed:roles',
+    'seed:admins',
+    'seed:user-codes',
     'seed:products-demo',
     'seed:discounts-demo',
   ],

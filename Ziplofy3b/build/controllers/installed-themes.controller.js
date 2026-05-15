@@ -19,14 +19,9 @@ exports.installThemeForStore = (0, error_utils_1.asyncErrorHandler)(async (req, 
     const doc = await installed_themes_model_1.InstalledThemes.findOneAndUpdate({ store: new mongoose_1.default.Types.ObjectId(storeId), theme: new mongoose_1.default.Types.ObjectId(themeId) }, { $set: { uninstalledAt: null } }, { upsert: true, new: true, setDefaultsOnInsert: true }).populate('theme').lean();
     if (doc && doc.theme) {
         const t = doc.theme;
-        const thumbnailUrl = t?.thumbnail?.filename
-            ? `${req.protocol}://${req.get('host')}/uploads/themes/${t.themePath}/thumbnail/${t.thumbnail.filename}`
-            : null;
+        const thumbnailUrl = t?.s3Assets?.thumbnail?.url || null;
         doc.theme.thumbnailUrl = thumbnailUrl;
-        delete doc.theme.thumbnail;
-        delete doc.theme.zipFile;
-        delete doc.theme.themePath;
-        delete doc.theme.directories;
+        delete doc.theme.s3Assets;
     }
     return res.status(200).json({ success: true, data: doc });
 });
@@ -42,14 +37,9 @@ exports.getInstalledThemesByStore = (0, error_utils_1.asyncErrorHandler)(async (
     const shaped = records.map((r) => {
         if (r?.theme) {
             const t = r.theme;
-            const thumbnailUrl = t?.thumbnail?.filename
-                ? `${req.protocol}://${req.get('host')}/uploads/themes/${t.themePath}/thumbnail/${t.thumbnail.filename}`
-                : null;
+            const thumbnailUrl = t?.s3Assets?.thumbnail?.url || null;
             t.thumbnailUrl = thumbnailUrl;
-            delete t.thumbnail;
-            delete t.zipFile;
-            delete t.themePath;
-            delete t.directories;
+            delete t.s3Assets;
         }
         return r;
     });

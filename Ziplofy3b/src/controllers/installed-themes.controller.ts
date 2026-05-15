@@ -20,14 +20,9 @@ export const installThemeForStore = asyncErrorHandler(async (req: Request, res: 
 
   if (doc && (doc as any).theme) {
     const t: any = (doc as any).theme;
-    const thumbnailUrl = t?.thumbnail?.filename
-      ? `${req.protocol}://${req.get('host')}/uploads/themes/${t.themePath}/thumbnail/${t.thumbnail.filename}`
-      : null;
+    const thumbnailUrl = t?.s3Assets?.thumbnail?.url || null;
     (doc as any).theme.thumbnailUrl = thumbnailUrl;
-    delete (doc as any).theme.thumbnail;
-    delete (doc as any).theme.zipFile;
-    delete (doc as any).theme.themePath;
-    delete (doc as any).theme.directories;
+    delete (doc as any).theme.s3Assets;
   }
 
   return res.status(200).json({ success: true, data: doc });
@@ -46,14 +41,9 @@ export const getInstalledThemesByStore = asyncErrorHandler(async (req: Request, 
   const shaped = records.map((r: any) => {
     if (r?.theme) {
       const t = r.theme as any;
-      const thumbnailUrl = t?.thumbnail?.filename
-        ? `${req.protocol}://${req.get('host')}/uploads/themes/${t.themePath}/thumbnail/${t.thumbnail.filename}`
-        : null;
+      const thumbnailUrl = t?.s3Assets?.thumbnail?.url || null;
       t.thumbnailUrl = thumbnailUrl;
-      delete t.thumbnail;
-      delete t.zipFile;
-      delete t.themePath;
-      delete t.directories;
+      delete t.s3Assets;
     }
     return r;
   });

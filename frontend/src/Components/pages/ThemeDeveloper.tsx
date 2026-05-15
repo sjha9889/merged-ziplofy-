@@ -18,6 +18,9 @@ import {
   Palette,
   Layout,
   BarChart2,
+  Check,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { DateRange, Range } from "react-date-range";
 import "react-date-range/dist/styles.css";
@@ -26,28 +29,43 @@ import { PermissionGate } from "../PermissionGate";
 import { EditVerificationModal } from "../EditVerificationModal";
 import { usePermissions } from "../../hooks/usePermissions";
 import axiosi from "../../config/axios";
+import { useAwsUpload } from "../../contexts/aws-upload.context";
+import {
+  useThemes,
+  formatThemePackageLabel,
+  type ThemeAdminListItem,
+} from "../../contexts/themes.context";
 
 // ---------------------- Types ----------------------
-interface Theme {
-  _id: string;
-  name: string;
-  category: string;
-  uploadDate: string;
-  uploadBy: string;
-  plan: string;
-  description?: string;
-  price?: number;
-  version?: string;
-  tags?: string[];
-  isActive?: boolean;
-  downloads?: number;
-  thumbnailUrl?: string;
-}
 
 interface DateRangeItem {
   startDate: Date;
   endDate: Date;
   key: string;
+}
+
+type ThemeUploadRowStatus = "pending" | "uploading" | "done" | "error";
+
+interface ThemeUploadRow {
+  id: string;
+  label: string;
+  status: ThemeUploadRowStatus;
+}
+
+interface ThemeUploadProgressUi {
+  headline: string;
+  fileCounter: string;
+  currentLabel: string;
+  percent: number;
+  rows: ThemeUploadRow[];
+}
+
+function truncateMiddle(s: string, max: number): string {
+  if (s.length <= max) return s;
+  const keep = max - 1;
+  const right = Math.ceil(keep / 2);
+  const left = keep - right;
+  return `${s.slice(0, left)}…${s.slice(-right)}`;
 }
 
 // ---------------------- Component ----------------------
@@ -67,15 +85,16 @@ const ThemeDeveloper: React.FC = () => {
     version: "1.0.0",
     tags: ""
   });
-  const [zipFile, setZipFile] = useState<File | null>(null);
+  const [themeFolderFiles, setThemeFolderFiles] = useState<File[]>([]);
   const [reactThemeJsFile, setReactThemeJsFile] = useState<File | null>(null);
   const [reactThemeCssFile, setReactThemeCssFile] = useState<File | null>(null);
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<ThemeUploadProgressUi | null>(null);
   
   // Dynamic theme data
-  const [themes, setThemes] = useState<Theme[]>([]);
+  const [themes, setThemes] = useState<ThemeAdminListItem[]>([]);
   const [totalThemes, setTotalThemes] = useState<number>(0);
   const [loadingThemes, setLoadingThemes] = useState<boolean>(true);
   const [deletingThemeId, setDeletingThemeId] = useState<string | null>(null);
@@ -88,6 +107,9 @@ const ThemeDeveloper: React.FC = () => {
   
   const canView = hasViewPermission('Developer', 'Theme Developer');
   const canUpload = hasUploadPermission('Developer', 'Theme Developer');
+
+  const { generateThemeAssetSignedUrl, uploadFileToSignedUrl } = useAwsUpload();
+  const { createThemeFromS3, fetchAdminThemesList } = useThemes();
   
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [dateRange, setDateRange] = useState<DateRangeItem[]>([
@@ -100,7 +122,7 @@ const ThemeDeveloper: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedPlan, setSelectedPlan] = useState<string>("all");
 
-  const getThumbnailSrc = (theme: Theme) =>
+  const getThumbnailSrc = (theme: ThemeAdminListItem) =>
     theme.thumbnailUrl || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='120'%3E%3Crect fill='%23f1f5f9' width='200' height='120'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='14' fill='%2394a3b8'%3ENo preview%3C/text%3E%3C/svg%3E";
 
   // Close date picker when clicking outside
@@ -152,43 +174,14 @@ const ThemeDeveloper: React.FC = () => {
   const activeFilterCount =
     (selectedCategory !== "all" ? 1 : 0) + (selectedPlan !== "all" ? 1 : 0);
 
-  // Fetch themes from API
   const fetchThemes = async () => {
     try {
       setLoadingThemes(true);
-      const response = await axiosi.get('/themes', { params: { limit: 100 } });
-      if (response.data.success) {
-        const apiBase = (import.meta.env.VITE_BACKEND_URL || "http://localhost:5000/api").replace("/api", "");
-        const themesData = response.data.data.map((theme: any) => {
-          const thumbUrl = theme.thumbnailUrl ?? (theme.themePath && theme.thumbnail?.filename
-            ? `${apiBase}/uploads/themes/${theme.themePath}/thumbnail/${theme.thumbnail.filename}`
-            : null);
-          return {
-            _id: theme._id,
-            name: theme.name,
-            category: theme.category,
-            uploadDate: new Date(theme.createdAt).toLocaleDateString('en-GB', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric'
-            }),
-            uploadBy: theme.uploadBy?.name || 'Unknown',
-            plan: theme.plan,
-            description: theme.description,
-            price: theme.price,
-            version: theme.version,
-            tags: theme.tags,
-            isActive: theme.isActive,
-            downloads: theme.downloads,
-            thumbnailUrl: thumbUrl
-          };
-        });
-        setThemes(themesData);
-        setTotalThemes(response.data.total || themesData.length);
-      }
+      const { themes: list, total } = await fetchAdminThemesList({ limit: 100 });
+      setThemes(list);
+      setTotalThemes(total);
     } catch (error) {
-      console.error('Error fetching themes:', error);
-      // Fallback to empty array on error
+      console.error("Error fetching themes:", error);
       setThemes([]);
       setTotalThemes(0);
     } finally {
@@ -203,20 +196,20 @@ const ThemeDeveloper: React.FC = () => {
     }
   }, [canView]);
 
-  // Close upload modal on Escape key
+  // Close upload modal on Escape key (not while upload is running)
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isUploadOpen) setIsUploadOpen(false);
+      if (e.key === "Escape" && isUploadOpen && !isUploading) setIsUploadOpen(false);
     };
     if (isUploadOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
     }
     return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "";
     };
-  }, [isUploadOpen]);
+  }, [isUploadOpen, isUploading]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -253,12 +246,10 @@ const ThemeDeveloper: React.FC = () => {
   };
 
   // Handle file selection
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'zip' | 'thumbnail' | 'reactThemeJs' | 'reactThemeCss') => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'thumbnail' | 'reactThemeJs' | 'reactThemeCss') => {
     const file = e.target.files?.[0];
     if (file) {
-      if (type === 'zip') {
-        setZipFile(file);
-      } else if (type === 'reactThemeJs') {
+      if (type === 'reactThemeJs') {
         setReactThemeJsFile(file);
       } else if (type === 'reactThemeCss') {
         setReactThemeCssFile(file);
@@ -266,6 +257,15 @@ const ThemeDeveloper: React.FC = () => {
         setThumbnailFile(file);
       }
     }
+  };
+
+  const handleThemeFolderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const list = e.target.files;
+    if (!list?.length) {
+      setThemeFolderFiles([]);
+      return;
+    }
+    setThemeFolderFiles(Array.from(list));
   };
 
   // Execute theme deletion with OTP (called after OTP verification)
@@ -351,54 +351,194 @@ const ThemeDeveloper: React.FC = () => {
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploadError(null);
+    setUploadProgress(null);
     setIsUploading(true);
 
-    // Debug: Check user role and authentication
-    const userRole = localStorage.getItem('userRole');
-    const isSuperAdmin = localStorage.getItem('isSuperAdmin');
-    const userData = localStorage.getItem('userData');
-    console.log('🔍 User authentication debug:', {
-      userRole,
-      isSuperAdmin,
-      userData: userData ? JSON.parse(userData) : null,
-      adminToken: localStorage.getItem('admin_token') ? 'Present' : 'Missing'
-    });
+    let progressRows: ThemeUploadRow[] = [];
+    let totalSteps = 0;
 
     try {
-      // Validate required fields
       if (!uploadForm.name || !uploadForm.category || !uploadForm.plan) {
-        throw new Error('Please fill in all required fields');
+        throw new Error("Please fill in all required fields");
       }
 
-      if (!zipFile || !thumbnailFile) {
-        throw new Error('Please select both ZIP file and thumbnail');
+      if (themeFolderFiles.length === 0 || !thumbnailFile) {
+        throw new Error("Please select a theme folder and thumbnail");
       }
 
-      // Create FormData for file upload
-      const formData = new FormData();
-      formData.append('name', uploadForm.name);
-      formData.append('description', uploadForm.description);
-      formData.append('category', uploadForm.category);
-      formData.append('plan', uploadForm.plan);
-      formData.append('price', uploadForm.price);
-      formData.append('version', uploadForm.version);
-      formData.append('tags', uploadForm.tags);
-      formData.append('zipFile', zipFile);
+      const themeCount = themeFolderFiles.length;
+      progressRows = themeFolderFiles.map((f, i) => ({
+        id: `theme-${i}`,
+        label: (f.webkitRelativePath || f.name).replace(/\\/g, "/"),
+        status: "pending" as ThemeUploadRowStatus,
+      }));
+      progressRows.push({
+        id: "thumb",
+        label: `Thumbnail · ${thumbnailFile.name}`,
+        status: "pending",
+      });
       if (reactThemeJsFile) {
-        formData.append('reactThemeJs', reactThemeJsFile);
+        progressRows.push({
+          id: "react-js",
+          label: `Remote theme JS · ${reactThemeJsFile.name}`,
+          status: "pending",
+        });
       }
       if (reactThemeCssFile) {
-        formData.append('reactThemeCss', reactThemeCssFile);
+        progressRows.push({
+          id: "react-css",
+          label: `Remote theme CSS · ${reactThemeCssFile.name}`,
+          status: "pending",
+        });
       }
-      formData.append('thumbnail', thumbnailFile);
+      progressRows.push({
+        id: "finalize",
+        label: "Register theme in catalog",
+        status: "pending",
+      });
 
+      totalSteps = progressRows.length;
 
-      // Make API call
-      // Let browser/axios set multipart boundary automatically.
-      const response = await axiosi.post('/themes', formData);
+      const syncProgress = (rowsSnapshot: ThemeUploadRow[]) => {
+        const done = rowsSnapshot.filter((r) => r.status === "done").length;
+        const upIdx = rowsSnapshot.findIndex((r) => r.status === "uploading");
+        const inTheme = upIdx >= 0 && upIdx < themeCount;
+        const headline =
+          upIdx < 0
+            ? "Preparing secure upload"
+            : inTheme
+              ? "Uploading theme folder to secure storage"
+              : upIdx === themeCount
+                ? "Uploading thumbnail"
+                : upIdx < totalSteps - 1
+                  ? "Uploading optional remote theme assets"
+                  : "Finalizing on server";
+
+        const fileCounter =
+          upIdx < 0
+            ? `0 of ${totalSteps} steps`
+            : inTheme
+              ? `File ${upIdx + 1} of ${themeCount}`
+              : `${done} of ${totalSteps} steps completed`;
+
+        const hasUploading = upIdx >= 0;
+        const pct = Math.min(
+          99,
+          Math.round(((done + (hasUploading ? 0.2 : 0)) / totalSteps) * 100)
+        );
+
+        setUploadProgress({
+          headline,
+          fileCounter,
+          currentLabel:
+            upIdx >= 0
+              ? rowsSnapshot[upIdx].label
+              : rowsSnapshot.find((r) => r.status === "pending")?.label ?? "",
+          percent: pct,
+          rows: rowsSnapshot.map((r) => ({ ...r })),
+        });
+      };
+
+      const setRow = (idx: number, status: ThemeUploadRowStatus) => {
+        progressRows = progressRows.map((r, i) => (i === idx ? { ...r, status } : r));
+        syncProgress(progressRows);
+      };
+
+      syncProgress(progressRows);
+
+      const sessionId = crypto.randomUUID();
+      const uploadedFiles: { key: string; relativePath: string }[] = [];
+
+      for (let i = 0; i < themeFolderFiles.length; i++) {
+        const file = themeFolderFiles[i];
+        setRow(i, "uploading");
+        const relativePath = (file.webkitRelativePath || file.name).replace(/\\/g, "/");
+        const signed = await generateThemeAssetSignedUrl({
+          sessionId,
+          fileName: file.name,
+          fileType: file.type || "application/octet-stream",
+          assetKind: "themeFile",
+          relativePath,
+        });
+        await uploadFileToSignedUrl(signed.signedUrl, file, signed.contentType);
+        uploadedFiles.push({ key: signed.key, relativePath });
+        setRow(i, "done");
+      }
+
+      const thumbIdx = themeCount;
+      setRow(thumbIdx, "uploading");
+      const thumbSigned = await generateThemeAssetSignedUrl({
+        sessionId,
+        fileName: thumbnailFile.name,
+        fileType: thumbnailFile.type || "image/jpeg",
+        assetKind: "thumbnail",
+      });
+      await uploadFileToSignedUrl(thumbSigned.signedUrl, thumbnailFile, thumbSigned.contentType);
+      setRow(thumbIdx, "done");
+
+      let reactJsKey: string | undefined;
+      let reactCssKey: string | undefined;
+      let idx = thumbIdx + 1;
+      if (reactThemeJsFile) {
+        setRow(idx, "uploading");
+        const signed = await generateThemeAssetSignedUrl({
+          sessionId,
+          fileName: reactThemeJsFile.name,
+          fileType: reactThemeJsFile.type || "application/javascript",
+          assetKind: "reactJs",
+        });
+        await uploadFileToSignedUrl(signed.signedUrl, reactThemeJsFile, signed.contentType);
+        reactJsKey = signed.key;
+        setRow(idx, "done");
+        idx++;
+      }
+      if (reactThemeCssFile) {
+        setRow(idx, "uploading");
+        const signed = await generateThemeAssetSignedUrl({
+          sessionId,
+          fileName: reactThemeCssFile.name,
+          fileType: reactThemeCssFile.type || "text/css",
+          assetKind: "reactCss",
+        });
+        await uploadFileToSignedUrl(signed.signedUrl, reactThemeCssFile, signed.contentType);
+        reactCssKey = signed.key;
+        setRow(idx, "done");
+        idx++;
+      }
+
+      const finalizeIdx = progressRows.length - 1;
+      setRow(finalizeIdx, "uploading");
+      const priceNum = uploadForm.price === "" ? 0 : Number(uploadForm.price);
+
+      const response = await createThemeFromS3({
+        name: uploadForm.name,
+        description: uploadForm.description,
+        category: uploadForm.category,
+        plan: uploadForm.plan,
+        price: Number.isFinite(priceNum) ? priceNum : 0,
+        version: uploadForm.version || "1.0.0",
+        tags: uploadForm.tags,
+        s3SessionId: sessionId,
+        s3: {
+          files: uploadedFiles,
+          thumbnailKey: thumbSigned.key,
+          reactJsKey,
+          reactCssKey,
+        },
+      });
 
       if (response.data.success) {
-        // Reset form
+        setRow(finalizeIdx, "done");
+        setUploadProgress({
+          headline: "Theme created successfully",
+          fileCounter: `${totalSteps} of ${totalSteps} steps completed`,
+          currentLabel: "",
+          percent: 100,
+          rows: progressRows.map((r) => ({ ...r })),
+        });
+        await new Promise<void>((resolve) => {
+          window.setTimeout(() => resolve(), 450);
+        });
         setUploadForm({
           name: "",
           description: "",
@@ -406,40 +546,68 @@ const ThemeDeveloper: React.FC = () => {
           plan: "",
           price: "",
           version: "1.0.0",
-          tags: ""
+          tags: "",
         });
-        setZipFile(null);
+        setThemeFolderFiles([]);
         setReactThemeJsFile(null);
         setReactThemeCssFile(null);
         setThumbnailFile(null);
+        setUploadProgress(null);
         setIsUploadOpen(false);
-        
-        // Refresh themes list
+
         await fetchThemes();
-        
-        // Show success message (you can add a toast notification here)
-        alert('Theme uploaded successfully!');
+
+        alert("Theme uploaded successfully!");
+      } else {
+        progressRows = progressRows.map((r, i) =>
+          i === finalizeIdx ? { ...r, status: "error" as const } : r
+        );
+        const ts = Math.max(1, totalSteps);
+        setUploadProgress({
+          headline: "Finalization failed",
+          fileCounter: `${Math.max(0, totalSteps - 1)} of ${totalSteps} steps completed`,
+          currentLabel: progressRows[finalizeIdx]?.label ?? "",
+          percent: Math.min(99, Math.round(((totalSteps - 1) / ts) * 100)),
+          rows: progressRows.map((r) => ({ ...r })),
+        });
+        setUploadError(response.data?.message || "Theme registration failed.");
       }
     } catch (error: any) {
-      console.error('Upload error:', error);
-      console.error('Error response:', error.response?.data);
-      console.error('Error status:', error.response?.status);
-      
-      let errorMessage = 'Upload failed';
+      console.error("Upload error:", error);
+      console.error("Error response:", error.response?.data);
+      console.error("Error status:", error.response?.status);
+
+      const upIdx = progressRows.findIndex((r) => r.status === "uploading");
+      if (upIdx >= 0) {
+        progressRows = progressRows.map((r, i) =>
+          i === upIdx ? { ...r, status: "error" as const } : r
+        );
+        const done = progressRows.filter((r) => r.status === "done").length;
+        const ts = Math.max(1, totalSteps);
+        setUploadProgress({
+          headline: "Upload interrupted",
+          fileCounter: `${done} of ${ts} steps completed`,
+          currentLabel: progressRows[upIdx]?.label ?? "",
+          percent: Math.min(99, Math.round((done / ts) * 100)),
+          rows: progressRows.map((r) => ({ ...r })),
+        });
+      }
+
+      let errorMessage = "Upload failed";
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.status === 401) {
-        errorMessage = 'Authentication failed. Please log in again.';
+        errorMessage = "Authentication failed. Please log in again.";
       } else if (error.response?.status === 403) {
-        errorMessage = 'You do not have permission to upload themes. Contact administrator.';
+        errorMessage = "You do not have permission to upload themes. Contact administrator.";
       } else if (error.response?.status === 400) {
-        errorMessage = error.response.data?.message || 'Invalid request data. Please check all fields.';
+        errorMessage = error.response.data?.message || "Invalid request data. Please check all fields.";
       } else if (!error.response) {
-        errorMessage = 'Network error while uploading. Check backend server and API URL/port.';
+        errorMessage = "Network error while uploading. Check backend server and API URL/port.";
       } else {
-        errorMessage = error.message || 'Upload failed';
+        errorMessage = error.message || "Upload failed";
       }
-      
+
       setUploadError(errorMessage);
     } finally {
       setIsUploading(false);
@@ -725,6 +893,16 @@ const ThemeDeveloper: React.FC = () => {
                     <span className={`plan-badge plan-${(theme.plan || "").toLowerCase().replace(/\s+/g, "-")} plan-badge-sm`}>
                       {theme.plan}
                     </span>
+                    {formatThemePackageLabel(theme) ? (
+                      <span className="theme-package-badge" title="Theme package on S3">
+                        {formatThemePackageLabel(theme)}
+                      </span>
+                    ) : null}
+                    {theme.hasRemoteTheme ? (
+                      <span className="theme-remote-badge" title="Includes remote theme.js / theme.css">
+                        Remote
+                      </span>
+                    ) : null}
                   </div>
                   <div className="theme-card-footer-enhanced">
                     <span className="theme-card-date-enhanced">{theme.uploadDate}</span>
@@ -785,13 +963,14 @@ const ThemeDeveloper: React.FC = () => {
                 <th>Upload Date</th>
                 <th>Upload By</th>
                 <th>Plan</th>
+                <th>Package</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody style={{ textAlign: "left" }}>
               {loadingThemes ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: "center", padding: "32px" }}>
+                  <td colSpan={8} style={{ textAlign: "center", padding: "32px" }}>
                     <div className="theme-table-loading">
                       <div className="theme-grid-spinner" />
                       <span>Loading themes...</span>
@@ -800,7 +979,7 @@ const ThemeDeveloper: React.FC = () => {
                 </tr>
               ) : filteredThemes.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: "center", padding: "32px", color: "#6b7280" }}>
+                  <td colSpan={8} style={{ textAlign: "center", padding: "32px", color: "#6b7280" }}>
                     {searchTerm ? "No themes match your search." : "No themes found. Upload your first theme!"}
                   </td>
                 </tr>
@@ -829,6 +1008,14 @@ const ThemeDeveloper: React.FC = () => {
                       <span className={`plan-badge plan-${(theme.plan || "").toLowerCase().replace(/\s+/g, "-")}`}>
                         {theme.plan}
                       </span>
+                    </td>
+                    <td className="theme-package-cell">
+                      {formatThemePackageLabel(theme) ?? "—"}
+                      {theme.hasRemoteTheme ? (
+                        <span className="theme-remote-badge" style={{ marginLeft: 6 }}>
+                          Remote
+                        </span>
+                      ) : null}
                     </td>
                     <td>
                       <div className="action-container">
@@ -893,17 +1080,24 @@ const ThemeDeveloper: React.FC = () => {
 
       {/* Upload Sidebar */}
       {isUploadOpen && (
-        <div 
-          className="themeUpload-overlay"
-          onClick={() => setIsUploadOpen(false)}
+        <div
+          className={`themeUpload-overlay${isUploading ? " themeUpload-overlay--busy" : ""}`}
+          onClick={() => {
+            if (!isUploading) setIsUploadOpen(false);
+          }}
         >
-          <div 
-            className="themeUpload-sidebar"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="themeUpload-sidebar" onClick={(e) => e.stopPropagation()}>
             <div className="themeUpload-header">
               <h2>Upload Theme</h2>
-              <button className="themeUpload-close" onClick={() => setIsUploadOpen(false)}>
+              <button
+                type="button"
+                className={`themeUpload-close${isUploading ? " themeUpload-close--disabled" : ""}`}
+                title={isUploading ? "Finish upload before closing" : "Close"}
+                aria-disabled={isUploading}
+                onClick={() => {
+                  if (!isUploading) setIsUploadOpen(false);
+                }}
+              >
                 <X size={20} />
               </button>
             </div>
@@ -923,6 +1117,72 @@ const ThemeDeveloper: React.FC = () => {
                 </div>
               )}
 
+              {isUploading && uploadProgress && (
+                <div className="themeUpload-progress" aria-live="polite" aria-busy="true">
+                  <div className="themeUpload-progress__top">
+                    <div className="themeUpload-progress__titleRow">
+                      {uploadProgress.percent < 100 ? (
+                        <Loader2 className="themeUpload-progress__spinner" size={22} aria-hidden />
+                      ) : (
+                        <Check className="themeUpload-progress__check" size={22} aria-hidden />
+                      )}
+                      <div className="themeUpload-progress__titles">
+                        <div className="themeUpload-progress__headline">{uploadProgress.headline}</div>
+                        <div className="themeUpload-progress__counter">{uploadProgress.fileCounter}</div>
+                      </div>
+                    </div>
+                    <div className="themeUpload-progress__barTrack" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={uploadProgress.percent}>
+                      <div
+                        className="themeUpload-progress__barFill"
+                        style={{ width: `${uploadProgress.percent}%` }}
+                      />
+                    </div>
+                    <div className="themeUpload-progress__meta">
+                      <span className="themeUpload-progress__pct">{uploadProgress.percent}%</span>
+                      {uploadProgress.currentLabel ? (
+                        <span className="themeUpload-progress__current" title={uploadProgress.currentLabel}>
+                          {truncateMiddle(uploadProgress.currentLabel, 48)}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="themeUpload-progress__listHead">
+                    <span>Files & steps</span>
+                    <span>{uploadProgress.rows.length} total</span>
+                  </div>
+                  <ul className="themeUpload-progress__list">
+                    {uploadProgress.rows.map((row) => (
+                      <li key={row.id} className={`themeUpload-progress__row themeUpload-progress__row--${row.status}`}>
+                        <span className="themeUpload-progress__rowIcon" aria-hidden>
+                          {row.status === "done" ? (
+                            <Check size={14} strokeWidth={2.5} />
+                          ) : row.status === "uploading" ? (
+                            <Loader2 size={14} className="themeUpload-progress__rowSpin" />
+                          ) : row.status === "error" ? (
+                            <AlertCircle size={14} />
+                          ) : (
+                            <span className="themeUpload-progress__rowDot" />
+                          )}
+                        </span>
+                        <span className="themeUpload-progress__rowLabel" title={row.label}>
+                          {truncateMiddle(row.label, 56)}
+                        </span>
+                        <span className="themeUpload-progress__rowState">
+                          {row.status === "done"
+                            ? "OK"
+                            : row.status === "uploading"
+                              ? "Uploading…"
+                              : row.status === "error"
+                                ? "Failed"
+                                : "Queued"}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <fieldset className="themeUpload-fieldset" disabled={isUploading}>
               <label>Theme Name *</label>
               <input 
                 type="text" 
@@ -1004,20 +1264,20 @@ const ThemeDeveloper: React.FC = () => {
                 placeholder="tag1, tag2, tag3"
               />
 
-              <label>Liquid / static theme ZIP *</label>
-              <input 
-                type="file" 
-                accept=".zip" 
-                onChange={(e) => handleFileChange(e, 'zip')}
-                required
+              <label>Theme folder (HTML / CSS / JS) *</label>
+              <input
+                type="file"
+                multiple
+                onChange={handleThemeFolderChange}
+                {...({ webkitdirectory: '', directory: '' } as React.InputHTMLAttributes<HTMLInputElement>)}
               />
-              {zipFile && (
+              {themeFolderFiles.length > 0 && (
                 <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
-                  Selected: {zipFile.name}
+                  Selected: {themeFolderFiles.length} file{themeFolderFiles.length === 1 ? '' : 's'} from folder
                 </div>
               )}
               <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px', lineHeight: 1.45 }}>
-                Full theme package (HTML, Liquid templates, assets, etc.), not the remote React build.
+                Choose the folder that contains your static theme (for example <code style={{ fontSize: '11px' }}>index.html</code>, assets, and scripts). The full relative paths inside that folder are preserved.
               </p>
 
               <label>Remote theme: theme.js (optional)</label>
@@ -1062,13 +1322,19 @@ const ThemeDeveloper: React.FC = () => {
                 </div>
               )}
 
+              </fieldset>
+
               <div className="themeUpload-footer">
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   className="themeUpload-submit"
                   disabled={isUploading}
                 >
-                  {isUploading ? 'Uploading...' : 'Upload'}
+                  {isUploading
+                    ? uploadProgress
+                      ? `Uploading… ${uploadProgress.percent}%`
+                      : "Uploading…"
+                    : "Upload"}
                 </button>
               </div>
             </form>

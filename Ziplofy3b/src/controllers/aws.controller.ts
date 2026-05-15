@@ -1,24 +1,11 @@
 import { randomUUID } from 'crypto';
 import path from 'path';
 import { Request, Response } from 'express';
-import { DeleteObjectsCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { DeleteObjectsCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { asyncErrorHandler, CustomError } from '../utils/error.utils';
-import { env } from '../utils/env.utils';
-
-const s3Client = new S3Client({
-  region: env.AWS_REGION,
-  requestChecksumCalculation: 'WHEN_REQUIRED',
-  responseChecksumValidation: 'WHEN_REQUIRED',
-  ...(env.AWS_ACCESS_KEY_ID && env.AWS_SECRET_ACCESS_KEY
-    ? {
-        credentials: {
-          accessKeyId: env.AWS_ACCESS_KEY_ID,
-          secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-        },
-      }
-    : {}),
-});
+import { awsBucket as bucketName, awsRegion, s3Client } from '../utils/s3-client';
+import { stagingThemeFileKey } from '../utils/theme-s3-ingest';
 
 const ALLOWED_IMAGE_MIME_TYPES = new Set([
   'image/jpeg',
@@ -47,8 +34,7 @@ const extractS3KeyFromUrl = (imageUrl: string): string | null => {
 };
 
 export const generateImageUploadSignedUrl = asyncErrorHandler(async (req: Request, res: Response) => {
-  const awsRegion = env.AWS_REGION;
-  const awsBucket = env.AWS_S3_BUCKET_NAME;
+  const awsBucket = bucketName;
 
   const { fileName, fileType, folder = 'uploads/images', expiresInSeconds = 900 } = req.body as {
     fileName?: string;
@@ -98,8 +84,232 @@ export const generateImageUploadSignedUrl = asyncErrorHandler(async (req: Reques
   });
 });
 
+const THEME_ZIP_MIMES = new Set([
+  'application/zip',
+  'application/x-zip-compressed',
+  'application/octet-stream',
+]);
+const THEME_JS_MIMES = new Set(['application/javascript', 'text/javascript']);
+const THEME_CSS_MIMES = new Set(['text/css']);
+
+/** Presigned PUT for admin theme pipeline: browser uploads directly to S3, then POST /themes/from-s3 finalizes. */
+export const generateThemeUploadSignedUrl = asyncErrorHandler(async (req: Request, res: Response) => {
+  const awsBucket = bucketName;
+  const userId = req.user?.id;
+  if (!userId || typeof userId !== 'string') {
+    throw new CustomError('Unauthorized', 401);
+  }
+
+  const body = req.body as {
+    sessionId?: string;
+    fileName?: string;
+    fileType?: string;
+    assetKind?: 'zip' | 'thumbnail' | 'reactJs' | 'reactCss' | 'themeFile';
+    relativePath?: string;
+    expiresInSeconds?: number;
+  };
+
+  const { sessionId, fileName, fileType, assetKind, expiresInSeconds = 900 } = body;
+
+  if (!sessionId || typeof sessionId !== 'string' || !/^[a-zA-Z0-9-]{8,80}$/.test(sessionId)) {
+    throw new CustomError(
+      'sessionId is required (8-80 chars: letters, numbers, hyphens). Generate one UUID per upload batch.',
+      400
+    );
+  }
+  if (!fileName || typeof fileName !== 'string') {
+    throw new CustomError('fileName is required', 400);
+  }
+  if (!fileType || typeof fileType !== 'string') {
+    throw new CustomError('fileType is required', 400);
+  }
+  if (!assetKind || !['zip', 'thumbnail', 'reactJs', 'reactCss', 'themeFile'].includes(assetKind)) {
+    throw new CustomError('assetKind must be zip | thumbnail | reactJs | reactCss | themeFile', 400);
+  }
+
+  const safeExpires = Math.min(Math.max(Number(expiresInSeconds) || 900, 60), 3600);
+
+  const isAllowedThemeStaticMime = (ct: string): boolean => {
+    const t = (ct || '').trim().toLowerCase();
+    if (!t || t === 'application/octet-stream') return true;
+    if (t.startsWith('text/') || t.startsWith('image/') || t.startsWith('font/') || t.startsWith('video/')) {
+      return true;
+    }
+    return ['application/json', 'application/javascript', 'application/wasm'].includes(t);
+  };
+
+  if (assetKind === 'themeFile') {
+    const rp = body.relativePath;
+    if (!rp || typeof rp !== 'string') {
+      throw new CustomError('relativePath is required for themeFile (path within the theme folder)', 400);
+    }
+    if (!fileName || typeof fileName !== 'string') {
+      throw new CustomError('fileName is required', 400);
+    }
+    if (!isAllowedThemeStaticMime(fileType)) {
+      throw new CustomError('Unsupported fileType for themeFile upload.', 400);
+    }
+    const ct = fileType.trim() || 'application/octet-stream';
+    const key = stagingThemeFileKey(userId, sessionId, rp);
+    const command = new PutObjectCommand({
+      Bucket: awsBucket,
+      Key: key,
+      ContentType: ct,
+    });
+    const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: safeExpires });
+    const objectUrl = `https://${awsBucket}.s3.${awsRegion}.amazonaws.com/${key}`;
+    return res.status(200).json({
+      success: true,
+      message: 'Signed URL generated',
+      data: {
+        signedUrl,
+        key,
+        bucket: awsBucket,
+        region: awsRegion,
+        method: 'PUT' as const,
+        contentType: ct,
+        expiresInSeconds: safeExpires,
+        objectUrl,
+      },
+    });
+  }
+
+  let contentType = fileType;
+  const ext = path.extname(fileName).toLowerCase();
+
+  if (assetKind === 'zip') {
+    if (ext !== '.zip') {
+      throw new CustomError('ZIP upload must use a .zip file name.', 400);
+    }
+    if (!THEME_ZIP_MIMES.has(fileType)) {
+      throw new CustomError('Unsupported ZIP MIME type.', 400);
+    }
+    if (fileType === 'application/octet-stream') {
+      contentType = 'application/zip';
+    }
+    const base = sanitizeFilename(path.basename(fileName, ext)) || 'liquid-theme';
+    const key = `themes/staging/${userId}/${sessionId}/${base}${ext}`;
+    const command = new PutObjectCommand({
+      Bucket: awsBucket,
+      Key: key,
+      ContentType: contentType,
+    });
+    const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: safeExpires });
+    const objectUrl = `https://${awsBucket}.s3.${awsRegion}.amazonaws.com/${key}`;
+    return res.status(200).json({
+      success: true,
+      message: 'Signed URL generated',
+      data: {
+        signedUrl,
+        key,
+        bucket: awsBucket,
+        region: awsRegion,
+        method: 'PUT' as const,
+        contentType,
+        expiresInSeconds: safeExpires,
+        objectUrl,
+      },
+    });
+  }
+
+  if (assetKind === 'thumbnail') {
+    if (!ALLOWED_IMAGE_MIME_TYPES.has(fileType)) {
+      throw new CustomError('Thumbnail must be a supported image MIME type.', 400);
+    }
+    const extension = ext || (fileType.includes('png') ? '.png' : fileType.includes('webp') ? '.webp' : '.jpg');
+    const base = sanitizeFilename(path.basename(fileName, ext)) || 'thumbnail';
+    const key = `themes/staging/${userId}/${sessionId}/thumb-${randomUUID()}-${base}${extension}`;
+    const command = new PutObjectCommand({
+      Bucket: awsBucket,
+      Key: key,
+      ContentType: fileType,
+    });
+    const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: safeExpires });
+    const objectUrl = `https://${awsBucket}.s3.${awsRegion}.amazonaws.com/${key}`;
+    return res.status(200).json({
+      success: true,
+      message: 'Signed URL generated',
+      data: {
+        signedUrl,
+        key,
+        bucket: awsBucket,
+        region: awsRegion,
+        method: 'PUT' as const,
+        contentType: fileType,
+        expiresInSeconds: safeExpires,
+        objectUrl,
+      },
+    });
+  }
+
+  if (assetKind === 'reactJs') {
+    if (ext !== '.js') {
+      throw new CustomError('Remote theme JS must be a .js file.', 400);
+    }
+    let ct = (fileType && fileType.trim()) || 'application/javascript';
+    if (ct === 'application/octet-stream') ct = 'application/javascript';
+    if (!THEME_JS_MIMES.has(ct)) {
+      throw new CustomError('Unsupported JavaScript MIME type for reactJs.', 400);
+    }
+    const key = `themes/staging/${userId}/${sessionId}/remote-theme-${randomUUID()}.js`;
+    const command = new PutObjectCommand({
+      Bucket: awsBucket,
+      Key: key,
+      ContentType: ct,
+    });
+    const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: safeExpires });
+    const objectUrl = `https://${awsBucket}.s3.${awsRegion}.amazonaws.com/${key}`;
+    return res.status(200).json({
+      success: true,
+      message: 'Signed URL generated',
+      data: {
+        signedUrl,
+        key,
+        bucket: awsBucket,
+        region: awsRegion,
+        method: 'PUT' as const,
+        contentType: ct,
+        expiresInSeconds: safeExpires,
+        objectUrl,
+      },
+    });
+  }
+
+  // reactCss
+  if (ext !== '.css') {
+    throw new CustomError('Remote theme CSS must be a .css file.', 400);
+  }
+  let ctCss = (fileType && fileType.trim()) || 'text/css';
+  if (ctCss === 'application/octet-stream') ctCss = 'text/css';
+  if (!THEME_CSS_MIMES.has(ctCss)) {
+    throw new CustomError('Unsupported CSS MIME type.', 400);
+  }
+  const key = `themes/staging/${userId}/${sessionId}/remote-theme-${randomUUID()}.css`;
+  const command = new PutObjectCommand({
+    Bucket: awsBucket,
+    Key: key,
+    ContentType: ctCss,
+  });
+  const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: safeExpires });
+  const objectUrl = `https://${awsBucket}.s3.${awsRegion}.amazonaws.com/${key}`;
+  return res.status(200).json({
+    success: true,
+    message: 'Signed URL generated',
+    data: {
+      signedUrl,
+      key,
+      bucket: awsBucket,
+      region: awsRegion,
+      method: 'PUT' as const,
+      contentType: ctCss,
+      expiresInSeconds: safeExpires,
+      objectUrl,
+    },
+  });
+});
+
 export const deleteImagesFromS3 = asyncErrorHandler(async (req: Request, res: Response) => {
-  const awsBucket = env.AWS_S3_BUCKET_NAME;
+  const awsBucket = bucketName;
   const { imageUrls, imageKeys } = req.body as { imageUrls?: string[]; imageKeys?: string[] };
 
   const normalizedImageKeys = Array.isArray(imageKeys)

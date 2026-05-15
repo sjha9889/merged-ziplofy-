@@ -1,63 +1,11 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.themeRouter = void 0;
 const express_1 = require("express");
-const fs_1 = __importDefault(require("fs"));
-const multer_1 = __importDefault(require("multer"));
-const path_1 = __importDefault(require("path"));
 const theme_controller_1 = require("../controllers/theme.controller");
 const auth_middleware_1 = require("../middlewares/auth.middleware");
 const types_1 = require("../types");
 exports.themeRouter = (0, express_1.Router)();
-// Configure multer for file uploads
-const storage = multer_1.default.diskStorage({
-    destination: function (req, file, cb) {
-        const tempDir = path_1.default.join(process.cwd(), 'uploads', 'temp');
-        if (!fs_1.default.existsSync(tempDir))
-            fs_1.default.mkdirSync(tempDir, { recursive: true });
-        cb(null, tempDir);
-    },
-    filename: function (req, file, cb) {
-        // keep original name for zip; multer temp name will be overridden when moving
-        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-        cb(null, uniqueSuffix + path_1.default.extname(file.originalname));
-    },
-});
-const fileFilter = (req, file, cb) => {
-    // Keep uploads permissive for now.
-    cb(null, true);
-};
-const upload = (0, multer_1.default)({
-    storage: storage,
-    fileFilter: fileFilter,
-    limits: {
-        fileSize: 50 * 1024 * 1024, // 50MB limit
-    },
-});
-const handleMulterError = (err, req, res, next) => {
-    if (err instanceof multer_1.default.MulterError) {
-        if (err.code === "LIMIT_FILE_SIZE") {
-            return res.status(413).json({
-                success: false,
-                error: "ZIP/thumbnail/theme.js/theme.css too large. Maximum allowed size is 50MB.",
-            });
-        }
-        return res.status(400).json({
-            success: false,
-            error: `Upload error: ${err.message}`,
-        });
-    }
-    if (err) {
-        return res.status(400).json({
-            success: false,
-            error: err.message || "File upload error",
-        });
-    }
-    return next();
-};
 // Public routes
 exports.themeRouter.route("/installed").get(theme_controller_1.getInstalledThemes);
 exports.themeRouter.route("/").get(theme_controller_1.getThemes);
@@ -74,6 +22,8 @@ exports.themeRouter.route("/files/:themeId").get(auth_middleware_1.optionalAuth,
 exports.themeRouter.route("/file/:themeId").get(auth_middleware_1.optionalAuth, theme_controller_1.readThemeFile);
 // Protected routes
 exports.themeRouter.use(auth_middleware_1.protect);
+// S3-direct theme upload (must be before /:id)
+exports.themeRouter.post("/from-s3", (0, auth_middleware_1.authorizePermission)("Theme Management", "upload"), theme_controller_1.createThemeFromS3);
 exports.themeRouter.post("/apply", theme_controller_1.applyThemeToStore);
 exports.themeRouter.route("/uninstall").delete(theme_controller_1.uninstallTheme);
 exports.themeRouter.route("/:id").get(theme_controller_1.getTheme);
@@ -82,24 +32,9 @@ exports.themeRouter.route("/stats").get((0, auth_middleware_1.authorize)(types_1
 exports.themeRouter.route("/:id/download").get(theme_controller_1.downloadTheme);
 // Save user-specific edits (any authenticated user; no super-admin requirement)
 exports.themeRouter.route("/:themeId/save-edit").post(theme_controller_1.saveUserFileEdit);
-// Theme creation - allow users with "upload" permission in "Theme Management" section
-// OR users with "upload" permission in "Developer" → "Theme Developer" subsection
-// The middleware automatically checks both: section-level "Theme Management" and subsection "Developer" → "Theme Developer"
-// Super-admin and developer-admin have access by default, but support-admin can be granted permission
-exports.themeRouter.route("/").post((0, auth_middleware_1.authorizePermission)("Theme Management", "upload"), // Middleware will also check "Developer" → "Theme Developer" as alternative
-upload.fields([
-    { name: "zipFile", maxCount: 1 },
-    { name: "reactThemeJs", maxCount: 1 },
-    { name: "reactThemeCss", maxCount: 1 },
-    { name: "thumbnail", maxCount: 1 },
-]), handleMulterError, theme_controller_1.createTheme);
+// Legacy multipart catalog upload removed — returns 410 Gone
+exports.themeRouter.route("/").post((0, auth_middleware_1.authorizePermission)("Theme Management", "upload"), theme_controller_1.createTheme);
 exports.themeRouter
     .route("/:id")
-    .put((0, auth_middleware_1.authorizePermission)("Theme Management", "edit"), // Also checks "Developer" → "Theme Developer" as alternative
-upload.fields([
-    { name: "zipFile", maxCount: 1 },
-    { name: "reactThemeJs", maxCount: 1 },
-    { name: "reactThemeCss", maxCount: 1 },
-    { name: "thumbnail", maxCount: 1 },
-]), handleMulterError, theme_controller_1.updateTheme)
-    .delete((0, auth_middleware_1.authorizePermission)("Theme Management", "edit"), theme_controller_1.deleteTheme); // Also checks "Developer" → "Theme Developer" as alternative
+    .put((0, auth_middleware_1.authorizePermission)("Theme Management", "edit"), theme_controller_1.updateTheme)
+    .delete((0, auth_middleware_1.authorizePermission)("Theme Management", "edit"), theme_controller_1.deleteTheme);

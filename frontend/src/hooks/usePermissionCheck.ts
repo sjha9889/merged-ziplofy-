@@ -1,3 +1,4 @@
+import React from 'react';
 import { useAdminAuth } from '../contexts/admin-auth.context';
 
 export interface PermissionCheckResult {
@@ -100,8 +101,10 @@ export const PermissionGate = ({
   fallback?: React.ReactNode;
 }) => {
   const canPerform = useCanPerformAction(action, section, subsection);
-  
-  return canPerform ? <>{children}</> : <>{fallback}</>;
+
+  return canPerform
+    ? React.createElement(React.Fragment, null, children)
+    : React.createElement(React.Fragment, null, fallback);
 };
 
 /**
