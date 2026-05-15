@@ -14,6 +14,7 @@ import { FreeShippingProvider } from '@/contexts/storefront-free-shipping.contex
 import { StorefrontOrderProvider } from '@/contexts/storefront-order.context';
 import { PaymentProvider } from '@/contexts/payment.context';
 import { ProductOffersProvider } from '@/contexts/product-offers.context';
+import { PreviewCollectionsLoader } from './PreviewCollectionsLoader';
 import { PreviewStorefrontProvider } from './PreviewStorefrontProvider';
 
 type PreviewProvidersProps = {
@@ -51,6 +52,7 @@ export function PreviewProviders({
                 <CustomerAddressProvider>
                   <StorefrontCountryProvider>
                     <StorefrontCollectionsProvider>
+                      <PreviewCollectionsLoader storeId={storeId} />
                       <StorefrontSearchProvider>
                         <AmountOffOrderProvider>
                           <AmountOffProductProvider>

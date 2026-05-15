@@ -2,7 +2,6 @@ import { useMemo, type ReactNode } from 'react';
 import StorefrontContext, { type StorefrontContextType } from '@/contexts/store.context';
 import { ThemeConfigProvider } from '@/contexts/theme-config.context';
 import { StorefrontProductProvider } from '@/contexts/product.context';
-import { PreviewCollectionsLoader } from './PreviewCollectionsLoader';
 import { PreviewProductsLoader } from './PreviewProductsLoader';
 
 type PreviewStorefrontProviderProps = {
@@ -55,7 +54,6 @@ export function PreviewStorefrontProvider({
       <ThemeConfigProvider config={themeConfig}>
         <StorefrontProductProvider>
           <PreviewProductsLoader storeId={storeId} />
-          <PreviewCollectionsLoader storeId={storeId} />
           {children}
         </StorefrontProductProvider>
       </ThemeConfigProvider>
