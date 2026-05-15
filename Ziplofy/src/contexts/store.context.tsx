@@ -16,6 +16,7 @@ export interface Store {
   userId: string;
   storeName: string;
   storeDescription: string;
+  appliedTheme?: string | null;
   defaultLocation: string | null;
   createdAt: string;
   updatedAt: string;

@@ -17,7 +17,7 @@ import {
   Squares2X2Icon,
   SwatchIcon,
 } from "@heroicons/react/24/outline";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useThemes } from "../../contexts/themes.context";
 import { useInstalledThemes } from "../../contexts/installed-themes.context";
@@ -84,7 +84,12 @@ const AllThemes: React.FC = () => {
     uninstallTheme,
     fetchByStoreId,
   } = useInstalledThemes();
-  const { activeStoreId } = useStore();
+  const { activeStoreId, stores, setStores } = useStore();
+  const appliedThemeId = useMemo(() => {
+    const store = stores.find((s) => s._id === activeStoreId);
+    if (!store?.appliedTheme) return null;
+    return String(store.appliedTheme);
+  }, [stores, activeStoreId]);
   const { customThemes, loading: customThemesLoading, fetchAll: fetchCustomThemes, deleteTheme: deleteCustomTheme, installTheme: installCustomTheme, uninstallTheme: uninstallCustomTheme, updateTheme } = useCustomThemes();
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [thumbnailUpdateModal, setThumbnailUpdateModal] = useState<{
@@ -567,7 +572,10 @@ const AllThemes: React.FC = () => {
               const t = it; // The theme data is directly in it, not nested under themeId
               const isCustomTheme = Boolean(t.isCustomTheme || t._id?.startsWith('custom-'));
               const actualThemeId = isCustomTheme && t.customThemeId ? t.customThemeId : t._id;
-              
+              const themeIdForApply = isCustomTheme ? actualThemeId : t._id;
+              const isApplied =
+                appliedThemeId != null && String(appliedThemeId) === String(themeIdForApply);
+
               return (
               <div key={it._id} className="theme-card">
                 <div className="theme-thumbnail">
@@ -626,22 +634,48 @@ const AllThemes: React.FC = () => {
                     >
                       Open
                     </button>
-                    <button
-                      className="action-btn secondary"
-                      disabled={String(applyingThemeId) === String(isCustomTheme ? actualThemeId : t._id)}
-                      onClick={async () => {
-                        if (!activeStoreId) {
-                          alert('Please select a store first.');
-                          return;
-                        }
-                        const themeIdToApply = isCustomTheme ? actualThemeId : t._id;
-                        await applyTheme(activeStoreId, themeIdToApply, t.name);
-                      }}
-                    >
-                      {String(applyingThemeId) === String(isCustomTheme ? actualThemeId : t._id)
-                        ? 'Applying…'
-                        : 'Apply theme'}
-                    </button>
+                    {isApplied ? (
+                      <button
+                        type="button"
+                        className="action-btn secondary"
+                        disabled
+                        style={{
+                          backgroundColor: '#16a34a',
+                          color: '#ffffff',
+                          border: '1px solid #16a34a',
+                          cursor: 'not-allowed',
+                          opacity: 0.9,
+                        }}
+                      >
+                        Applied
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="action-btn secondary"
+                        disabled={String(applyingThemeId) === String(themeIdForApply)}
+                        onClick={async () => {
+                          if (!activeStoreId) {
+                            alert('Please select a store first.');
+                            return;
+                          }
+                          const ok = await applyTheme(activeStoreId, themeIdForApply, t.name);
+                          if (ok) {
+                            setStores((prev) =>
+                              prev.map((s) =>
+                                s._id === activeStoreId
+                                  ? { ...s, appliedTheme: themeIdForApply }
+                                  : s
+                              )
+                            );
+                          }
+                        }}
+                      >
+                        {String(applyingThemeId) === String(themeIdForApply)
+                          ? 'Applying…'
+                          : 'Apply theme'}
+                      </button>
+                    )}
                     {isCustomTheme ? (
                       <button 
                         className="action-btn secondary" 

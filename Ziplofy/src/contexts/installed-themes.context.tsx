@@ -52,7 +52,7 @@ interface InstalledThemesContextType {
   error: string | null;
   fetchByStoreId: (storeId: string) => Promise<void>;
   installTheme: (storeId: string, themeId: string) => Promise<void>;
-  applyTheme: (storeId: string, themeId: string, themeName?: string) => Promise<void>;
+  applyTheme: (storeId: string, themeId: string, themeName?: string) => Promise<boolean>;
   uninstallTheme: (installedThemeId: string) => Promise<void>;
 }
 
@@ -130,8 +130,8 @@ export const InstalledThemesProvider: React.FC<{ children: React.ReactNode }> = 
     }
   }, []);
 
-  const applyTheme = useCallback(async (storeId: string, themeId: string, themeName?: string) => {
-    if (applyInFlightRef.current) return;
+  const applyTheme = useCallback(async (storeId: string, themeId: string, themeName?: string): Promise<boolean> => {
+    if (applyInFlightRef.current) return false;
 
     const resolvedName =
       themeName?.trim() ||
@@ -148,15 +148,17 @@ export const InstalledThemesProvider: React.FC<{ children: React.ReactNode }> = 
       if (data?.success !== false) {
         await loadInstalledThemes(storeId);
         toast.success(`${resolvedName} has been applied to your store`, { id: toastId });
-      } else {
-        const message = data?.message || 'Failed to apply theme';
-        setError(message);
-        toast.error(message, { id: toastId });
+        return true;
       }
+      const message = data?.message || 'Failed to apply theme';
+      setError(message);
+      toast.error(message, { id: toastId });
+      return false;
     } catch (err: any) {
       const message = err?.response?.data?.message || 'Failed to apply theme';
       setError(message);
       toast.error(message, { id: toastId });
+      return false;
     } finally {
       applyInFlightRef.current = false;
       setApplyingThemeId(null);
