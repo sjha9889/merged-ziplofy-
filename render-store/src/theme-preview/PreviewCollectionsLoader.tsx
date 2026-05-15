@@ -6,7 +6,7 @@ export function PreviewCollectionsLoader({ storeId }: { storeId: string }) {
 
   useEffect(() => {
     if (!storeId) return;
-    void fetchCollectionsByStoreId({ storeId });
+    void fetchCollectionsByStoreId(storeId);
   }, [storeId, fetchCollectionsByStoreId]);
 
   return null;

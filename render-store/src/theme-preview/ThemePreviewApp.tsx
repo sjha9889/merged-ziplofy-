@@ -25,15 +25,15 @@ export function ThemePreviewApp() {
     document.body.style.margin = '0';
     document.body.style.background = 'transparent';
 
-    let readyInterval: ReturnType<typeof setInterval> | null = null;
+    let readyInterval: number | undefined;
 
     const onMessage = (event: MessageEvent) => {
       if (!isParentPreviewMessage(event.data)) return;
       const msg = event.data;
       if (msg.type === 'ZIPLOFY_PREVIEW_INIT') {
-        if (readyInterval) {
+        if (readyInterval !== undefined) {
           window.clearInterval(readyInterval);
-          readyInterval = null;
+          readyInterval = undefined;
         }
         setInit(msg.payload);
         applyConfig(msg.payload.config);
@@ -56,7 +56,7 @@ export function ThemePreviewApp() {
     readyInterval = window.setInterval(signalReady, 400);
 
     return () => {
-      if (readyInterval) window.clearInterval(readyInterval);
+      if (readyInterval !== undefined) window.clearInterval(readyInterval);
       window.removeEventListener('message', onMessage);
       document.documentElement.classList.remove('ziplofy-theme-preview-root');
     };
