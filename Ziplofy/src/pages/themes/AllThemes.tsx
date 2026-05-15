@@ -78,6 +78,7 @@ const AllThemes: React.FC = () => {
   const {
     installedThemes,
     installingThemeId,
+    applyingThemeId,
     installTheme,
     applyTheme,
     uninstallTheme,
@@ -627,16 +628,19 @@ const AllThemes: React.FC = () => {
                     </button>
                     <button
                       className="action-btn secondary"
+                      disabled={String(applyingThemeId) === String(isCustomTheme ? actualThemeId : t._id)}
                       onClick={async () => {
                         if (!activeStoreId) {
                           alert('Please select a store first.');
                           return;
                         }
                         const themeIdToApply = isCustomTheme ? actualThemeId : t._id;
-                        await applyTheme(activeStoreId, themeIdToApply);
+                        await applyTheme(activeStoreId, themeIdToApply, t.name);
                       }}
                     >
-                      Apply theme
+                      {String(applyingThemeId) === String(isCustomTheme ? actualThemeId : t._id)
+                        ? 'Applying…'
+                        : 'Apply theme'}
                     </button>
                     {isCustomTheme ? (
                       <button 

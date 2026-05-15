@@ -8,11 +8,11 @@ import { Theme } from '../models/theme.model';
 import { CustomTheme } from '../models/custom-theme.model';
 import { Store } from '../models/store/store.model';
 import {
-  listLiquidTemplateNames,
-  resolveAppliedStorefrontTheme,
-  themeHasLiquidTemplates,
+  listCatalogThemeFilesFromS3,
+  listLiquidTemplateNamesFromS3,
+  resolveAppliedStoreTheme,
 } from '../utils/storefront-liquid.util';
-import { ensureCatalogRemoteDistDir } from '../utils/theme-zip-from-s3.util';
+import { publicObjectUrlForKey } from '../utils/theme-s3-ingest';
 import { storeAndUserScopeOr } from '../utils/installed-themes-query.util';
 // import { Product } from '../models/product.model';
 // import { Store } from '../models/store.model';
@@ -258,7 +258,7 @@ export const getStorefrontThemeRuntime = asyncErrorHandler(async (req: Request, 
     throw new CustomError("Store ID is required", 400);
   }
 
-  const resolved = await resolveAppliedStorefrontTheme(req, storeId);
+  const resolved = await resolveAppliedStoreTheme(storeId);
   if (!resolved) {
     return res.status(200).json({
       success: true,
@@ -267,62 +267,27 @@ export const getStorefrontThemeRuntime = asyncErrorHandler(async (req: Request, 
     });
   }
 
-  const {
-    appliedThemeId: resolvedThemeId,
-    runtimeThemeKey,
-    isCustomTheme,
-    runtimeBaseDir,
-    runtimeBaseUrl,
-  } = resolved;
-
   const installedTheme = await InstalledThemes.findOne({
     store: new Types.ObjectId(storeId),
-    theme: new Types.ObjectId(resolvedThemeId),
+    theme: new Types.ObjectId(resolved.appliedThemeId),
     uninstalledAt: null,
   }).lean();
 
-  const theme = await Theme.findById(resolvedThemeId).lean();
-  const customTheme = !theme ? await CustomTheme.findById(resolvedThemeId).lean() : null;
+  const theme = await Theme.findById(resolved.appliedThemeId).lean();
+  const customTheme = !theme ? await CustomTheme.findById(resolved.appliedThemeId).lean() : null;
 
-  let remoteDistDir: string;
-  if (isCustomTheme) {
-    const storeThemeDir = path.join(
-      process.cwd(),
-      "uploads",
-      "stores",
-      storeId,
-      "themes",
-      String(runtimeThemeKey)
-    );
-    remoteDistDir = path.join(storeThemeDir, "remoteThemeDist");
-  } else if (theme) {
-    remoteDistDir = await ensureCatalogRemoteDistDir(theme);
-  } else {
-    remoteDistDir = "";
+  const remoteThemeJsUrl = resolved.remoteThemeJsUrl;
+  const remoteThemeCssUrl = resolved.remoteThemeCssUrl;
+
+  let catalogFiles: Array<{ relativePath: string; url: string }> = [];
+  let liquidTemplates: string[] = [];
+  if (!resolved.isCustomTheme && resolved.s3Assets) {
+    catalogFiles = await listCatalogThemeFilesFromS3(resolved.s3Assets);
+    liquidTemplates = await listLiquidTemplateNamesFromS3(resolved.s3Assets);
   }
-  const remoteJsDisk = path.join(remoteDistDir, "theme.js");
-  const remoteCssDisk = path.join(remoteDistDir, "theme.css");
-  const remoteDistPublicBase = `/api/themes/installed/${encodeURIComponent(storeId)}/${encodeURIComponent(
-    String(runtimeThemeKey)
-  )}/remoteThemeDist`;
-  const remoteThemeJsUrl = fs.existsSync(remoteJsDisk) ? `${remoteDistPublicBase}/theme.js` : null;
-  const remoteThemeCssUrl = fs.existsSync(remoteCssDisk) ? `${remoteDistPublicBase}/theme.css` : null;
 
-  const listFilesRecursive = (dirPath: string, prefix = ""): string[] => {
-    if (!fs.existsSync(dirPath)) return [];
-    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
-    const files: string[] = [];
-    entries.forEach((entry) => {
-      const nextPrefix = prefix ? `${prefix}/${entry.name}` : entry.name;
-      const absPath = path.join(dirPath, entry.name);
-      if (entry.isDirectory()) {
-        files.push(...listFilesRecursive(absPath, nextPrefix));
-      } else {
-        files.push(nextPrefix);
-      }
-    });
-    return files;
-  };
+  const byPath = new Map(catalogFiles.map((f) => [f.relativePath, f.url]));
+  const urlFor = (rel: string) => byPath.get(rel) ?? null;
 
   const cssCandidates = [
     "assets/css/style.css",
@@ -350,19 +315,29 @@ export const getStorefrontThemeRuntime = asyncErrorHandler(async (req: Request, 
     "assets/js/wishlist.js",
   ];
 
-  const hasAsset = (relativePath: string) => fs.existsSync(path.join(runtimeBaseDir, relativePath));
-  const cssAssets = cssCandidates.filter(hasAsset);
-  const jsAssets = jsCandidates.filter(hasAsset);
-  const allThemeFiles = listFilesRecursive(runtimeBaseDir);
-  const htmlAssets = allThemeFiles.filter((file) => file.toLowerCase().endsWith(".html"));
+  const cssUrls = cssCandidates.map(urlFor).filter((u): u is string => Boolean(u));
+  const jsUrls = jsCandidates.map(urlFor).filter((u): u is string => Boolean(u));
+  const htmlAssets = catalogFiles
+    .filter((f) => f.relativePath.toLowerCase().endsWith(".html"))
+    .map((f) => f.relativePath);
+  const htmlUrls = catalogFiles
+    .filter((f) => f.relativePath.toLowerCase().endsWith(".html"))
+    .map((f) => f.url);
+
+  const contentRootPrefix = resolved.s3Assets?.contentRoot?.prefix;
+  const runtimeBaseUrl = contentRootPrefix
+    ? publicObjectUrlForKey(
+        contentRootPrefix.endsWith("/") ? contentRootPrefix : `${contentRootPrefix}/`
+      ).replace(/\/$/, "")
+    : null;
 
   return res.status(200).json({
     success: true,
     data: {
       storeId,
-      themeId: String(resolvedThemeId),
+      themeId: resolved.appliedThemeId,
       themeName: resolved.themeName,
-      theme: isCustomTheme ? customTheme : theme,
+      theme: resolved.isCustomTheme ? customTheme : theme,
       installedTheme: installedTheme
         ? {
             _id: String((installedTheme as { _id: unknown })._id),
@@ -374,21 +349,18 @@ export const getStorefrontThemeRuntime = asyncErrorHandler(async (req: Request, 
         : null,
       runtimeBaseUrl,
       entryHtml: htmlAssets.includes("index.html") ? "index.html" : htmlAssets[0] || null,
-      allThemeFiles,
-      cssAssets,
-      jsAssets,
-      htmlUrls: htmlAssets.map((asset) => `${runtimeBaseUrl}/${asset}`),
-      cssUrls: cssAssets.map((asset) => `${runtimeBaseUrl}/${asset}`),
-      jsUrls: jsAssets.map((asset) => `${runtimeBaseUrl}/${asset}`),
-      fileUrls: allThemeFiles.map((asset) => `${runtimeBaseUrl}/${asset}`),
+      allThemeFiles: catalogFiles.map((f) => f.relativePath),
+      cssAssets: cssCandidates.filter((c) => byPath.has(c)),
+      jsAssets: jsCandidates.filter((j) => byPath.has(j)),
+      htmlUrls,
+      cssUrls,
+      jsUrls,
+      fileUrls: catalogFiles.map((f) => f.url),
       liquid: {
-        enabled: themeHasLiquidTemplates(runtimeBaseDir),
-        /** Relative to API origin; client should prefix VITE_API_URL /api host. */
+        enabled: liquidTemplates.includes("index"),
         renderPagePath: `/storefront/${storeId}/render/page`,
-        /** Template basenames that exist under `templates/*.liquid` (client uses this to avoid 404s). */
-        templates: listLiquidTemplateNames(runtimeBaseDir),
+        templates: liquidTemplates,
       },
-      /** Paths under `/api/...` — client resolves with `VITE_API_URL` or same-origin proxy. */
       remoteThemeJsUrl,
       remoteThemeCssUrl,
     },

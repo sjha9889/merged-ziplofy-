@@ -27,7 +27,8 @@ import {
 } from "../utils/theme-s3-ingest";
 import { downloadS3PrefixToLocalDir, downloadS3ZipAndExtractToDir } from "../utils/theme-zip-from-s3.util";
 import { listInstalledThemesForStore, resolveInstalledThemesStoreId } from "../utils/installed-themes-list.util";
-import { ensureCatalogRemoteDistDir, ensureCatalogThemeCodeDir } from "../utils/theme-zip-from-s3.util";
+import { catalogPublicUrlForRelativePath } from "../utils/storefront-liquid.util";
+import { ensureCatalogThemeCodeDir } from "../utils/theme-zip-from-s3.util";
 import { tmpdir } from "os";
 import archiver from "archiver";
 
@@ -837,36 +838,27 @@ export const serveInstalledThemeFiles = asyncErrorHandler(async (req: Request, r
   const theme = await Theme.findById(catalogThemeId).lean();
   if (!theme) throw new CustomError("Theme not found", 404);
 
-  if (rel.startsWith("remoteThemeDist/")) {
-    const remoteRel = rel.slice("remoteThemeDist/".length);
-    if (!remoteRel || remoteRel.includes("..")) throw new CustomError("Access denied", 403);
-    const distDir = await ensureCatalogRemoteDistDir(theme);
-    const diskPath = path.join(distDir, remoteRel);
-    assertPathWithinRoot(diskPath, distDir);
-    if (!fs.existsSync(diskPath) || fs.statSync(diskPath).isDirectory()) {
-      throw new CustomError("File not found", 404);
-    }
-    return sendThemeStaticFile(res, diskPath);
-  }
-
-  const codeDir = path.resolve(await ensureCatalogThemeCodeDir(theme));
   const customizationPath = path.resolve(
     path.join(process.cwd(), "uploads", "stores", storeId, "themes", catalogThemeId, "customizations", rel)
   );
   const customizationRoot = path.resolve(
     path.join(process.cwd(), "uploads", "stores", storeId, "themes", catalogThemeId, "customizations")
   );
-  let diskPath = path.resolve(path.join(codeDir, rel));
   if (
     customizationPath.startsWith(customizationRoot) &&
     fs.existsSync(customizationPath) &&
     fs.statSync(customizationPath).isFile()
   ) {
-    diskPath = customizationPath;
-  } else if (!diskPath.startsWith(codeDir) || !fs.existsSync(diskPath) || fs.statSync(diskPath).isDirectory()) {
-    throw new CustomError("File not found", 404);
+    return sendThemeStaticFile(res, customizationPath);
   }
-  return sendThemeStaticFile(res, diskPath);
+
+  const s3Assets = theme.s3Assets as Parameters<typeof catalogPublicUrlForRelativePath>[0];
+  const publicUrl = catalogPublicUrlForRelativePath(
+    s3Assets,
+    rel.startsWith("remoteThemeDist/") ? rel.replace(/^remoteThemeDist\//, "") : rel
+  );
+  if (!publicUrl) throw new CustomError("File not found", 404);
+  return res.redirect(302, publicUrl);
 });
 
 export const getInstalledThemes = asyncErrorHandler(async (req: Request, res: Response) => {

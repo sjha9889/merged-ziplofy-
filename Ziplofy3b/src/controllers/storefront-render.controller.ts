@@ -9,7 +9,8 @@ import { Collections } from "../models/collections/collections.model";
 import { CollectionEntry } from "../models/collection-entry/collection-entry.model";
 import {
   isSafeLiquidTemplateName,
-  resolveAppliedStorefrontTheme,
+  resolveAppliedStoreTheme,
+  resolveStorefrontLiquidRenderRoot,
   themeHasLiquidTemplates,
 } from "../utils/storefront-liquid.util";
 import { createStorefrontLiquid, renderLiquidThemePage } from "../services/theme-liquid/theme-liquid.renderer";
@@ -65,12 +66,13 @@ export const renderStorefrontLiquidPage = asyncErrorHandler(async (req: Request,
 
   if (!storeId) throw new CustomError("Store ID is required", 400);
 
-  const resolved = await resolveAppliedStorefrontTheme(req, storeId);
+  const resolved = await resolveAppliedStoreTheme(storeId);
   if (!resolved) {
     throw new CustomError("No applied theme for this store", 404);
   }
 
-  if (!themeHasLiquidTemplates(resolved.runtimeBaseDir)) {
+  const liquidRoots = await resolveStorefrontLiquidRenderRoot(storeId, resolved);
+  if (!liquidRoots || !themeHasLiquidTemplates(liquidRoots.runtimeBaseDir)) {
     throw new CustomError("Theme does not support Liquid templates (missing templates/index.liquid)", 404);
   }
 
@@ -78,7 +80,7 @@ export const renderStorefrontLiquidPage = asyncErrorHandler(async (req: Request,
   if (!isSafeLiquidTemplateName(tpl)) {
     throw new CustomError("Invalid template name", 400);
   }
-  const templateFile = path.join(resolved.runtimeBaseDir, "templates", `${tpl}.liquid`);
+  const templateFile = path.join(liquidRoots.runtimeBaseDir, "templates", `${tpl}.liquid`);
   if (!fs.existsSync(templateFile)) {
     throw new CustomError(`Liquid template not found: templates/${tpl}.liquid`, 404);
   }
@@ -94,7 +96,7 @@ export const renderStorefrontLiquidPage = asyncErrorHandler(async (req: Request,
 
   const publicOrigin = publicOriginFromRequest(req);
 
-  const liquid = createStorefrontLiquid(resolved.runtimeBaseDir, resolved.runtimeBaseUrl);
+  const liquid = createStorefrontLiquid(liquidRoots.runtimeBaseDir, liquidRoots.runtimeBaseUrl);
 
   const menu = {
     primary: [
@@ -288,7 +290,7 @@ export const renderStorefrontLiquidPage = asyncErrorHandler(async (req: Request,
     section: { settings: {} },
   };
 
-  const html = await renderLiquidThemePage(liquid, resolved.runtimeBaseDir, tpl, context);
+  const html = await renderLiquidThemePage(liquid, liquidRoots.runtimeBaseDir, tpl, context);
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "no-cache");
