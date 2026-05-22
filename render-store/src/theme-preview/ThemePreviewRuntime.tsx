@@ -5,26 +5,39 @@ import { loadRemoteTheme } from '@/themes/loadRemoteTheme';
 import { rewriteRemoteThemeImports } from '@/themes/rewriteRemoteThemeImports';
 import { getStorefrontAssetOrigin } from '@/config/storefrontAssetOrigin';
 import { postToParent } from './previewBridge';
-import type { ThemePreviewPage } from './previewBridge';
+import { previewPageToRoute, type ThemePreviewPage } from './previewBridge';
 
 type ThemePreviewRuntimeProps = {
   jsUrl: string;
   cssUrl?: string | null;
   page: ThemePreviewPage;
-  /** Bumped when live editor config changes to force theme pages to re-read window config. */
-  configRevision: number;
+  /** Bumped only when preview page changes — config updates use context + window event. */
+  pageRevision: number;
 };
+
+/** Theme bundles are static files on the preview host — never on the API origin. */
+function isThemeStaticAssetPath(path: string): boolean {
+  return (
+    path.startsWith('/remote-themes/') ||
+    path.startsWith('/static-editor-theme/') ||
+    path.startsWith('/remote-theme-runtime/')
+  );
+}
 
 function resolveAssetUrl(href: string): string {
   const trimmed = href.trim();
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+  const path = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  if (isThemeStaticAssetPath(path)) {
+    return `${getStorefrontAssetOrigin()}${path}`;
+  }
   const viteApi = import.meta.env.VITE_API_URL;
   const base = typeof viteApi === 'string' && viteApi.trim() !== '' ? viteApi.replace(/\/$/, '') : '';
-  if (base) return `${base}${trimmed.startsWith('/') ? trimmed : `/${trimmed}`}`;
-  return `${window.location.origin}${trimmed.startsWith('/') ? trimmed : `/${trimmed}`}`;
+  if (base) return `${base}${path}`;
+  return `${window.location.origin}${path}`;
 }
 
-export function ThemePreviewRuntime({ jsUrl, cssUrl, page, configRevision }: ThemePreviewRuntimeProps) {
+export function ThemePreviewRuntime({ jsUrl, cssUrl, page, pageRevision }: ThemePreviewRuntimeProps) {
   const [contract, setContract] = useState<ThemeContract | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -93,6 +106,9 @@ export function ThemePreviewRuntime({ jsUrl, cssUrl, page, configRevision }: The
     return () => link.remove();
   }, [contract, cssHref]);
 
+  const routeKey = `${page}-${pageRevision}`;
+  const initialEntry = useMemo(() => previewPageToRoute(page), [page]);
+
   if (loading && !contract) {
     return (
       <div style={{ padding: 32, textAlign: 'center', fontFamily: 'system-ui, sans-serif', color: '#666' }}>
@@ -113,19 +129,32 @@ export function ThemePreviewRuntime({ jsUrl, cssUrl, page, configRevision }: The
     );
   }
 
-  const revisionKey = `${page}-${configRevision}`;
   const Home = contract.HomePage;
   const Product = contract.ProductPage;
   const Cart = contract.CartPage;
+  const Login = contract.LoginPage;
+  const Signup = contract.SignupPage;
+  const Forgot = contract.ForgotPasswordPage ?? contract.LoginPage;
+  const Profile = contract.ProfilePage;
+  const Orders = contract.OrdersPage;
+  const Preferences = contract.PreferencesPage;
 
   return (
-    <MemoryRouter initialEntries={[page === 'product' ? '/products/preview' : page === 'cart' ? '/cart' : '/']}>
+    <MemoryRouter key={routeKey} initialEntries={[initialEntry]}>
       <Routes>
-        <Route path="/" element={<Home key={revisionKey} />} />
-        <Route path="/products" element={<Home key={revisionKey} />} />
-        <Route path="/products/:id" element={<Product key={revisionKey} />} />
-        <Route path="/cart" element={<Cart key={revisionKey} />} />
-        <Route path="*" element={<Home key={revisionKey} />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/products" element={<Home />} />
+        <Route path="/products/:id" element={<Product />} />
+        <Route path="/collection" element={<Home />} />
+        <Route path="/collections/:collectionId/:urlHandle" element={<Home />} />
+        <Route path="/auth/login" element={<Login />} />
+        <Route path="/auth/signup" element={<Signup />} />
+        <Route path="/auth/forgot" element={<Forgot />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/my-orders" element={<Orders />} />
+        <Route path="/preferences" element={<Preferences />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="*" element={<Home />} />
       </Routes>
     </MemoryRouter>
   );

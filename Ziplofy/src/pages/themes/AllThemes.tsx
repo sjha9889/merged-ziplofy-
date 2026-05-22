@@ -26,6 +26,10 @@ import { useCustomThemes } from "../../contexts/custom-themes.context";
 import ThemePreviewModal from "../../components/ThemePreviewModal";
 import ThemeEditChoiceModal from "../../components/ThemeEditChoiceModal";
 import { axiosi } from "../../config/axios.config";
+import {
+  isThemeEditorStaticMode,
+  THEME_EDITOR_DEV_ROUTE,
+} from "../../config/theme-editor-static.config";
 import "./AllThemes.css";
 
 interface Theme {
@@ -436,6 +440,22 @@ const AllThemes: React.FC = () => {
 
   return (
     <div className="w-full space-y-6 pb-8">
+      {isThemeEditorStaticMode() ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <div>
+            <p className="text-sm font-semibold text-amber-950">Static theme editor (dev mode)</p>
+            <p className="mt-0.5 text-xs text-amber-900/80">
+              Production theme install / S3 flow is bypassed. One local reference theme is used for all editor work.
+            </p>
+          </div>
+          <Link
+            to={THEME_EDITOR_DEV_ROUTE}
+            className="shrink-0 rounded-lg bg-amber-900 px-4 py-2 text-sm font-medium text-white hover:bg-amber-800"
+          >
+            Open dev editor
+          </Link>
+        </div>
+      ) : null}
       <header className="rounded-2xl border border-gray-200/80 bg-linear-to-b from-white to-blue-50/20 px-5 py-5 shadow-sm sm:px-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0 pl-3 border-l-4 border-blue-500/70">
@@ -553,7 +573,7 @@ const AllThemes: React.FC = () => {
             </button>
           </div>
           <Link
-            to="/themes/builder"
+            to="/themes/create"
             className="ml-auto inline-flex shrink-0 items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
           >
             <PlusIcon className="h-4 w-4" aria-hidden />
@@ -861,11 +881,11 @@ const AllThemes: React.FC = () => {
                   Open the theme builder to design a storefront, then return here to apply it or manage thumbnails.
                 </p>
                 <Link
-                  to="/themes/builder"
+                  to="/themes/create"
                   className="mt-6 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
                 >
                   <PlusIcon className="h-4 w-4" aria-hidden />
-                  Start in theme builder
+                  Start in theme creator
                 </Link>
               </div>
             ) : (

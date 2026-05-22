@@ -33,6 +33,7 @@ const ThemeCodeEditorFullScreen = lazy(() => import("./pages/themes/ThemeCodeEdi
 const ThemeEditor = lazy(() => import("./pages/themes/ThemeEditor"));
 const StoreThemeConfigEditor = lazy(() => import("./pages/themes/StoreThemeConfigEditor"));
 const ThemeLayoutEditor = lazy(() => import("./pages/themes/ThemeLayoutEditor"));
+const CreateThemePage = lazy(() => import("./pages/themes/CreateThemePage"));
 const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
 const ContentPage = lazy(() => import("./pages/ContentPage"));
 const CreateOrderPage = lazy(() => import("./pages/CreateOrderPage"));
@@ -261,12 +262,15 @@ const AdminApp: React.FC = () => {
   const isCodeFullScreen = location.pathname.startsWith('/themes/code-fullscreen/');
   const isBuilderFullScreen = location.pathname.startsWith('/themes/builder');
   const isBasicElementor = location.pathname.startsWith('/themes/basic-elementor');
-  const isThemeSchemaEditor = /^\/themes\/[^/]+\/editor$/.test(location.pathname);
+  const isThemeCreator = location.pathname.startsWith('/themes/create');
+  const isThemeSchemaEditor =
+    location.pathname === '/themes/dev-editor' ||
+    /^\/themes\/[^/]+\/editor$/.test(location.pathname);
   const isFullScreen =
     isCodeFullScreen || isBuilderFullScreen || isBasicElementor || isThemeSchemaEditor;
   const isSettings = location.pathname.startsWith('/settings');
   const showNavbar = !isFullScreen;
-  const showSidebar = !isFullScreen && !isSettings;
+  const showSidebar = !isFullScreen && !isSettings && !isThemeCreator;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
@@ -427,9 +431,11 @@ const AdminApp: React.FC = () => {
 
             {/* Themes Subsection */}
             <Route path="/themes/all-themes" element={<AllThemes />} />
+            <Route path="/themes/create" element={<CreateThemePage />} />
             <Route path="/themes/builder" element={<CustomThemeBuilder />} />
             <Route path="/themes/basic-elementor" element={<BasicElementor />} />
             <Route path="/themes/edit/:themeId" element={<ThemeEditor />} />
+            <Route path="/themes/dev-editor" element={<StoreThemeConfigEditor />} />
             <Route path="/themes/:themeId/editor" element={<StoreThemeConfigEditor />} />
             <Route path="/themes/layout/:themeId" element={<ThemeLayoutEditor />} />
             <Route path="/themes/code/:themeId" element={<ThemeCodeEditor />} />

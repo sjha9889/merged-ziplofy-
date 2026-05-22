@@ -11,6 +11,8 @@ function isImmersiveOrFullWidthPath(pathname: string): boolean {
   if (pathname.startsWith('/themes/builder')) return true;
   if (pathname.startsWith('/themes/basic-elementor')) return true;
   if (pathname.startsWith('/themes/edit/')) return true;
+  if (pathname.startsWith('/themes/dev-editor')) return true;
+  if (/^\/themes\/[^/]+\/editor\/?$/.test(pathname)) return true;
   if (pathname.startsWith('/themes/layout/')) return true;
   if (pathname.startsWith('/themes/code/')) return true;
   return false;

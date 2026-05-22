@@ -143,6 +143,25 @@ export async function downloadS3KeyToFile(key: string, destPath: string): Promis
   await pipeline(rs, fs.createWriteStream(destPath));
 }
 
+/** Read and parse a JSON object from S3 (theme.schema / default-config / manifest). */
+export async function readS3JsonObject<T = Record<string, unknown>>(key: string): Promise<T | null> {
+  try {
+    const res = await s3Client.send(new GetObjectCommand({ Bucket: awsBucket, Key: key }));
+    const body = res.Body;
+    if (!body) return null;
+    const chunks: Buffer[] = [];
+    const rs = body as Readable;
+    for await (const chunk of rs) {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    }
+    const raw = Buffer.concat(chunks).toString('utf8');
+    const parsed = JSON.parse(raw) as T;
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 export function publicObjectUrlForKey(key: string): string {
   return `https://${awsBucket}.s3.${awsRegion}.amazonaws.com/${key}`;
 }

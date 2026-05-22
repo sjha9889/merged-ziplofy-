@@ -25,6 +25,7 @@ export function PreviewStorefrontProvider({
   cssUrl = null,
   children,
 }: PreviewStorefrontProviderProps) {
+  /** Storefront context stays stable on config keystrokes — live config flows via ThemeConfigProvider only. */
   const value = useMemo((): StorefrontContextType => {
     return {
       isStoreFront: true,
@@ -45,9 +46,9 @@ export function PreviewStorefrontProvider({
       liquidTemplatesListProvided: false,
       activeReactThemePackId: null,
       reactThemePacks: [],
-      themeConfig,
+      themeConfig: null,
     };
-  }, [storeId, storeName, themeConfig, jsUrl, cssUrl]);
+  }, [storeId, storeName, jsUrl, cssUrl]);
 
   return (
     <StorefrontContext.Provider value={value}>

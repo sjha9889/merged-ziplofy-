@@ -64,7 +64,7 @@ export function formValuesFromMakeupConfig(config: Record<string, unknown>) {
   return values;
 }
 
-/** Static makeup pack for local editor when store-config API is unavailable. */
+/** @deprecated Use loadStaticThemeEditorPack() via VITE_THEME_EDITOR_STATIC_MODE */
 export function getStaticMakeupThemePack() {
   const defaultConfig = makeupDefaultConfig as Record<string, unknown>;
   const editorSchema = makeupEditorSchema as MakeupEditorSchema;

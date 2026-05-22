@@ -1,4 +1,18 @@
 import { axiosi } from '../config/axios.config';
+import { getStaticDevPackId, isThemeEditorStaticMode } from '../config/theme-editor-static.config';
+import { loadStaticThemeEditorPack } from './theme-editor-static-pack';
+
+export type ThemeBlockCatalogPayload = {
+  categories: Array<{ id: string; label: string }>;
+  blocks: Array<{
+    id: string;
+    label: string;
+    category: string;
+    icon?: string;
+    extendedOnly?: boolean;
+  }>;
+  sectionBlockAllowlist?: Record<string, string[]>;
+};
 
 export type ThemeEditorLoadResult = {
   themeName: string;
@@ -6,6 +20,8 @@ export type ThemeEditorLoadResult = {
   editorSchema: unknown;
   defaultConfig: Record<string, unknown> | null;
   manifest: Record<string, unknown> | null;
+  blockCatalog: ThemeBlockCatalogPayload | null;
+  packLoadedFromS3: boolean;
   storeOverrides: Record<string, unknown>;
   config: Record<string, unknown>;
   values: Record<string, string | boolean>;
@@ -14,6 +30,8 @@ export type ThemeEditorLoadResult = {
   installed: boolean;
   canPersist: boolean;
   notice: string | null;
+  /** Set when loading a bundled static dev pack (horizon | studio). */
+  staticPackId?: string;
 };
 
 type StoreConfigResponse = {
@@ -30,6 +48,8 @@ type StoreConfigResponse = {
     values: Record<string, string | boolean>;
     configMode?: string;
     themeRuntime?: { jsUrl?: string | null; cssUrl?: string | null };
+    blockCatalog?: ThemeBlockCatalogPayload | null;
+    packLoadedFromS3?: boolean;
     installed?: boolean;
     canPersist?: boolean;
     notice?: string | null;
@@ -48,6 +68,8 @@ type EditorPackResponse = {
     values?: Record<string, string | boolean>;
     configMode?: string;
     themeRuntime?: { jsUrl?: string | null; cssUrl?: string | null };
+    blockCatalog?: ThemeBlockCatalogPayload | null;
+    packLoadedFromS3?: boolean;
   };
 };
 
@@ -58,6 +80,8 @@ function mapStoreConfig(data: NonNullable<StoreConfigResponse['data']>): ThemeEd
     editorSchema: data.editorSchema,
     defaultConfig: data.defaultConfig ?? null,
     manifest: data.manifest ?? null,
+    blockCatalog: data.blockCatalog ?? null,
+    packLoadedFromS3: Boolean(data.packLoadedFromS3),
     storeOverrides: data.storeOverrides ?? {},
     config: data.config ?? data.defaultConfig ?? {},
     values: data.values ?? {},
@@ -82,6 +106,8 @@ function mapCatalogPack(
     editorSchema: data.editorSchema,
     defaultConfig: data.defaultConfig ?? null,
     manifest: data.manifest ?? null,
+    blockCatalog: data.blockCatalog ?? null,
+    packLoadedFromS3: Boolean(data.packLoadedFromS3),
     storeOverrides: {},
     config: data.defaultConfig ?? {},
     values: data.values ?? {},
@@ -131,6 +157,10 @@ export async function loadThemeEditorData(
   themeId: string,
   storeId: string
 ): Promise<ThemeEditorLoadResult> {
+  if (isThemeEditorStaticMode()) {
+    return loadStaticThemeEditorPack(getStaticDevPackId());
+  }
+
   const storeBody = await fetchStoreThemeConfig(themeId, storeId);
   if (storeBody?.success && storeBody.data) {
     return mapStoreConfig(storeBody.data);

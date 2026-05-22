@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from 'react';
 
 export type ThemeConfig = Record<string, unknown>;
 
@@ -20,6 +20,15 @@ function applyThemeConfigCssVars(config: ThemeConfig | null): void {
   if (typography?.fontFamily) root.style.setProperty('--ziplofy-font-family', typography.fontFamily);
 }
 
+function configSignature(config: ThemeConfig | null): string {
+  if (!config) return '';
+  try {
+    return JSON.stringify(config);
+  } catch {
+    return String(Date.now());
+  }
+}
+
 export function ThemeConfigProvider({
   config,
   children,
@@ -27,20 +36,35 @@ export function ThemeConfigProvider({
   config: ThemeConfig | null;
   children: ReactNode;
 }) {
+  const lastSigRef = useRef('');
+  const stableConfigRef = useRef<ThemeConfig | null>(config);
+
+  const contextValue = useMemo(() => {
+    const sig = configSignature(config);
+    if (sig !== lastSigRef.current) {
+      lastSigRef.current = sig;
+      stableConfigRef.current = config;
+    }
+    return stableConfigRef.current;
+  }, [config]);
+
   useEffect(() => {
-    if (config && typeof config === 'object') {
-      window.__ZIPLOFY_THEME_CONFIG__ = config;
+    const sig = configSignature(contextValue);
+    if (sig === lastSigRef.current && window.__ZIPLOFY_THEME_CONFIG__ === contextValue) return;
+
+    if (contextValue && typeof contextValue === 'object') {
+      window.__ZIPLOFY_THEME_CONFIG__ = contextValue;
     } else {
       delete window.__ZIPLOFY_THEME_CONFIG__;
     }
-    applyThemeConfigCssVars(config);
+    applyThemeConfigCssVars(contextValue);
     window.dispatchEvent(
-      new CustomEvent('ziplofy-theme-config-changed', { detail: config ?? null })
+      new CustomEvent('ziplofy-theme-config-changed', { detail: contextValue ?? null })
     );
-  }, [config]);
+  }, [contextValue]);
 
   return (
-    <ThemeConfigContext.Provider value={config}>{children}</ThemeConfigContext.Provider>
+    <ThemeConfigContext.Provider value={contextValue}>{children}</ThemeConfigContext.Provider>
   );
 }
 
@@ -48,13 +72,19 @@ export function useThemeConfig(): ThemeConfig | null {
   return useContext(ThemeConfigContext);
 }
 
-/** Read nested config path, e.g. getConfigValue(config, 'hero.title') */
+/** Read nested config path, e.g. sections.header.blocks.menu.settings.items.0.label */
 export function getThemeConfigValue(config: ThemeConfig | null, dotPath: string): unknown {
   if (!config) return undefined;
   const parts = dotPath.split('.');
   let cur: unknown = config;
   for (const p of parts) {
     if (cur == null || typeof cur !== 'object') return undefined;
+    if (Array.isArray(cur)) {
+      const idx = Number(p);
+      if (!Number.isInteger(idx) || idx < 0 || idx >= cur.length) return undefined;
+      cur = cur[idx];
+      continue;
+    }
     cur = (cur as Record<string, unknown>)[p];
   }
   return cur;

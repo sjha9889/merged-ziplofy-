@@ -1,9 +1,37 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { PreviewLoadingOverlay, PreviewSyncPulse } from './EditorPreviewStatus';
 
 const EDITOR_SOURCE = 'ziplofy-theme-editor';
 const FRAME_SOURCE = 'ziplofy-theme-preview';
 
-export type ThemePreviewPage = 'index' | 'product' | 'cart';
+/** Debounce full config sync to iframe — avoids message spam while typing in sidebar. */
+const PREVIEW_CONFIG_POST_MS = 180;
+
+function hintsPostKey(hints: ThemePreviewSelectionHint[]): string {
+  return hints
+    .map((h) => `${h.nodeId}:${(h.matchText ?? '').slice(0, 96)}`)
+    .sort()
+    .join('|');
+}
+
+/** Theme template id used for editor preview routing (e.g. index, product, cart, login). */
+export type ThemePreviewPage = string;
+
+export type ThemePreviewSelectPayload = {
+  nodeId: string;
+  label: string;
+  kind: 'section' | 'block' | 'field' | 'element';
+};
+
+export type ThemePreviewSelectionHint = {
+  nodeId: string;
+  label: string;
+  kind: ThemePreviewSelectPayload['kind'];
+  matchText?: string;
+  sectionId?: string;
+  fieldPath?: string;
+  fieldType?: 'text' | 'textarea' | 'color' | 'boolean' | 'number';
+};
 
 export type ThemeLivePreviewFrameProps = {
   storeId: string;
@@ -14,6 +42,17 @@ export type ThemeLivePreviewFrameProps = {
   cssUrl?: string | null;
   config: Record<string, unknown>;
   page?: ThemePreviewPage;
+  selectionHints?: ThemePreviewSelectionHint[];
+  onPreviewSelect?: (payload: ThemePreviewSelectPayload) => void;
+  onPreviewFieldChange?: (fieldPath: string, value: string, nodeId: string) => void;
+  onPreviewAction?: (action: 'hide' | 'duplicate' | 'delete', nodeId: string) => void;
+  onPreviewInsertSection?: (payload: { afterNodeId?: string; beforeNodeId?: string }) => void;
+  insertHoverHighlight?: { afterNodeId?: string; beforeNodeId?: string } | null;
+  highlightNodeId?: string | null;
+  /** Bumped on sidebar structure reorder — posts config to iframe immediately. */
+  structureSyncKey?: number;
+  /** Bumped on sidebar / inline field edits — posts config immediately (keeps preview in sync). */
+  valuesSyncKey?: number;
   className?: string;
 };
 
@@ -61,7 +100,7 @@ function buildPreviewSrc(): string {
   return `${resolveThemePreviewOrigin()}/theme-preview`;
 }
 
-export const ThemeLivePreviewFrame: React.FC<ThemeLivePreviewFrameProps> = ({
+const ThemeLivePreviewFrameInner: React.FC<ThemeLivePreviewFrameProps> = ({
   storeId,
   storeName,
   storefrontOrigin: _storefrontOrigin,
@@ -69,6 +108,15 @@ export const ThemeLivePreviewFrame: React.FC<ThemeLivePreviewFrameProps> = ({
   cssUrl,
   config,
   page = 'index',
+  selectionHints = [],
+  onPreviewSelect,
+  onPreviewFieldChange,
+  onPreviewAction,
+  onPreviewInsertSection,
+  insertHoverHighlight = null,
+  highlightNodeId,
+  structureSyncKey = 0,
+  valuesSyncKey = 0,
   className = '',
 }) => {
   const previewSrc = buildPreviewSrc();
@@ -77,7 +125,41 @@ export const ThemeLivePreviewFrame: React.FC<ThemeLivePreviewFrameProps> = ({
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const initSentRef = useRef(false);
+  const configRef = useRef(config);
+  configRef.current = config;
+  const selectionHintsRef = useRef(selectionHints);
+  selectionHintsRef.current = selectionHints;
+  const onPreviewSelectRef = useRef(onPreviewSelect);
+  onPreviewSelectRef.current = onPreviewSelect;
+  const onPreviewActionRef = useRef(onPreviewAction);
+  onPreviewActionRef.current = onPreviewAction;
+  const onPreviewInsertSectionRef = useRef(onPreviewInsertSection);
+  onPreviewInsertSectionRef.current = onPreviewInsertSection;
+  const onPreviewFieldChangeRef = useRef(onPreviewFieldChange);
+  onPreviewFieldChangeRef.current = onPreviewFieldChange;
+  const lastPostedConfigRef = useRef('');
+  const lastPostedHintsKeyRef = useRef('');
+  const configPostTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const hintsPostTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const highlightRafRef = useRef(0);
+  const [syncPulse, setSyncPulse] = useState(false);
 
+  const hintsPostKeyMemo = useMemo(() => hintsPostKey(selectionHints), [selectionHints]);
+
+  const postPatch = useCallback((fieldPath: string, value: string) => {
+    const frame = iframeRef.current?.contentWindow;
+    if (!frame || !initSentRef.current) return;
+    frame.postMessage(
+      {
+        source: EDITOR_SOURCE,
+        type: 'ZIPLOFY_PREVIEW_PATCH',
+        payload: { fieldPath, value },
+      },
+      '*'
+    );
+  }, []);
+
+  /** INIT only when runtime identity changes — never on every config keystroke. */
   const postInit = useCallback(() => {
     const frame = iframeRef.current?.contentWindow;
     if (!frame || !jsUrl || !storeId) return;
@@ -90,31 +172,75 @@ export const ThemeLivePreviewFrame: React.FC<ThemeLivePreviewFrameProps> = ({
           storeName,
           jsUrl,
           cssUrl: cssUrl ?? null,
-          config,
+          config: configRef.current,
           page,
+          selectionHints: selectionHintsRef.current,
         },
       },
       '*'
     );
     initSentRef.current = true;
-  }, [storeId, storeName, jsUrl, cssUrl, config, page]);
+  }, [storeId, storeName, jsUrl, cssUrl, page]);
 
-  const postConfig = useCallback(() => {
+  const postConfigNow = useCallback((immediate = false) => {
     const frame = iframeRef.current?.contentWindow;
     if (!frame || !initSentRef.current) return;
+    const json = JSON.stringify(configRef.current);
+    if (!immediate && json === lastPostedConfigRef.current) return;
+    lastPostedConfigRef.current = json;
     frame.postMessage(
       {
         source: EDITOR_SOURCE,
         type: 'ZIPLOFY_PREVIEW_CONFIG',
-        payload: { config },
+        payload: { config: configRef.current, immediate },
       },
       '*'
     );
-  }, [config]);
+  }, []);
+
+  const schedulePostConfig = useCallback(() => {
+    setSyncPulse(true);
+    if (configPostTimerRef.current !== undefined) {
+      window.clearTimeout(configPostTimerRef.current);
+    }
+    configPostTimerRef.current = window.setTimeout(() => {
+      configPostTimerRef.current = undefined;
+      postConfigNow();
+      setSyncPulse(false);
+    }, PREVIEW_CONFIG_POST_MS);
+  }, [postConfigNow]);
+
+  const postSelectionHints = useCallback(() => {
+    const frame = iframeRef.current?.contentWindow;
+    if (!frame || !initSentRef.current || !selectionHintsRef.current.length) return;
+    const key = hintsPostKey(selectionHintsRef.current);
+    if (key === lastPostedHintsKeyRef.current) return;
+    lastPostedHintsKeyRef.current = key;
+    frame.postMessage(
+      {
+        source: EDITOR_SOURCE,
+        type: 'ZIPLOFY_PREVIEW_HINTS',
+        payload: { selectionHints: selectionHintsRef.current },
+      },
+      '*'
+    );
+  }, []);
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
-      const data = event.data as { source?: string; type?: string; payload?: { message?: string } };
+      const data = event.data as {
+        source?: string;
+        type?: string;
+        payload?: {
+          message?: string;
+          nodeId?: string;
+          label?: string;
+          kind?: ThemePreviewSelectPayload['kind'];
+          action?: 'hide' | 'duplicate' | 'delete';
+          fieldPath?: string;
+          value?: string;
+        };
+      };
       if (data?.source !== FRAME_SOURCE) return;
       if (data.type === 'ZIPLOFY_PREVIEW_READY') {
         setReady(true);
@@ -128,16 +254,78 @@ export const ThemeLivePreviewFrame: React.FC<ThemeLivePreviewFrameProps> = ({
       if (data.type === 'ZIPLOFY_PREVIEW_ERROR') {
         setLoadError(data.payload?.message ?? 'Preview failed to load');
       }
+      if (data.type === 'ZIPLOFY_PREVIEW_SELECT' && data.payload?.nodeId) {
+        onPreviewSelectRef.current?.({
+          nodeId: data.payload.nodeId,
+          label: data.payload.label ?? 'Element',
+          kind: data.payload.kind ?? 'element',
+        });
+      }
+      if (data.type === 'ZIPLOFY_PREVIEW_ACTION' && data.payload?.nodeId && data.payload.action) {
+        onPreviewActionRef.current?.(data.payload.action, data.payload.nodeId);
+      }
+      if (data.type === 'ZIPLOFY_PREVIEW_FIELD_CHANGE' && data.payload?.fieldPath) {
+        const fieldPath = data.payload.fieldPath;
+        const value = data.payload.value ?? '';
+        onPreviewFieldChangeRef.current?.(fieldPath, value, data.payload.nodeId ?? '');
+        postPatch(fieldPath, value);
+      }
+      if (
+        data.type === 'ZIPLOFY_PREVIEW_INSERT_SECTION' &&
+        (data.payload?.afterNodeId || data.payload?.beforeNodeId)
+      ) {
+        onPreviewInsertSectionRef.current?.(data.payload);
+      }
     };
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
-  }, [postInit]);
+  }, [postInit, postPatch]);
 
   useEffect(() => {
-    if (!ready) return;
-    const timer = window.setTimeout(() => postConfig(), 120);
-    return () => window.clearTimeout(timer);
-  }, [ready, postConfig]);
+    if (!ready || !initSentRef.current) return;
+    schedulePostConfig();
+    return () => {
+      if (configPostTimerRef.current !== undefined) {
+        window.clearTimeout(configPostTimerRef.current);
+      }
+    };
+  }, [config, ready, schedulePostConfig]);
+
+  useEffect(() => {
+    if (!ready || !initSentRef.current || structureSyncKey < 1) return;
+    if (configPostTimerRef.current !== undefined) {
+      window.clearTimeout(configPostTimerRef.current);
+      configPostTimerRef.current = undefined;
+    }
+    postConfigNow(true);
+  }, [structureSyncKey, ready, postConfigNow]);
+
+  useEffect(() => {
+    if (!ready || !initSentRef.current || valuesSyncKey < 1) return;
+    if (configPostTimerRef.current !== undefined) {
+      window.clearTimeout(configPostTimerRef.current);
+      configPostTimerRef.current = undefined;
+    }
+    setSyncPulse(true);
+    postConfigNow(true);
+    window.setTimeout(() => setSyncPulse(false), 80);
+  }, [valuesSyncKey, ready, postConfigNow]);
+
+  useEffect(() => {
+    if (!ready || !initSentRef.current) return;
+    if (hintsPostTimerRef.current !== undefined) {
+      window.clearTimeout(hintsPostTimerRef.current);
+    }
+    hintsPostTimerRef.current = window.setTimeout(() => {
+      hintsPostTimerRef.current = undefined;
+      postSelectionHints();
+    }, 200);
+    return () => {
+      if (hintsPostTimerRef.current !== undefined) {
+        window.clearTimeout(hintsPostTimerRef.current);
+      }
+    };
+  }, [ready, hintsPostKeyMemo, postSelectionHints]);
 
   useEffect(() => {
     if (!ready) return;
@@ -150,15 +338,60 @@ export const ThemeLivePreviewFrame: React.FC<ThemeLivePreviewFrameProps> = ({
   }, [page, ready]);
 
   useEffect(() => {
+    if (!ready || !highlightNodeId) return;
+    if (highlightRafRef.current) cancelAnimationFrame(highlightRafRef.current);
+    highlightRafRef.current = requestAnimationFrame(() => {
+      highlightRafRef.current = 0;
+      const frame = iframeRef.current?.contentWindow;
+      if (!frame) return;
+      frame.postMessage(
+        {
+          source: EDITOR_SOURCE,
+          type: 'ZIPLOFY_PREVIEW_HIGHLIGHT',
+          payload: { nodeId: highlightNodeId },
+        },
+        '*'
+      );
+    });
+    return () => {
+      if (highlightRafRef.current) cancelAnimationFrame(highlightRafRef.current);
+    };
+  }, [highlightNodeId, ready]);
+
+  useEffect(() => {
+    if (!ready) return;
+    const frame = iframeRef.current?.contentWindow;
+    if (!frame) return;
+    const payload = insertHoverHighlight
+      ? {
+          afterNodeId: insertHoverHighlight.afterNodeId,
+          beforeNodeId: insertHoverHighlight.beforeNodeId,
+        }
+      : null;
+    frame.postMessage(
+      { source: EDITOR_SOURCE, type: 'ZIPLOFY_PREVIEW_INSERT_HIGHLIGHT', payload },
+      '*'
+    );
+  }, [insertHoverHighlight, ready]);
+
+  useEffect(() => {
     initSentRef.current = false;
     setReady(false);
+    setSyncPulse(false);
+    lastPostedConfigRef.current = '';
+    lastPostedHintsKeyRef.current = '';
+    return () => {
+      if (highlightRafRef.current) cancelAnimationFrame(highlightRafRef.current);
+      if (configPostTimerRef.current !== undefined) window.clearTimeout(configPostTimerRef.current);
+      if (hintsPostTimerRef.current !== undefined) window.clearTimeout(hintsPostTimerRef.current);
+    };
   }, [jsUrl, storeId, previewSrc]);
 
   useEffect(() => {
     if (ready && jsUrl && storeId) {
       postInit();
     }
-  }, [ready, jsUrl, storeId, postInit]);
+  }, [ready, jsUrl, storeId, page, cssUrl, storeName, postInit]);
 
   if (!jsUrl) {
     return (
@@ -171,13 +404,9 @@ export const ThemeLivePreviewFrame: React.FC<ThemeLivePreviewFrameProps> = ({
   }
 
   return (
-    <div className={`relative overflow-hidden rounded-xl border border-gray-200 bg-white ${className}`}>
-      {!ready && (
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-white/80 px-4 text-center text-sm text-gray-500">
-          <span>Loading live preview…</span>
-          <span className="text-xs text-gray-400">from {previewOrigin}</span>
-        </div>
-      )}
+    <div className={`relative h-full w-full overflow-hidden bg-white ${className}`}>
+      {!ready ? <PreviewLoadingOverlay origin={previewOrigin} /> : null}
+      <PreviewSyncPulse visible={syncPulse && ready} />
       {loadError && (
         <div className="absolute left-0 right-0 top-0 z-20 border-b border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
           {loadError}
@@ -187,7 +416,7 @@ export const ThemeLivePreviewFrame: React.FC<ThemeLivePreviewFrameProps> = ({
         ref={iframeRef}
         title="Theme live preview"
         src={previewSrc}
-        className="block h-full min-h-[480px] w-full border-0 bg-white"
+        className="block h-full min-h-0 w-full border-0 bg-white"
         sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
         onLoad={() => {
           window.setTimeout(() => postInit(), 50);
@@ -197,4 +426,5 @@ export const ThemeLivePreviewFrame: React.FC<ThemeLivePreviewFrameProps> = ({
   );
 };
 
+export const ThemeLivePreviewFrame = memo(ThemeLivePreviewFrameInner);
 export default ThemeLivePreviewFrame;

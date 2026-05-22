@@ -150,6 +150,27 @@ export function loadThemePackFromDisk(themePath: string): ThemePack | null {
   return pack;
 }
 
+async function loadThemePackFromS3Keys(s3Refs: ThemePackS3Refs): Promise<ThemePack | null> {
+  const { readS3JsonObject } = await import('./theme-s3-ingest');
+  const schemaKey = s3Refs.reactThemeSchema?.key;
+  const defaultKey = s3Refs.reactThemeDefaultConfig?.key;
+  const manifestKey = s3Refs.reactThemeManifest?.key;
+  if (!schemaKey || !defaultKey) return null;
+
+  const [editorSchema, defaultConfig, manifestFromS3] = await Promise.all([
+    readS3JsonObject<EditorSchemaDoc>(schemaKey),
+    readS3JsonObject<Record<string, unknown>>(defaultKey),
+    manifestKey ? readS3JsonObject<Record<string, unknown>>(manifestKey) : Promise.resolve(null),
+  ]);
+
+  if (!editorSchema || !defaultConfig) return null;
+  return {
+    defaultConfig,
+    editorSchema,
+    manifest: manifestFromS3 ?? undefined,
+  };
+}
+
 export async function loadThemePack(
   themePath: string,
   s3Refs?: ThemePackS3Refs | null
@@ -158,10 +179,16 @@ export async function loadThemePack(
   const cacheKey = `full:${slug}`;
   if (packCache.has(cacheKey)) return packCache.get(cacheKey)!;
 
-  const disk = loadThemePackFromDisk(themePath);
-  if (disk && !s3Refs?.reactThemeSchema?.url) {
-    packCache.set(cacheKey, disk);
-    return disk;
+  const hasS3Keys = Boolean(
+    s3Refs?.reactThemeSchema?.key && s3Refs?.reactThemeDefaultConfig?.key
+  );
+
+  if (hasS3Keys && s3Refs) {
+    const fromS3 = await loadThemePackFromS3Keys(s3Refs);
+    if (fromS3) {
+      packCache.set(cacheKey, fromS3);
+      return fromS3;
+    }
   }
 
   const schemaUrl = s3Refs?.reactThemeSchema?.url;
@@ -177,13 +204,14 @@ export async function loadThemePack(
       const pack: ThemePack = {
         defaultConfig,
         editorSchema,
-        manifest: manifestFromS3 ?? disk?.manifest,
+        manifest: manifestFromS3 ?? undefined,
       };
       packCache.set(cacheKey, pack);
       return pack;
     }
   }
 
+  const disk = loadThemePackFromDisk(themePath);
   if (disk) {
     packCache.set(cacheKey, disk);
     return disk;
@@ -365,7 +393,10 @@ export function hasSectionEditorPack(
   s3Refs?: ThemePackS3Refs | null
 ): boolean {
   if (pack) return true;
-  return Boolean(s3Refs?.reactThemeSchema?.url && s3Refs?.reactThemeDefaultConfig?.url);
+  return Boolean(
+    (s3Refs?.reactThemeSchema?.key && s3Refs?.reactThemeDefaultConfig?.key) ||
+      (s3Refs?.reactThemeSchema?.url && s3Refs?.reactThemeDefaultConfig?.url)
+  );
 }
 
 export function resolveStoreThemeConfigSync(

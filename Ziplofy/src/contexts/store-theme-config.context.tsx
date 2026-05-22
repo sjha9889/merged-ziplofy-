@@ -4,7 +4,15 @@ import toast from 'react-hot-toast';
 
 import { axiosi } from '../config/axios.config';
 
-import { loadThemeEditorData, type ThemeEditorLoadResult } from '../utils/theme-editor-load';
+import { isThemeEditorStaticMode, THEME_EDITOR_STATIC_CONFIG } from '../config/theme-editor-static.config';
+import {
+  loadThemeEditorData,
+  type ThemeBlockCatalogPayload,
+  type ThemeEditorLoadResult,
+} from '../utils/theme-editor-load';
+import { saveStaticThemeConfigLocal } from '../utils/theme-editor-static-pack';
+import { mergedConfigFromFormValues } from '../utils/theme-editor-static-save';
+import type { EditorSchemaDoc } from '../components/themes/theme-editor-sidebar/theme-editor-sidebar.types';
 
 
 
@@ -25,6 +33,10 @@ export type StoreThemeConfigData = {
   defaultConfig: Record<string, unknown> | null;
 
   manifest: Record<string, unknown> | null;
+
+  blockCatalog: ThemeBlockCatalogPayload | null;
+
+  packLoadedFromS3: boolean;
 
   storeOverrides: Record<string, unknown>;
 
@@ -88,6 +100,10 @@ function mapLoadResult(
 
     manifest: loaded.manifest,
 
+    blockCatalog: loaded.blockCatalog,
+
+    packLoadedFromS3: loaded.packLoadedFromS3,
+
     storeOverrides: loaded.storeOverrides ?? {},
 
     config: loaded.config ?? loaded.defaultConfig ?? {},
@@ -135,6 +151,10 @@ function mapApiData(data: ApiResponse['data']): StoreThemeConfigData | null {
     defaultConfig: data.defaultConfig,
 
     manifest: data.manifest ?? null,
+
+    blockCatalog: data.blockCatalog ?? null,
+
+    packLoadedFromS3: Boolean(data.packLoadedFromS3),
 
     storeOverrides: data.storeOverrides ?? {},
 
@@ -214,6 +234,26 @@ export const StoreThemeConfigProvider: React.FC<{ children: React.ReactNode }> =
 
   const load = useCallback(async (storeId: string, themeId: string) => {
 
+    if (isThemeEditorStaticMode()) {
+      const effectiveStoreId = storeId || THEME_EDITOR_STATIC_CONFIG.devStoreId;
+      const effectiveThemeId = themeId || THEME_EDITOR_STATIC_CONFIG.themeId;
+      setLoading(true);
+      setError(null);
+      try {
+        const loaded = await loadThemeEditorData(effectiveThemeId, effectiveStoreId);
+        const mapped = mapLoadResult(effectiveStoreId, effectiveThemeId, loaded);
+        setData(mapped);
+        return mapped;
+      } catch (err: unknown) {
+        const msg = (err as Error)?.message ?? 'Failed to load static theme editor';
+        setError(msg);
+        setData(null);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    }
+
     if (!storeId || !themeId) return null;
 
     setLoading(true);
@@ -259,6 +299,43 @@ export const StoreThemeConfigProvider: React.FC<{ children: React.ReactNode }> =
   const saveValues = useCallback(
 
     async (storeId: string, themeId: string, values: Record<string, string | boolean>) => {
+
+      if (isThemeEditorStaticMode()) {
+        setSaving(true);
+        setError(null);
+        const toastId = toast.loading('Saving to browser…');
+        try {
+          const current = data;
+          if (!current?.defaultConfig || !current.editorSchema) {
+            throw new Error('Editor not loaded');
+          }
+          const config = mergedConfigFromFormValues(
+            current.defaultConfig,
+            values,
+            current.editorSchema as EditorSchemaDoc
+          );
+          saveStaticThemeConfigLocal(config);
+          const reloaded = await loadThemeEditorData(
+            themeId || THEME_EDITOR_STATIC_CONFIG.themeId,
+            storeId || THEME_EDITOR_STATIC_CONFIG.devStoreId
+          );
+          const mapped = mapLoadResult(
+            storeId || THEME_EDITOR_STATIC_CONFIG.devStoreId,
+            themeId || THEME_EDITOR_STATIC_CONFIG.themeId,
+            reloaded
+          );
+          setData(mapped);
+          toast.success('Saved locally (dev mode)', { id: toastId });
+          return mapped;
+        } catch (err: unknown) {
+          const msg = (err as Error)?.message ?? 'Failed to save';
+          setError(msg);
+          toast.error(msg, { id: toastId });
+          return null;
+        } finally {
+          setSaving(false);
+        }
+      }
 
       if (!storeId || !themeId) return null;
 
@@ -318,7 +395,7 @@ export const StoreThemeConfigProvider: React.FC<{ children: React.ReactNode }> =
 
     },
 
-    []
+    [data]
 
   );
 

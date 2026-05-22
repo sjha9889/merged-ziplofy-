@@ -104,7 +104,7 @@ export default function OnlineStorePage() {
                 <p className="text-sm text-gray-500">Added: 10:07 am</p>
                 <p className="text-sm text-gray-500">Version 4.0</p>
                 <Link
-                  to="/themes/builder"
+                  to="/themes/create"
                   className="mt-2 inline-flex w-fit items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700"
                 >
                   Edit theme
@@ -151,7 +151,7 @@ export default function OnlineStorePage() {
               </div>
             </div>
             <Link
-              to="/themes/builder"
+              to="/themes/create"
               className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 shadow-sm hover:bg-blue-100 transition-colors sm:self-center"
             >
               Get started

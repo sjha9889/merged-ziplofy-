@@ -23,6 +23,11 @@ import {
   type ThemePackS3Refs,
 } from "../utils/theme-pack.util";
 import { canonicalStoreRef, storeAndUserScopeOr } from "../utils/installed-themes-query.util";
+import {
+  buildBlockCatalogFromPack,
+  prepareThemePackForEditor,
+  type ThemeBlockCatalog,
+} from "../utils/theme-pack-editor.util";
 import { publicObjectUrlForKey } from "../utils/theme-s3-ingest";
 
 function withResolvedS3Urls(s3: Record<string, unknown>) {
@@ -62,14 +67,31 @@ async function assertThemeInstalled(storeId: string, themeId: string) {
   }
 }
 
+function normalizePack(pack: ThemePack | null): {
+  pack: ThemePack | null;
+  blockCatalog: ThemeBlockCatalog | null;
+} {
+  if (!pack) return { pack: null, blockCatalog: null };
+  const prepared = prepareThemePackForEditor(pack);
+  return {
+    pack: prepared,
+    blockCatalog: buildBlockCatalogFromPack(prepared),
+  };
+}
+
 async function loadThemeAndPack(themeId: string): Promise<{
   theme: { name?: string; themePath?: string };
   themePath: string;
   s3: Record<string, unknown>;
   s3Refs: ThemePackS3Refs;
   pack: ThemePack | null;
+  blockCatalog: ThemeBlockCatalog | null;
+  packLoadedFromS3: boolean;
 }> {
-  const theme = await Theme.findById(themeId).lean();
+  let theme = await Theme.findById(themeId).lean();
+  if (!theme) {
+    theme = await Theme.findOne({ themePath: themeId }).lean();
+  }
   if (!theme) throw new CustomError("Theme not found", 404);
 
   const themePath = String((theme as { themePath?: string }).themePath ?? "");
@@ -77,7 +99,13 @@ async function loadThemeAndPack(themeId: string): Promise<{
     ((theme as { s3Assets?: Record<string, unknown> }).s3Assets ?? {}) as Record<string, unknown>
   );
   const s3Refs = s3 as ThemePackS3Refs;
-  const pack = await loadThemePack(themePath, s3Refs);
+  const rawPack = await loadThemePack(themePath, s3Refs);
+  const packLoadedFromS3 = Boolean(
+    rawPack &&
+      s3Refs.reactThemeSchema?.key &&
+      s3Refs.reactThemeDefaultConfig?.key
+  );
+  const { pack, blockCatalog } = normalizePack(rawPack);
 
   if (!pack && !hasSectionEditorPack(null, s3Refs)) {
     throw new CustomError(
@@ -86,7 +114,15 @@ async function loadThemeAndPack(themeId: string): Promise<{
     );
   }
 
-  return { theme: theme as { name?: string; themePath?: string }, themePath, s3, s3Refs, pack };
+  return {
+    theme: theme as { name?: string; themePath?: string },
+    themePath,
+    s3,
+    s3Refs,
+    pack,
+    blockCatalog,
+    packLoadedFromS3,
+  };
 }
 
 async function readSavedOverrides(storeId: string, themeId: string) {
@@ -106,6 +142,8 @@ export type StoreThemeConfigPayload = {
   editorSchema: unknown;
   defaultConfig: Record<string, unknown> | null;
   manifest: Record<string, unknown> | null;
+  blockCatalog: ThemeBlockCatalog | null;
+  packLoadedFromS3: boolean;
   storeOverrides: Record<string, unknown>;
   schema: ReturnType<typeof flattenEditorSchema>;
   config: Record<string, unknown>;
@@ -124,6 +162,8 @@ export type CatalogThemeEditorPackPayload = {
   editorSchema: unknown;
   defaultConfig: Record<string, unknown> | null;
   manifest: Record<string, unknown> | null;
+  blockCatalog: ThemeBlockCatalog | null;
+  packLoadedFromS3: boolean;
   values: Record<string, string | boolean>;
   themeRuntime: { jsUrl: string | null; cssUrl: string | null };
 };
@@ -170,7 +210,8 @@ function buildPayloadFromPack(
 export async function loadCatalogThemeEditorPack(
   themeId: string
 ): Promise<CatalogThemeEditorPackPayload> {
-  const { theme, themePath, s3, pack } = await loadThemeAndPack(themeId);
+  const { theme, themePath, s3, pack, blockCatalog, packLoadedFromS3 } =
+    await loadThemeAndPack(themeId);
 
   const schema = pack ? flattenEditorSchema(pack.editorSchema) : REACT_THEME_CONFIG_SCHEMA;
   const values = pack
@@ -185,6 +226,8 @@ export async function loadCatalogThemeEditorPack(
     editorSchema: pack?.editorSchema ?? null,
     defaultConfig: pack?.defaultConfig ?? null,
     manifest: pack?.manifest ?? null,
+    blockCatalog,
+    packLoadedFromS3,
     values,
     themeRuntime: themeRuntimeFromS3(s3),
   };
@@ -196,7 +239,8 @@ export async function loadStoreThemeConfig(
 ): Promise<StoreThemeConfigPayload> {
   if (!storeId) throw new CustomError("storeId is required", 400);
 
-  const { theme, themePath, s3, pack } = await loadThemeAndPack(themeId);
+  const { theme, themePath, s3, pack, blockCatalog, packLoadedFromS3 } =
+    await loadThemeAndPack(themeId);
   const installed = await isThemeInstalled(storeId, themeId);
   const rawSaved = installed ? await readSavedOverrides(storeId, themeId) : {};
   const storeOverrides = pack ? normalizeStoreOverrides(rawSaved, pack) : rawSaved ?? {};
@@ -211,6 +255,8 @@ export async function loadStoreThemeConfig(
       editorSchema: pack?.editorSchema ?? null,
       defaultConfig: pack?.defaultConfig ?? null,
       manifest: pack?.manifest ?? null,
+      blockCatalog,
+      packLoadedFromS3,
       themeRuntime: themeRuntimeFromS3(s3),
     },
     pack,
@@ -236,7 +282,8 @@ export async function saveStoreThemeConfig(
 
   await assertThemeInstalled(storeId, themeId);
 
-  const { theme, themePath, s3, pack } = await loadThemeAndPack(themeId);
+  const { theme, themePath, s3, pack, blockCatalog, packLoadedFromS3 } =
+    await loadThemeAndPack(themeId);
 
   let storeOverridesToSave: Record<string, unknown>;
   let merged: Record<string, unknown>;
@@ -283,6 +330,8 @@ export async function saveStoreThemeConfig(
       editorSchema: pack?.editorSchema ?? null,
       defaultConfig: pack?.defaultConfig ?? null,
       manifest: pack?.manifest ?? null,
+      blockCatalog,
+      packLoadedFromS3,
       themeRuntime: themeRuntimeFromS3(s3),
     },
     pack,
