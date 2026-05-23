@@ -1,6 +1,19 @@
-import { ANNOUNCEMENT_BAR_DEFAULT_SETTINGS } from '../config/theme-editor-announcement-schema';
+import {
+  ANNOUNCEMENT_BAR_DEFAULT_SETTINGS,
+  ANNOUNCEMENT_BLOCK_DEFAULT_SETTINGS,
+} from '../config/theme-editor-announcement-schema';
 import type { ThemePreviewPage } from '../components/themes/ThemeLivePreviewFrame';
-import type { SectionCatalogItem, SectionInsertContext } from '../components/themes/theme-editor-sidebar/add-section-catalog';
+import {
+  FOOTER_BANNER_RESOLVE,
+  FOOTER_FORMS_RESOLVE,
+  FOOTER_PRODUCTS_RESOLVE,
+  FOOTER_STORYTELLING_RESOLVE,
+  FOOTER_TEXT_RESOLVE,
+  LAYOUT_SECTION_RESOLVE,
+  resolveTemplateCatalogItem,
+  type SectionCatalogItem,
+  type SectionInsertContext,
+} from '../components/themes/theme-editor-sidebar/add-section-catalog';
 import type { EditorSchemaDoc } from '../components/themes/theme-editor-sidebar/theme-editor-sidebar.types';
 import {
   listKeyHeaderSections,
@@ -83,6 +96,24 @@ export function ensureLayoutOrder(config: Record<string, unknown>): LayoutOrder 
 }
 
 /** Map instance id (e.g. announcement_bar_2) to schema layout blueprint key. */
+/** Map template instance id (e.g. featured_collection_2) to schema section blueprint id. */
+export function templateBlueprintKey(sectionId: string): string {
+  if (sectionId === 'hero_main' || sectionId === 'featured_collection' || sectionId === 'divider') {
+    return sectionId;
+  }
+  const m = sectionId.match(/^(.+)_\d+$/);
+  return m ? m[1] : sectionId;
+}
+
+export function remapTemplateSchemaPath(path: string, tplId: string, instanceId: string): string {
+  const blueprint = templateBlueprintKey(instanceId);
+  if (blueprint === instanceId) return path;
+  return path.replace(
+    `templates.${tplId}.sections.${blueprint}.`,
+    `templates.${tplId}.sections.${instanceId}.`
+  );
+}
+
 export function layoutBlueprintKey(sectionId: string): string {
   if (sectionId === 'header' || sectionId === 'footer' || sectionId === 'footer_utilities') {
     return sectionId;
@@ -117,9 +148,7 @@ function defaultAnnouncementSection(type: string, id: string): Record<string, un
     blocks: {
       announcement: {
         type: 'announcement',
-        settings: {
-          text: String(ANNOUNCEMENT_BAR_DEFAULT_SETTINGS.message ?? ''),
-        },
+        settings: { ...ANNOUNCEMENT_BLOCK_DEFAULT_SETTINGS },
       },
     },
     block_order: ['announcement'],
@@ -131,7 +160,15 @@ function defaultDividerSection(id: string): Record<string, unknown> {
     id,
     type: 'divider',
     enabled: true,
-    settings: {},
+    settings: {
+      colorScheme: 'scheme-1',
+      sectionWidth: 'page',
+      thickness: 1,
+      length: 100,
+      paddingTop: 16,
+      paddingBottom: 16,
+      customCss: '',
+    },
   };
 }
 
@@ -156,6 +193,14 @@ function cloneBlueprintSection(
     return defaultDividerSection(instanceId);
   }
   return { id: instanceId, type: meta.type, enabled: true, settings: {} };
+}
+
+function defaultDividerTemplateSection(instanceId: string): Record<string, unknown> {
+  return {
+    type: 'divider',
+    enabled: true,
+    settings: { ...defaultDividerSection(instanceId).settings },
+  };
 }
 
 function insertIntoOrder(order: string[], instanceId: string, ctx: SectionInsertContext): string[] {
@@ -185,26 +230,32 @@ function insertIntoOrder(order: string[], instanceId: string, ctx: SectionInsert
   return next;
 }
 
+function applyTemplateCatalogPreset(
+  section: Record<string, unknown>,
+  catalogId: string
+): void {
+  const settings = (section.settings ?? {}) as Record<string, unknown>;
+  if (!section.settings) section.settings = settings;
+  settings.catalogVariant = catalogId;
+}
+
 function resolveTemplateBlueprint(
   catalogId: string,
   schema: EditorSchemaDoc,
   page: ThemePreviewPage
 ): { blueprintId: string; type: string; label: string } | null {
-  const tpl = schema.templates?.find((t) => t.id === templateIdForPage(page));
-  if (!tpl?.sections?.length) return null;
+  const mapped = resolveTemplateCatalogItem(catalogId);
+  if (!mapped) return null;
 
-  const typeByCatalog: Record<string, string> = {
-    hero: 'hero',
-    'featured-collection': 'featured-collection',
-  };
-  const targetType = typeByCatalog[catalogId];
+  const tpl = schema.templates?.find((t) => t.id === templateIdForPage(page));
   const sec =
-    tpl.sections.find((s) => s.type === targetType) ??
-    tpl.sections.find((s) => s.id === catalogId);
+    tpl?.sections?.find((s) => s.id === mapped.blueprintId) ??
+    tpl?.sections?.find((s) => s.type === mapped.type);
   if (!sec?.id) return null;
+
   return {
     blueprintId: sec.id,
-    type: sec.type ?? catalogId,
+    type: mapped.type,
     label: sec.label ?? catalogId,
   };
 }
@@ -223,6 +274,8 @@ function cloneTemplateSection(
   if (src && typeof src === 'object') {
     sections[instanceId] = JSON.parse(JSON.stringify(src));
     (sections[instanceId] as Record<string, unknown>).type = meta.type;
+  } else if (meta.type === 'divider') {
+    sections[instanceId] = defaultDividerTemplateSection(instanceId);
   } else {
     sections[instanceId] = { type: meta.type, enabled: true, settings: {}, blocks: {}, block_order: [] };
   }
@@ -249,7 +302,6 @@ export function extendValuesForLayoutInstance(
   instanceId: string,
   config: Record<string, unknown>
 ): Record<string, string | boolean> {
-  if (blueprintId === instanceId) return values;
   const blueprint = layoutBlueprintKey(blueprintId);
   const layout = schema.layout?.[blueprint];
   if (!layout) return values;
@@ -288,12 +340,28 @@ export function insertSectionFromCatalog(
   ensureLayoutOrder(next);
 
   if (ctx.groupId === 'header' || ctx.groupId === 'footer') {
-    const meta = CATALOG_BLUEPRINT[item.id];
+    const footerResolve =
+      ctx.groupId === 'footer'
+        ? FOOTER_BANNER_RESOLVE[item.id] ??
+          FOOTER_FORMS_RESOLVE[item.id] ??
+          FOOTER_PRODUCTS_RESOLVE[item.id] ??
+          FOOTER_STORYTELLING_RESOLVE[item.id] ??
+          FOOTER_TEXT_RESOLVE[item.id] ??
+          null
+        : null;
+    const meta =
+      CATALOG_BLUEPRINT[item.id] ?? footerResolve ?? LAYOUT_SECTION_RESOLVE[item.id] ?? null;
     if (!meta) return null;
 
     const instanceId = newInstanceId(next, meta.blueprintId);
     const sections = { ...((next.sections ?? {}) as Record<string, unknown>) };
-    sections[instanceId] = cloneBlueprintSection(next, meta.blueprintId, instanceId, meta);
+    const section = cloneBlueprintSection(next, meta.blueprintId, instanceId, meta);
+    if (item.id !== meta.blueprintId) {
+      const settings = (section.settings ?? {}) as Record<string, unknown>;
+      settings.catalogVariant = item.id;
+      section.settings = settings;
+    }
+    sections[instanceId] = section;
     next.sections = sections;
 
     const order = getLayoutOrder(next);
@@ -328,6 +396,8 @@ export function insertSectionFromCatalog(
       meta.blueprintId
     );
     cloneTemplateSection(next, tplId, meta.blueprintId, instanceId, meta);
+    const inserted = (tpl.sections as Record<string, Record<string, unknown>>)[instanceId];
+    if (inserted) applyTemplateCatalogPreset(inserted, item.id);
 
     const order = Array.isArray(tpl.section_order) ? [...(tpl.section_order as string[])] : Object.keys(sections);
     const anchorAfter = ctx.afterNodeId?.match(/^template:[^:]+:([^:]+)$/)?.[1];
@@ -380,6 +450,43 @@ export function removeLayoutSection(
   order[key] = current.filter((id) => id !== instanceId);
   setNested(next, ['layout_order'], order);
 
+  return next;
+}
+
+/** Remove a block from a layout section (e.g. announcement under announcement_bar). */
+export function removeLayoutBlock(
+  config: Record<string, unknown>,
+  sectionInstanceId: string,
+  blockId: string
+): Record<string, unknown> | null {
+  const next = JSON.parse(JSON.stringify(config)) as Record<string, unknown>;
+  const sections = (next.sections ?? {}) as Record<string, Record<string, unknown>>;
+  const sec = sections[sectionInstanceId];
+  if (!sec || typeof sec !== 'object') return null;
+
+  const blocks = (sec.blocks ?? {}) as Record<string, unknown>;
+  if (!blocks[blockId]) return null;
+
+  delete blocks[blockId];
+  sec.blocks = blocks;
+
+  const order = Array.isArray(sec.block_order) ? [...(sec.block_order as string[])] : [];
+  sec.block_order = order.filter((id) => id !== blockId);
+
+  return next;
+}
+
+/** Drop value paths for a removed layout block. */
+export function pruneValuesForLayoutBlock(
+  values: Record<string, string | boolean>,
+  sectionInstanceId: string,
+  blockId: string
+): Record<string, string | boolean> {
+  const prefix = `sections.${sectionInstanceId}.blocks.${blockId}.`;
+  const next: Record<string, string | boolean> = {};
+  for (const [path, val] of Object.entries(values)) {
+    if (!path.startsWith(prefix)) next[path] = val;
+  }
   return next;
 }
 

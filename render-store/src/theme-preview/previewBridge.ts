@@ -67,7 +67,8 @@ export type ThemePreviewSelectPayload = {
 };
 
 export type ThemePreviewHighlightPayload = {
-  nodeId: string;
+  /** Omit or null to clear preview selection and restore hover. */
+  nodeId?: string | null;
 };
 
 export type ThemePreviewActionPayload = {
@@ -117,6 +118,7 @@ export type PreviewToParentMessage =
   | { source: typeof PREVIEW_FRAME_SOURCE; type: 'ZIPLOFY_PREVIEW_LOADED' }
   | { source: typeof PREVIEW_FRAME_SOURCE; type: 'ZIPLOFY_PREVIEW_ERROR'; payload: { message: string } }
   | { source: typeof PREVIEW_FRAME_SOURCE; type: 'ZIPLOFY_PREVIEW_SELECT'; payload: ThemePreviewSelectPayload }
+  | { source: typeof PREVIEW_FRAME_SOURCE; type: 'ZIPLOFY_PREVIEW_DESELECT' }
   | { source: typeof PREVIEW_FRAME_SOURCE; type: 'ZIPLOFY_PREVIEW_ACTION'; payload: ThemePreviewActionPayload }
   | {
       source: typeof PREVIEW_FRAME_SOURCE;

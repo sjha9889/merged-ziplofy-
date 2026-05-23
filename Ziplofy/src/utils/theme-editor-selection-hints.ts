@@ -12,6 +12,8 @@ import {
   getLayoutOrder,
   layoutBlueprintKey,
   remapLayoutSchemaPath,
+  remapTemplateSchemaPath,
+  templateBlueprintKey,
 } from './theme-editor-insert-section';
 
 type SchemaBlock = {
@@ -202,29 +204,41 @@ export function buildThemeEditorSelectionHints(
   }
 
   const tpl = schema.templates?.find((t) => t.id === tplId);
-  for (const sec of tpl?.sections ?? []) {
-    const secId = sec.id ?? 'section';
+  const tplConfig = getNested(config, `templates.${tplId}`) as
+    | { section_order?: string[]; sections?: Record<string, unknown> }
+    | undefined;
+  const templateSectionOrder = tplConfig?.section_order?.length
+    ? tplConfig.section_order
+    : tplConfig?.sections
+      ? Object.keys(tplConfig.sections)
+      : [];
+
+  for (const instanceId of templateSectionOrder) {
+    const blueprintId = templateBlueprintKey(instanceId);
+    const sec = tpl?.sections?.find((s) => (s.id ?? '') === blueprintId);
+    if (!sec) continue;
     pushHint(hints, seen, {
-      nodeId: `template:${tplId}:${secId}`,
-      label: sec.label ?? secId,
+      nodeId: `template:${tplId}:${instanceId}`,
+      label: sec.label ?? blueprintId,
       kind: 'section',
-      sectionId: secId,
+      sectionId: instanceId,
     });
     for (const field of sec.settingsFields ?? []) {
       if (!field.path) continue;
-      const raw = getNested(config, field.path);
+      const path = remapTemplateSchemaPath(field.path, tplId, instanceId);
+      const raw = getNested(config, path);
       const text = typeof raw === 'string' ? raw.trim() : '';
       pushHint(hints, seen, {
-        nodeId: `field:${field.path}`,
-        label: fieldLabelFromPath(field.path, field.label),
-        kind: fieldKindFromPath(field.path, field.type),
+        nodeId: `field:${path}`,
+        label: fieldLabelFromPath(path, field.label),
+        kind: fieldKindFromPath(path, field.type),
         matchText: text.length >= 2 ? text : undefined,
-        fieldPath: field.path,
+        fieldPath: path,
         fieldType: field.type as ThemePreviewSelectionHint['fieldType'],
       });
     }
     for (const block of sec.blocks ?? []) {
-      pushSchemaBlockHints(hints, seen, config, block, `template:${tplId}:${secId}`, secId);
+      pushSchemaBlockHints(hints, seen, config, block, `template:${tplId}:${instanceId}`, instanceId);
     }
   }
 

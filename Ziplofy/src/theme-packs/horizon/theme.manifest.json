@@ -10,7 +10,17 @@
     "defaultConfig": "theme.default-config.json",
     "schema": "theme.schema.json"
   },
-  "templates": ["index", "product", "cart", "login", "signup", "forgot_password", "profile", "orders", "preferences"],
+  "templates": [
+    "index",
+    "product",
+    "cart",
+    "login",
+    "signup",
+    "forgot_password",
+    "profile",
+    "orders",
+    "preferences"
+  ],
   "capabilities": {
     "sections": true,
     "blocks": true,
@@ -19,19 +29,63 @@
   },
   "blockTypes": {
     "basic": [
-      { "id": "button", "label": "Button" },
-      { "id": "heading", "label": "Heading" },
-      { "id": "text", "label": "Text" },
-      { "id": "logo", "label": "Logo" }
+      {
+        "id": "button",
+        "label": "Button"
+      },
+      {
+        "id": "heading",
+        "label": "Heading"
+      },
+      {
+        "id": "text",
+        "label": "Text"
+      },
+      {
+        "id": "logo",
+        "label": "Logo"
+      }
     ],
     "product": [
-      { "id": "product-card", "label": "Product card" },
-      { "id": "price", "label": "Price" },
-      { "id": "title", "label": "Title" }
+      {
+        "id": "product-card",
+        "label": "Product card"
+      },
+      {
+        "id": "price",
+        "label": "Price"
+      },
+      {
+        "id": "title",
+        "label": "Title"
+      }
     ]
   },
   "sectionBlocks": {
-    "hero": ["button", "heading", "text"],
-    "featured-collection": ["product-card", "title"]
-  }
+    "announcement-bar": [
+      "announcement"
+    ],
+    "hero": [
+      "button",
+      "heading",
+      "text"
+    ],
+    "featured-collection": [
+      "product-card",
+      "title"
+    ],
+    "header": [
+      "logo",
+      "menu"
+    ],
+    "footer": [
+      "newsletter"
+    ],
+    "footer-utilities": [
+      "copyright",
+      "policy_links",
+      "social"
+    ]
+  },
+  "benchmark": true
 }

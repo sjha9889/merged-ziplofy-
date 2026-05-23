@@ -23,6 +23,7 @@ import ThemeEditorSidebar from '../../components/themes/theme-editor-sidebar/The
 import type { BlockCatalogItem } from '../../components/themes/theme-editor-sidebar/add-block-catalog';
 import type { ThemeBlockCatalogApi } from '../../components/themes/theme-editor-sidebar/theme-block-catalog.adapter';
 import ThemeEditorPagePicker from '../../components/themes/ThemeEditorPagePicker';
+import ThemeEditorLiveConfigModal from '../../components/themes/ThemeEditorLiveConfigModal';
 import { findPageMenuItemByPreview, buildThemeEditorPageMenu } from '../../utils/theme-editor-page-menu';
 import {
   buildThemeEditorSelectionHints,
@@ -43,12 +44,13 @@ import {
   buildThemeSettingsSidebarTree,
   defaultExpandedSidebar,
   findSidebarNode,
-  firstSelectableSidebarNode,
   resolveAddBlockSectionLabel,
   settingsNodeForSelection,
 } from '../../components/themes/theme-editor-sidebar/theme-editor-sidebar.tree';
+import { announcementBlockNodeIdFromSelection } from '../../components/themes/theme-editor-sidebar/theme-editor-announcement-block-panel.utils';
 import { axiosi } from '../../config/axios.config';
 import {
+  DEV_STATIC_THEME_PACKS,
   getStaticDevPackId,
   isThemeEditorStaticMode,
   setStaticDevPackId,
@@ -60,17 +62,27 @@ import { DevThemePackSwitcher } from '../../components/themes/DevThemePackSwitch
 import { EditorBlockingOverlay } from '../../components/themes/EditorPreviewStatus';
 import { useDebouncedValue } from '../../hooks/useDebouncedValue';
 import { useRafBatchedCounter } from '../../hooks/useRafBatchedState';
-import { applyValuesToThemeConfig, flattenSchemaFieldPaths } from '../../utils/theme-editor-config.utils';
+import {
+  applyValuesToThemeConfig,
+  collectEditableFieldPaths,
+} from '../../utils/theme-editor-config.utils';
 import {
   extendValuesForLayoutInstance,
   getLayoutOrder,
   insertSectionFromCatalog,
   layoutBlueprintKey,
+  pruneValuesForLayoutBlock,
   pruneValuesForLayoutInstance,
+  removeLayoutBlock,
   removeLayoutSection,
 } from '../../utils/theme-editor-insert-section';
 import { mergedConfigFromFormValues } from '../../utils/theme-editor-static-save';
-import { saveStaticThemeConfigLocal } from '../../utils/theme-editor-static-pack';
+import {
+  formValuesFromEditorConfig,
+  mergeLayoutSectionDefaults,
+  mergeTemplateSectionDefaults,
+  saveStaticThemeConfigLocal,
+} from '../../utils/theme-editor-static-pack';
 import {
   fieldTypeFromSchema,
   type ThemeEditorFieldType,
@@ -121,6 +133,7 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
     beforeNodeId?: string;
   } | null>(null);
   const [insertHoverHighlight, setInsertHoverHighlight] = useState<SectionInsertContext | null>(null);
+  const [showEditJson, setShowEditJson] = useState(false);
 
   const openAddSectionModal = useCallback((ctx: SectionInsertContext) => {
     setAddBlockTarget(null);
@@ -141,9 +154,14 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
   const [valuesSyncKey, bumpValuesSync] = useRafBatchedCounter();
 
   const schemaFieldTypes = useMemo(() => {
-    if (!editorSchema) return new Map<string, string>();
-    return new Map(flattenSchemaFieldPaths(editorSchema).map((f) => [f.path, f.type]));
-  }, [editorSchema]);
+    if (!editorSchema || !defaultConfig) return new Map<string, string>();
+    return new Map(
+      collectEditableFieldPaths(editorSchema, defaultConfig as Record<string, unknown>).map((f) => [
+        f.path,
+        f.type,
+      ])
+    );
+  }, [editorSchema, defaultConfig]);
 
   const debouncedValuesForTree = useDebouncedValue(values, 140);
 
@@ -177,8 +195,6 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
     if (!treeInitRef.current) {
       treeInitRef.current = true;
       setExpanded(defaultExpandedSidebar(activeTree));
-      const first = firstSelectableSidebarNode(activeTree);
-      if (first) setSelectedNodeId(first.id);
     }
   }, [activeTree, sidebarTab]);
 
@@ -186,13 +202,27 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
     (data: Awaited<ReturnType<typeof load>>) => {
       if (!data) return;
       treeInitRef.current = false;
+      setSelectedNodeId('');
       setThemeName(data.themeName);
       setEditorSchema((data.editorSchema ?? null) as EditorSchemaDoc | null);
+      const packDefault = JSON.parse(
+        JSON.stringify(data.defaultConfig ?? {})
+      ) as Record<string, unknown>;
       const working = JSON.parse(
         JSON.stringify((data.config ?? data.defaultConfig) as Record<string, unknown>)
       ) as Record<string, unknown>;
+      mergeLayoutSectionDefaults(working, packDefault, 'header');
+      mergeLayoutSectionDefaults(working, packDefault, 'announcement_bar');
+      mergeLayoutSectionDefaults(working, packDefault, 'footer');
+      mergeLayoutSectionDefaults(working, packDefault, 'footer_utilities');
+      mergeTemplateSectionDefaults(working, packDefault, 'index', 'featured_collection');
       setDefaultConfig(working);
-      setValues(data.values);
+      const schema = (data.editorSchema ?? null) as EditorSchemaDoc | null;
+      setValues(
+        schema
+          ? formValuesFromEditorConfig(schema, working)
+          : data.values
+      );
       setItemOrder(readStructureOrderFromConfig(working, previewPage));
       setManifest(data.manifest);
       setBlockCatalog(data.blockCatalog);
@@ -336,10 +366,12 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
         setSidebarTab('sections');
       }
       setAddBlockTarget(null);
-      setSelectedNodeId(nodeId);
+      const sidebarNodeId = announcementBlockNodeIdFromSelection(nodeId) ?? nodeId;
+      setSelectedNodeId(sidebarNodeId);
       setExpanded((prev) => ({
         ...prev,
-        ...expandedIdsForPreviewNode(nodeId, sectionsTree),
+        ...expandedIdsForPreviewNode(sidebarNodeId, sectionsTree),
+        ...(sidebarNodeId !== nodeId ? expandedIdsForPreviewNode(nodeId, sectionsTree) : {}),
       }));
     },
     [selectedNodeId, sectionsTree]
@@ -427,8 +459,8 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
   };
 
   const settingsNode = useMemo(
-    () => settingsNodeForSelection(selectedNode),
-    [selectedNode]
+    () => settingsNodeForSelection(selectedNode, activeTree, editorSchema),
+    [selectedNode, activeTree, editorSchema]
   );
 
   const closeSettings = useCallback(() => {
@@ -460,6 +492,26 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
     setSelectedNodeId('');
     setStructureSyncKey((k) => k + 1);
     toast.success('Section removed');
+  }, [defaultConfig, settingsNode]);
+
+  const handleRemoveSettingsBlock = useCallback(() => {
+    if (!settingsNode || !defaultConfig) return;
+    const m = settingsNode.id.match(/^layout:(announcement_bar(?:_\d+)?):block:(.+)$/);
+    if (!m) {
+      toast.error('This block cannot be removed here');
+      return;
+    }
+    const [, sectionInstanceId, blockId] = m;
+    const next = removeLayoutBlock(defaultConfig, sectionInstanceId, blockId);
+    if (!next) {
+      toast.error('This block cannot be removed');
+      return;
+    }
+    setDefaultConfig(next);
+    setValues((prev) => pruneValuesForLayoutBlock(prev, sectionInstanceId, blockId));
+    setSelectedNodeId(`layout:${sectionInstanceId}`);
+    setStructureSyncKey((k) => k + 1);
+    toast.success('Block removed');
   }, [defaultConfig, settingsNode]);
 
   if (!staticDevMode && !activeStoreId) {
@@ -505,7 +557,7 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
         </div>
 
         <div className="flex items-center gap-2 justify-self-end">
-          {staticDevMode ? (
+          {staticDevMode && DEV_STATIC_THEME_PACKS.length > 1 ? (
             <div className="flex items-center gap-1.5 border-r border-gray-200 pr-2">
               <span className="hidden text-xs font-medium text-gray-500 sm:inline">Theme</span>
               <DevThemePackSwitcher
@@ -514,6 +566,8 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
                 disabled={packSwitching || loading}
               />
             </div>
+          ) : staticDevMode ? (
+            <span className="border-r border-gray-200 pr-2 text-xs font-semibold text-gray-700">Horizon</span>
           ) : null}
           {storeSubdomain?.url ? (
             <a
@@ -526,6 +580,20 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
               <ArrowTopRightOnSquareIcon className="h-4 w-4" />
             </a>
           ) : null}
+          <button
+            type="button"
+            onClick={() => setShowEditJson(true)}
+            disabled={!defaultConfig || !editorSchema}
+            className="hidden h-9 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 sm:inline-flex"
+            title={
+              staticDevMode
+                ? 'View live theme JSON (saved to localStorage on Save)'
+                : 'View live theme JSON (saved to store on Save)'
+            }
+          >
+            <span className="font-mono text-[11px] text-gray-500">{'{}'}</span>
+            Show edit JSON
+          </button>
           <div className="flex rounded-lg border border-gray-200 p-0.5">
             <button
               type="button"
@@ -642,6 +710,7 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
           onSettingsFieldChange={handleFieldChange}
           onCloseSettings={closeSettings}
           onRemoveSettingsSection={handleRemoveSettingsSection}
+          onRemoveSettingsBlock={handleRemoveSettingsBlock}
         />
 
         {/* Preview canvas */}
@@ -666,6 +735,10 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
                 selectionHints={selectionHints}
                 highlightNodeId={selectedNodeId || null}
                 onPreviewSelect={({ nodeId }) => handlePreviewSelect(nodeId)}
+                onPreviewDeselect={() => {
+                  setSelectedNodeId('');
+                  setAddBlockTarget(null);
+                }}
                 onPreviewFieldChange={handlePreviewFieldChange}
                 onPreviewAction={handlePreviewAction}
                 insertHoverHighlight={insertHoverHighlight}
@@ -719,17 +792,20 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
             return;
           }
           setDefaultConfig(result.config);
-          setValues((prev) =>
+          const nextValues =
             ctx.groupId === 'header' || ctx.groupId === 'footer'
-              ? extendValuesForLayoutInstance(
-                  prev,
-                  editorSchema,
-                  layoutBlueprintKey(result.instanceId),
-                  result.instanceId,
-                  result.config
-                )
-              : prev
-          );
+              ? {
+                  ...formValuesFromEditorConfig(editorSchema, result.config),
+                  ...extendValuesForLayoutInstance(
+                    {},
+                    editorSchema,
+                    layoutBlueprintKey(result.instanceId),
+                    result.instanceId,
+                    result.config
+                  ),
+                }
+              : formValuesFromEditorConfig(editorSchema, result.config);
+          setValues(nextValues);
           setItemOrder(readStructureOrderFromConfig(result.config, previewPage));
           treeInitRef.current = false;
           setSelectedNodeId(result.nodeId);
@@ -743,10 +819,23 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
           setStructureSyncKey((k) => k + 1);
           bumpValuesSync();
           if (staticDevMode) {
-            saveStaticThemeConfigLocal(result.config, devPackId);
+            saveStaticThemeConfigLocal(
+              mergedConfigFromFormValues(result.config, nextValues, editorSchema),
+              devPackId
+            );
           }
           toast.success(`Added ${section.label}`);
         }}
+      />
+
+      <ThemeEditorLiveConfigModal
+        open={showEditJson}
+        onClose={() => setShowEditJson(false)}
+        staticDevMode={staticDevMode}
+        packId={devPackId}
+        mergedConfig={livePreviewConfig as Record<string, unknown>}
+        formValues={values}
+        baseConfig={defaultConfig}
       />
     </div>
   );

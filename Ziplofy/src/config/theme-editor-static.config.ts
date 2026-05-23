@@ -72,13 +72,8 @@ export function isThemeEditorStaticMode(): boolean {
 
 export const THEME_EDITOR_DEV_ROUTE = '/themes/dev-editor';
 
-/** Bundled packs available in static dev editor (switch without restart). */
-export const DEV_STATIC_THEME_PACKS = [
-  { id: 'horizon', label: 'Horizon' },
-  { id: 'studio', label: 'Studio' },
-  { id: 'bloom', label: 'Bloom' },
-  { id: 'volt', label: 'Volt' },
-] as const;
+/** Bundled pack for static dev editor (Horizon only). */
+export const DEV_STATIC_THEME_PACKS = [{ id: 'horizon', label: 'Horizon' }] as const;
 
 export type DevStaticThemePackId = (typeof DEV_STATIC_THEME_PACKS)[number]['id'];
 
@@ -87,12 +82,10 @@ const DEV_PACK_STORAGE_KEY = 'ziplofy-theme-editor-static-pack-id';
 export function getStaticDevPackId(): DevStaticThemePackId {
   try {
     const stored = localStorage.getItem(DEV_PACK_STORAGE_KEY);
-    if (stored === 'horizon' || stored === 'studio' || stored === 'bloom' || stored === 'volt') return stored;
+    if (stored === 'horizon') return stored;
   } catch {
     /* ignore */
   }
-  const fromEnv = THEME_EDITOR_STATIC_CONFIG.packId;
-  if (fromEnv === 'studio' || fromEnv === 'bloom' || fromEnv === 'volt') return fromEnv;
   return 'horizon';
 }
 

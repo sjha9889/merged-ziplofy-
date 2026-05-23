@@ -1,5 +1,6 @@
 import type { EditorFieldDef, EditorSchemaDoc } from '../components/themes/theme-editor-sidebar/theme-editor-sidebar.types';
 import { fieldTypeFromSchema } from '../components/themes/theme-editor-sidebar/theme-editor-field.utils';
+import { layoutBlueprintKey, remapLayoutSchemaPath } from './theme-editor-insert-section';
 
 export type SchemaFieldPath = { path: string; type: string; label: string };
 
@@ -55,6 +56,72 @@ export function flattenSchemaFieldPaths(schema: EditorSchemaDoc): SchemaFieldPat
   return out;
 }
 
+function pushRemappedFields(
+  fields: EditorFieldDef[] | undefined,
+  instanceId: string,
+  out: SchemaFieldPath[],
+  seen: Set<string>
+): void {
+  for (const field of fields ?? []) {
+    if (!field.path) continue;
+    const path = remapLayoutSchemaPath(field.path, instanceId);
+    if (seen.has(path)) continue;
+    seen.add(path);
+    out.push({ path, type: field.type, label: field.label || path });
+  }
+}
+
+function pushRemappedBlockFields(
+  blocks: BlockLike[] | undefined,
+  instanceId: string,
+  out: SchemaFieldPath[],
+  seen: Set<string>
+): void {
+  for (const block of blocks ?? []) {
+    pushRemappedFields(block.settingsFields, instanceId, out, seen);
+    pushRemappedBlockFields(block.blocks, instanceId, out, seen);
+  }
+}
+
+/**
+ * Schema blueprint paths plus remapped paths for extra layout instances
+ * (e.g. sections.announcement_bar_2.* added via "Add section").
+ */
+export function collectEditableFieldPaths(
+  schema: EditorSchemaDoc,
+  config: Record<string, unknown>
+): SchemaFieldPath[] {
+  const out = flattenSchemaFieldPaths(schema);
+  const seen = new Set(out.map((f) => f.path));
+  const sections = (config.sections ?? {}) as Record<string, unknown>;
+
+  for (const instanceId of Object.keys(sections)) {
+    const blueprint = layoutBlueprintKey(instanceId);
+    if (blueprint === instanceId) continue;
+    const layout = schema.layout?.[blueprint];
+    if (!layout) continue;
+    pushRemappedFields(layout.settingsFields, instanceId, out, seen);
+    pushRemappedBlockFields(layout.blocks, instanceId, out, seen);
+  }
+
+  return out;
+}
+
+function resolveFieldTypeForPath(
+  path: string,
+  typeByPath: Map<string, string>
+): string | undefined {
+  const direct = typeByPath.get(path);
+  if (direct) return direct;
+
+  const m = path.match(/^sections\.([^.]+)\.(.+)$/);
+  if (!m) return undefined;
+  const [, instanceId, rest] = m;
+  const blueprint = layoutBlueprintKey(instanceId);
+  if (blueprint === instanceId) return undefined;
+  return typeByPath.get(`sections.${blueprint}.${rest}`);
+}
+
 /** Write a value at a dot path; numeric segments use real arrays when the parent is a list. */
 export function setConfigAtPath(
   obj: Record<string, unknown>,
@@ -99,7 +166,11 @@ function coerceFieldValue(
 ): string | boolean | number | undefined {
   if (raw === undefined) return undefined;
   const normalized = fieldTypeFromSchema(type);
-  if (normalized === 'boolean') return Boolean(raw);
+  if (normalized === 'boolean') {
+    if (typeof raw === 'boolean') return raw;
+    if (raw === 'false' || raw === '0' || raw === '') return false;
+    return raw === 'true' || raw === '1';
+  }
   if (normalized === 'number') {
     const n = Number(raw);
     return Number.isFinite(n) ? n : 0;
@@ -114,13 +185,16 @@ export function applyValuesToThemeConfig(
   schema: EditorSchemaDoc
 ): Record<string, unknown> {
   const config = JSON.parse(JSON.stringify(baseConfig)) as Record<string, unknown>;
+  const typeByPath = new Map(
+    collectEditableFieldPaths(schema, baseConfig).map((f) => [f.path, f.type])
+  );
 
-  for (const field of flattenSchemaFieldPaths(schema)) {
-    const raw = values[field.path];
-    if (raw === undefined) continue;
-    const coerced = coerceFieldValue(raw, field.type);
+  for (const [path, raw] of Object.entries(values)) {
+    const type = resolveFieldTypeForPath(path, typeByPath);
+    if (!type) continue;
+    const coerced = coerceFieldValue(raw, type);
     if (coerced === undefined) continue;
-    setConfigAtPath(config, field.path, coerced);
+    setConfigAtPath(config, path, coerced);
   }
 
   return config;

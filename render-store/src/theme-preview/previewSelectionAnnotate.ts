@@ -12,6 +12,8 @@ function normalizeText(value: string): string {
 
 function clearAnnotations(root: ParentNode): void {
   root.querySelectorAll('[data-ziplofy-node]').forEach((el) => {
+    // Keep precise markers from theme components (EditorField) — do not re-tag by fuzzy matchText.
+    if (el.getAttribute('data-ziplofy-kind') === 'field') return;
     el.removeAttribute('data-ziplofy-node');
     el.removeAttribute('data-ziplofy-label');
     el.removeAttribute('data-ziplofy-kind');
@@ -65,15 +67,25 @@ export function annotatePreviewSelectionHints(
 
     const target = normalizeText(hint.matchText!);
     const nodes = document.querySelectorAll(TEXT_SELECTOR);
+    let best: { el: Element; score: number } | null = null;
+
     for (const el of nodes) {
       if (el.closest('[data-ziplofy-node]')) continue;
       const content = normalizeText(el.textContent ?? '');
       if (!content) continue;
-      if (content === target || (target.length >= 8 && content.includes(target))) {
-        tagElement(el, hint);
-        break;
+
+      const exact = content === target;
+      const contains = target.length >= 4 && content.includes(target);
+      if (!exact && !contains) continue;
+
+      // Prefer the smallest matching element so parent <a> does not swallow logo + tagline.
+      const score = exact ? content.length : content.length + 1000;
+      if (!best || score < best.score) {
+        best = { el, score };
       }
     }
+
+    if (best) tagElement(best.el, hint);
   }
 
   for (const hint of sectionHints) {
@@ -84,16 +96,13 @@ export function annotatePreviewSelectionHints(
     }
   }
 
-  // Layout header/footer
+  // Layout sections (announcement bar, header, footer, duplicates)
   for (const hint of hints.filter((h) => h.nodeId.startsWith('layout:'))) {
     if (hint.kind !== 'section') continue;
     const id = hint.nodeId.replace(/^layout:/, '').split(':')[0];
     const root =
-      id === 'header'
-        ? document.querySelector('header,[role="banner"]')
-        : id === 'footer'
-          ? document.querySelector('footer,[role="contentinfo"]')
-          : findBySectionId(id);
+      findBySectionId(id) ??
+      (id === 'footer' ? document.querySelector('footer,[role="contentinfo"]') : null);
     if (root && !root.hasAttribute('data-ziplofy-node')) {
       tagElement(root, hint);
     }

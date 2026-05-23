@@ -569,6 +569,7 @@ export type ThemeEditorSidebarProps = {
   onSettingsFieldChange?: (path: string, type: import('./theme-editor-field.utils').ThemeEditorFieldType, value: string | boolean) => void;
   onCloseSettings?: () => void;
   onRemoveSettingsSection?: () => void;
+  onRemoveSettingsBlock?: () => void;
 };
 
 const ThemeEditorSidebarInner: React.FC<ThemeEditorSidebarProps> = ({
@@ -593,6 +594,7 @@ const ThemeEditorSidebarInner: React.FC<ThemeEditorSidebarProps> = ({
   onSettingsFieldChange,
   onCloseSettings,
   onRemoveSettingsSection,
+  onRemoveSettingsBlock,
 }) => {
   const [dragState, setDragState] = useState<DragState>({
     listKey: null,
@@ -719,6 +721,7 @@ const ThemeEditorSidebarInner: React.FC<ThemeEditorSidebarProps> = ({
             onFieldChange={onSettingsFieldChange!}
             onClose={onCloseSettings!}
             onRemoveSection={onRemoveSettingsSection}
+            onRemoveBlock={onRemoveSettingsBlock}
           />
         </ThemeEditorSettingsSheet>
       ) : null}

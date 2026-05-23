@@ -121,7 +121,7 @@ export function readStructureOrderFromConfig(
           k === 'announcement_bar' ||
           k.startsWith('announcement_bar_') ||
           k === 'header' ||
-          k.startsWith('divider')
+          k.startsWith('header_')
       );
       if (headerIds.length) {
         out[listKeyHeaderSections()] = headerIds.map((id) => `layout:${id}`);

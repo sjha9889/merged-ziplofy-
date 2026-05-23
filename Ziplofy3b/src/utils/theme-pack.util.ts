@@ -231,6 +231,73 @@ function editorFieldType(type: string): ThemeConfigFieldSchema['type'] {
   return 'text';
 }
 
+export function layoutBlueprintKey(sectionId: string): string {
+  if (sectionId === "announcement_bar" || sectionId.startsWith("announcement_bar_")) {
+    return "announcement_bar";
+  }
+  if (sectionId === "header" || sectionId.startsWith("header_")) return "header";
+  if (sectionId.startsWith("divider")) return "divider";
+  return sectionId;
+}
+
+export function remapLayoutSchemaPath(path: string, instanceId: string): string {
+  const blueprint = layoutBlueprintKey(instanceId);
+  if (blueprint === instanceId) return path;
+  return path.replace(`sections.${blueprint}.`, `sections.${instanceId}.`);
+}
+
+function collectPackFieldKeys(
+  schema: EditorSchemaDoc,
+  config: Record<string, unknown>
+): ThemeConfigFieldSchema[] {
+  const fields = flattenEditorSchema(schema);
+  const seen = new Set(fields.map((f) => f.key));
+
+  const sections = (config.sections ?? {}) as Record<string, unknown>;
+  for (const instanceId of Object.keys(sections)) {
+    const blueprint = layoutBlueprintKey(instanceId);
+    if (blueprint === instanceId) continue;
+    const layout = schema.layout?.[blueprint];
+    if (!layout) continue;
+
+    const pushField = (f: EditorFieldDef) => {
+      if (!f.path) return;
+      const key = remapLayoutSchemaPath(f.path, instanceId);
+      if (seen.has(key)) return;
+      seen.add(key);
+      fields.push({
+        key,
+        label: f.label || key,
+        type: editorFieldType(f.type),
+        default: f.type === "boolean" ? false : "",
+      });
+    };
+
+    for (const f of layout.settingsFields ?? []) pushField(f);
+    for (const block of layout.blocks ?? []) {
+      for (const f of block.settingsFields ?? []) pushField(f);
+      for (const nested of block.blocks ?? []) {
+        for (const f of nested.settingsFields ?? []) pushField(f);
+      }
+    }
+  }
+
+  return fields;
+}
+
+function resolvePackFieldType(
+  key: string,
+  typeByKey: Map<string, ThemeConfigFieldSchema["type"]>
+): ThemeConfigFieldSchema["type"] | undefined {
+  const direct = typeByKey.get(key);
+  if (direct) return direct;
+  const m = key.match(/^sections\.([^.]+)\.(.+)$/);
+  if (!m) return undefined;
+  const blueprint = layoutBlueprintKey(m[1]);
+  if (blueprint === m[1]) return undefined;
+  return typeByKey.get(`sections.${blueprint}.${m[2]}`);
+}
+
 export function flattenEditorSchema(schema: EditorSchemaDoc): ThemeConfigFieldSchema[] {
   const fields: ThemeConfigFieldSchema[] = [];
   const seen = new Set<string>();
@@ -343,10 +410,13 @@ export function mergeThemePackConfig(
 
 export function formValuesFromPackConfig(
   config: Record<string, unknown>,
-  schema: ThemeConfigFieldSchema[]
+  schema: ThemeConfigFieldSchema[],
+  editorSchema?: EditorSchemaDoc | null
 ): Record<string, string | boolean> {
+  const fields =
+    editorSchema != null ? collectPackFieldKeys(editorSchema, config) : schema;
   const values: Record<string, string | boolean> = {};
-  for (const field of schema) {
+  for (const field of fields) {
     const v = getNestedValue(config, field.key);
     if (field.type === 'boolean') {
       values[field.key] = Boolean(v);
@@ -360,17 +430,20 @@ export function formValuesFromPackConfig(
 export function mergedConfigFromFormValues(
   values: Record<string, string | boolean>,
   schema: ThemeConfigFieldSchema[],
-  defaultConfig: Record<string, unknown>
+  defaultConfig: Record<string, unknown>,
+  editorSchema?: EditorSchemaDoc | null
 ): Record<string, unknown> {
   const config = JSON.parse(JSON.stringify(defaultConfig)) as Record<string, unknown>;
-  for (const field of schema) {
-    const raw = values[field.key];
-    if (raw === undefined) continue;
-    setNestedValue(
-      config,
-      field.key,
-      field.type === 'boolean' ? Boolean(raw) : String(raw)
-    );
+  const fields =
+    editorSchema != null
+      ? collectPackFieldKeys(editorSchema, defaultConfig)
+      : schema;
+  const typeByKey = new Map(fields.map((f) => [f.key, f.type]));
+
+  for (const [key, raw] of Object.entries(values)) {
+    const type = resolvePackFieldType(key, typeByKey);
+    if (!type) continue;
+    setNestedValue(config, key, type === 'boolean' ? Boolean(raw) : String(raw));
   }
   return config;
 }

@@ -8,7 +8,10 @@ import {
 import { THEME_EDITOR_STATIC_CONFIG } from '../config/theme-editor-static.config';
 import { resolveThemePreviewOrigin } from '../components/themes/ThemeLivePreviewFrame';
 import type { EditorSchemaDoc } from '../components/themes/theme-editor-sidebar/theme-editor-sidebar.types';
-import { flattenSchemaFieldPaths } from './theme-editor-config.utils';
+import {
+  collectEditableFieldPaths,
+  flattenSchemaFieldPaths,
+} from './theme-editor-config.utils';
 
 const PACK_MODULES: Record<
   string,
@@ -35,42 +38,6 @@ const PACK_MODULES: Record<
       import('../theme-packs/horizon/theme.schema.json'),
       import('../theme-packs/horizon/theme.default-config.json'),
       import('../theme-packs/horizon/theme.manifest.json').catch(() => ({ default: null })),
-    ]);
-    return {
-      schema: schema.default,
-      defaultConfig: defaultConfig.default as Record<string, unknown>,
-      manifest: (manifest.default as Record<string, unknown> | null) ?? null,
-    };
-  },
-  studio: async () => {
-    const [schema, defaultConfig, manifest] = await Promise.all([
-      import('../theme-packs/studio/theme.schema.json'),
-      import('../theme-packs/studio/theme.default-config.json'),
-      import('../theme-packs/studio/theme.manifest.json').catch(() => ({ default: null })),
-    ]);
-    return {
-      schema: schema.default,
-      defaultConfig: defaultConfig.default as Record<string, unknown>,
-      manifest: (manifest.default as Record<string, unknown> | null) ?? null,
-    };
-  },
-  bloom: async () => {
-    const [schema, defaultConfig, manifest] = await Promise.all([
-      import('../theme-packs/bloom/theme.schema.json'),
-      import('../theme-packs/bloom/theme.default-config.json'),
-      import('../theme-packs/bloom/theme.manifest.json').catch(() => ({ default: null })),
-    ]);
-    return {
-      schema: schema.default,
-      defaultConfig: defaultConfig.default as Record<string, unknown>,
-      manifest: (manifest.default as Record<string, unknown> | null) ?? null,
-    };
-  },
-  volt: async () => {
-    const [schema, defaultConfig, manifest] = await Promise.all([
-      import('../theme-packs/volt/theme.schema.json'),
-      import('../theme-packs/volt/theme.default-config.json'),
-      import('../theme-packs/volt/theme.manifest.json').catch(() => ({ default: null })),
     ]);
     return {
       schema: schema.default,
@@ -113,10 +80,10 @@ export function formValuesFromEditorConfig(
   config: Record<string, unknown>
 ): Record<string, string | boolean> {
   const values: Record<string, string | boolean> = {};
-  for (const field of flattenSchemaFieldPaths(schema)) {
+  for (const field of collectEditableFieldPaths(schema, config)) {
     const v = getNested(config, field.path);
     if (field.type === 'boolean') {
-      values[field.path] = Boolean(v);
+      values[field.path] = v === true || v === 'true' || v === 1 || v === '1';
     } else if (v == null || v === '') {
       values[field.path] = field.type === 'number' ? '0' : '';
     } else {
@@ -124,6 +91,64 @@ export function formValuesFromEditorConfig(
     }
   }
   return values;
+}
+
+/** Merge pack default header settings into saved config (handles stale localStorage). */
+/** Merge default template section settings (e.g. featured collection on index). */
+export function mergeTemplateSectionDefaults(
+  config: Record<string, unknown>,
+  packDefault: Record<string, unknown>,
+  templateId: string,
+  sectionId: string
+): void {
+  const templates = config.templates as Record<string, { sections?: Record<string, Record<string, unknown>> }> | undefined;
+  const defTemplates = packDefault.templates as Record<string, { sections?: Record<string, Record<string, unknown>> }> | undefined;
+  const curSec = templates?.[templateId]?.sections?.[sectionId];
+  const defSec = defTemplates?.[templateId]?.sections?.[sectionId];
+  if (!curSec || !defSec) return;
+  curSec.settings = { ...(defSec.settings ?? {}), ...(curSec.settings ?? {}) };
+  const curBlocks = curSec.blocks as Record<string, { settings?: Record<string, unknown> }> | undefined;
+  const defBlocks = defSec.blocks as Record<string, { settings?: Record<string, unknown> }> | undefined;
+  if (!curBlocks || !defBlocks) return;
+  for (const [blockId, defBlock] of Object.entries(defBlocks)) {
+    if (!curBlocks[blockId]) {
+      curBlocks[blockId] = JSON.parse(JSON.stringify(defBlock)) as { settings?: Record<string, unknown> };
+      continue;
+    }
+    curBlocks[blockId].settings = {
+      ...(defBlock.settings ?? {}),
+      ...(curBlocks[blockId].settings ?? {}),
+    };
+  }
+}
+
+export function mergeLayoutSectionDefaults(
+  config: Record<string, unknown>,
+  packDefault: Record<string, unknown>,
+  blueprintId: string,
+  instanceId = blueprintId
+): void {
+  const sections = config.sections as Record<string, Record<string, unknown>> | undefined;
+  const defSections = packDefault.sections as Record<string, Record<string, unknown>> | undefined;
+  if (!sections?.[instanceId] || !defSections?.[blueprintId]) return;
+
+  const cur = sections[instanceId];
+  const def = defSections[blueprintId];
+  cur.settings = { ...(def.settings ?? {}), ...(cur.settings ?? {}) };
+
+  const curBlocks = cur.blocks as Record<string, { settings?: Record<string, unknown> }> | undefined;
+  const defBlocks = def.blocks as Record<string, { settings?: Record<string, unknown> }> | undefined;
+  if (!curBlocks || !defBlocks) return;
+  for (const [blockId, defBlock] of Object.entries(defBlocks)) {
+    if (!curBlocks[blockId]) {
+      curBlocks[blockId] = JSON.parse(JSON.stringify(defBlock)) as { settings?: Record<string, unknown> };
+      continue;
+    }
+    curBlocks[blockId].settings = {
+      ...(defBlock.settings ?? {}),
+      ...(curBlocks[blockId].settings ?? {}),
+    };
+  }
 }
 
 function resolveStaticAssetUrl(relativePath: string): string {
@@ -262,7 +287,15 @@ export async function loadStaticThemeEditorPack(
   const editorSchema = loaded.schema as EditorSchemaDoc;
   const defaultConfig = loaded.defaultConfig;
   const saved = readLocalConfig(packId);
-  const config = saved ? (JSON.parse(JSON.stringify(saved)) as Record<string, unknown>) : defaultConfig;
+  const config = saved
+    ? (JSON.parse(JSON.stringify(saved)) as Record<string, unknown>)
+    : (JSON.parse(JSON.stringify(defaultConfig)) as Record<string, unknown>);
+  mergeLayoutSectionDefaults(config, defaultConfig, 'header');
+  mergeLayoutSectionDefaults(config, defaultConfig, 'announcement_bar');
+  mergeLayoutSectionDefaults(config, defaultConfig, 'footer');
+  mergeLayoutSectionDefaults(config, defaultConfig, 'footer_utilities');
+  mergeTemplateSectionDefaults(config, defaultConfig, 'index', 'hero_main');
+  mergeTemplateSectionDefaults(config, defaultConfig, 'index', 'featured_collection');
   const values = formValuesFromEditorConfig(editorSchema, config);
 
   const packPreview = previewUrlsForPack(packId);

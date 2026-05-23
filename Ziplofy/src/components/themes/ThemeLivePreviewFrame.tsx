@@ -44,6 +44,8 @@ export type ThemeLivePreviewFrameProps = {
   page?: ThemePreviewPage;
   selectionHints?: ThemePreviewSelectionHint[];
   onPreviewSelect?: (payload: ThemePreviewSelectPayload) => void;
+  /** Preview clicked empty canvas or cleared selection in iframe. */
+  onPreviewDeselect?: () => void;
   onPreviewFieldChange?: (fieldPath: string, value: string, nodeId: string) => void;
   onPreviewAction?: (action: 'hide' | 'duplicate' | 'delete', nodeId: string) => void;
   onPreviewInsertSection?: (payload: { afterNodeId?: string; beforeNodeId?: string }) => void;
@@ -110,6 +112,7 @@ const ThemeLivePreviewFrameInner: React.FC<ThemeLivePreviewFrameProps> = ({
   page = 'index',
   selectionHints = [],
   onPreviewSelect,
+  onPreviewDeselect,
   onPreviewFieldChange,
   onPreviewAction,
   onPreviewInsertSection,
@@ -131,6 +134,8 @@ const ThemeLivePreviewFrameInner: React.FC<ThemeLivePreviewFrameProps> = ({
   selectionHintsRef.current = selectionHints;
   const onPreviewSelectRef = useRef(onPreviewSelect);
   onPreviewSelectRef.current = onPreviewSelect;
+  const onPreviewDeselectRef = useRef(onPreviewDeselect);
+  onPreviewDeselectRef.current = onPreviewDeselect;
   const onPreviewActionRef = useRef(onPreviewAction);
   onPreviewActionRef.current = onPreviewAction;
   const onPreviewInsertSectionRef = useRef(onPreviewInsertSection);
@@ -254,6 +259,9 @@ const ThemeLivePreviewFrameInner: React.FC<ThemeLivePreviewFrameProps> = ({
       if (data.type === 'ZIPLOFY_PREVIEW_ERROR') {
         setLoadError(data.payload?.message ?? 'Preview failed to load');
       }
+      if (data.type === 'ZIPLOFY_PREVIEW_DESELECT') {
+        onPreviewDeselectRef.current?.();
+      }
       if (data.type === 'ZIPLOFY_PREVIEW_SELECT' && data.payload?.nodeId) {
         onPreviewSelectRef.current?.({
           nodeId: data.payload.nodeId,
@@ -338,7 +346,7 @@ const ThemeLivePreviewFrameInner: React.FC<ThemeLivePreviewFrameProps> = ({
   }, [page, ready]);
 
   useEffect(() => {
-    if (!ready || !highlightNodeId) return;
+    if (!ready) return;
     if (highlightRafRef.current) cancelAnimationFrame(highlightRafRef.current);
     highlightRafRef.current = requestAnimationFrame(() => {
       highlightRafRef.current = 0;
@@ -348,7 +356,7 @@ const ThemeLivePreviewFrameInner: React.FC<ThemeLivePreviewFrameProps> = ({
         {
           source: EDITOR_SOURCE,
           type: 'ZIPLOFY_PREVIEW_HIGHLIGHT',
-          payload: { nodeId: highlightNodeId },
+          payload: { nodeId: highlightNodeId ?? null },
         },
         '*'
       );

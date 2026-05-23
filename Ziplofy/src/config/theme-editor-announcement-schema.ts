@@ -1,6 +1,9 @@
 import type { EditorFieldDef } from '../components/themes/theme-editor-sidebar/theme-editor-sidebar.types';
 
-/** Shopify-style announcement bar section settings (blueprint paths — remapped per instance in sidebar). */
+/**
+ * @deprecated Prefer `theme-packs/horizon/theme.schema.json` → layout.announcement_bar.settingsFields.
+ * Kept for insert-section defaults and backwards compatibility.
+ */
 export const ANNOUNCEMENT_BAR_SETTINGS_FIELDS: EditorFieldDef[] = [
   {
     path: 'sections.announcement_bar.settings.timeToNext',
@@ -8,7 +11,7 @@ export const ANNOUNCEMENT_BAR_SETTINGS_FIELDS: EditorFieldDef[] = [
     label: 'Time to next announcement',
     group: 'General',
     widget: 'slider',
-    min: 2,
+    min: 0,
     max: 30,
     step: 1,
     unit: 'sec',
@@ -93,6 +96,106 @@ export const ANNOUNCEMENT_BAR_SETTINGS_FIELDS: EditorFieldDef[] = [
   },
 ];
 
+export const ANNOUNCEMENT_BLOCK_DEFAULT_SETTINGS: Record<string, unknown> = {
+  text: 'Welcome to our store',
+  link: '',
+  font: 'subheading',
+  fontSize: '12px',
+  fontWeight: 'default',
+  letterSpacing: 'normal',
+  textCase: 'default',
+};
+
+export const ANNOUNCEMENT_BLOCK_SETTINGS_FIELDS: EditorFieldDef[] = [
+  {
+    path: 'sections.announcement_bar.blocks.announcement.settings.text',
+    type: 'textarea',
+    label: 'Text',
+    group: 'Content',
+    widget: 'richtext',
+    sidebar: false,
+  },
+  {
+    path: 'sections.announcement_bar.blocks.announcement.settings.link',
+    type: 'text',
+    label: 'Link',
+    group: 'Content',
+    widget: 'link',
+    placeholder: 'Paste a link or search',
+    sidebar: false,
+  },
+  {
+    path: 'sections.announcement_bar.blocks.announcement.settings.font',
+    type: 'select',
+    label: 'Font',
+    group: 'Typography',
+    widget: 'select',
+    sidebar: false,
+    options: [
+      { value: 'body', label: 'Body' },
+      { value: 'subheading', label: 'Subheading' },
+      { value: 'heading', label: 'Heading' },
+      { value: 'accent', label: 'Accent' },
+    ],
+  },
+  {
+    path: 'sections.announcement_bar.blocks.announcement.settings.fontSize',
+    type: 'select',
+    label: 'Size',
+    group: 'Typography',
+    widget: 'select',
+    sidebar: false,
+    options: [
+      { value: '10px', label: '10px' },
+      { value: '12px', label: '12px' },
+      { value: '14px', label: '14px' },
+      { value: '16px', label: '16px' },
+      { value: '18px', label: '18px' },
+    ],
+  },
+  {
+    path: 'sections.announcement_bar.blocks.announcement.settings.fontWeight',
+    type: 'select',
+    label: 'Weight',
+    group: 'Typography',
+    widget: 'select',
+    sidebar: false,
+    options: [
+      { value: 'default', label: 'Default' },
+      { value: '300', label: 'Light' },
+      { value: '400', label: 'Regular' },
+      { value: '500', label: 'Medium' },
+      { value: '600', label: 'Semibold' },
+      { value: '700', label: 'Bold' },
+    ],
+  },
+  {
+    path: 'sections.announcement_bar.blocks.announcement.settings.letterSpacing',
+    type: 'select',
+    label: 'Letter spacing',
+    group: 'Typography',
+    widget: 'select',
+    sidebar: false,
+    options: [
+      { value: 'tight', label: 'Tight' },
+      { value: 'normal', label: 'Normal' },
+      { value: 'wide', label: 'Wide' },
+    ],
+  },
+  {
+    path: 'sections.announcement_bar.blocks.announcement.settings.textCase',
+    type: 'select',
+    label: 'Case',
+    group: 'Typography',
+    widget: 'segmented',
+    sidebar: false,
+    options: [
+      { value: 'default', label: 'Default' },
+      { value: 'uppercase', label: 'Uppercase' },
+    ],
+  },
+];
+
 export const ANNOUNCEMENT_BAR_DEFAULT_SETTINGS: Record<string, unknown> = {
   enabled: true,
   timeToNext: 5,
@@ -102,9 +205,9 @@ export const ANNOUNCEMENT_BAR_DEFAULT_SETTINGS: Record<string, unknown> = {
   paddingTop: 15,
   paddingBottom: 15,
   customCss: '',
-  message: 'Shop our latest arrivals!',
+  message: 'Welcome to our store',
   linkLabel: '',
-  linkHref: '/products',
+  linkHref: '',
   dismissible: false,
   icon: '',
 };

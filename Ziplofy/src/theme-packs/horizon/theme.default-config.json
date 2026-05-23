@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "themeId": "horizon",
-  "themeName": "Bloom",
+  "themeName": "Horizon",
   "settings": {
     "colors": {
       "primary": "#be185d",
@@ -42,13 +42,13 @@
       "enabled": true,
       "settings": {
         "enabled": true,
-        "message": "Bloom — Complimentary shipping on orders over ₹799",
-        "linkLabel": "Shop blooms",
+        "message": "Free shipping on orders over ₹999 — Shop the new collection",
+        "linkLabel": "Shop now",
         "linkHref": "/products",
         "timeToNext": 5,
         "sectionWidth": "page",
         "colorScheme": "scheme-4",
-        "dividerThickness": 0,
+        "dividerThickness": 1,
         "paddingTop": 15,
         "paddingBottom": 15,
         "customCss": "",
@@ -59,7 +59,13 @@
         "announcement": {
           "type": "announcement",
           "settings": {
-            "text": "Bloom — Complimentary shipping on orders over ₹799"
+            "text": "Free shipping on orders over ₹999 — Shop the new collection",
+            "link": "",
+            "font": "subheading",
+            "fontSize": "12px",
+            "fontWeight": "default",
+            "letterSpacing": "normal",
+            "textCase": "default"
           }
         }
       },
@@ -72,19 +78,49 @@
       "type": "header",
       "enabled": true,
       "settings": {
-        "sticky": true
+        "customerAccountMenu": "customer-account",
+        "searchIcon": true,
+        "searchPosition": "right",
+        "searchRow": "top",
+        "searchPlaceholder": "Search products…",
+        "countryRegionEnabled": true,
+        "showFlag": false,
+        "languageSelectorEnabled": true,
+        "localizationFont": "heading",
+        "localizationSize": "14px",
+        "localizationPosition": "right",
+        "localizationRow": "top",
+        "sectionWidth": "page",
+        "headerHeight": "standard",
+        "stickyMode": "always",
+        "borderThickness": 0,
+        "menuStyle": "icons",
+        "colorScheme": "scheme-1",
+        "homeTransparentBackground": false,
+        "productTransparentBackground": false,
+        "collectionTransparentBackground": false,
+        "defaultLogoUrl": "",
+        "cartType": "drawer",
+        "productTitleCase": "default",
+        "emptyCartLink": "/products",
+        "cartDrawerAutoOpen": false,
+        "cartLabel": "Cart",
+        "customCss": ""
       },
       "blocks": {
         "logo": {
           "type": "logo",
           "settings": {
-            "text": "Bloom",
+            "position": "left",
+            "text": "Horizon",
             "tagline": "Soft essentials"
           }
         },
         "menu": {
           "type": "menu",
           "settings": {
+            "position": "left",
+            "row": "top",
             "items": [
               {
                 "label": "Shop",
@@ -120,16 +156,39 @@
         "newsletter": {
           "type": "newsletter",
           "settings": {
+            "blockWidth": "fill",
+            "inheritColorScheme": true,
             "title": "Join our exclusive email list",
+            "headingTypographyPreset": "heading-3",
+            "inputBorder": "all",
+            "inputBorderThickness": 1,
+            "inputCornerRadius": 100,
+            "inputTypographyPreset": "paragraph",
+            "submitStyle": "link",
+            "submitDisplay": "arrow",
+            "submitIntegratedButton": false,
+            "paddingTop": 0,
+            "paddingBottom": 0,
+            "paddingLeft": 0,
+            "paddingRight": 0,
             "subtitle": "Be the first to hear about new drops, offers, and styling tips.",
             "placeholder": "Enter your email",
-            "buttonLabel": "Subscribe"
+            "buttonLabel": "Subscribe",
+            "privacyNote": ""
           }
         }
       },
       "block_order": [
         "newsletter"
-      ]
+      ],
+      "settings": {
+        "sectionWidth": "page",
+        "gap": 20,
+        "colorScheme": "scheme-1",
+        "paddingTop": 30,
+        "paddingBottom": 30,
+        "customCss": ""
+      }
     },
     "footer_utilities": {
       "id": "footer_utilities",
@@ -139,12 +198,17 @@
         "copyright": {
           "type": "copyright",
           "settings": {
+            "showPoweredBy": false,
+            "fontSize": "12px",
+            "textCase": "default",
             "text": "© 2026 My Store. All rights reserved."
           }
         },
         "policy_links": {
           "type": "policy_links",
           "settings": {
+            "fontSize": "12px",
+            "textCase": "default",
             "privacyLabel": "Privacy policy",
             "privacyHref": "/pages/privacy",
             "termsLabel": "Terms of service",
@@ -154,8 +218,19 @@
         "social": {
           "type": "social",
           "settings": {
-            "instagram": "https://instagram.com",
-            "facebook": "https://facebook.com"
+            "facebookUrl": "https://facebook.com",
+            "instagramUrl": "https://instagram.com",
+            "youtubeUrl": "",
+            "tiktokUrl": "",
+            "twitterUrl": "",
+            "threadsUrl": "",
+            "linkedinUrl": "",
+            "blueskyUrl": "",
+            "snapchatUrl": "",
+            "pinterestUrl": "",
+            "tumblrUrl": "",
+            "vimeoUrl": "",
+            "customUrl": ""
           }
         }
       },
@@ -163,7 +238,18 @@
         "copyright",
         "policy_links",
         "social"
-      ]
+      ],
+      "settings": {
+        "sectionWidth": "page",
+        "gap": 24,
+        "dividerThickness": 0,
+        "colorScheme": "scheme-1",
+        "paddingTop": 20,
+        "paddingBottom": 48,
+        "paymentIcons": false,
+        "followOnShop": false,
+        "customCss": ""
+      }
     }
   },
   "templates": {
@@ -174,8 +260,41 @@
           "type": "hero",
           "enabled": true,
           "settings": {
-            "eyebrow": "Spring edit",
+            "media1Type": "image",
+            "media1ImageUrl": "",
+            "media2Type": "image",
+            "media2ImageUrl": "",
+            "mobileStackMedia": false,
+            "mobileDifferentMedia": false,
+            "mobileImageUrl": "",
+            "sectionLink": "",
+            "sectionLinkNewTab": false,
+            "direction": "vertical",
+            "alignTextBaseline": true,
+            "layoutAlignment": "center",
+            "position": "bottom",
+            "layoutGap": 24,
+            "sectionWidth": "page",
+            "height": "medium",
+            "colorScheme": "scheme-6",
+            "mediaOverlay": true,
+            "overlayColor": "#12121266",
+            "overlayStyle": "solid",
+            "blurredReflection": false,
+            "paddingTop": 100,
+            "paddingBottom": 72,
+            "customCss": "",
             "title": "Wear the season",
+            "headingWidth": "fit",
+            "headingMaxWidth": "normal",
+            "headingTypographyPreset": "heading-2",
+            "headingColor": "heading",
+            "headingBackgroundEnabled": false,
+            "headingPaddingTop": 0,
+            "headingPaddingBottom": 0,
+            "headingPaddingLeft": 0,
+            "headingPaddingRight": 0,
+            "eyebrow": "Spring edit",
             "subtitle": "Light fabrics, warm tones, and pieces made for slow mornings and long evenings.",
             "textAlign": "center",
             "minHeight": 520,
@@ -193,7 +312,12 @@
               "type": "button",
               "settings": {
                 "label": "Shop now",
-                "href": "/products"
+                "href": "/products",
+                "openInNewTab": false,
+                "buttonStyle": "primary",
+                "desktopWidth": "fit",
+                "mobileWidth": "fit",
+                "ariaLabel": ""
               },
               "settings_field_order": [
                 "templates.index.sections.hero_main.blocks.primary_button.settings.label",
@@ -204,7 +328,12 @@
               "type": "button",
               "settings": {
                 "label": "Learn more",
-                "href": "/#about"
+                "href": "/#about",
+                "openInNewTab": false,
+                "buttonStyle": "secondary",
+                "desktopWidth": "fit",
+                "mobileWidth": "fit",
+                "ariaLabel": ""
               },
               "settings_field_order": [
                 "templates.index.sections.hero_main.blocks.secondary_button.settings.label",
@@ -213,6 +342,7 @@
             }
           },
           "block_order": [
+            "heading",
             "primary_button",
             "secondary_button"
           ]
@@ -221,12 +351,25 @@
           "type": "featured-collection",
           "enabled": true,
           "settings": {
+            "collectionHandle": "products",
+            "layoutType": "grid",
+            "carouselOnMobile": false,
             "productsToShow": 8,
-            "subtitle": "Hand-picked for you",
             "columns": 4,
-            "gap": 24,
+            "mobileColumns": "2",
+            "horizontalGap": 24,
+            "verticalGap": 24,
+            "sectionWidth": "page",
+            "alignment": "left",
+            "sectionGap": 28,
+            "colorScheme": "scheme-1",
+            "paddingTop": 48,
+            "paddingBottom": 48,
+            "customCss": "",
+            "subtitle": "Hand-picked for you",
             "showRating": true,
-            "emptyMessage": "No products yet."
+            "emptyMessage": "No products yet.",
+            "gap": 24
           },
           "settings_field_order": [
             "templates.index.sections.featured_collection.settings.productsToShow"
@@ -235,7 +378,34 @@
             "collection_header": {
               "type": "collection-header",
               "settings": {
+                "direction": "horizontal",
+                "verticalOnMobile": false,
+                "layoutAlignment": "space-between",
+                "position": "bottom",
+                "alignTextBaseline": true,
+                "layoutGap": 12,
+                "width": "fill",
+                "mobileWidth": "fill",
+                "height": "fit",
+                "inheritColorScheme": true,
+                "backgroundMedia": "none",
+                "backgroundImageUrl": "",
+                "borderStyle": "none",
+                "cornerRadius": 0,
+                "paddingTop": 0,
+                "paddingBottom": 0,
+                "paddingLeft": 0,
+                "paddingRight": 0,
                 "title": "Featured products",
+                "titleWidth": "fit",
+                "titleMaxWidth": "normal",
+                "titleTypographyPreset": "heading-4",
+                "titleColor": "text",
+                "titleBackgroundEnabled": false,
+                "titlePaddingTop": 0,
+                "titlePaddingBottom": 0,
+                "titlePaddingLeft": 0,
+                "titlePaddingRight": 0,
                 "viewAllLabel": "View all",
                 "viewAllHref": "/products",
                 "subtitle": "Curated selection"
@@ -248,6 +418,41 @@
             "product_card": {
               "type": "product-card",
               "settings": {
+                "verticalGap": 4,
+                "inheritColorScheme": true,
+                "borderStyle": "none",
+                "cornerRadius": 0,
+                "paddingTop": 0,
+                "paddingBottom": 0,
+                "paddingLeft": 0,
+                "paddingRight": 0,
+                "mediaAspectRatio": "auto",
+                "mediaBorderStyle": "none",
+                "mediaCornerRadius": 0,
+                "mediaPaddingTop": 0,
+                "mediaPaddingBottom": 0,
+                "mediaPaddingLeft": 0,
+                "mediaPaddingRight": 0,
+                "productTitleWidth": "fill",
+                "productTitleMaxWidth": "normal",
+                "productTitleAlignment": "left",
+                "productTitleTypographyPreset": "default",
+                "productTitleBackgroundEnabled": false,
+                "productTitlePaddingTop": 4,
+                "productTitlePaddingBottom": 0,
+                "productTitlePaddingLeft": 0,
+                "productTitlePaddingRight": 0,
+                "priceShowSaleFirst": true,
+                "priceInstallments": false,
+                "priceTaxInfo": false,
+                "priceTypographyPreset": "heading-6",
+                "priceWidth": "fill",
+                "priceAlignment": "left",
+                "priceColor": "text",
+                "pricePaddingTop": 0,
+                "pricePaddingBottom": 0,
+                "pricePaddingLeft": 0,
+                "pricePaddingRight": 0,
                 "showMedia": true,
                 "showTitle": true,
                 "showPrice": true

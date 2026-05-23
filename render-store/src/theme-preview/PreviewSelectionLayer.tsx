@@ -28,6 +28,7 @@ type Rect = { top: number; left: number; width: number; height: number };
 
 type PreviewSelectionLayerProps = {
   hints: ThemePreviewSelectionHint[];
+  insertHighlight?: ThemePreviewInsertHighlightPayload;
   enabled?: boolean;
 };
 
@@ -164,6 +165,21 @@ export function PreviewSelectionLayer({
     [cancelInlineEdit, commitInlineEdit]
   );
 
+  const clearPreviewSelection = useCallback(
+    (opts?: { commitEdit?: boolean }) => {
+      if (isEditingRef.current) {
+        if (opts?.commitEdit !== false) commitInlineEdit();
+        else cancelInlineEdit();
+      }
+      setSelected(null);
+      setSelectRect(null);
+      setHoverRect(null);
+      setHoverLabel(null);
+      lastHoverNodeIdRef.current = null;
+    },
+    [cancelInlineEdit, commitInlineEdit]
+  );
+
   useEffect(() => {
     if (!enabled) return;
     document.documentElement.classList.add('ziplofy-preview-edit-mode');
@@ -199,7 +215,11 @@ export function PreviewSelectionLayer({
     const onMessage = (event: MessageEvent) => {
       if (!isParentPreviewMessage(event.data)) return;
       if (event.data.type !== 'ZIPLOFY_PREVIEW_HIGHLIGHT') return;
-      const { nodeId } = event.data.payload;
+      const nodeId = event.data.payload.nodeId;
+      if (!nodeId) {
+        clearPreviewSelection({ commitEdit: true });
+        return;
+      }
 
       const applyHighlight = () => {
         const el = findElementForNodeId(nodeId);
@@ -225,7 +245,7 @@ export function PreviewSelectionLayer({
 
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
-  }, [enabled]);
+  }, [enabled, clearPreviewSelection]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -242,7 +262,7 @@ export function PreviewSelectionLayer({
     if (!enabled) return;
 
     const onMove = rafThrottle((e: MouseEvent) => {
-      if (selectedRef.current || isEditingRef.current) return;
+      if (isEditingRef.current) return;
 
       const target = findEditableTargetFromPoint(e.clientX, e.clientY);
       if (!target) {
@@ -256,6 +276,14 @@ export function PreviewSelectionLayer({
 
       const resolved = resolveSelectionFromElement(target, hintsRef.current);
       const nodeId = resolved?.nodeId ?? target.getAttribute('data-ziplofy-node');
+      if (nodeId && nodeId === selectedRef.current?.nodeId) {
+        if (lastHoverNodeIdRef.current !== null) {
+          lastHoverNodeIdRef.current = null;
+          setHoverRect(null);
+          setHoverLabel(null);
+        }
+        return;
+      }
       if (nodeId && nodeId === lastHoverNodeIdRef.current) return;
 
       lastHoverNodeIdRef.current = nodeId;
@@ -271,8 +299,10 @@ export function PreviewSelectionLayer({
       const target = findEditableTargetFromPoint(e.clientX, e.clientY);
       if (!target) {
         if (isEditingRef.current) commitInlineEdit();
-        setSelected(null);
-        setSelectRect(null);
+        if (selectedRef.current) {
+          clearPreviewSelection({ commitEdit: false });
+          postToParent({ source: 'ziplofy-theme-preview', type: 'ZIPLOFY_PREVIEW_DESELECT' });
+        }
         return;
       }
 
@@ -310,7 +340,7 @@ export function PreviewSelectionLayer({
       document.removeEventListener('mousemove', onMove, true);
       document.removeEventListener('click', onClick, true);
     };
-  }, [enabled, beginInlineEdit, commitInlineEdit]);
+  }, [enabled, beginInlineEdit, clearPreviewSelection, commitInlineEdit]);
 
   const postAction = (action: 'hide' | 'duplicate' | 'delete') => {
     if (!selected) return;
@@ -321,8 +351,8 @@ export function PreviewSelectionLayer({
       payload: { action, nodeId: selected.nodeId },
     });
     if (action === 'hide' || action === 'delete') {
-      setSelected(null);
-      setSelectRect(null);
+      clearPreviewSelection({ commitEdit: false });
+      postToParent({ source: 'ziplofy-theme-preview', type: 'ZIPLOFY_PREVIEW_DESELECT' });
     }
   };
 
@@ -333,9 +363,9 @@ export function PreviewSelectionLayer({
       id="ziplofy-preview-selection-root"
       className={selected || isEditing ? 'ziplofy-selection-active' : undefined}
     >
-      {hoverRect && !selected && !isEditing && (
+      {hoverRect && !isEditing && (
         <div
-          className="ziplofy-selection-box"
+          className="ziplofy-selection-box ziplofy-selection-box-hover"
           style={{
             top: hoverRect.top,
             left: hoverRect.left,
@@ -409,7 +439,7 @@ export function PreviewSelectionLayer({
         </>
       )}
 
-      {hoverRect && hoverLabel && !selected && !isEditing && (
+      {hoverRect && hoverLabel && !isEditing && (
         <div
           className="ziplofy-selection-label"
           style={{

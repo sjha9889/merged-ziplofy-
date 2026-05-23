@@ -23,7 +23,11 @@ export type EditorFieldWidget =
   | 'slider'
   | 'segmented'
   | 'color-scheme'
-  | 'accordion';
+  | 'accordion'
+  | 'richtext'
+  | 'link'
+  | 'info-link'
+  | 'select';
 
 export type EditorFieldDef = {
   path: string;
@@ -36,6 +40,9 @@ export type EditorFieldDef = {
   max?: number;
   step?: number;
   options?: EditorFieldOption[];
+  placeholder?: string;
+  /** Helper copy shown under the control (Shopify-style). */
+  description?: string;
   /** When false, field appears only in the bottom settings sheet (not sidebar tree). */
   sidebar?: boolean;
 };

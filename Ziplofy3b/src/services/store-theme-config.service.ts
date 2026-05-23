@@ -189,7 +189,7 @@ function buildPayloadFromPack(
     : (storeOverrides as Record<string, unknown>);
   const schema = pack ? flattenEditorSchema(pack.editorSchema) : REACT_THEME_CONFIG_SCHEMA;
   const values = pack
-    ? formValuesFromPackConfig(merged, schema)
+    ? formValuesFromPackConfig(merged, schema, pack.editorSchema)
     : formValuesFromConfig(merged);
 
   return {
@@ -215,7 +215,7 @@ export async function loadCatalogThemeEditorPack(
 
   const schema = pack ? flattenEditorSchema(pack.editorSchema) : REACT_THEME_CONFIG_SCHEMA;
   const values = pack
-    ? formValuesFromPackConfig(pack.defaultConfig, schema)
+    ? formValuesFromPackConfig(pack.defaultConfig, schema, pack.editorSchema)
     : formValuesFromConfig({});
 
   return {
@@ -294,7 +294,12 @@ export async function saveStoreThemeConfig(
       storeOverridesToSave = overrides;
       merged = mergeThemePackConfig(storeOverridesToSave, pack);
     } else if (values && typeof values === "object") {
-      merged = mergedConfigFromFormValues(values, flatSchema, pack.defaultConfig);
+      merged = mergedConfigFromFormValues(
+        values,
+        flatSchema,
+        pack.defaultConfig,
+        pack.editorSchema
+      );
       storeOverridesToSave = computeStoreOverrides(merged, pack.defaultConfig);
     } else if (config && typeof config === "object") {
       merged = mergeThemePackConfig(config, pack);
