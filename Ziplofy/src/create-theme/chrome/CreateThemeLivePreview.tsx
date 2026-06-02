@@ -1,4 +1,5 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { creatorConfigHasSections } from '../../utils/theme-editor-static-pack';
 import { PreviewLoadingOverlay, PreviewSyncPulse } from './PreviewStatus';
 
 const EDITOR_SOURCE = 'ziplofy-theme-editor';
@@ -184,7 +185,7 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
         payload: {
           storeId,
           storeName,
-          jsUrl,
+          jsUrl: jsUrl ?? null,
           cssUrl: cssUrl ?? null,
           config: configRef.current,
           page,
@@ -417,22 +418,42 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
       if (configPostTimerRef.current !== undefined) window.clearTimeout(configPostTimerRef.current);
       if (hintsPostTimerRef.current !== undefined) window.clearTimeout(hintsPostTimerRef.current);
     };
-  }, [jsUrl, storeId, previewSrc]);
+  }, [storeId, previewSrc, page]);
 
   useEffect(() => {
-    if (ready && jsUrl && storeId) {
+    if (ready && storeId) {
       postInit();
     }
-  }, [ready, jsUrl, storeId, page, cssUrl, storeName, postInit]);
+  }, [ready, storeId, page, cssUrl, storeName, jsUrl, postInit]);
 
-  if (!jsUrl) {
+  const previewHasSections = useMemo(
+    () => creatorConfigHasSections(config, page),
+    [config, page]
+  );
+
+  const emptyCanvasMessage = (
+    <div
+      className={`flex min-h-[320px] flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center ${className}`}
+    >
+      <p className="text-base font-medium text-gray-700">Your canvas is empty</p>
+      <p className="mt-2 max-w-sm text-sm text-gray-500">
+        Start adding elements from the sidebar to get a preview here.
+      </p>
+    </div>
+  );
+
+  if (!storeId?.trim()) {
     return (
       <div
         className={`flex min-h-[320px] items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 p-6 text-center text-sm text-gray-500 ${className}`}
       >
-        Upload and apply a theme with <code className="mx-1">theme.js</code> to enable live preview.
+        Select a store to enable live preview.
       </div>
     );
+  }
+
+  if (!previewHasSections) {
+    return emptyCanvasMessage;
   }
 
   return (
