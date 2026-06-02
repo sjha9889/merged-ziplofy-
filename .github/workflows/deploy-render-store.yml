@@ -12,14 +12,13 @@ on:
     branches: [main]
     paths:
       - 'render-store/**'
+      # Bundled via @ziplofy/create-theme alias — rebuild storefront when runtimes change
+      - 'Ziplofy/src/create-theme/**'
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: render-store
 
     steps:
       - name: Checkout repository
@@ -31,12 +30,20 @@ jobs:
           # Pin to match EC2 runtime and avoid Node engine mismatch warnings
           node-version: '24'
           cache: 'npm'
-          cache-dependency-path: render-store/package-lock.json
+          cache-dependency-path: |
+            render-store/package-lock.json
+            Ziplofy/package-lock.json
 
-      - name: Install dependencies
+      - name: Install Ziplofy dependencies (create-theme peer types)
+        working-directory: Ziplofy
+        run: npm ci
+
+      - name: Install render-store dependencies
+        working-directory: render-store
         run: npm ci
 
       - name: Build render-store
+        working-directory: render-store
         run: npm run build
 
       - name: Deploy to EC2

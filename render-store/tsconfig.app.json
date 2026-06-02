@@ -14,6 +14,8 @@
     "paths": {
       "@/*": ["src/*"],
       "@render-store/sdk": ["src/sdk/index.ts"],
+      "@ziplofy/create-theme": ["../Ziplofy/src/create-theme"],
+      "@ziplofy/create-theme/*": ["../Ziplofy/src/create-theme/*"],
       "@ziplofy/create-theme/runtime": ["../Ziplofy/src/create-theme/runtime/index.ts"],
       "@ziplofy/create-theme/runtime/*": ["../Ziplofy/src/create-theme/runtime/*"]
     },
