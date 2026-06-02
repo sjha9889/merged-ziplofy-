@@ -235,6 +235,13 @@ export const BLOCK_PREVIEW_SLIDES: BlockPreviewSlide[] = [
     variant: 'announcement-bar',
   },
   {
+    id: 'header',
+    headline: 'Have an idea?',
+    headlineAccent: "Let's bring it to life",
+    caption: 'Store logo, navigation, and utility icons',
+    variant: 'header',
+  },
+  {
     id: 'divider',
     headline: 'Have an idea?',
     headlineAccent: "Let's bring it to life",

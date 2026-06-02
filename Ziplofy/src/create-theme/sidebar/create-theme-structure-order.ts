@@ -1,5 +1,6 @@
 import type { ThemePreviewPage } from '../chrome/CreateThemeLivePreview';
 import { bottomAlignedHeroStructureOrder } from '../../utils/hero-bottom-aligned.util';
+import { existingLayoutSectionIds } from '../../utils/theme-editor-insert-section';
 import type { SidebarNode } from './create-theme-sidebar.types';
 
 function templateIdForPage(page: ThemePreviewPage): string {
@@ -108,30 +109,14 @@ export function readStructureOrderFromConfig(
   const tplId = templateIdForPage(page);
   const out: Record<string, string[]> = {};
 
-  const layoutOrder = getNested(config, ['layout_order']) as
-    | { header?: string[]; footer?: string[] }
-    | undefined;
-
-  if (layoutOrder?.header?.length) {
-    out[listKeyHeaderSections()] = layoutOrder.header.map((id) => `layout:${id}`);
-  } else {
-    const layoutSections = config.sections as Record<string, unknown> | undefined;
-    if (layoutSections) {
-      const headerIds = Object.keys(layoutSections).filter(
-        (k) =>
-          k === 'announcement_bar' ||
-          k.startsWith('announcement_bar_') ||
-          k === 'header' ||
-          k.startsWith('header_')
-      );
-      if (headerIds.length) {
-        out[listKeyHeaderSections()] = headerIds.map((id) => `layout:${id}`);
-      }
-    }
+  const headerIds = existingLayoutSectionIds(config, 'header');
+  if (headerIds.length) {
+    out[listKeyHeaderSections()] = headerIds.map((id) => `layout:${id}`);
   }
 
-  if (layoutOrder?.footer?.length) {
-    out[listKeyFooterSections()] = layoutOrder.footer.map((id) => `layout:${id}`);
+  const footerIds = existingLayoutSectionIds(config, 'footer');
+  if (footerIds.length) {
+    out[listKeyFooterSections()] = footerIds.map((id) => `layout:${id}`);
   }
 
   const tpl = getNested(config, ['templates', tplId]) as

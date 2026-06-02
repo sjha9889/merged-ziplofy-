@@ -189,6 +189,7 @@ const LAYOUT_CATEGORY_ITEMS: SectionCatalogItem[] = [
 
 /** Header layout options (no Custom Liquid). */
 const HEADER_LAYOUT_ITEMS: SectionCatalogItem[] = [
+  layoutBlockItem('header', 'Header', ['navigation', 'menu', 'logo', 'search', 'cart'], 'header', 'Store logo, navigation, and utility icons'),
   layoutBlockItem('divider', 'Divider', ['line', 'separator', 'rule'], 'divider', 'A horizontal line to separate content'),
 ];
 

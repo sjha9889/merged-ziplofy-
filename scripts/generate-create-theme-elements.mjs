@@ -14,7 +14,7 @@ const MANIFEST_PATH = path.join(ROOT, 'Ziplofy', 'src', 'theme-editor', 'section
 const EDITING_PATH = path.join(ROOT, 'Ziplofy', 'src', 'theme-editor', 'section-editing-support.json');
 
 /** Keep hand-tuned previews/presets in these folders (not overwritten). */
-const HANDCRAFTED = new Set(['footer', 'announcement-bar', 'divider', 'policies-links']);
+const HANDCRAFTED = new Set(['footer', 'announcement-bar', 'header', 'divider', 'policies-links']);
 
 function mapFieldType(t) {
   if (t === 'textarea') return 'textarea';

@@ -12,8 +12,7 @@ export const ANNOUNCEMENT_PANEL_GROUP_ORDER = [
 const PANEL_GROUPS = new Set<string>(ANNOUNCEMENT_PANEL_GROUP_ORDER);
 
 const FIELD_SORT_KEYS: Record<string, number> = {
-  enabled: 0,
-  timeToNext: 1,
+  timeToNext: 0,
   sectionWidth: 10,
   colorScheme: 11,
   dividerThickness: 12,
@@ -29,10 +28,10 @@ function fieldSortKey(path: string): number {
 
 export function isAnnouncementSettingsPanelFields(fields: EditorFieldDef[]): boolean {
   if (!fields.length) return false;
-  return fields.some(
-    (f) =>
-      /\.sections\.announcement_bar(?:_\d+)?\.settings\./.test(f.path) &&
-      (f.group === 'General' || f.path.endsWith('.settings.enabled'))
+  const keys = new Set(fields.map((f) => f.path.split('.').pop() ?? ''));
+  return (
+    fields.some((f) => /\.sections\.announcement_bar(?:_\d+)?\.settings\./.test(f.path)) &&
+    keys.has('timeToNext')
   );
 }
 
@@ -55,11 +54,13 @@ export function isAnnouncementLayoutNodeId(nodeId: string): boolean {
   return Boolean(m && layoutBlueprintKey(m[1]) === 'announcement_bar');
 }
 
-/** Section settings for the bottom panel (excludes legacy Content paths). */
+/** Section settings for the bottom panel (excludes legacy Content + enabled; visibility uses sidebar eye). */
 export function filterAnnouncementPanelFields(fields: EditorFieldDef[]): EditorFieldDef[] {
   return fields.filter((f) => {
     if (f.group === 'Content') return false;
-    if (!f.group) return f.path.includes('.settings.enabled');
+    const key = f.path.split('.').pop() ?? '';
+    if (key === 'enabled') return false;
+    if (!f.group) return false;
     return PANEL_GROUPS.has(f.group);
   });
 }

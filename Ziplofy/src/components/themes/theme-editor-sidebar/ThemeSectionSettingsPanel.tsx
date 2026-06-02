@@ -1599,7 +1599,64 @@ function DividerStylingSettingsGroup({
   );
 }
 
-/** Announcement bar section: General → Appearance → Padding → Custom CSS. */
+const ANNOUNCEMENT_APPEARANCE_FIELD_ORDER = ['sectionWidth', 'colorScheme', 'dividerThickness'] as const;
+
+function AnnouncementAppearanceSettingsGroup({
+  fields,
+  values,
+  onFieldChange,
+}: {
+  fields: EditorFieldDef[];
+  values: Record<string, string | boolean>;
+  onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
+}) {
+  const rank = (path: string) => {
+    const key = path.split('.').pop() ?? '';
+    const idx = ANNOUNCEMENT_APPEARANCE_FIELD_ORDER.indexOf(
+      key as (typeof ANNOUNCEMENT_APPEARANCE_FIELD_ORDER)[number]
+    );
+    return idx >= 0 ? idx : 99;
+  };
+  const ordered = [...fields].sort((a, b) => rank(a.path) - rank(b.path));
+
+  return (
+    <div className="space-y-0.5">
+      {ordered.map((field) => {
+        const key = field.path.split('.').pop() ?? '';
+        if (field.widget === 'color-scheme' || key === 'colorScheme') {
+          return (
+            <ColorSchemeFieldRow
+              key={field.path}
+              field={field}
+              values={values}
+              onFieldChange={onFieldChange}
+            />
+          );
+        }
+        if (field.widget === 'segmented' || key === 'sectionWidth') {
+          return (
+            <SegmentedFieldRow
+              key={field.path}
+              field={field}
+              values={values}
+              onFieldChange={onFieldChange}
+            />
+          );
+        }
+        if (field.widget === 'slider' || key === 'dividerThickness') {
+          return (
+            <SliderFieldRow key={field.path} field={field} values={values} onFieldChange={onFieldChange} />
+          );
+        }
+        return (
+          <SettingsFieldRow key={field.path} field={field} values={values} onFieldChange={onFieldChange} />
+        );
+      })}
+    </div>
+  );
+}
+
+/** Announcement bar: time → Appearance → Padding → Custom CSS (Shopify order). */
 function AnnouncementBarGroupedSettingsPanel({
   fields,
   values,
@@ -1616,6 +1673,34 @@ function AnnouncementBarGroupedSettingsPanel({
       {ANNOUNCEMENT_PANEL_GROUP_ORDER.map((label) => {
         const groupFields = grouped.get(label);
         if (!groupFields?.length) return null;
+
+        if (label === 'General') {
+          return (
+            <div key={label} className="space-y-1 px-1 py-3">
+              {groupFields.map((field) => (
+                <SliderFieldRow
+                  key={field.path}
+                  field={field}
+                  values={values}
+                  onFieldChange={onFieldChange}
+                />
+              ))}
+            </div>
+          );
+        }
+
+        if (label === 'Appearance') {
+          return (
+            <div key={label} className="px-1 py-3">
+              <h3 className="mb-2 text-[13px] font-semibold text-gray-900">{label}</h3>
+              <AnnouncementAppearanceSettingsGroup
+                fields={groupFields}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            </div>
+          );
+        }
 
         if (label === 'Padding') {
           return (
@@ -1643,21 +1728,7 @@ function AnnouncementBarGroupedSettingsPanel({
           );
         }
 
-        return (
-          <div key={label} className="px-1 py-3">
-            <h3 className="mb-2 text-[13px] font-semibold text-gray-900">{label}</h3>
-            <div className="space-y-0.5">
-              {groupFields.map((field) => (
-                <SettingsFieldRow
-                  key={field.path}
-                  field={field}
-                  values={values}
-                  onFieldChange={onFieldChange}
-                />
-              ))}
-            </div>
-          </div>
-        );
+        return null;
       })}
     </div>
   );

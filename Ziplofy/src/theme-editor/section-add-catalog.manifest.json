@@ -13,6 +13,7 @@
         "layout": {
           "label": "Layout",
           "itemIds": [
+            "header",
             "divider"
           ]
         }
@@ -397,6 +398,19 @@
       ],
       "previewVariant": "divider",
       "previewCaption": "A horizontal line to separate content"
+    },
+    "header": {
+      "label": "Header",
+      "icon": "section",
+      "keywords": [
+        "navigation",
+        "menu",
+        "logo",
+        "search",
+        "cart"
+      ],
+      "previewVariant": "header",
+      "previewCaption": "Store logo, navigation, and utility icons"
     },
     "featured-collection-carousel": {
       "label": "Featured collection: Carousel",
@@ -848,9 +862,17 @@
       "divider": {
         "blueprintId": "divider",
         "sectionType": "divider"
+      },
+      "header": {
+        "blueprintId": "header",
+        "sectionType": "header"
       }
     },
     "headerFooter": {
+      "header": {
+        "blueprintId": "header",
+        "sectionType": "header"
+      },
       "announcement-bar": {
         "blueprintId": "announcement_bar",
         "sectionType": "announcement-bar"

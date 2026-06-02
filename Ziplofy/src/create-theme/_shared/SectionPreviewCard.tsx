@@ -15,6 +15,13 @@ export function SectionPreviewCard({ label, variant = 'text-block' }: Props) {
       </PreviewShell>
     );
   }
+  if (variant === 'header') {
+    return (
+      <div className="mx-auto w-full max-w-[420px] rounded-lg border-2 border-[#4a8fe8] bg-[#f3f3f3] px-3 py-2">
+        <p className="text-[0.55rem] font-bold text-gray-900">My Store</p>
+      </div>
+    );
+  }
   if (variant === 'divider') {
     return (
       <div className="mx-auto flex h-[140px] w-full max-w-[420px] items-center justify-center bg-[#e8e8e8]">

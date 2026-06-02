@@ -61,7 +61,10 @@ import {
   formValuesFromEditorConfig,
   loadCreatorThemeEditorPack,
 } from '../utils/theme-editor-static-pack';
-import { sanitizeThemeConfigStructure } from '../utils/theme-editor-insert-section';
+import {
+  sanitizeThemeConfigStructure,
+  syncLayoutOrderFromSections,
+} from '../utils/theme-editor-insert-section';
 import { mergedConfigFromFormValues } from '../utils/theme-editor-static-save';
 import { fieldTypeFromSchema, type ThemeEditorFieldType } from './sidebar/create-theme-field.utils';
 import {
@@ -168,6 +171,7 @@ const CreateThemePage: React.FC = () => {
           if (saved?.themeConfig && typeof saved.themeConfig === 'object') {
             config = JSON.parse(JSON.stringify(saved.themeConfig)) as Record<string, unknown>;
             sanitizeThemeConfigStructure(config);
+            syncLayoutOrderFromSections(config);
             nextValues = creatorConfigHasSections(config)
               ? {
                   ...formValuesFromEditorConfig(schema, config),
@@ -180,6 +184,9 @@ const CreateThemePage: React.FC = () => {
             toast.error('Saved theme not found');
           }
         }
+
+        sanitizeThemeConfigStructure(config);
+        syncLayoutOrderFromSections(config);
 
         setEditorSchema(schema);
         setDefaultConfig(config);
@@ -426,6 +433,7 @@ const CreateThemePage: React.FC = () => {
         toast.error('Could not add this section yet');
         return;
       }
+      syncLayoutOrderFromSections(result.config);
       setDefaultConfig(result.config);
       const el = getCreateThemeElement(elementId);
       if (el?.insert.placement === 'layout') {

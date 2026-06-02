@@ -6,6 +6,7 @@ export function resolveCreateThemePreviewVariant(
   icon?: string
 ): SectionPreviewVariant {
   if (elementId === 'announcement-bar') return 'announcement-bar';
+  if (elementId === 'header') return 'header';
   if (elementId === 'divider') return 'divider';
   if (elementId === 'footer') return 'footer-section';
   if (elementId === 'policies-links') return 'policies-links';

@@ -2,6 +2,7 @@ import { templateIdForPage } from '../../utils/theme-editor-insert-section';
 import type { ThemePreviewPage } from '../chrome/CreateThemeLivePreview';
 import { getCreateThemeElement } from '../registry';
 import type { CreateThemeElement, CreateThemeInsertContext, CreateThemeInsertResult } from '../types';
+import { getLayoutOrder } from '../../utils/theme-editor-insert-section';
 import { appendToLayoutOrder, layoutListKey } from './layout-order';
 
 function newInstanceId(config: Record<string, unknown>, blueprintId: string): string {
@@ -10,6 +11,22 @@ function newInstanceId(config: Record<string, unknown>, blueprintId: string): st
   let n = 2;
   while (sections[`${blueprintId}_${n}`]) n += 1;
   return `${blueprintId}_${n}`;
+}
+
+/** One canonical layout row per blueprint (header, announcement bar, etc.). */
+const SINGLETON_LAYOUT_BLUEPRINTS = new Set([
+  'header',
+  'announcement_bar',
+  'footer',
+  'footer_utilities',
+]);
+
+function resolveLayoutInstanceId(config: Record<string, unknown>, blueprintId: string): string {
+  const sections = (config.sections ?? {}) as Record<string, unknown>;
+  if (SINGLETON_LAYOUT_BLUEPRINTS.has(blueprintId) && sections[blueprintId]) {
+    return blueprintId;
+  }
+  return newInstanceId(config, blueprintId);
 }
 
 function newTemplateInstanceId(tplSections: Record<string, unknown>, blueprintId: string): string {
@@ -129,15 +146,28 @@ export function insertCreateThemeLayoutSection(
     ctx.groupId === 'header' || ctx.groupId === 'footer' ? ctx.groupId : insert.group;
 
   const next = JSON.parse(JSON.stringify(config)) as Record<string, unknown>;
-  const instanceId = newInstanceId(next, insert.blueprintId);
-  const section = cloneLayoutFromPack(packDefault, insert.blueprintId, instanceId, insert.sectionType);
-  element.applyPreset?.(section);
-
+  const instanceId = resolveLayoutInstanceId(next, insert.blueprintId);
   const sections = { ...((next.sections ?? {}) as Record<string, unknown>) };
-  sections[instanceId] = section;
+
+  if (!sections[instanceId]) {
+    const section = cloneLayoutFromPack(
+      packDefault,
+      insert.blueprintId,
+      instanceId,
+      insert.sectionType
+    );
+    element.applyPreset?.(section);
+    sections[instanceId] = section;
+  }
+
   next.sections = sections;
 
-  appendToLayoutOrder(next, layoutGroup, instanceId, ctx);
+  const orderKey = layoutGroup === 'header' ? 'header' : 'footer';
+  const layoutOrder = getLayoutOrder(next);
+  const list = layoutOrder[orderKey] ?? [];
+  if (!list.includes(instanceId)) {
+    appendToLayoutOrder(next, layoutGroup, instanceId, ctx);
+  }
 
   return {
     config: next,

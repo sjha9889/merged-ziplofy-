@@ -1,6 +1,7 @@
 /** Mirrors Ziplofy/src/create-theme/_shared/preview-variant-resolver.ts (keep in sync). */
 export function resolveCreateThemePreviewVariant(elementId, icon) {
   if (elementId === 'announcement-bar') return 'announcement-bar';
+  if (elementId === 'header') return 'header';
   if (elementId === 'divider') return 'divider';
   if (elementId === 'footer') return 'footer-section';
   if (elementId === 'policies-links') return 'policies-links';

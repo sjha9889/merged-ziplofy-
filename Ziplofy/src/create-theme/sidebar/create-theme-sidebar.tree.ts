@@ -1212,7 +1212,9 @@ function layoutSectionNode(
         ? 'Custom section'
         : isDivider
           ? 'Divider'
-          : isProductHighlightLayout
+          : isHeader
+            ? 'Header'
+            : isProductHighlightLayout
             ? 'Product highlight'
             : isEditorialLayout
               ? 'Editorial'

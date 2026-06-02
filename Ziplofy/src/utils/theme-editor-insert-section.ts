@@ -174,20 +174,55 @@ export function getLayoutOrder(config: Record<string, unknown> | null): LayoutOr
   return raw ?? {};
 }
 
-/** Section ids that exist in config (order ∩ sections keys, or section keys when order is empty). */
+function footerLayoutSectionIds(config: Record<string, unknown>): Set<string> {
+  const sections = (config.sections ?? {}) as Record<string, unknown>;
+  const keys = new Set(Object.keys(sections));
+  const ids = new Set<string>();
+  for (const id of getLayoutOrder(config).footer ?? []) {
+    if (keys.has(id)) ids.add(id);
+  }
+  for (const id of keys) {
+    const bp = layoutBlueprintKey(id);
+    if (bp === 'footer' || bp === 'footer_utilities' || id === 'footer' || id === 'footer_utilities') {
+      ids.add(id);
+    }
+  }
+  return ids;
+}
+
+/** Section ids for sidebar: layout_order first, then any matching sections keys not listed yet. */
 export function existingLayoutSectionIds(
   config: Record<string, unknown> | null,
   group: 'header' | 'footer'
 ): string[] {
   const sections = (config?.sections ?? {}) as Record<string, unknown>;
   const keys = new Set(Object.keys(sections));
-  const order = getLayoutOrder(config)[group];
-  if (Array.isArray(order)) {
-    return order.map((id) => String(id)).filter((id) => keys.has(id));
+  const layoutOrder = getLayoutOrder(config);
+  const ordered = (layoutOrder[group] ?? []).map(String).filter((id) => keys.has(id));
+  const seen = new Set<string>();
+  const out: string[] = [];
+  const add = (id: string) => {
+    if (!keys.has(id) || seen.has(id)) return;
+    seen.add(id);
+    out.push(id);
+  };
+
+  if (group === 'footer') {
+    for (const id of ordered) add(id);
+    for (const id of footerLayoutSectionIds(config ?? {})) add(id);
+    if (!out.length) {
+      defaultFooterSectionOrder(config ?? {}).forEach(add);
+    }
+    return out;
   }
-  const raw =
-    group === 'header' ? defaultHeaderSectionOrder(config ?? {}) : defaultFooterSectionOrder(config ?? {});
-  return raw.filter((id) => keys.has(id));
+
+  const footerIds = footerLayoutSectionIds(config ?? {});
+  for (const id of ordered) add(id);
+  for (const id of defaultHeaderSectionOrder(config ?? {})) add(id);
+  for (const id of keys) {
+    if (!footerIds.has(id)) add(id);
+  }
+  return out;
 }
 
 export function existingTemplateSectionIds(
@@ -234,6 +269,7 @@ export function sanitizeThemeConfigStructure(config: Record<string, unknown>): v
   const headerIds = new Set(order.header ?? []);
   const footerIds = new Set(order.footer ?? []);
   for (const id of Object.keys(layoutSections)) {
+    if (headerIds.has(id) || footerIds.has(id)) continue;
     if (id === 'header' || id === 'footer' || id === 'footer_utilities') continue;
     if (id.startsWith('header_') && headerIds.has('header')) continue;
     if (!headerIds.has(id) && !footerIds.has(id)) {
@@ -290,6 +326,15 @@ export function ensureLayoutOrder(config: Record<string, unknown>): LayoutOrder 
     setNested(config, ['layout_order'], lo);
   }
   return getLayoutOrder(config);
+}
+
+/** Keep layout_order in sync with layout sections (e.g. header present in JSON but missing from order). */
+export function syncLayoutOrderFromSections(config: Record<string, unknown>): void {
+  ensureLayoutOrder(config);
+  const order = getLayoutOrder(config);
+  order.header = existingLayoutSectionIds(config, 'header');
+  order.footer = existingLayoutSectionIds(config, 'footer');
+  setNested(config, ['layout_order'], order);
 }
 
 /** Map instance id (e.g. announcement_bar_2) to schema layout blueprint key. */

@@ -18,6 +18,7 @@ import { emailSignupElement } from './email-signup';
 import { customLiquidElement } from './custom-liquid';
 import { customSectionElement } from './custom-section';
 import { dividerElement } from './divider';
+import { headerElement } from './header';
 import { featuredCollectionCarouselElement } from './featured-collection-carousel';
 import { featuredCollectionEditorialElement } from './featured-collection-editorial';
 import { featuredCollectionGridElement } from './featured-collection-grid';
@@ -66,6 +67,7 @@ export const GENERATED_CREATE_THEME_ELEMENTS: Record<string, CreateThemeElement>
   "custom-liquid": customLiquidElement,
   "custom-section": customSectionElement,
   "divider": dividerElement,
+  "header": headerElement,
   "featured-collection-carousel": featuredCollectionCarouselElement,
   "featured-collection-editorial": featuredCollectionEditorialElement,
   "featured-collection-grid": featuredCollectionGridElement,
@@ -108,6 +110,7 @@ export const GENERATED_SECTION_TYPE_TO_ELEMENT_ID: Record<string, string> = {
   "email-signup": "email-signup",
   "custom-section": "custom-section",
   "divider": "divider",
+  "header": "header",
   "featured-collection": "featured-collection-carousel",
   "product-highlight": "featured-product",
   "product-hotspots": "product-hotspots",

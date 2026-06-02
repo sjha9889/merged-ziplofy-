@@ -1,4 +1,5 @@
 import React from 'react';
+import { HeaderPreviewArt } from '../header/preview';
 
 function SlideshowLandscapeIllustration() {
   return (
@@ -371,6 +372,7 @@ export type SectionPreviewVariant =
     | 'contact-form'
     | 'custom-section'
     | 'announcement-bar'
+    | 'header'
     | 'divider'
     | 'hero'
     | 'hero-bottom-aligned'
@@ -735,6 +737,9 @@ export function SectionPreviewVisual({ variant }: { variant: SectionPreviewVaria
         </div>
       </div>
     );
+  }
+  if (variant === 'header') {
+    return <HeaderPreviewArt />;
   }
   if (variant === 'divider') {
     return (

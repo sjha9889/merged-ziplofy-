@@ -13,6 +13,7 @@ export const CREATE_THEME_CATALOG_GROUPS: Record<CreateThemeCatalogGroup, Create
       "layout": {
         "label": "Layout",
         "itemIds": [
+          "header",
           "divider"
         ]
       }

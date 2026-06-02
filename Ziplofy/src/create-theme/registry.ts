@@ -1,4 +1,5 @@
 import { announcementBarElement } from './announcement-bar';
+import { headerElement } from './header';
 import { dividerElement } from './divider';
 import { footerElement } from './footer';
 import { policiesLinksElement } from './policies-links';
@@ -16,6 +17,7 @@ import type {
 /** Hand-tuned elements override generated stubs. */
 const HANDCRAFTED_OVERRIDES: Record<string, CreateThemeElement> = {
   'announcement-bar': announcementBarElement,
+  header: headerElement,
   divider: dividerElement,
   footer: footerElement,
   'policies-links': policiesLinksElement,
