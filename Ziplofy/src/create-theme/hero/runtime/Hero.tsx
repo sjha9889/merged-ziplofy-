@@ -57,6 +57,7 @@ function HeroButton({
   sectionNodePrefix,
   colors,
   onImageHero,
+  marqueeFilled,
 }: {
   blockId: string;
   fallbackVariant: 'primary' | 'secondary';
