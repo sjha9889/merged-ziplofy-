@@ -18,11 +18,16 @@ import {
   SwatchIcon,
 } from "@heroicons/react/24/outline";
 import React, { useEffect, useMemo, useState } from "react";
+import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { useThemes } from "../../contexts/themes.context";
 import { useInstalledThemes } from "../../contexts/installed-themes.context";
 import { useStore } from "../../contexts/store.context";
 import { useCustomThemes } from "../../contexts/custom-themes.context";
+import {
+  useStoreCustomThemes,
+  type StoreCustomTheme,
+} from "../../contexts/store-custom-themes.context";
 import ThemePreviewModal from "../../components/ThemePreviewModal";
 import ThemeEditChoiceModal from "../../components/ThemeEditChoiceModal";
 import { axiosi } from "../../config/axios.config";
@@ -89,13 +94,25 @@ const AllThemes: React.FC = () => {
     uninstallTheme,
     fetchByStoreId,
   } = useInstalledThemes();
-  const { activeStoreId, stores, setStores } = useStore();
+  const { activeStoreId, stores, setStores, applyStoreCustomTheme } = useStore();
   const appliedThemeId = useMemo(() => {
     const store = stores.find((s) => s._id === activeStoreId);
     if (!store?.appliedTheme) return null;
     return String(store.appliedTheme);
   }, [stores, activeStoreId]);
+  const appliedStoreCustomThemeId = useMemo(() => {
+    const store = stores.find((s) => s._id === activeStoreId);
+    if (!store?.appliedCustomThemeId) return null;
+    return String(store.appliedCustomThemeId);
+  }, [stores, activeStoreId]);
+  const [applyingStoreCustomThemeId, setApplyingStoreCustomThemeId] = useState<string | null>(null);
   const { customThemes, loading: customThemesLoading, fetchAll: fetchCustomThemes, deleteTheme: deleteCustomTheme, installTheme: installCustomTheme, uninstallTheme: uninstallCustomTheme, updateTheme } = useCustomThemes();
+  const {
+    themes: storeCustomThemes,
+    loading: storeCustomThemesLoading,
+    getByStoreId: fetchStoreCustomThemes,
+    deleteTheme: deleteStoreCustomTheme,
+  } = useStoreCustomThemes();
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [thumbnailUpdateModal, setThumbnailUpdateModal] = useState<{
     isOpen: boolean;
@@ -382,6 +399,13 @@ const AllThemes: React.FC = () => {
     }
   }, [activeStoreId, fetchByStoreId]);
 
+  useEffect(() => {
+    if (!activeStoreId) return;
+    fetchStoreCustomThemes(activeStoreId).catch(() => {
+      /* errors surfaced via context */
+    });
+  }, [activeStoreId, fetchStoreCustomThemes]);
+
   // Close dropdown menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -432,11 +456,72 @@ const AllThemes: React.FC = () => {
 
   // Total themes = sum of custom themes + marketplace themes
   const totalCount = customThemes.length + themes.length;
-  const customThemesCount = customThemes.length;
+  const storeCustomThemesCount = storeCustomThemes.length;
   // Installed for selected store (regular + custom), resolved from InstalledThemes flow
   const installedForStore = installedThemes;
   const customDrafts = customThemes.filter((ct: any) => ct.status === 'draft');
-  const showingCount = installedForStore.length + customThemes.length + filteredThemes.length;
+  const filteredStoreCustomThemes = storeCustomThemes.filter((t) =>
+    t.themeName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  const showingCount =
+    installedForStore.length +
+    storeCustomThemes.length +
+    customThemes.length +
+    filteredThemes.length;
+
+  const handleOpenStoreCustomTheme = (themeId: string) => {
+    navigate(`/themes/create?id=${themeId}`);
+  };
+
+  const handleInstallStoreCustomTheme = async (theme: StoreCustomTheme) => {
+    if (!activeStoreId) {
+      toast.error('Select a store before installing a theme');
+      return;
+    }
+    try {
+      setApplyingStoreCustomThemeId(theme._id);
+      await applyStoreCustomTheme(activeStoreId, theme._id);
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err as Error)?.message ||
+        'Failed to install theme';
+      toast.error(msg);
+    } finally {
+      setApplyingStoreCustomThemeId(null);
+    }
+  };
+
+  const handleDeleteStoreCustomTheme = async (theme: StoreCustomTheme) => {
+    if (
+      !window.confirm(
+        `Delete "${theme.themeName}"? This removes the saved theme design and cannot be undone.`
+      )
+    ) {
+      return;
+    }
+    try {
+      await deleteStoreCustomTheme(theme._id);
+      if (activeStoreId) {
+        await fetchStoreCustomThemes(activeStoreId);
+      }
+    } catch {
+      /* toast from context / axios */
+    }
+  };
+
+  const formatThemeDate = (iso?: string) => {
+    if (!iso) return '';
+    try {
+      return new Date(iso).toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    } catch {
+      return '';
+    }
+  };
 
   return (
     <div className="w-full space-y-6 pb-8">
@@ -487,8 +572,8 @@ const AllThemes: React.FC = () => {
               <div className="themes-stat-card">
                 <PlusIcon className="themes-stat-icon h-5 w-5" aria-hidden />
                 <div>
-                  <span className="themes-stat-value">{customThemesCount}</span>
-                  <span className="themes-stat-label">CUSTOM THEMES</span>
+                  <span className="themes-stat-value">{storeCustomThemesCount}</span>
+                  <span className="themes-stat-label">CREATOR SAVES</span>
                 </div>
               </div>
               <div className="themes-stat-card">
@@ -751,6 +836,133 @@ const AllThemes: React.FC = () => {
             </div>
           </section>
         )}
+
+        {/* Store custom themes — JSON theme creator saves */}
+        <section className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">
+          <ThemeSectionHeader
+            icon={SwatchIcon}
+            title="Custom themes"
+            description="Themes you saved from the theme creator — open to continue editing sections and settings."
+          />
+          <div className="bg-gray-50/30 p-4 sm:p-5">
+            {!activeStoreId ? (
+              <div className="flex min-h-[180px] flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-white/90 px-6 py-10 text-center">
+                <p className="text-sm font-medium text-gray-700">Select a store</p>
+                <p className="mt-1 max-w-sm text-sm text-gray-500">
+                  Choose a store from the header to load saved custom themes for that storefront.
+                </p>
+              </div>
+            ) : storeCustomThemesLoading ? (
+              <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-gray-200 bg-white/80 py-12">
+                <div
+                  className="h-10 w-10 animate-spin rounded-full border-2 border-gray-200 border-t-blue-600"
+                  aria-hidden
+                />
+                <p className="text-sm font-medium text-gray-600">Loading custom themes…</p>
+              </div>
+            ) : filteredStoreCustomThemes.length === 0 ? (
+              <div className="flex min-h-[200px] flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-white/90 px-6 py-10 text-center">
+                <div className="relative mb-4">
+                  <div className="absolute inset-0 rounded-full bg-violet-400/10 blur-xl" aria-hidden />
+                  <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-gray-100 bg-white shadow-sm">
+                    <SwatchIcon className="h-7 w-7 text-violet-600" aria-hidden />
+                  </div>
+                </div>
+                <h3 className="text-base font-semibold text-gray-900">No saved custom themes</h3>
+                <p className="mt-2 max-w-sm text-sm text-gray-500">
+                  Build a theme in the creator, add sections, then use Save to store it here.
+                </p>
+                <Link
+                  to="/themes/create"
+                  className="mt-5 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+                >
+                  <PlusIcon className="h-4 w-4" aria-hidden />
+                  Open theme creator
+                </Link>
+              </div>
+            ) : (
+              <div className={`themes-layout ${viewMode}`}>
+                {filteredStoreCustomThemes.map((theme) => {
+                  const isApplied =
+                    appliedStoreCustomThemeId != null &&
+                    String(appliedStoreCustomThemeId) === String(theme._id);
+                  const isApplying = applyingStoreCustomThemeId === theme._id;
+
+                  return (
+                  <div key={theme._id} className="theme-card">
+                    <div className="theme-thumbnail">
+                      <div className="theme-image-placeholder flex flex-col items-center justify-center gap-2 bg-linear-to-br from-violet-50 to-blue-50 px-4 text-center">
+                        <SwatchIcon className="h-10 w-10 text-violet-500/80" aria-hidden />
+                        <span className="text-xs font-medium text-violet-900/70">Theme creator</span>
+                      </div>
+                    </div>
+                    <div className="theme-info">
+                      <div className="theme-header-info">
+                        <h3 className="theme-name">{theme.themeName}</h3>
+                        {formatThemeDate(theme.updatedAt || theme.createdAt) ? (
+                          <span className="text-[11px] font-medium text-gray-500">
+                            Updated {formatThemeDate(theme.updatedAt || theme.createdAt)}
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className="theme-description line-clamp-2">
+                        JSON theme layout saved for this store. Open to edit sections and settings.
+                      </p>
+                      <div className="theme-actions">
+                        <button
+                          type="button"
+                          className="action-btn primary"
+                          onClick={() => handleOpenStoreCustomTheme(theme._id)}
+                        >
+                          Open
+                        </button>
+                        {isApplied ? (
+                          <button
+                            type="button"
+                            className="action-btn secondary"
+                            disabled
+                            style={{
+                              backgroundColor: '#16a34a',
+                              color: '#ffffff',
+                              border: '1px solid #16a34a',
+                              cursor: 'not-allowed',
+                              opacity: 0.9,
+                            }}
+                          >
+                            Installed
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="action-btn secondary"
+                            disabled={isApplying || !activeStoreId}
+                            onClick={() => handleInstallStoreCustomTheme(theme)}
+                          >
+                            {isApplying ? 'Installing…' : 'Install theme'}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="action-btn secondary"
+                          onClick={() => handleDeleteStoreCustomTheme(theme)}
+                          style={{
+                            backgroundColor: '#dc2626',
+                            color: '#ffffff',
+                            border: '1px solid #dc2626',
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" style={{ marginRight: 4 }} />
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
 
       {/* Drafts - themes saved but not yet published */}
       {customDrafts.length > 0 && (

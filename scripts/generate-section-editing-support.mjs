@@ -61,6 +61,46 @@ const PANEL_RULES = {
         fieldOrder: [],
       },
     },
+    blocks: {
+      logo: {
+        default: {
+          includeKeys: ['hideLogoOnHomePage', 'paddingTop', 'paddingBottom'],
+          fieldOrder: ['hideLogoOnHomePage', 'paddingTop', 'paddingBottom'],
+        },
+      },
+      menu: {
+        default: {
+          includeKeys: [
+            'menu',
+            'colorScheme',
+            'topLevelSize',
+            'submenuSize',
+            'font',
+            'textCase',
+            'submenuMediaType',
+            'submenuImageRatio',
+            'submenuImageCornerRadius',
+            'mobileNavigationBar',
+            'mobileAccordion',
+            'mobileDividers',
+          ],
+          fieldOrder: [
+            'menu',
+            'colorScheme',
+            'topLevelSize',
+            'submenuSize',
+            'font',
+            'textCase',
+            'submenuMediaType',
+            'submenuImageRatio',
+            'submenuImageCornerRadius',
+            'mobileNavigationBar',
+            'mobileAccordion',
+            'mobileDividers',
+          ],
+        },
+      },
+    },
   },
   footer: {
     section: {

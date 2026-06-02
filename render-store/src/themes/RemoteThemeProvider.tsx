@@ -22,10 +22,22 @@ type LoadedThemeContextValue = {
 
 const LoadedThemeContext = createContext<LoadedThemeContextValue | null>(null);
 
+function isThemeStaticAssetPath(path: string): boolean {
+  return (
+    path.startsWith('/remote-themes/') ||
+    path.startsWith('/static-editor-theme/') ||
+    path.startsWith('/remote-theme-runtime/')
+  );
+}
+
 /** Resolve `/api/...` paths for fetch/import (Vite dev proxy or `VITE_API_URL`). */
 function resolveThemeAssetUrl(href: string): string {
   const trimmed = href.trim();
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+  const path = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  if (isThemeStaticAssetPath(path)) {
+    return `${getStorefrontAssetOrigin()}${path}`;
+  }
   const viteApi = import.meta.env.VITE_API_URL;
   const base = typeof viteApi === 'string' && viteApi.trim() !== '' ? viteApi.replace(/\/$/, '') : '';
   if (base) return `${base}${trimmed.startsWith('/') ? trimmed : `/${trimmed}`}`;
@@ -37,7 +49,7 @@ function resolveThemeAssetUrl(href: string): string {
  * Renders children only after a valid ThemeContract is available.
  */
 export function RemoteThemeProvider({ children }: { children: ReactNode }) {
-  const { remoteThemeJsUrl, remoteThemeCssUrl, activeThemeId } = useStorefront();
+  const { remoteThemeJsUrl, remoteThemeCssUrl, activeThemeId, isStoreCustomTheme } = useStorefront();
   const [contract, setContract] = useState<ThemeContract | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -167,8 +179,18 @@ export function RemoteThemeProvider({ children }: { children: ReactNode }) {
         <p style={{ color: '#444' }}>Could not load the theme bundle from the server.</p>
         <pre style={{ overflow: 'auto', background: '#f5f5f5', padding: 12, fontSize: 13 }}>{error?.message}</pre>
         <p style={{ color: '#666', fontSize: 14 }}>
-          Ensure the store has an applied theme and the theme was uploaded with <code>theme.js</code> (and optionally{' '}
-          <code>theme.css</code>) under <code>remoteThemeDist</code>, then install the theme for this store.
+          {isStoreCustomTheme ? (
+            <>
+              This store uses a <strong>custom theme</strong> (JSON from the theme creator). Ensure{' '}
+              <code>remote-themes/horizon</code> is built and served by render-store, then reload.
+            </>
+          ) : (
+            <>
+              Ensure the store has an applied theme and the theme was uploaded with <code>theme.js</code> (and
+              optionally <code>theme.css</code>) under <code>remoteThemeDist</code>, then install the theme for this
+              store.
+            </>
+          )}
         </p>
         <button type="button" onClick={() => void load()} style={{ marginTop: 12, padding: '8px 14px' }}>
           Retry

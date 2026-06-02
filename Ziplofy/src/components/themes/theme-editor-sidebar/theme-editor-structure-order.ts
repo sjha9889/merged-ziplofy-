@@ -1,4 +1,5 @@
 import type { ThemePreviewPage } from '../ThemeLivePreviewFrame';
+import { bottomAlignedHeroStructureOrder } from '../../../utils/hero-bottom-aligned.util';
 import type { SidebarNode } from './theme-editor-sidebar.types';
 
 function templateIdForPage(page: ThemePreviewPage): string {
@@ -156,10 +157,26 @@ export function readStructureOrderFromConfig(
     out[listKeyTemplateSections(tplId)] = Object.keys(tpl.sections).map((id) => `template:${tplId}:${id}`);
   }
 
+  const tplCfg = getNested(config, ['templates', tplId]) as
+    | { sections?: Record<string, { type?: string; settings?: { catalogVariant?: string } }> }
+    | undefined;
+
   for (const [secId, sec] of Object.entries(tpl?.sections ?? {})) {
     const listKey = listKeySectionChildren(tplId, secId);
+    const isHero = (sec as { type?: string }).type === 'hero';
+    const catalogVariant = tplCfg?.sections?.[secId]?.settings?.catalogVariant;
+    if (isHero && catalogVariant === 'hero-bottom-aligned') {
+      Object.assign(
+        out,
+        bottomAlignedHeroStructureOrder(`template:${tplId}:${secId}`, listKey, listKeyBlockChildren)
+      );
+      continue;
+    }
+
     const ids: string[] = [];
-    if (sec.settings_field_order?.length) {
+    if (isHero) {
+      ids.push(`template:${tplId}:${secId}:add-block`);
+    } else if (sec.settings_field_order?.length) {
       for (const path of sec.settings_field_order) {
         ids.push(`field:${path}`);
       }
@@ -191,6 +208,18 @@ export function readStructureOrderFromConfig(
 
   for (const [layoutKey, layoutSec] of Object.entries(layoutSections ?? {})) {
     const secListKey = listKeyLayoutSectionChildren(layoutKey);
+    const secType = (layoutSec as { type?: string }).type;
+    const isHero = secType === 'hero';
+    const isAnnouncementBar = secType === 'announcement-bar';
+    const catalogVariant = getNested(config, ['sections', layoutKey, 'settings', 'catalogVariant']);
+    if (isHero && catalogVariant === 'hero-bottom-aligned') {
+      Object.assign(
+        out,
+        bottomAlignedHeroStructureOrder(`layout:${layoutKey}`, secListKey, listKeyBlockChildren)
+      );
+      continue;
+    }
+
     const secIds: string[] = [];
     if (layoutSec.settings_field_order?.length) {
       for (const path of layoutSec.settings_field_order) {
@@ -198,6 +227,9 @@ export function readStructureOrderFromConfig(
       }
     }
     if (layoutSec.block_order?.length) {
+      if (isHero || isAnnouncementBar) {
+        secIds.push(`layout:${layoutKey}:add-block`);
+      }
       for (const blockId of layoutSec.block_order) {
         secIds.push(`layout:${layoutKey}:block:${blockId}`);
         const blockCfg = layoutSec.blocks?.[blockId];

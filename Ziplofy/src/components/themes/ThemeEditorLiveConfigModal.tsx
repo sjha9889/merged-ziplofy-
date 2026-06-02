@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 import Modal from '../Modal';
 import { configLocalStorageKeyForPack } from '../../config/theme-editor-static.config';
@@ -13,6 +13,11 @@ type ThemeEditorLiveConfigModalProps = {
   mergedConfig: Record<string, unknown>;
   formValues: Record<string, string | boolean>;
   baseConfig: Record<string, unknown> | null;
+  /** Override modal title (e.g. Theme Creator “View theme”). */
+  title?: string;
+  /** Override intro copy; when set, static-dev localStorage hint is omitted. */
+  description?: React.ReactNode;
+  initialTab?: ThemeEditorJsonViewTab;
 };
 
 function formatJson(data: unknown): string {
@@ -46,8 +51,11 @@ export const ThemeEditorLiveConfigModal: React.FC<ThemeEditorLiveConfigModalProp
   mergedConfig,
   formValues,
   baseConfig,
+  title = 'Theme edit JSON',
+  description,
+  initialTab = 'merged',
 }) => {
-  const [tab, setTab] = useState<ThemeEditorJsonViewTab>('merged');
+  const [tab, setTab] = useState<ThemeEditorJsonViewTab>(initialTab);
   const [copied, setCopied] = useState(false);
 
   const payload = useMemo(() => {
@@ -71,11 +79,17 @@ export const ThemeEditorLiveConfigModal: React.FC<ThemeEditorLiveConfigModalProp
   const storageKey =
     staticDevMode && packId ? configLocalStorageKeyForPack(packId) : null;
 
+  useEffect(() => {
+    if (open) setTab(initialTab);
+  }, [open, initialTab]);
+
   return (
-    <Modal open={open} onClose={onClose} maxWidth="lg" title="Theme edit JSON">
+    <Modal open={open} onClose={onClose} maxWidth="lg" title={title}>
       <div className="flex max-h-[min(78vh,720px)] flex-col gap-3">
         <p className="text-[13px] leading-relaxed text-gray-600">
-          {staticDevMode ? (
+          {description != null ? (
+            description
+          ) : staticDevMode ? (
             <>
               This is the live config built in editor state. It updates as you edit fields, add
               sections, and reorder the sidebar. <strong>Save</strong> writes the merged config to{' '}

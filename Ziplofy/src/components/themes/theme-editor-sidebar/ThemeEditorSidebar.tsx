@@ -9,18 +9,35 @@ import {
   CursorArrowRaysIcon,
   EyeIcon,
   EyeSlashIcon,
+  LinkIcon,
   PhotoIcon,
   PlusCircleIcon,
-  PuzzlePieceIcon,
   Squares2X2Icon,
   TagIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline';
 import type { SidebarIcon, SidebarNode, ThemeEditorSidebarTab } from './theme-editor-sidebar.types';
 import { isSortableSidebarNode } from './theme-editor-structure-order';
 import { ThemeSectionSettingsPanel } from './ThemeSectionSettingsPanel';
 import { ThemeEditorSettingsSheet } from './ThemeEditorSettingsSheet';
+import { ThemeSettingsNav } from './ThemeSettingsNav';
 import { SectionInsertZone } from './SectionInsertZone';
 import type { SectionCatalogGroup, SectionInsertContext } from './add-section-catalog';
+import {
+  isSectionVisibilityHidden,
+  sectionEnabledPathFromNodeId,
+} from '../../../utils/theme-editor-section-visibility.util';
+
+function sidebarNodeIsHidden(
+  node: SidebarNode,
+  hiddenNodes: Record<string, boolean>,
+  visibilityValues?: Record<string, string | boolean>
+): boolean {
+  if (node.showVisibilityToggle && sectionEnabledPathFromNodeId(node.id) && visibilityValues) {
+    return isSectionVisibilityHidden(node.id, visibilityValues);
+  }
+  return Boolean(hiddenNodes[node.id]);
+}
 
 const SHOPIFY_BLUE = '#005bd3';
 const SIDEBAR_DEPTH_STEP = 12;
@@ -102,6 +119,18 @@ function SidebarRowIcon({ icon, muted }: { icon?: SidebarIcon; muted?: boolean }
       return <TagIcon className={cls} />;
     case 'product-card':
       return <ArrowPathIcon className={cls} />;
+    case 'group':
+      return (
+        <svg className={cls} viewBox="0 0 20 20" fill="none" aria-hidden>
+          <path
+            d="M3 5.5h5v4H3v-4zm9 0h5v4h-5v-4zM3 10.5h5v4H3v-4zm9 0h5v4h-5v-4z"
+            stroke="currentColor"
+            strokeWidth="1.25"
+          />
+        </svg>
+      );
+    case 'link':
+      return <LinkIcon className={cls} />;
     default:
       return <SectionIcon className={cls} />;
   }
@@ -113,9 +142,11 @@ type TreeRowProps = {
   expanded: Record<string, boolean>;
   selectedNodeId: string;
   hiddenNodes: Record<string, boolean>;
+  visibilityValues?: Record<string, string | boolean>;
   onToggleExpand: (id: string) => void;
   onSelect: (node: SidebarNode) => void;
   onToggleHidden: (id: string) => void;
+  onDeleteNode?: (nodeId: string) => void;
   onReorder: (listKey: string, orderedIds: string[]) => void;
   onInsertSection?: (ctx: SectionInsertContext) => void;
   onInsertHoverChange?: (ctx: SectionInsertContext | null) => void;
@@ -138,9 +169,11 @@ function SidebarGroup({
   expanded,
   selectedNodeId,
   hiddenNodes,
+  visibilityValues,
   onToggleExpand,
   onSelect,
   onToggleHidden,
+  onDeleteNode,
   onReorder,
   onInsertSection,
   onInsertHoverChange,
@@ -164,9 +197,11 @@ function SidebarGroup({
         expanded={expanded}
         selectedNodeId={selectedNodeId}
         hiddenNodes={hiddenNodes}
+        visibilityValues={visibilityValues}
         onToggleExpand={onToggleExpand}
         onSelect={onSelect}
         onToggleHidden={onToggleHidden}
+        onDeleteNode={onDeleteNode}
         onReorder={onReorder}
         onInsertSection={onInsertSection}
         onInsertHoverChange={onInsertHoverChange}
@@ -186,9 +221,11 @@ function SortableSiblingList({
   expanded,
   selectedNodeId,
   hiddenNodes,
+  visibilityValues,
   onToggleExpand,
   onSelect,
   onToggleHidden,
+  onDeleteNode,
   onReorder,
   onInsertSection,
   onInsertHoverChange,
@@ -270,9 +307,11 @@ function SortableSiblingList({
               expanded={expanded}
               selectedNodeId={selectedNodeId}
               hiddenNodes={hiddenNodes}
+              visibilityValues={visibilityValues}
               onToggleExpand={onToggleExpand}
               onSelect={onSelect}
               onToggleHidden={onToggleHidden}
+              onDeleteNode={onDeleteNode}
               onReorder={onReorder}
               onInsertSection={onInsertSection}
               onInsertHoverChange={onInsertHoverChange}
@@ -294,9 +333,11 @@ function SidebarTreeRow({
   expanded,
   selectedNodeId,
   hiddenNodes,
+  visibilityValues,
   onToggleExpand,
   onSelect,
   onToggleHidden,
+  onDeleteNode,
   onReorder,
   onInsertSection,
   onInsertHoverChange,
@@ -317,9 +358,11 @@ function SidebarTreeRow({
         expanded={expanded}
         selectedNodeId={selectedNodeId}
         hiddenNodes={hiddenNodes}
+        visibilityValues={visibilityValues}
         onToggleExpand={onToggleExpand}
         onSelect={onSelect}
         onToggleHidden={onToggleHidden}
+        onDeleteNode={onDeleteNode}
         onReorder={onReorder}
         onInsertSection={onInsertSection}
         onInsertHoverChange={onInsertHoverChange}
@@ -331,10 +374,10 @@ function SidebarTreeRow({
   }
 
   const isAdd = node.kind === 'add-block' || node.kind === 'add-section';
-  const hasChildren = Boolean(node.children?.length);
+  const hasChildren = node.kind !== 'block' && Boolean(node.children?.length);
   const isOpen = expanded[node.id] === true;
   const isSelected = selectedNodeId === node.id;
-  const isHidden = Boolean(hiddenNodes[node.id]);
+  const isHidden = sidebarNodeIsHidden(node, hiddenNodes, visibilityValues);
   const indent = SIDEBAR_BASE_PADDING + depth * SIDEBAR_DEPTH_STEP;
   const isDraggable = Boolean(sortableListKey && isSortableSidebarNode(node));
   const isDragOver =
@@ -344,11 +387,22 @@ function SidebarTreeRow({
     return (
       <button
         type="button"
+        disabled={node.disabled}
         className="flex w-full items-center gap-1.5 py-1.5 pr-3 text-left text-[13px] font-medium hover:underline"
-        style={{ paddingLeft: sidebarContentPadding(depth), color: SHOPIFY_BLUE }}
-        onClick={() => onSelect(node)}
+        style={{
+          paddingLeft: sidebarContentPadding(depth),
+          color: node.disabled ? '#9ca3af' : SHOPIFY_BLUE,
+          cursor: node.disabled ? 'not-allowed' : 'pointer',
+        }}
+        onClick={() => {
+          if (node.disabled) return;
+          onSelect(node);
+        }}
       >
-        <PlusCircleIcon className="h-4 w-4 shrink-0" style={{ color: SHOPIFY_BLUE }} />
+        <PlusCircleIcon
+          className="h-4 w-4 shrink-0"
+          style={{ color: node.disabled ? '#c4c7cc' : SHOPIFY_BLUE }}
+        />
         {node.label}
       </button>
     );
@@ -369,6 +423,7 @@ function SidebarTreeRow({
         onToggleExpand={onToggleExpand}
         onSelect={onSelect}
         onToggleHidden={onToggleHidden}
+        onDeleteNode={onDeleteNode}
         onDragHandleStart={
           isDraggable && sortableListKey
             ? () => setDragState({ listKey: sortableListKey, nodeId: node.id, overId: null })
@@ -409,9 +464,11 @@ function SidebarTreeRow({
           expanded={expanded}
           selectedNodeId={selectedNodeId}
           hiddenNodes={hiddenNodes}
+          visibilityValues={visibilityValues}
           onToggleExpand={onToggleExpand}
           onSelect={onSelect}
           onToggleHidden={onToggleHidden}
+          onDeleteNode={onDeleteNode}
           onReorder={onReorder}
           dragState={dragState}
           setDragState={setDragState}
@@ -434,6 +491,7 @@ function SidebarRow({
   onToggleExpand,
   onSelect,
   onToggleHidden,
+  onDeleteNode,
   onDragHandleStart,
   onDragHandleEnd,
   onDragEnter,
@@ -453,6 +511,7 @@ function SidebarRow({
   onToggleExpand: (id: string) => void;
   onSelect: (node: SidebarNode) => void;
   onToggleHidden: (id: string) => void;
+  onDeleteNode?: (nodeId: string) => void;
   onDragHandleStart?: () => void;
   onDragHandleEnd?: () => void;
   onDragEnter?: () => void;
@@ -519,10 +578,10 @@ function SidebarRow({
           icon={node.icon ?? (node.kind === 'section' ? 'section' : 'default')}
           muted={isSelected}
         />
-        <span className="truncate">{node.label}</span>
+        <span className="shrink-0 text-[13px] font-medium">{node.label}</span>
         {node.preview ? (
           <span
-            className={`truncate text-xs font-normal italic ${
+            className={`min-w-0 flex-1 truncate text-xs font-normal italic ${
               isSelected ? 'text-white/75' : 'text-gray-500'
             }`}
           >
@@ -530,6 +589,24 @@ function SidebarRow({
           </span>
         ) : null}
       </button>
+      {node.showDeleteButton && onDeleteNode ? (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDeleteNode(node.id);
+          }}
+          className={`mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded opacity-0 group-hover:opacity-100 ${
+            isSelected
+              ? 'text-white/90 opacity-100 hover:bg-white/20 hover:text-white'
+              : 'text-gray-500 hover:bg-red-50 hover:text-red-600'
+          }`}
+          title={node.kind === 'block' ? 'Remove block' : 'Remove section'}
+          aria-label={`Remove ${node.label}`}
+        >
+          <TrashIcon className="h-4 w-4" />
+        </button>
+      ) : null}
       {node.showVisibilityToggle ? (
         <button
           type="button"
@@ -537,7 +614,11 @@ function SidebarRow({
             e.stopPropagation();
             onToggleHidden(node.id);
           }}
-          className="mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded text-gray-500 opacity-0 hover:bg-gray-200/80 hover:text-gray-800 group-hover:opacity-100"
+          className={`mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded opacity-0 group-hover:opacity-100 ${
+            isSelected
+              ? 'text-white/90 opacity-100 hover:bg-white/20'
+              : 'text-gray-500 hover:bg-gray-200/80 hover:text-gray-800'
+          }`}
           title={isHidden ? 'Show' : 'Hide'}
         >
           {isHidden ? <EyeSlashIcon className="h-4 w-4" /> : <EyeIcon className="h-4 w-4" />}
@@ -558,7 +639,9 @@ export type ThemeEditorSidebarProps = {
   selectedNodeId: string;
   onSelectNode: (node: SidebarNode) => void;
   hiddenNodes: Record<string, boolean>;
+  visibilityValues?: Record<string, string | boolean>;
   onToggleHidden: (id: string) => void;
+  onDeleteNode?: (nodeId: string) => void;
   onReorder: (listKey: string, orderedIds: string[]) => void;
   onInsertSection?: (ctx: SectionInsertContext) => void;
   onInsertHoverChange?: (ctx: SectionInsertContext | null) => void;
@@ -583,7 +666,9 @@ const ThemeEditorSidebarInner: React.FC<ThemeEditorSidebarProps> = ({
   selectedNodeId,
   onSelectNode,
   hiddenNodes,
+  visibilityValues,
   onToggleHidden,
+  onDeleteNode,
   onReorder,
   onInsertSection,
   onInsertHoverChange,
@@ -646,14 +731,6 @@ const ThemeEditorSidebarInner: React.FC<ThemeEditorSidebarProps> = ({
         >
           <Cog6ToothIcon className="h-5 w-5" />
         </button>
-        <button
-          type="button"
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-[#ededed]"
-          title="App embeds"
-          disabled
-        >
-          <PuzzlePieceIcon className="h-5 w-5" />
-        </button>
       </div>
 
       <h2 className="border-b border-[#e1e1e1] bg-[#f6f6f7] px-3 py-3 text-[13px] font-medium text-gray-500">
@@ -669,7 +746,8 @@ const ThemeEditorSidebarInner: React.FC<ThemeEditorSidebarProps> = ({
       <div className="theme-editor-sidebar-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
         {loading ? <p className="p-4 text-sm text-gray-500">Loading theme…</p> : null}
         {error ? <p className="p-4 text-sm text-red-600">{error}</p> : null}
-        {!loading && tree.length > 0 ? (
+        {!loading && sidebarTab === 'theme-settings' ? <ThemeSettingsNav /> : null}
+        {!loading && sidebarTab === 'sections' && tree.length > 0 ? (
           <div className="pb-3 pt-1">
             {tree.map((node) =>
               node.kind === 'group-label' ? (
@@ -681,9 +759,11 @@ const ThemeEditorSidebarInner: React.FC<ThemeEditorSidebarProps> = ({
                   expanded={expanded}
                   selectedNodeId={selectedNodeId}
                   hiddenNodes={hiddenNodes}
+                  visibilityValues={visibilityValues}
                   onToggleExpand={onToggleExpand}
                   onSelect={onSelectNode}
                   onToggleHidden={onToggleHidden}
+                  onDeleteNode={onDeleteNode}
                   onReorder={onReorder}
                   onInsertSection={onInsertSection}
                   onInsertHoverChange={onInsertHoverChange}
@@ -699,9 +779,11 @@ const ThemeEditorSidebarInner: React.FC<ThemeEditorSidebarProps> = ({
                   expanded={expanded}
                   selectedNodeId={selectedNodeId}
                   hiddenNodes={hiddenNodes}
+                  visibilityValues={visibilityValues}
                   onToggleExpand={onToggleExpand}
                   onSelect={onSelectNode}
                   onToggleHidden={onToggleHidden}
+                  onDeleteNode={onDeleteNode}
                   onReorder={onReorder}
                   onInsertHoverChange={onInsertHoverChange}
                   dragState={dragState}
@@ -713,7 +795,7 @@ const ThemeEditorSidebarInner: React.FC<ThemeEditorSidebarProps> = ({
         ) : null}
       </div>
 
-      {showSettingsPanel && settingsNode ? (
+      {sidebarTab === 'sections' && showSettingsPanel && settingsNode ? (
         <ThemeEditorSettingsSheet>
           <ThemeSectionSettingsPanel
             node={settingsNode}

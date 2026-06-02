@@ -798,126 +798,9 @@ function enrichNewsletterBlock(footerLayout) {
       description: 'Signups add customer profiles',
       sidebar: false,
     }),
-    field(`${nb}.blockWidth`, 'select', 'Width', {
-      group: 'General',
-      widget: 'segmented',
-      sidebar: false,
-      options: [
-        { value: 'fill', label: 'Fill' },
-        { value: 'custom', label: 'Custom' },
-      ],
-    }),
-    field(`${nb}.inheritColorScheme`, 'boolean', 'Inherit color scheme', {
-      group: 'General',
+    field(`${nb}.placeholder`, 'text', 'Email placeholder', {
       sidebar: false,
     }),
-    field(`${nb}.title`, 'text', 'Text', {
-      group: 'Heading',
-      sidebar: false,
-    }),
-    field(`${nb}.headingTypographyPreset`, 'select', 'Text preset', {
-      group: 'Heading',
-      widget: 'select',
-      sidebar: false,
-      description: 'Edit presets in theme settings',
-      options: TYPOGRAPHY_PRESETS.filter((o) => o.value !== 'paragraph'),
-    }),
-    field(`${nb}.inputBorder`, 'select', 'Border', {
-      group: 'Input',
-      widget: 'select',
-      sidebar: false,
-      options: [
-        { value: 'all', label: 'All' },
-        { value: 'none', label: 'None' },
-      ],
-    }),
-    field(`${nb}.inputBorderThickness`, 'number', 'Border thickness', {
-      group: 'Input',
-      widget: 'slider',
-      min: 0,
-      max: 4,
-      step: 1,
-      unit: 'px',
-      sidebar: false,
-    }),
-    field(`${nb}.inputCornerRadius`, 'number', 'Corner radius', {
-      group: 'Input',
-      widget: 'slider',
-      min: 0,
-      max: 100,
-      step: 1,
-      unit: 'px',
-      sidebar: false,
-    }),
-    field(`${nb}.inputTypographyPreset`, 'select', 'Text preset', {
-      group: 'Input',
-      widget: 'select',
-      sidebar: false,
-      description: 'Edit presets in theme settings',
-      options: TYPOGRAPHY_PRESETS,
-    }),
-    field(`${nb}.submitStyle`, 'select', 'Style', {
-      group: 'Submit button',
-      widget: 'select',
-      sidebar: false,
-      options: [
-        { value: 'link', label: 'Link' },
-        { value: 'button', label: 'Button' },
-      ],
-    }),
-    field(`${nb}.submitDisplay`, 'select', 'Display', {
-      group: 'Submit button',
-      widget: 'segmented',
-      sidebar: false,
-      options: [
-        { value: 'text', label: 'Text' },
-        { value: 'arrow', label: 'Arrow' },
-      ],
-    }),
-    field(`${nb}.submitIntegratedButton`, 'boolean', 'Integrated button', {
-      group: 'Submit button',
-      sidebar: false,
-    }),
-    field(`${nb}.paddingTop`, 'number', 'Top', {
-      group: 'Padding',
-      widget: 'slider',
-      min: 0,
-      max: 80,
-      step: 1,
-      unit: 'px',
-      sidebar: false,
-    }),
-    field(`${nb}.paddingBottom`, 'number', 'Bottom', {
-      group: 'Padding',
-      widget: 'slider',
-      min: 0,
-      max: 80,
-      step: 1,
-      unit: 'px',
-      sidebar: false,
-    }),
-    field(`${nb}.paddingLeft`, 'number', 'Left', {
-      group: 'Padding',
-      widget: 'slider',
-      min: 0,
-      max: 80,
-      step: 1,
-      unit: 'px',
-      sidebar: false,
-    }),
-    field(`${nb}.paddingRight`, 'number', 'Right', {
-      group: 'Padding',
-      widget: 'slider',
-      min: 0,
-      max: 80,
-      step: 1,
-      unit: 'px',
-      sidebar: false,
-    }),
-    field(`${nb}.subtitle`, 'textarea', 'Subtext', { sidebar: false }),
-    field(`${nb}.placeholder`, 'text', 'Email placeholder', { sidebar: false }),
-    field(`${nb}.buttonLabel`, 'text', 'Button label', { sidebar: false }),
-    field(`${nb}.privacyNote`, 'text', 'Privacy note', { sidebar: false }),
   ];
 }
 
@@ -2660,22 +2543,23 @@ function enrichDefaultConfig(dc) {
 
   const footer = dc.sections?.footer;
   if (footer) {
+    const prevFooterSettings = footer.settings || {};
     footer.settings = {
       sectionWidth: 'page',
       gap: 20,
       colorScheme: 'scheme-1',
       paddingTop: 30,
       paddingBottom: 30,
-      customCss: '',
-      ...(footer.settings || {}),
+      ...prevFooterSettings,
     };
     const newsletter = footer.blocks?.newsletter;
     if (newsletter) {
       const prev = newsletter.settings || {};
       newsletter.settings = {
+        ...prev,
         blockWidth: 'fill',
         inheritColorScheme: true,
-        title: prev.title ?? 'Join our exclusive email list',
+        title: '',
         headingTypographyPreset: prev.headingTypographyPreset ?? 'heading-3',
         inputBorder: 'all',
         inputBorderThickness: 1,
@@ -2683,16 +2567,15 @@ function enrichDefaultConfig(dc) {
         inputTypographyPreset: prev.inputTypographyPreset ?? 'paragraph',
         submitStyle: 'link',
         submitDisplay: 'arrow',
-        submitIntegratedButton: false,
+        submitIntegratedButton: true,
         paddingTop: 0,
         paddingBottom: 0,
         paddingLeft: 0,
         paddingRight: 0,
-        subtitle: prev.subtitle ?? 'Be the first to hear about new drops, offers, and styling tips.',
-        placeholder: prev.placeholder ?? 'Enter your email',
+        subtitle: '',
+        placeholder: prev.placeholder ?? 'Email address',
         buttonLabel: prev.buttonLabel ?? 'Subscribe',
         privacyNote: prev.privacyNote ?? '',
-        ...prev,
       };
     }
   }
@@ -2773,19 +2656,19 @@ function enrichDefaultConfig(dc) {
       direction: 'vertical',
       alignTextBaseline: true,
       layoutAlignment: legacy.textAlign ?? 'center',
-      position: 'bottom',
+      position: 'center',
       layoutGap: 24,
       sectionWidth: legacy.fullWidth ? 'full' : 'page',
-      height: 'medium',
+      height: 'small',
       colorScheme: 'scheme-6',
       mediaOverlay: true,
       overlayColor: '#12121266',
       overlayStyle: 'solid',
       blurredReflection: false,
-      paddingTop: 100,
-      paddingBottom: 72,
+      paddingTop: 56,
+      paddingBottom: 56,
       customCss: '',
-      title: 'Wear the season',
+      title: 'Browse our latest products',
       headingWidth: 'fit',
       headingMaxWidth: 'normal',
       headingTypographyPreset: 'heading-2',
@@ -2796,13 +2679,21 @@ function enrichDefaultConfig(dc) {
       headingPaddingLeft: 0,
       headingPaddingRight: 0,
       eyebrow: 'Spring edit',
-      subtitle:
-        'Light fabrics, warm tones, and pieces made for slow mornings and long evenings.',
+      subtitle: '',
       ...legacy,
+      title: 'Browse our latest products',
+      subtitle: '',
+      position: 'center',
+      height: 'small',
+      paddingTop: 56,
+      paddingBottom: 56,
     };
-    const order = hero.block_order ?? ['primary_button', 'secondary_button'];
-    if (!order.includes('heading')) {
-      hero.block_order = ['heading', ...order];
+    const order = (hero.block_order ?? ['primary_button', 'secondary_button']).filter(
+      (id) => id !== 'text_2'
+    );
+    hero.block_order = order.includes('heading') ? order : ['heading', ...order];
+    if (hero.blocks?.text_2) {
+      delete hero.blocks.text_2;
     }
   }
 
@@ -2810,7 +2701,7 @@ function enrichDefaultConfig(dc) {
     const btn = dc.templates?.index?.sections?.hero_main?.blocks?.[blockId];
     if (btn?.settings) {
       btn.settings = {
-        label: blockId === 'primary_button' ? 'Shop now' : 'Learn more',
+        label: blockId === 'primary_button' ? 'Shop all' : 'Learn more',
         href: blockId === 'primary_button' ? '/products' : '/#about',
         openInNewTab: false,
         buttonStyle: blockId === 'primary_button' ? 'primary' : 'secondary',
@@ -2818,6 +2709,7 @@ function enrichDefaultConfig(dc) {
         mobileWidth: 'fit',
         ariaLabel: '',
         ...btn.settings,
+        label: blockId === 'primary_button' ? 'Shop all' : 'Learn more',
       };
     }
   }
@@ -2825,9 +2717,10 @@ function enrichDefaultConfig(dc) {
   const fcHeader = dc.templates?.index?.sections?.featured_collection?.blocks?.collection_header;
   if (fcHeader?.settings) {
     fcHeader.settings = {
+      ...fcHeader.settings,
       direction: 'horizontal',
       verticalOnMobile: false,
-      layoutAlignment: 'space-between',
+      layoutAlignment: 'left',
       position: 'bottom',
       alignTextBaseline: true,
       layoutGap: 12,
@@ -2843,26 +2736,26 @@ function enrichDefaultConfig(dc) {
       paddingBottom: 0,
       paddingLeft: 0,
       paddingRight: 0,
-      title: 'Featured products',
+      title: 'Products',
       titleWidth: 'fit',
       titleMaxWidth: 'normal',
-      titleTypographyPreset: 'heading-4',
+      titleTypographyPreset: 'heading-2',
       titleColor: 'text',
       titleBackgroundEnabled: false,
       titlePaddingTop: 0,
       titlePaddingBottom: 0,
       titlePaddingLeft: 0,
       titlePaddingRight: 0,
-      viewAllLabel: 'View all',
+      viewAllLabel: '',
       viewAllHref: '/products',
-      subtitle: 'Curated selection',
-      ...fcHeader.settings,
+      subtitle: '',
     };
   }
 
   const fcProductCard = dc.templates?.index?.sections?.featured_collection?.blocks?.product_card;
   if (fcProductCard?.settings) {
     fcProductCard.settings = {
+      ...fcProductCard.settings,
       verticalGap: 4,
       inheritColorScheme: true,
       borderStyle: 'none',
@@ -2871,7 +2764,7 @@ function enrichDefaultConfig(dc) {
       paddingBottom: 0,
       paddingLeft: 0,
       paddingRight: 0,
-      mediaAspectRatio: 'auto',
+      mediaAspectRatio: '1/1',
       mediaBorderStyle: 'none',
       mediaCornerRadius: 0,
       mediaPaddingTop: 0,
@@ -2881,7 +2774,7 @@ function enrichDefaultConfig(dc) {
       productTitleWidth: 'fill',
       productTitleMaxWidth: 'normal',
       productTitleAlignment: 'left',
-      productTitleTypographyPreset: 'default',
+      productTitleTypographyPreset: 'body',
       productTitleBackgroundEnabled: false,
       productTitlePaddingTop: 4,
       productTitlePaddingBottom: 0,
@@ -2890,7 +2783,7 @@ function enrichDefaultConfig(dc) {
       priceShowSaleFirst: true,
       priceInstallments: false,
       priceTaxInfo: false,
-      priceTypographyPreset: 'heading-6',
+      priceTypographyPreset: 'body',
       priceWidth: 'fill',
       priceAlignment: 'left',
       priceColor: 'text',
@@ -2901,7 +2794,6 @@ function enrichDefaultConfig(dc) {
       showMedia: true,
       showTitle: true,
       showPrice: true,
-      ...fcProductCard.settings,
     };
   }
 
@@ -2909,13 +2801,14 @@ function enrichDefaultConfig(dc) {
   if (fc?.settings) {
     const legacyGap = fc.settings.gap;
     fc.settings = {
+      ...fc.settings,
       collectionHandle: 'products',
       layoutType: 'grid',
       carouselOnMobile: false,
-      productsToShow: 8,
+      productsToShow: 4,
       columns: 4,
       mobileColumns: '2',
-      horizontalGap: legacyGap != null ? Math.min(48, Number(legacyGap) || 8) : 8,
+      horizontalGap: legacyGap != null ? Math.min(48, Number(legacyGap) || 8) : 16,
       verticalGap: 24,
       sectionWidth: 'page',
       alignment: 'left',
@@ -2924,10 +2817,9 @@ function enrichDefaultConfig(dc) {
       paddingTop: 48,
       paddingBottom: 48,
       customCss: '',
-      subtitle: 'Hand-picked for you',
-      showRating: true,
+      subtitle: '',
+      showRating: false,
       emptyMessage: 'No products yet.',
-      ...fc.settings,
     };
   }
 }

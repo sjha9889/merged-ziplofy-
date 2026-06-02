@@ -1,7 +1,10 @@
 import type { EditorFieldDef, SidebarNode } from './theme-editor-sidebar.types';
 import { layoutBlueprintKey } from '../../../utils/theme-editor-insert-section';
 
-const PANEL_GROUPS = new Set(['General', 'Padding', 'Custom CSS']);
+/** Shopify-style Footer section settings sheet order. */
+export const FOOTER_PANEL_GROUP_ORDER = ['General', 'Padding', 'Custom CSS'] as const;
+
+const PANEL_GROUPS = new Set<string>(FOOTER_PANEL_GROUP_ORDER);
 
 const FIELD_SORT: Record<string, number> = {
   sectionWidth: 0,
@@ -63,6 +66,34 @@ export function sortFooterPanelFields(fields: EditorFieldDef[]): EditorFieldDef[
 export function prepareFooterSettingsNode(node: SidebarNode): SidebarNode {
   const fields = sortFooterPanelFields((node.fields ?? []).filter(isFooterPanelField));
   return { ...node, label: 'Footer', kind: 'section', fields };
+}
+
+export function groupFooterPanelFields(fields: EditorFieldDef[]): Map<string, EditorFieldDef[]> {
+  const map = new Map<string, EditorFieldDef[]>();
+  for (const field of fields) {
+    const group = field.group && PANEL_GROUPS.has(field.group) ? field.group : 'General';
+    const list = map.get(group) ?? [];
+    list.push(field);
+    map.set(group, list);
+  }
+  return map;
+}
+
+/** True when the bottom sheet is the layout Footer section (not newsletter block). */
+export function isFooterSettingsPanelFields(fields: EditorFieldDef[]): boolean {
+  if (!fields.length) return false;
+  const keys = new Set(fields.map((f) => f.path.split('.').pop() ?? ''));
+  return (
+    keys.has('sectionWidth') &&
+    keys.has('gap') &&
+    keys.has('colorScheme') &&
+    keys.has('paddingTop') &&
+    keys.has('customCss') &&
+    !keys.has('title') &&
+    !keys.has('signupsCustomerProfiles') &&
+    !keys.has('dividerThickness') &&
+    !keys.has('paymentIcons')
+  );
 }
 
 export function collectFooterPanelFieldDefs(

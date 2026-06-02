@@ -17,6 +17,7 @@ import { SocketProvider } from "./contexts/socket.context";
 import { StoreProvider } from "./contexts/store.context";
 import { UserProvider } from "./contexts/user.context";
 import { AwsUploadProvider } from "./contexts/aws-upload.context";
+import { StoreCloudStorageProvider } from "./contexts/store-cloud-storage.context";
 import Navbar from "./pages/Navbar";
 import { CategoryProvider } from "./contexts/category.context";
 import { NotificationOverridesProvider } from "./contexts/notification-overrides.context";
@@ -33,7 +34,7 @@ const ThemeCodeEditorFullScreen = lazy(() => import("./pages/themes/ThemeCodeEdi
 const ThemeEditor = lazy(() => import("./pages/themes/ThemeEditor"));
 const StoreThemeConfigEditor = lazy(() => import("./pages/themes/StoreThemeConfigEditor"));
 const ThemeLayoutEditor = lazy(() => import("./pages/themes/ThemeLayoutEditor"));
-const CreateThemePage = lazy(() => import("./pages/themes/CreateThemePage"));
+const CreateThemePage = lazy(() => import("./create-theme/CreateThemePage"));
 const AnalyticsPage = lazy(() => import("./pages/AnalyticsPage"));
 const ContentPage = lazy(() => import("./pages/ContentPage"));
 const CreateOrderPage = lazy(() => import("./pages/CreateOrderPage"));
@@ -137,6 +138,12 @@ const BlogPostCreatePage = lazy(() => import("./pages/BlogPostCreatePage").then(
 const ContentBlogPostsPage = lazy(() => import("./pages/ContentBlogPostsPage").then(m => ({ default: m.ContentBlogPostsPage })));
 const ContentFilesPage = lazy(() => import("./pages/ContentFilesPage").then(m => ({ default: m.ContentFilesPage })));
 const ContentMenusPage = lazy(() => import("./pages/ContentMenusPage").then(m => ({ default: m.ContentMenusPage })));
+const ContentMenuCreatePage = lazy(() =>
+  import("./pages/ContentMenuCreatePage").then(m => ({ default: m.ContentMenuCreatePage }))
+);
+const ContentUrlRedirectsPage = lazy(() =>
+  import("./pages/ContentUrlRedirectsPage").then(m => ({ default: m.ContentUrlRedirectsPage }))
+);
 const ContentMetaObjectsPage = lazy(() => import("./pages/ContentMetaObjectsPage").then(m => ({ default: m.ContentMetaObjectsPage })));
 const LanguageSettingsPage = lazy(() => import("./pages/LanguageSettingsPage").then(m => ({ default: m.LanguageSettingsPage })));
 const MarketSettingsPage = lazy(() => import("./pages/MarketSettingsPage").then(m => ({ default: m.MarketSettingsPage })));
@@ -216,6 +223,7 @@ import { ShippingZoneRateProvider } from "./contexts/shipping-zone-rate.context"
 import { ShippingZoneProvider } from "./contexts/shipping-zone.context";
 import { StateProvider } from "./contexts/state.context";
 import { StoreBannerProvider } from "./contexts/store-banner.context";
+import { StoreCustomThemesProvider } from "./contexts/store-custom-themes.context";
 import { StoreBrandingProvider } from "./contexts/store-branding.context";
 import { StoreContactInfoProvider } from "./contexts/store-contact-info.context";
 import { StoreNotificationEmailProvider } from "./contexts/store-notification-email.context";
@@ -267,7 +275,11 @@ const AdminApp: React.FC = () => {
     location.pathname === '/themes/dev-editor' ||
     /^\/themes\/[^/]+\/editor$/.test(location.pathname);
   const isFullScreen =
-    isCodeFullScreen || isBuilderFullScreen || isBasicElementor || isThemeSchemaEditor;
+    isCodeFullScreen ||
+    isBuilderFullScreen ||
+    isBasicElementor ||
+    isThemeSchemaEditor ||
+    isThemeCreator;
   const isSettings = location.pathname.startsWith('/settings');
   const showNavbar = !isFullScreen;
   const showSidebar = !isFullScreen && !isSettings && !isThemeCreator;
@@ -351,6 +363,8 @@ const AdminApp: React.FC = () => {
             <Route path="/content/blog-posts/new" element={<BlogPostCreatePage />} />
             <Route path="/content/files" element={<ContentFilesPage />} />
             <Route path="/content/menus" element={<ContentMenusPage />} />
+            <Route path="/content/menus/new" element={<ContentMenuCreatePage />} />
+            <Route path="/content/url-redirects" element={<ContentUrlRedirectsPage />} />
             <Route path="/content/metaobjects" element={<ContentMetaObjectsPage />} />
             <Route path="/online-store" element={<OnlineStorePage />} />
             <Route path="/online-store/themes" element={<AllThemes />} />
@@ -457,11 +471,13 @@ const App: React.FC = () => {
       <CategoryProvider>
       <PackagingProvider>
       <AwsUploadProvider>
+      <StoreCloudStorageProvider>
       <CustomerTimelineProvider>
       <CustomerAddressProvider>
       <StoreProvider>
         <ThemesProvider>
           <CustomThemesProvider>
+          <StoreCustomThemesProvider>
         <VendorProvider>
         <CollectionProvider>
         <CustomerTagsProvider>
@@ -640,12 +656,14 @@ const App: React.FC = () => {
         </CustomerTagsProvider>
         </CollectionProvider>
         </VendorProvider>
+        </StoreCustomThemesProvider>
         </CustomThemesProvider>
         </ThemesProvider>
       </StoreProvider>
       
       </CustomerAddressProvider>
       </CustomerTimelineProvider>
+      </StoreCloudStorageProvider>
       </AwsUploadProvider>
       </PackagingProvider>
       </CategoryProvider>

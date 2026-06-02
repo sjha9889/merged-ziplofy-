@@ -10,10 +10,13 @@ export type {
   ThemeEditorSidebarTab,
 } from './theme-editor-sidebar.types';
 export { AddBlockModal } from './AddBlockModal';
+export { ThemeEditorImagePickerModal } from './ThemeEditorImagePickerModal';
 export type { AddBlockModalProps } from './AddBlockModal';
 export type { BlockCatalogItem } from './add-block-catalog';
 export {
+  buildEmptyShopifySidebarTree,
   buildShopifySidebarTree,
+  withCreatorSidebarDeleteFlags,
   buildThemeSettingsSidebarTree,
   defaultExpandedSidebar,
   findSidebarNode,
@@ -21,4 +24,5 @@ export {
   expandedIdsFromSidebarTree,
   firstSelectableSidebarNode,
   resolveAddBlockSectionLabel,
+  settingsNodeForSelection,
 } from './theme-editor-sidebar.tree';

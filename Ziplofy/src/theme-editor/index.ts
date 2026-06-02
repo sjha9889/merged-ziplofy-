@@ -5,7 +5,16 @@ export {
   resolveEditingPanelForNode,
   resolveEditingPanelFromCatalog,
   sectionEditingSupport,
+  catalogSidebarBlocksForSectionType,
+  sectionTypeUsesCatalogSidebar,
+  settingsNodeFromCatalog,
 } from './section-editing-support.util';
+export {
+  catalogSidebarBlocksForSectionType,
+  sectionTypeUsesCatalogSidebar,
+  settingsNodeFromCatalog,
+} from './catalog-sidebar.util';
+export type { CatalogSidebarBlockDef } from './catalog-sidebar.util';
 export {
   getCatalogElementById,
   getEditingForCatalogElement,

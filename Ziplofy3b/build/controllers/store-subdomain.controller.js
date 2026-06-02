@@ -7,6 +7,7 @@ exports.checkSubdomain = exports.getSubdomainByStoreId = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const config_1 = require("../config");
 const store_model_1 = require("../models/store/store.model");
+const store_custom_theme_model_1 = require("../models/store-custom-theme/store-custom-theme.model");
 const subdomain_model_1 = require("../models/subdomain.model");
 const error_utils_1 = require("../utils/error.utils");
 exports.getSubdomainByStoreId = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
@@ -34,9 +35,21 @@ exports.checkSubdomain = (0, error_utils_1.asyncErrorHandler)(async (req, res) =
     if (!mapping) {
         return res.status(404).json({ success: false, message: 'Subdomain not found' });
     }
-    const store = await store_model_1.Store.findById(mapping.storeId);
+    const store = await store_model_1.Store.findById(mapping.storeId)
+        .select('storeName storeDescription appliedCustomThemeId')
+        .lean();
     if (!store) {
         return res.status(404).json({ success: false, message: 'Store not found for subdomain' });
+    }
+    const appliedCustomThemeId = store.appliedCustomThemeId
+        ? String(store.appliedCustomThemeId)
+        : null;
+    let appliedCustomThemeName = null;
+    if (appliedCustomThemeId) {
+        const customTheme = await store_custom_theme_model_1.StoreCustomTheme.findById(appliedCustomThemeId)
+            .select('themeName')
+            .lean();
+        appliedCustomThemeName = customTheme?.themeName ?? null;
     }
     return res.status(200).json({
         success: true,
@@ -44,6 +57,8 @@ exports.checkSubdomain = (0, error_utils_1.asyncErrorHandler)(async (req, res) =
             storeId: store._id,
             name: store.storeName,
             description: store.storeDescription,
+            appliedCustomThemeId,
+            appliedCustomThemeName,
         }
     });
 });

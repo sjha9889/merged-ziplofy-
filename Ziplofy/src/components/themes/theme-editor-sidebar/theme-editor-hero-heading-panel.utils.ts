@@ -1,3 +1,4 @@
+import { remapTemplateHeroSchemaPath } from '../../../utils/theme-editor-insert-section';
 import type { EditorFieldDef, EditorSchemaDoc, SidebarNode } from './theme-editor-sidebar.types';
 
 const PANEL_GROUPS = new Set(['Text', 'Layout', 'Typography', 'Appearance', 'Padding']);
@@ -16,7 +17,7 @@ const HEADING_PANEL_KEYS = new Set([
 ]);
 
 export function isHeroHeadingBlockNodeId(nodeId: string): boolean {
-  return /^template:[^:]+:hero_main(?:_\d+)?:block:heading$/.test(nodeId);
+  return /^(?:template:[^:]+:hero_main(?:_\d+)?|layout:hero_main(?:_\d+)?):block:heading$/.test(nodeId);
 }
 
 function fieldSortKey(path: string): number {
@@ -65,9 +66,17 @@ export function prepareHeroHeadingSettingsNode(node: SidebarNode): SidebarNode {
   return { ...node, label: 'Heading', kind: 'block', fields };
 }
 
-export function heroHeadingFieldDefsFromSchema(editorSchema: EditorSchemaDoc): EditorFieldDef[] {
+export function heroHeadingFieldDefsFromSchema(
+  editorSchema: EditorSchemaDoc,
+  layoutInstanceId?: string | null
+): EditorFieldDef[] {
   const tpl = editorSchema.templates?.find((t) => t.id === 'index');
   const sec = tpl?.sections?.find((s) => s.id === 'hero_main');
   const heading = sec?.blocks?.find((b) => b.id === 'heading');
-  return heading?.settingsFields ?? [];
+  const fields = heading?.settingsFields ?? [];
+  if (!layoutInstanceId) return fields;
+  return fields.map((f) => ({
+    ...f,
+    path: remapTemplateHeroSchemaPath(f.path, layoutInstanceId),
+  }));
 }

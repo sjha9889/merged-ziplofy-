@@ -10,6 +10,10 @@ export { useStorefrontProductVariants } from '@/contexts/product-variant.context
 export { formatINR } from '@/utils/currency';
 export { isThemeEditorPreview } from '@/utils/theme-editor-preview';
 export { useThemeEditorPreview } from '@/hooks/useThemeEditorPreview';
+export {
+  usePreviewHighlightNodeId,
+  layoutBlockIdFromHighlightNodeId,
+} from '@/hooks/usePreviewHighlightNodeId';
 
 export type {
   StorefrontUser,

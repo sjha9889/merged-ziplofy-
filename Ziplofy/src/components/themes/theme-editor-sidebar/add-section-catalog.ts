@@ -42,93 +42,115 @@ export const TEMPLATE_SECTION_RESOLVE: Record<string, { blueprintId: string; typ
   'hero-bottom-aligned': { blueprintId: 'hero_main', type: 'hero' },
   'hero-marquee': { blueprintId: 'hero_main', type: 'hero' },
   'large-logo': { blueprintId: 'hero_main', type: 'hero' },
-  'layered-slideshow': { blueprintId: 'hero_main', type: 'hero' },
-  'slideshow-full-frame': { blueprintId: 'hero_main', type: 'hero' },
-  'slideshow-inset': { blueprintId: 'hero_main', type: 'hero' },
+  'layered-slideshow': { blueprintId: 'layered_slideshow', type: 'layered-slideshow' },
+  'slideshow-full-frame': {
+    blueprintId: 'slideshow_full_frame',
+    type: 'slideshow-full-frame',
+  },
+  'slideshow-inset': { blueprintId: 'slideshow_inset', type: 'slideshow-inset' },
   'split-showcase': { blueprintId: 'hero_main', type: 'hero' },
   'featured-collection': { blueprintId: 'featured_collection', type: 'featured-collection' },
   'featured-collection-carousel': { blueprintId: 'featured_collection', type: 'featured-collection' },
   'featured-collection-editorial': { blueprintId: 'featured_collection', type: 'featured-collection' },
   'featured-collection-grid': { blueprintId: 'featured_collection', type: 'featured-collection' },
-  'product-highlight': { blueprintId: 'featured_collection', type: 'featured-collection' },
-  'featured-product': { blueprintId: 'featured_collection', type: 'featured-collection' },
-  'product-hotspots': { blueprintId: 'featured_collection', type: 'featured-collection' },
-  'recommended-products': { blueprintId: 'featured_collection', type: 'featured-collection' },
+  'product-highlight': { blueprintId: 'product_highlight', type: 'product-highlight' },
+  'featured-product': { blueprintId: 'product_highlight', type: 'product-highlight' },
+  'product-hotspots': { blueprintId: 'product_hotspots', type: 'product-hotspots' },
+  'recommended-products': { blueprintId: 'recommended_products', type: 'recommended-products' },
   'product-list': { blueprintId: 'featured_collection', type: 'featured-collection' },
   'collection-list': { blueprintId: 'featured_collection', type: 'featured-collection' },
-  'collection-links-spotlight': { blueprintId: 'featured_collection', type: 'featured-collection' },
-  'collection-links-text': { blueprintId: 'featured_collection', type: 'featured-collection' },
-  'collection-list-bento': { blueprintId: 'featured_collection', type: 'featured-collection' },
-  'collection-list-carousel': { blueprintId: 'featured_collection', type: 'featured-collection' },
-  'collection-list-editorial': { blueprintId: 'featured_collection', type: 'featured-collection' },
-  'collection-list-grid': { blueprintId: 'featured_collection', type: 'featured-collection' },
+  'collection-links-spotlight': {
+    blueprintId: 'collection_links_spotlight',
+    type: 'collection-links-spotlight',
+  },
+  'collection-links-text': {
+    blueprintId: 'collection_links_text',
+    type: 'collection-links-spotlight',
+  },
+  'collection-list-bento': {
+    blueprintId: 'collection_list_bento',
+    type: 'collection-list-bento',
+  },
+  'collection-list-carousel': {
+    blueprintId: 'collection_list_carousel',
+    type: 'collection-list-carousel',
+  },
+  'collection-list-editorial': {
+    blueprintId: 'collection_list_editorial',
+    type: 'collection-list-editorial',
+  },
+  'collection-list-grid': {
+    blueprintId: 'collection_list_grid',
+    type: 'collection-list-grid',
+  },
   divider: { blueprintId: 'divider', type: 'divider' },
   'custom-liquid': { blueprintId: 'hero_main', type: 'hero' },
-  'custom-section': { blueprintId: 'hero_main', type: 'hero' },
-  'blog-posts-carousel': { blueprintId: 'hero_main', type: 'hero' },
-  'blog-posts-editorial': { blueprintId: 'hero_main', type: 'hero' },
-  'blog-posts-grid': { blueprintId: 'hero_main', type: 'hero' },
-  'storytelling-carousel': { blueprintId: 'hero_main', type: 'hero' },
-  editorial: { blueprintId: 'hero_main', type: 'hero' },
-  'editorial-jumbo': { blueprintId: 'hero_main', type: 'hero' },
-  'image-compare': { blueprintId: 'hero_main', type: 'hero' },
-  'image-with-text': { blueprintId: 'hero_main', type: 'hero' },
-  logo: { blueprintId: 'hero_main', type: 'hero' },
-  video: { blueprintId: 'hero_main', type: 'hero' },
-  faq: { blueprintId: 'hero_main', type: 'hero' },
-  'icons-with-text': { blueprintId: 'hero_main', type: 'hero' },
-  'text-marquee': { blueprintId: 'hero_main', type: 'hero' },
-  multicolumn: { blueprintId: 'hero_main', type: 'hero' },
-  'pull-quote': { blueprintId: 'hero_main', type: 'hero' },
-  'rich-text': { blueprintId: 'hero_main', type: 'hero' },
-  'contact-form': { blueprintId: 'hero_main', type: 'hero' },
-  'email-signup': { blueprintId: 'hero_main', type: 'hero' },
+  'custom-section': { blueprintId: 'custom_section', type: 'custom-section' },
+  'blog-posts-carousel': { blueprintId: 'blog_posts_carousel', type: 'blog-posts-carousel' },
+  'blog-posts-editorial': { blueprintId: 'blog_posts_editorial', type: 'blog-posts-editorial' },
+  'blog-posts-grid': { blueprintId: 'blog_posts_grid', type: 'blog-posts-grid' },
+  'storytelling-carousel': { blueprintId: 'storytelling_carousel', type: 'storytelling-carousel' },
+  editorial: { blueprintId: 'editorial', type: 'editorial' },
+  'editorial-jumbo': { blueprintId: 'editorial_jumbo', type: 'editorial-jumbo' },
+  'image-compare': { blueprintId: 'image_compare', type: 'image-compare' },
+  'image-with-text': { blueprintId: 'image_with_text', type: 'image-with-text' },
+  logo: { blueprintId: 'storytelling_logo', type: 'storytelling-logo' },
+  video: { blueprintId: 'storytelling_video', type: 'storytelling-video' },
+  faq: { blueprintId: 'faq_section', type: 'faq' },
+  'icons-with-text': { blueprintId: 'icons_with_text', type: 'icons-with-text' },
+  'text-marquee': { blueprintId: 'text_marquee_section', type: 'text-marquee' },
+  multicolumn: { blueprintId: 'multicolumn_section', type: 'multicolumn' },
+  'pull-quote': { blueprintId: 'pull_quote_section', type: 'pull-quote' },
+  'rich-text': { blueprintId: 'rich_text_section', type: 'rich-text' },
+  'contact-form': { blueprintId: 'contact_form', type: 'contact-form' },
+  'email-signup': { blueprintId: 'email_signup', type: 'email-signup' },
 };
 
 /** Header/footer layout insert targets (schema `layout` blueprints). */
 export const LAYOUT_SECTION_RESOLVE: Record<string, { blueprintId: string; type: string; label: string }> = {
   'custom-liquid': { blueprintId: 'divider', type: 'divider', label: 'Custom Liquid' },
-  'custom-section': { blueprintId: 'divider', type: 'divider', label: 'Custom section' },
+  'custom-section': { blueprintId: 'custom_section', type: 'custom-section', label: 'Custom section' },
   divider: { blueprintId: 'divider', type: 'divider', label: 'Divider' },
 };
 
 /** Footer Add section → layout blueprint (divider stub until footer template sections exist). */
 export const FOOTER_BANNER_RESOLVE: Record<string, { blueprintId: string; type: string; label: string }> = {
-  hero: { blueprintId: 'divider', type: 'divider', label: 'Hero' },
-  'hero-bottom-aligned': { blueprintId: 'divider', type: 'divider', label: 'Hero: Bottom aligned' },
-  'hero-marquee': { blueprintId: 'divider', type: 'divider', label: 'Hero: Marquee' },
-  'large-logo': { blueprintId: 'divider', type: 'divider', label: 'Large logo' },
-  'split-showcase': { blueprintId: 'divider', type: 'divider', label: 'Split showcase' },
+  hero: { blueprintId: 'hero_main', type: 'hero', label: 'Hero' },
+  'hero-bottom-aligned': { blueprintId: 'hero_main', type: 'hero', label: 'Hero: Bottom aligned' },
+  'hero-marquee': { blueprintId: 'hero_main', type: 'hero', label: 'Hero: Marquee' },
+  'large-logo': { blueprintId: 'hero_main', type: 'hero', label: 'Large logo' },
+  'split-showcase': { blueprintId: 'hero_main', type: 'hero', label: 'Split showcase' },
 };
 
 /** Footer Add section → layout blueprint for form variants. */
 export const FOOTER_FORMS_RESOLVE: Record<string, { blueprintId: string; type: string; label: string }> = {
-  'contact-form': { blueprintId: 'divider', type: 'divider', label: 'Contact form' },
-  'email-signup': { blueprintId: 'divider', type: 'divider', label: 'Email signup' },
+  'contact-form': { blueprintId: 'contact_form', type: 'contact-form', label: 'Contact form' },
+  'email-signup': { blueprintId: 'email_signup', type: 'email-signup', label: 'Email signup' },
 };
 
 /** Footer Add section → layout blueprint for product variants. */
 export const FOOTER_PRODUCTS_RESOLVE: Record<string, { blueprintId: string; type: string; label: string }> = {
-  'product-highlight': { blueprintId: 'divider', type: 'divider', label: 'Product highlight' },
+  'product-highlight': { blueprintId: 'product_highlight', type: 'product-highlight', label: 'Product highlight' },
 };
 
 /** Footer Add section → layout blueprint for text variants. */
 export const FOOTER_TEXT_RESOLVE: Record<string, { blueprintId: string; type: string; label: string }> = {
-  faq: { blueprintId: 'divider', type: 'divider', label: 'FAQ' },
-  'icons-with-text': { blueprintId: 'divider', type: 'divider', label: 'Icons with text' },
-  multicolumn: { blueprintId: 'divider', type: 'divider', label: 'Multicolumn' },
-  'pull-quote': { blueprintId: 'divider', type: 'divider', label: 'Pull quote' },
-  'rich-text': { blueprintId: 'divider', type: 'divider', label: 'Rich text' },
+  faq: { blueprintId: 'faq_section', type: 'faq', label: 'FAQ' },
+  'icons-with-text': { blueprintId: 'icons_with_text', type: 'icons-with-text', label: 'Icons with text' },
+  multicolumn: { blueprintId: 'multicolumn_section', type: 'multicolumn', label: 'Multicolumn' },
+  'pull-quote': { blueprintId: 'pull_quote_section', type: 'pull-quote', label: 'Pull quote' },
+  'rich-text': { blueprintId: 'rich_text_section', type: 'rich-text', label: 'Rich text' },
+  'text-marquee': { blueprintId: 'text_marquee_section', type: 'text-marquee', label: 'Marquee' },
 };
 
 /** Footer Add section → layout blueprint for storytelling variants. */
 export const FOOTER_STORYTELLING_RESOLVE: Record<string, { blueprintId: string; type: string; label: string }> = {
-  editorial: { blueprintId: 'divider', type: 'divider', label: 'Editorial' },
-  'editorial-jumbo': { blueprintId: 'divider', type: 'divider', label: 'Editorial: Jumbo text' },
-  'image-compare': { blueprintId: 'divider', type: 'divider', label: 'Image compare' },
-  'image-with-text': { blueprintId: 'divider', type: 'divider', label: 'Image with text' },
-  logo: { blueprintId: 'divider', type: 'divider', label: 'Logo' },
-  video: { blueprintId: 'divider', type: 'divider', label: 'Video' },
+  editorial: { blueprintId: 'editorial', type: 'editorial', label: 'Editorial' },
+  'editorial-jumbo': { blueprintId: 'editorial_jumbo', type: 'editorial-jumbo', label: 'Editorial: Jumbo text' },
+  'image-compare': { blueprintId: 'image_compare', type: 'image-compare', label: 'Image compare' },
+  'image-with-text': { blueprintId: 'image_with_text', type: 'image-with-text', label: 'Image with text' },
+  logo: { blueprintId: 'storytelling_logo', type: 'storytelling-logo', label: 'Logo' },
+  video: { blueprintId: 'storytelling_video', type: 'storytelling-video', label: 'Video' },
 };
 
 function layoutLiquidItem(): SectionCatalogItem {
@@ -167,7 +189,6 @@ const LAYOUT_CATEGORY_ITEMS: SectionCatalogItem[] = [
 
 /** Header layout options (no Custom Liquid). */
 const HEADER_LAYOUT_ITEMS: SectionCatalogItem[] = [
-  layoutBlockItem('custom-section', 'Custom section', ['blank', 'custom', 'blocks'], 'custom-section', 'Build a section with blocks and settings'),
   layoutBlockItem('divider', 'Divider', ['line', 'separator', 'rule'], 'divider', 'A horizontal line to separate content'),
 ];
 
@@ -527,7 +548,7 @@ const FOOTER_GROUP_ITEMS: SectionCatalogItem[] = [
     'Footer',
     ['links', 'menu', 'copyright', 'newsletter', 'email'],
     'footer-section',
-    'Email signup, links, and copyright'
+    'Join our email list with signup form and store links'
   ),
   layoutBlockItem(
     'policies-links',
@@ -593,7 +614,7 @@ export function defaultExpandedCategoriesForGroup(groupId: SectionCatalogGroup):
   if (groupId === 'footer') {
     return {
       banners: false,
-      footer: false,
+      footer: true,
       forms: false,
       layout: false,
       products: false,
@@ -605,7 +626,7 @@ export function defaultExpandedCategoriesForGroup(groupId: SectionCatalogGroup):
     return {
       banners: true,
       collections: false,
-      forms: false,
+      forms: true,
       layout: false,
       products: false,
       storytelling: false,

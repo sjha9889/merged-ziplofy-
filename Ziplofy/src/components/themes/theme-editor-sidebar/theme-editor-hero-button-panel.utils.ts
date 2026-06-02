@@ -1,3 +1,4 @@
+import { remapTemplateHeroSchemaPath } from '../../../utils/theme-editor-insert-section';
 import type { EditorFieldDef, EditorSchemaDoc, SidebarNode } from './theme-editor-sidebar.types';
 
 const PANEL_GROUPS = new Set(['Content', 'Appearance', 'Size']);
@@ -12,7 +13,9 @@ const BUTTON_PANEL_KEYS = new Set([
 ]);
 
 export function isHeroButtonBlockNodeId(nodeId: string): boolean {
-  return /^template:[^:]+:hero_main(?:_\d+)?:block:(primary_button|secondary_button)$/.test(nodeId);
+  return /^(?:template:[^:]+:hero_main(?:_\d+)?|layout:hero_main(?:_\d+)?):block:(?:primary_button|secondary_button|button_\d+)$/.test(
+    nodeId
+  );
 }
 
 function fieldSortKey(path: string): number {
@@ -31,7 +34,7 @@ function fieldSortKey(path: string): number {
 export function isHeroButtonPanelField(field: EditorFieldDef): boolean {
   const key = field.path.split('.').pop() ?? '';
   if (!BUTTON_PANEL_KEYS.has(key)) return false;
-  if (!/\.blocks\.(primary_button|secondary_button)\.settings\./.test(field.path)) return false;
+  if (!/\.blocks\.(?:primary_button|secondary_button|button_\d+)\.settings\./.test(field.path)) return false;
   if (!/\.sections\.hero_main(?:_\d+)?\./.test(field.path)) return false;
   if (!field.group || !PANEL_GROUPS.has(field.group)) return false;
   return true;
@@ -54,10 +57,30 @@ export function prepareHeroButtonSettingsNode(node: SidebarNode): SidebarNode {
 
 export function heroButtonFieldDefsFromSchema(
   editorSchema: EditorSchemaDoc,
-  blockId: string
+  blockId: string,
+  layoutInstanceId?: string | null
 ): EditorFieldDef[] {
   const tpl = editorSchema.templates?.find((t) => t.id === 'index');
   const sec = tpl?.sections?.find((s) => s.id === 'hero_main');
-  const block = sec?.blocks?.find((b) => b.id === blockId);
-  return block?.settingsFields ?? [];
+  const sourceBlock =
+    sec?.blocks?.find((b) => b.id === blockId) ??
+    sec?.blocks?.find((b) => b.id === 'primary_button') ??
+    sec?.blocks?.find((b) => (b.id ?? '').includes('button'));
+  const sourceFields = sourceBlock?.settingsFields ?? [];
+  if (!sourceFields.length) return [];
+
+  const sourceBlockId = sourceBlock?.id ?? blockId;
+  const remappedToTarget = sourceFields.map((f) => ({
+    ...f,
+    path:
+      sourceBlockId !== blockId
+        ? f.path.replace(`.blocks.${sourceBlockId}.`, `.blocks.${blockId}.`)
+        : f.path,
+  }));
+
+  if (!layoutInstanceId) return remappedToTarget;
+  return remappedToTarget.map((f) => ({
+    ...f,
+    path: remapTemplateHeroSchemaPath(f.path, layoutInstanceId),
+  }));
 }

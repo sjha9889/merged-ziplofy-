@@ -12,6 +12,7 @@ import {
   getLayoutOrder,
   layoutBlueprintKey,
   remapLayoutSchemaPath,
+  remapTemplateHeroSchemaPath,
   remapTemplateSchemaPath,
   templateBlueprintKey,
 } from './theme-editor-insert-section';
@@ -23,31 +24,125 @@ type SchemaBlock = {
   blocks?: SchemaBlock[];
 };
 
+function remappedLayoutSchemaBlock(block: SchemaBlock, instanceId: string, blockInstanceId: string): SchemaBlock {
+  return {
+    ...block,
+    id: blockInstanceId,
+    settingsFields: block.settingsFields?.map((f) => ({
+      ...f,
+      path: f.path
+        ? remapLayoutSchemaPath(f.path, instanceId).replace(
+            /\.blocks\.[^.]+\./,
+            `.blocks.${blockInstanceId}.`
+          )
+        : f.path,
+    })),
+    blocks: block.blocks?.map((child) => remappedLayoutSchemaBlock(child, instanceId, blockInstanceId)),
+  };
+}
+
 function pushSchemaBlockHintsForInstance(
   hints: ThemePreviewSelectionHint[],
   seen: Set<string>,
   config: Record<string, unknown>,
   block: SchemaBlock,
   instanceId: string,
-  blueprint: string
+  blueprint: string,
+  blockInstanceId?: string
 ): void {
   const nodePrefix = `layout:${instanceId}`;
-  const remappedBlock: SchemaBlock = {
-    ...block,
-    settingsFields: block.settingsFields?.map((f) => ({
-      ...f,
-      path: f.path ? remapLayoutSchemaPath(f.path, instanceId) : f.path,
-    })),
-    blocks: block.blocks?.map((child) => ({
-      ...child,
-      settingsFields: child.settingsFields?.map((f) => ({
-        ...f,
-        path: f.path ? remapLayoutSchemaPath(f.path, instanceId) : f.path,
-      })),
-    })),
-  };
+  const remappedBlock = blockInstanceId
+    ? remappedLayoutSchemaBlock(block, instanceId, blockInstanceId)
+    : {
+        ...block,
+        settingsFields: block.settingsFields?.map((f) => ({
+          ...f,
+          path: f.path ? remapLayoutSchemaPath(f.path, instanceId) : f.path,
+        })),
+        blocks: block.blocks?.map((child) => ({
+          ...child,
+          settingsFields: child.settingsFields?.map((f) => ({
+            ...f,
+            path: f.path ? remapLayoutSchemaPath(f.path, instanceId) : f.path,
+          })),
+        })),
+      };
   pushSchemaBlockHints(hints, seen, config, remappedBlock, nodePrefix, instanceId);
   void blueprint;
+}
+
+function pushLayoutAnnouncementBlockHints(
+  hints: ThemePreviewSelectionHint[],
+  seen: Set<string>,
+  config: Record<string, unknown>,
+  layout: { blocks?: SchemaBlock[] },
+  instanceId: string
+): void {
+  const secCfg = getNested(config, `sections.${instanceId}`) as
+    | { block_order?: string[] }
+    | undefined;
+  const template = layout.blocks?.find((b) => b.id === 'announcement');
+  if (!template) return;
+  const order = secCfg?.block_order?.length ? secCfg.block_order : ['announcement'];
+  for (const blockInstanceId of order) {
+    pushSchemaBlockHintsForInstance(
+      hints,
+      seen,
+      config,
+      template,
+      instanceId,
+      'announcement_bar',
+      blockInstanceId
+    );
+  }
+}
+
+/** Footer/header layout heroes clone the index template hero schema under `sections.{id}`. */
+function pushLayoutHeroHintsFromTemplate(
+  hints: ThemePreviewSelectionHint[],
+  seen: Set<string>,
+  config: Record<string, unknown>,
+  heroSection: { label?: string; settingsFields?: EditorFieldDef[]; blocks?: SchemaBlock[] },
+  instanceId: string
+): void {
+  const nodePrefix = `layout:${instanceId}`;
+  pushHint(hints, seen, {
+    nodeId: nodePrefix,
+    label: heroSection.label ?? 'Hero',
+    kind: 'section',
+    sectionId: instanceId,
+  });
+  for (const field of heroSection.settingsFields ?? []) {
+    if (!field.path) continue;
+    const path = remapTemplateHeroSchemaPath(field.path, instanceId);
+    const raw = getNested(config, path);
+    const text = typeof raw === 'string' ? raw.trim() : '';
+    pushHint(hints, seen, {
+      nodeId: `field:${path}`,
+      label: fieldLabelFromPath(path, field.label),
+      kind: fieldKindFromPath(path, field.type),
+      matchText: text.length >= 2 ? text : undefined,
+      fieldPath: path,
+      fieldType: field.type as ThemePreviewSelectionHint['fieldType'],
+    });
+  }
+  for (const block of heroSection.blocks ?? []) {
+    const remappedBlock: SchemaBlock = {
+      ...block,
+      settingsFields: block.settingsFields?.map((f) => ({
+        ...f,
+        path: f.path ? remapTemplateHeroSchemaPath(f.path, instanceId) : f.path,
+      })),
+      blocks: block.blocks?.map((child) => ({
+        ...child,
+        settingsFields: child.settingsFields?.map((f) => ({
+          ...f,
+          path: f.path ? remapTemplateHeroSchemaPath(f.path, instanceId) : f.path,
+        })),
+      })),
+    };
+    pushSchemaBlockHints(hints, seen, config, remappedBlock, nodePrefix, instanceId);
+  }
 }
 
 function pushSchemaBlockHints(
@@ -174,8 +269,19 @@ export function buildThemeEditorSelectionHints(
   const footerIds = layoutOrder.footer ?? defaultFooterSectionOrder(config);
   const instanceIds = [...headerIds, ...footerIds];
 
+  const indexHeroSchema = schema.templates?.find((t) => t.id === 'index')?.sections?.find((s) => s.id === 'hero_main');
+  const layoutSectionsCfg = (config.sections ?? {}) as Record<string, { type?: string } | undefined>;
+
   for (const instanceId of instanceIds) {
     const blueprint = layoutBlueprintKey(instanceId);
+    const layoutSecType = layoutSectionsCfg[instanceId]?.type;
+    const isLayoutHero = blueprint === 'hero_main' || layoutSecType === 'hero';
+
+    if (isLayoutHero && indexHeroSchema) {
+      pushLayoutHeroHintsFromTemplate(hints, seen, config, indexHeroSchema, instanceId);
+      continue;
+    }
+
     const layout = schema.layout?.[blueprint];
     if (!layout) continue;
     pushHint(hints, seen, {
@@ -198,8 +304,12 @@ export function buildThemeEditorSelectionHints(
         fieldType: field.type as ThemePreviewSelectionHint['fieldType'],
       });
     }
-    for (const block of layout.blocks ?? []) {
-      pushSchemaBlockHintsForInstance(hints, seen, config, block, instanceId, blueprint);
+    if (blueprint === 'announcement_bar') {
+      pushLayoutAnnouncementBlockHints(hints, seen, config, layout, instanceId);
+    } else {
+      for (const block of layout.blocks ?? []) {
+        pushSchemaBlockHintsForInstance(hints, seen, config, block, instanceId, blueprint);
+      }
     }
   }
 

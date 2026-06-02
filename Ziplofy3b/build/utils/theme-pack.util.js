@@ -7,6 +7,8 @@ exports.isSectionTheme = isSectionTheme;
 exports.loadThemePackFromDisk = loadThemePackFromDisk;
 exports.loadThemePack = loadThemePack;
 exports.loadThemePackSync = loadThemePackSync;
+exports.layoutBlueprintKey = layoutBlueprintKey;
+exports.remapLayoutSchemaPath = remapLayoutSchemaPath;
 exports.flattenEditorSchema = flattenEditorSchema;
 exports.deepMergeConfig = deepMergeConfig;
 exports.computeStoreOverrides = computeStoreOverrides;
@@ -110,15 +112,38 @@ function loadThemePackFromDisk(themePath) {
     packCache.set(`disk:${slug}`, pack);
     return pack;
 }
+async function loadThemePackFromS3Keys(s3Refs) {
+    const { readS3JsonObject } = await import('./theme-s3-ingest');
+    const schemaKey = s3Refs.reactThemeSchema?.key;
+    const defaultKey = s3Refs.reactThemeDefaultConfig?.key;
+    const manifestKey = s3Refs.reactThemeManifest?.key;
+    if (!schemaKey || !defaultKey)
+        return null;
+    const [editorSchema, defaultConfig, manifestFromS3] = await Promise.all([
+        readS3JsonObject(schemaKey),
+        readS3JsonObject(defaultKey),
+        manifestKey ? readS3JsonObject(manifestKey) : Promise.resolve(null),
+    ]);
+    if (!editorSchema || !defaultConfig)
+        return null;
+    return {
+        defaultConfig,
+        editorSchema,
+        manifest: manifestFromS3 ?? undefined,
+    };
+}
 async function loadThemePack(themePath, s3Refs) {
     const slug = normalizeThemeSlug(themePath);
     const cacheKey = `full:${slug}`;
     if (packCache.has(cacheKey))
         return packCache.get(cacheKey);
-    const disk = loadThemePackFromDisk(themePath);
-    if (disk && !s3Refs?.reactThemeSchema?.url) {
-        packCache.set(cacheKey, disk);
-        return disk;
+    const hasS3Keys = Boolean(s3Refs?.reactThemeSchema?.key && s3Refs?.reactThemeDefaultConfig?.key);
+    if (hasS3Keys && s3Refs) {
+        const fromS3 = await loadThemePackFromS3Keys(s3Refs);
+        if (fromS3) {
+            packCache.set(cacheKey, fromS3);
+            return fromS3;
+        }
     }
     const schemaUrl = s3Refs?.reactThemeSchema?.url;
     const defaultUrl = s3Refs?.reactThemeDefaultConfig?.url;
@@ -133,12 +158,13 @@ async function loadThemePack(themePath, s3Refs) {
             const pack = {
                 defaultConfig,
                 editorSchema,
-                manifest: manifestFromS3 ?? disk?.manifest,
+                manifest: manifestFromS3 ?? undefined,
             };
             packCache.set(cacheKey, pack);
             return pack;
         }
     }
+    const disk = loadThemePackFromDisk(themePath);
     if (disk) {
         packCache.set(cacheKey, disk);
         return disk;
@@ -157,6 +183,72 @@ function editorFieldType(type) {
     if (type === 'color')
         return 'color';
     return 'text';
+}
+function layoutBlueprintKey(sectionId) {
+    if (sectionId === "announcement_bar" || sectionId.startsWith("announcement_bar_")) {
+        return "announcement_bar";
+    }
+    if (sectionId === "header" || sectionId.startsWith("header_"))
+        return "header";
+    if (sectionId.startsWith("divider"))
+        return "divider";
+    return sectionId;
+}
+function remapLayoutSchemaPath(path, instanceId) {
+    const blueprint = layoutBlueprintKey(instanceId);
+    if (blueprint === instanceId)
+        return path;
+    return path.replace(`sections.${blueprint}.`, `sections.${instanceId}.`);
+}
+function collectPackFieldKeys(schema, config) {
+    const fields = flattenEditorSchema(schema);
+    const seen = new Set(fields.map((f) => f.key));
+    const sections = (config.sections ?? {});
+    for (const instanceId of Object.keys(sections)) {
+        const blueprint = layoutBlueprintKey(instanceId);
+        if (blueprint === instanceId)
+            continue;
+        const layout = schema.layout?.[blueprint];
+        if (!layout)
+            continue;
+        const pushField = (f) => {
+            if (!f.path)
+                return;
+            const key = remapLayoutSchemaPath(f.path, instanceId);
+            if (seen.has(key))
+                return;
+            seen.add(key);
+            fields.push({
+                key,
+                label: f.label || key,
+                type: editorFieldType(f.type),
+                default: f.type === "boolean" ? false : "",
+            });
+        };
+        for (const f of layout.settingsFields ?? [])
+            pushField(f);
+        for (const block of layout.blocks ?? []) {
+            for (const f of block.settingsFields ?? [])
+                pushField(f);
+            for (const nested of block.blocks ?? []) {
+                for (const f of nested.settingsFields ?? [])
+                    pushField(f);
+            }
+        }
+    }
+    return fields;
+}
+function resolvePackFieldType(key, typeByKey) {
+    const direct = typeByKey.get(key);
+    if (direct)
+        return direct;
+    const m = key.match(/^sections\.([^.]+)\.(.+)$/);
+    if (!m)
+        return undefined;
+    const blueprint = layoutBlueprintKey(m[1]);
+    if (blueprint === m[1])
+        return undefined;
+    return typeByKey.get(`sections.${blueprint}.${m[2]}`);
 }
 function flattenEditorSchema(schema) {
     const fields = [];
@@ -248,9 +340,10 @@ function mergeThemePackConfig(storeOverrides, pack) {
         return pack.defaultConfig;
     return deepMergeConfig(pack.defaultConfig, overrides);
 }
-function formValuesFromPackConfig(config, schema) {
+function formValuesFromPackConfig(config, schema, editorSchema) {
+    const fields = editorSchema != null ? collectPackFieldKeys(editorSchema, config) : schema;
     const values = {};
-    for (const field of schema) {
+    for (const field of fields) {
         const v = (0, theme_config_util_1.getNestedValue)(config, field.key);
         if (field.type === 'boolean') {
             values[field.key] = Boolean(v);
@@ -261,13 +354,17 @@ function formValuesFromPackConfig(config, schema) {
     }
     return values;
 }
-function mergedConfigFromFormValues(values, schema, defaultConfig) {
+function mergedConfigFromFormValues(values, schema, defaultConfig, editorSchema) {
     const config = JSON.parse(JSON.stringify(defaultConfig));
-    for (const field of schema) {
-        const raw = values[field.key];
-        if (raw === undefined)
+    const fields = editorSchema != null
+        ? collectPackFieldKeys(editorSchema, defaultConfig)
+        : schema;
+    const typeByKey = new Map(fields.map((f) => [f.key, f.type]));
+    for (const [key, raw] of Object.entries(values)) {
+        const type = resolvePackFieldType(key, typeByKey);
+        if (!type)
             continue;
-        (0, theme_config_util_1.setNestedValue)(config, field.key, field.type === 'boolean' ? Boolean(raw) : String(raw));
+        (0, theme_config_util_1.setNestedValue)(config, key, type === 'boolean' ? Boolean(raw) : String(raw));
     }
     return config;
 }
@@ -283,7 +380,8 @@ async function resolveStoreThemeConfig(saved, themePath, s3Refs) {
 function hasSectionEditorPack(pack, s3Refs) {
     if (pack)
         return true;
-    return Boolean(s3Refs?.reactThemeSchema?.url && s3Refs?.reactThemeDefaultConfig?.url);
+    return Boolean((s3Refs?.reactThemeSchema?.key && s3Refs?.reactThemeDefaultConfig?.key) ||
+        (s3Refs?.reactThemeSchema?.url && s3Refs?.reactThemeDefaultConfig?.url));
 }
 function resolveStoreThemeConfigSync(saved, themePath) {
     if (themePath && isSectionTheme(themePath)) {

@@ -1,7 +1,15 @@
 import type { EditorFieldDef, SidebarNode } from './theme-editor-sidebar.types';
 import { layoutBlueprintKey } from '../../../utils/theme-editor-insert-section';
 
-const PANEL_GROUPS = new Set(['General', 'Padding', 'Theme settings', 'Custom CSS']);
+/** Shopify-style footer utilities / Policies and links settings sheet order. */
+export const FOOTER_UTILITIES_PANEL_GROUP_ORDER = [
+  'General',
+  'Padding',
+  'Theme settings',
+  'Custom CSS',
+] as const;
+
+const PANEL_GROUPS = new Set<string>(FOOTER_UTILITIES_PANEL_GROUP_ORDER);
 
 const FIELD_SORT: Record<string, number> = {
   sectionWidth: 0,
@@ -67,11 +75,44 @@ export function sortFooterUtilitiesPanelFields(fields: EditorFieldDef[]): Editor
   });
 }
 
+export function footerUtilitiesSidebarLabel(catalogVariant: string, fallback = 'Utilities'): string {
+  if (catalogVariant === 'policies-links') return 'Policies and links';
+  return fallback;
+}
+
+export function groupFooterUtilitiesPanelFields(
+  fields: EditorFieldDef[]
+): Map<string, EditorFieldDef[]> {
+  const map = new Map<string, EditorFieldDef[]>();
+  for (const field of fields) {
+    const group = field.group && PANEL_GROUPS.has(field.group) ? field.group : 'General';
+    const list = map.get(group) ?? [];
+    list.push(field);
+    map.set(group, list);
+  }
+  return map;
+}
+
+/** True when the bottom sheet is layout footer_utilities (not email Footer). */
+export function isFooterUtilitiesSettingsPanelFields(fields: EditorFieldDef[]): boolean {
+  if (!fields.length) return false;
+  const keys = new Set(fields.map((f) => f.path.split('.').pop() ?? ''));
+  return keys.has('dividerThickness') || keys.has('paymentIcons') || keys.has('followOnShop');
+}
+
 export function prepareFooterUtilitiesSettingsNode(node: SidebarNode): SidebarNode {
   const fields = sortFooterUtilitiesPanelFields(
     (node.fields ?? []).filter(isFooterUtilitiesPanelField)
   );
-  return { ...node, label: 'Utilities', kind: 'section', fields };
+  return {
+    ...node,
+    label: footerUtilitiesSidebarLabel(
+      node.label === 'Policies and links' ? 'policies-links' : '',
+      node.label ?? 'Utilities'
+    ),
+    kind: 'section',
+    fields,
+  };
 }
 
 export function collectFooterUtilitiesPanelFieldDefs(

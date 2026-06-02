@@ -1,8 +1,8 @@
 import {
   Bars3BottomLeftIcon,
   EllipsisHorizontalIcon,
-  PlusIcon,
 } from '@heroicons/react/24/outline';
+import { Link } from 'react-router-dom';
 
 const placeholderMenus = [
   { id: '1', name: 'Main menu', handle: 'main-menu', itemCount: 0 },
@@ -20,13 +20,20 @@ export const ContentMenusPage = () => {
               Create and edit menus for your online store header, footer, and other locations.
             </p>
           </div>
-          <button
-            type="button"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
-          >
-            <PlusIcon className="h-4 w-4" />
-            Add menu
-          </button>
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <Link
+              to="/content/menus/new"
+              className="inline-flex items-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+            >
+              Create menu
+            </Link>
+            <Link
+              to="/content/url-redirects"
+              className="inline-flex items-center rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 shadow-sm transition-colors hover:bg-gray-50"
+            >
+              URL redirects
+            </Link>
+          </div>
         </header>
 
         <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm">

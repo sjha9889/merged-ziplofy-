@@ -445,8 +445,8 @@
                 "empty_message": {
                   "type": "empty-message",
                   "settings": {
-                    "emptyTitle": "Your cart is empty"
-                  }
+            "emptyTitle": "Your cart is empty"
+          }
                 },
                 "continue_link": {
                   "type": "continue-link",

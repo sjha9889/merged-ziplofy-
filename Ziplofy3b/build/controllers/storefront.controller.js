@@ -12,6 +12,7 @@ const installed_themes_model_1 = require("../models/installed-themes.model");
 const theme_model_1 = require("../models/theme.model");
 const custom_theme_model_1 = require("../models/custom-theme.model");
 const store_model_1 = require("../models/store/store.model");
+const store_custom_theme_model_1 = require("../models/store-custom-theme/store-custom-theme.model");
 const storefront_liquid_util_1 = require("../utils/storefront-liquid.util");
 const theme_s3_ingest_1 = require("../utils/theme-s3-ingest");
 const theme_config_util_1 = require("../utils/theme-config.util");
@@ -221,10 +222,49 @@ exports.getStoreData = (0, error_utils_1.asyncErrorHandler)(async (req, res) => 
         }
     });
 });
+/** Horizon pack used to render JSON from the theme creator (same bundle as admin preview). */
+const STORE_CUSTOM_THEME_REMOTE_JS = '/remote-themes/horizon/theme.js';
+const STORE_CUSTOM_THEME_REMOTE_CSS = '/remote-themes/horizon/theme.css';
 exports.getStorefrontThemeRuntime = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const { storeId } = req.params;
     if (!storeId) {
         throw new error_utils_1.CustomError("Store ID is required", 400);
+    }
+    const storeDoc = await store_model_1.Store.findById(storeId).select('appliedCustomThemeId').lean();
+    if (storeDoc?.appliedCustomThemeId) {
+        const customThemeId = String(storeDoc.appliedCustomThemeId);
+        const customDoc = await store_custom_theme_model_1.StoreCustomTheme.findOne({
+            _id: customThemeId,
+            storeId: new mongoose_1.Types.ObjectId(storeId),
+        }).lean();
+        if (customDoc?.themeConfig && typeof customDoc.themeConfig === 'object') {
+            return res.status(200).json({
+                success: true,
+                data: {
+                    storeId,
+                    themeId: customThemeId,
+                    themeName: customDoc.themeName ?? 'Custom theme',
+                    isStoreCustomTheme: true,
+                    remoteThemeJsUrl: STORE_CUSTOM_THEME_REMOTE_JS,
+                    remoteThemeCssUrl: STORE_CUSTOM_THEME_REMOTE_CSS,
+                    themeConfig: customDoc.themeConfig,
+                    runtimeBaseUrl: null,
+                    entryHtml: null,
+                    allThemeFiles: [],
+                    cssAssets: [],
+                    jsAssets: [],
+                    htmlUrls: [],
+                    cssUrls: [],
+                    jsUrls: [],
+                    fileUrls: [],
+                    liquid: {
+                        enabled: false,
+                        renderPagePath: null,
+                        templates: [],
+                    },
+                },
+            });
+        }
     }
     const resolved = await (0, storefront_liquid_util_1.resolveAppliedStoreTheme)(storeId);
     if (!resolved) {

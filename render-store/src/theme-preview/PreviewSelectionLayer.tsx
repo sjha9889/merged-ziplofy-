@@ -224,11 +224,31 @@ export function PreviewSelectionLayer({
       const applyHighlight = () => {
         const el = findElementForNodeId(nodeId);
         if (!el) return false;
-        const resolved = resolveSelectionFromElement(el, hintsRef.current) ?? {
-          nodeId,
-          label: el.getAttribute('data-ziplofy-label') ?? 'Section',
-          kind: (el.getAttribute('data-ziplofy-kind') as ThemePreviewSelectionHint['kind']) ?? 'section',
-        };
+        const markedId = el.getAttribute('data-ziplofy-node');
+        const hintMeta = hintForNodeId(nodeId, hintsRef.current);
+        const resolved =
+          markedId === nodeId
+            ? {
+                nodeId,
+                label: el.getAttribute('data-ziplofy-label') ?? hintMeta?.label ?? 'Section',
+                kind:
+                  (el.getAttribute('data-ziplofy-kind') as ThemePreviewSelectionHint['kind']) ??
+                  hintMeta?.kind ??
+                  'section',
+              }
+            : hintMeta
+              ? {
+                  nodeId,
+                  label: hintMeta.label,
+                  kind: hintMeta.kind,
+                }
+              : resolveSelectionFromElement(el, hintsRef.current) ?? {
+                  nodeId,
+                  label: el.getAttribute('data-ziplofy-label') ?? 'Section',
+                  kind:
+                    (el.getAttribute('data-ziplofy-kind') as ThemePreviewSelectionHint['kind']) ??
+                    'section',
+                };
         setSelected({ el, ...resolved });
         setSelectRect(measureRect(el));
         scrollPreviewToNodeId(nodeId);

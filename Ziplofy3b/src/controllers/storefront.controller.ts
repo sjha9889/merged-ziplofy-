@@ -7,6 +7,7 @@ import { InstalledThemes } from '../models/installed-themes.model';
 import { Theme } from '../models/theme.model';
 import { CustomTheme } from '../models/custom-theme.model';
 import { Store } from '../models/store/store.model';
+import { StoreCustomTheme } from '../models/store-custom-theme/store-custom-theme.model';
 import {
   listCatalogThemeFilesFromS3,
   listLiquidTemplateNamesFromS3,
@@ -254,11 +255,53 @@ export const getStoreData = asyncErrorHandler(async (req: Request, res: Response
   });
 });
 
+/** Horizon pack used to render JSON from the theme creator (same bundle as admin preview). */
+const STORE_CUSTOM_THEME_REMOTE_JS = '/remote-themes/horizon/theme.js';
+const STORE_CUSTOM_THEME_REMOTE_CSS = '/remote-themes/horizon/theme.css';
+
 export const getStorefrontThemeRuntime = asyncErrorHandler(async (req: Request, res: Response) => {
   const { storeId } = req.params as { storeId: string };
 
   if (!storeId) {
     throw new CustomError("Store ID is required", 400);
+  }
+
+  const storeDoc = await Store.findById(storeId).select('appliedCustomThemeId').lean();
+  if (storeDoc?.appliedCustomThemeId) {
+    const customThemeId = String(storeDoc.appliedCustomThemeId);
+    const customDoc = await StoreCustomTheme.findOne({
+      _id: customThemeId,
+      storeId: new Types.ObjectId(storeId),
+    }).lean();
+
+    if (customDoc?.themeConfig && typeof customDoc.themeConfig === 'object') {
+      return res.status(200).json({
+        success: true,
+        data: {
+          storeId,
+          themeId: customThemeId,
+          themeName: customDoc.themeName ?? 'Custom theme',
+          isStoreCustomTheme: true,
+          remoteThemeJsUrl: STORE_CUSTOM_THEME_REMOTE_JS,
+          remoteThemeCssUrl: STORE_CUSTOM_THEME_REMOTE_CSS,
+          themeConfig: customDoc.themeConfig as Record<string, unknown>,
+          runtimeBaseUrl: null,
+          entryHtml: null,
+          allThemeFiles: [],
+          cssAssets: [],
+          jsAssets: [],
+          htmlUrls: [],
+          cssUrls: [],
+          jsUrls: [],
+          fileUrls: [],
+          liquid: {
+            enabled: false,
+            renderPagePath: null,
+            templates: [],
+          },
+        },
+      });
+    }
   }
 
   const resolved = await resolveAppliedStoreTheme(storeId);

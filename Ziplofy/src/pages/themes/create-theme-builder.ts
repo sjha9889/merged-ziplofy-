@@ -309,13 +309,8 @@ export function buildSchemaJson(
             id: 'newsletter',
             label: 'Email signup',
             settingsFields: [
-              { path: `${bp}.title`, type: 'text', label: 'Heading' },
-              { path: `${bp}.subtitle`, type: 'textarea', label: 'Subtext' },
               { path: `${bp}.placeholder`, type: 'text', label: 'Email placeholder' },
-              { path: `${bp}.buttonLabel`, type: 'text', label: 'Button label' },
               ...schemaSectionStyleFields(`sections.${instanceId}.settings.style`),
-              ...schemaTextStyleFields(`${bp}.titleStyle`, 'Heading'),
-              ...schemaTextStyleFields(`${bp}.subtitleStyle`, 'Subtext'),
             ],
           },
         ],
@@ -480,10 +475,10 @@ export function buildDefaultConfigJson(
           newsletter: {
             type: 'newsletter',
             settings: {
-              title: config.title,
-              subtitle: config.subtitle,
+              title: '',
+              subtitle: '',
               placeholder: config.placeholder,
-              buttonLabel: config.buttonLabel,
+              buttonLabel: '',
               titleStyle: serializeTextStyle(config.titleStyle),
               subtitleStyle: serializeTextStyle(config.subtitleStyle),
             },

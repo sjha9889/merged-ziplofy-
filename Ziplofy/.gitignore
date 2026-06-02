@@ -10,6 +10,9 @@ lerna-debug.log*
 node_modules
 *.local
 
+# Dev preview bundles are served from remote-themes/*/dist via render-store (port 5180)
+public/remote-themes/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

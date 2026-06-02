@@ -17,6 +17,8 @@ export interface Store {
   storeName: string;
   storeDescription: string;
   appliedTheme?: string | null;
+  /** StoreCustomTheme document id when the JSON theme creator theme is live. */
+  appliedCustomThemeId?: string | null;
   defaultLocation: string | null;
   createdAt: string;
   updatedAt: string;
@@ -30,7 +32,13 @@ interface StoreContextType {
   error: string | null;
   fetchStores: () => Promise<void>;
   createStore: (storeData: CreateStoreData) => Promise<void>;
-  updateStore: (storeId: string, payload: Partial<Pick<Store, 'storeName' | 'storeDescription' | 'defaultLocation'>>) => Promise<Store>;
+  updateStore: (
+    storeId: string,
+    payload: Partial<
+      Pick<Store, 'storeName' | 'storeDescription' | 'defaultLocation' | 'appliedCustomThemeId'>
+    >
+  ) => Promise<Store>;
+  applyStoreCustomTheme: (storeId: string, customThemeId: string) => Promise<Store>;
   setActiveStoreId: (storeId: string | null) => void;
   clearStores: () => void;
   setStores: Dispatch<SetStateAction<Store[]>>;
@@ -133,7 +141,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   // Update a store
-  const updateStore = useCallback(async (storeId: string, payload: Partial<Pick<Store, 'storeName' | 'storeDescription' | 'defaultLocation'>>): Promise<Store> => {
+  const updateStore = useCallback(async (
+    storeId: string,
+    payload: Partial<
+      Pick<Store, 'storeName' | 'storeDescription' | 'defaultLocation' | 'appliedCustomThemeId'>
+    >
+  ): Promise<Store> => {
     try {
       setLoading(true);
       setError(null);
@@ -152,6 +165,15 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setLoading(false);
     }
   }, []);
+
+  const applyStoreCustomTheme = useCallback(
+    async (storeId: string, customThemeId: string): Promise<Store> => {
+      const updated = await updateStore(storeId, { appliedCustomThemeId: customThemeId });
+      toast.success('Custom theme applied to your live storefront');
+      return updated;
+    },
+    [updateStore]
+  );
 
   // Clear stores data
   const clearStores = useCallback(() => {
@@ -217,6 +239,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     fetchStores,
     createStore,
     updateStore,
+    applyStoreCustomTheme,
     setActiveStoreId,
     clearStores,
     setStores,

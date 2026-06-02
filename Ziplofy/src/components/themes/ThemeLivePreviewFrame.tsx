@@ -149,6 +149,15 @@ const ThemeLivePreviewFrameInner: React.FC<ThemeLivePreviewFrameProps> = ({
   const highlightRafRef = useRef(0);
   const [syncPulse, setSyncPulse] = useState(false);
 
+  /** Stable key so we only re-sync when config content changes, not object identity. */
+  const configStableKey = useMemo(() => {
+    try {
+      return JSON.stringify(config);
+    } catch {
+      return '';
+    }
+  }, [config]);
+
   const hintsPostKeyMemo = useMemo(() => hintsPostKey(selectionHints), [selectionHints]);
 
   const postPatch = useCallback((fieldPath: string, value: string) => {
@@ -203,17 +212,33 @@ const ThemeLivePreviewFrameInner: React.FC<ThemeLivePreviewFrameProps> = ({
     );
   }, []);
 
-  const schedulePostConfig = useCallback(() => {
-    setSyncPulse(true);
-    if (configPostTimerRef.current !== undefined) {
-      window.clearTimeout(configPostTimerRef.current);
-    }
-    configPostTimerRef.current = window.setTimeout(() => {
-      configPostTimerRef.current = undefined;
-      postConfigNow();
-      setSyncPulse(false);
-    }, PREVIEW_CONFIG_POST_MS);
-  }, [postConfigNow]);
+  const endSyncPulse = useCallback(() => {
+    setSyncPulse(false);
+  }, []);
+
+  const schedulePostConfig = useCallback(
+    (immediate = false) => {
+      if (configPostTimerRef.current !== undefined) {
+        window.clearTimeout(configPostTimerRef.current);
+        configPostTimerRef.current = undefined;
+      }
+
+      const json = JSON.stringify(configRef.current);
+      if (!immediate && json === lastPostedConfigRef.current) {
+        endSyncPulse();
+        return;
+      }
+
+      setSyncPulse(true);
+      const delay = immediate ? 0 : PREVIEW_CONFIG_POST_MS;
+      configPostTimerRef.current = window.setTimeout(() => {
+        configPostTimerRef.current = undefined;
+        postConfigNow(immediate);
+        endSyncPulse();
+      }, delay);
+    },
+    [postConfigNow, endSyncPulse]
+  );
 
   const postSelectionHints = useCallback(() => {
     const frame = iframeRef.current?.contentWindow;
@@ -295,29 +320,28 @@ const ThemeLivePreviewFrameInner: React.FC<ThemeLivePreviewFrameProps> = ({
     return () => {
       if (configPostTimerRef.current !== undefined) {
         window.clearTimeout(configPostTimerRef.current);
+        configPostTimerRef.current = undefined;
       }
+      endSyncPulse();
     };
-  }, [config, ready, schedulePostConfig]);
+  }, [configStableKey, ready, schedulePostConfig, endSyncPulse]);
 
   useEffect(() => {
     if (!ready || !initSentRef.current || structureSyncKey < 1) return;
-    if (configPostTimerRef.current !== undefined) {
-      window.clearTimeout(configPostTimerRef.current);
-      configPostTimerRef.current = undefined;
-    }
-    postConfigNow(true);
-  }, [structureSyncKey, ready, postConfigNow]);
+    schedulePostConfig(true);
+  }, [structureSyncKey, ready, schedulePostConfig]);
 
   useEffect(() => {
     if (!ready || !initSentRef.current || valuesSyncKey < 1) return;
-    if (configPostTimerRef.current !== undefined) {
-      window.clearTimeout(configPostTimerRef.current);
-      configPostTimerRef.current = undefined;
-    }
-    setSyncPulse(true);
-    postConfigNow(true);
-    window.setTimeout(() => setSyncPulse(false), 80);
-  }, [valuesSyncKey, ready, postConfigNow]);
+    schedulePostConfig(true);
+  }, [valuesSyncKey, ready, schedulePostConfig]);
+
+  /** Never leave "Updating preview" stuck if debounce timers are cancelled mid-flight. */
+  useEffect(() => {
+    if (!syncPulse) return;
+    const failsafe = window.setTimeout(() => endSyncPulse(), 4000);
+    return () => window.clearTimeout(failsafe);
+  }, [syncPulse, endSyncPulse]);
 
   useEffect(() => {
     if (!ready || !initSentRef.current) return;

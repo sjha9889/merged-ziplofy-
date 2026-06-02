@@ -12,6 +12,11 @@ import {
   collectEditableFieldPaths,
   flattenSchemaFieldPaths,
 } from './theme-editor-config.utils';
+import {
+  mergeTemplateSectionBlueprintsFromPack,
+  sanitizeThemeConfigStructure,
+} from './theme-editor-insert-section';
+import { seedSectionEnabledValues } from './theme-editor-section-visibility.util';
 
 const PACK_MODULES: Record<
   string,
@@ -274,6 +279,114 @@ export function saveStaticThemeConfigLocal(
   localStorage.setItem(configLocalStorageKeyForPack(packId), JSON.stringify(config));
 }
 
+export const THEME_CREATOR_CONFIG_STORAGE_KEY = 'ziplofy-theme-creator-config';
+
+/** True when the creator config has at least one layout or template section instance. */
+export function creatorConfigHasSections(
+  config: Record<string, unknown> | null,
+  templateId = 'index'
+): boolean {
+  if (!config) return false;
+  const layout = (config.sections ?? {}) as Record<string, unknown>;
+  if (Object.keys(layout).length > 0) return true;
+  const tpl = (config.templates as Record<string, { sections?: Record<string, unknown> }> | undefined)?.[
+    templateId
+  ];
+  return Object.keys(tpl?.sections ?? {}).length > 0;
+}
+
+/** Theme settings only — avoids materializing layout/template sections via applyValues. */
+export function creatorGlobalSettingsValues(
+  schema: EditorSchemaDoc,
+  config: Record<string, unknown>
+): Record<string, string | boolean> {
+  const values: Record<string, string | boolean> = {};
+  for (const field of flattenSchemaFieldPaths(schema)) {
+    if (!field.path.startsWith('settings.')) continue;
+    const v = getNested(config, field.path);
+    if (field.type === 'boolean') {
+      values[field.path] = v === true || v === 'true' || v === 1 || v === '1';
+    } else if (v == null || v === '') {
+      values[field.path] = field.type === 'number' ? '0' : '';
+    } else {
+      values[field.path] = String(v);
+    }
+  }
+  return values;
+}
+
+/** Blank page structure for Theme Creator — keeps global settings, no header/template/footer sections. */
+export function createEmptyCreatorConfig(
+  packDefault: Record<string, unknown>,
+  opts?: { themeName?: string; themeId?: string }
+): Record<string, unknown> {
+  const packTemplates = (packDefault.templates ?? {}) as Record<
+    string,
+    { name?: string; sections?: unknown; section_order?: unknown }
+  >;
+  const templates: Record<string, { name?: string; sections: Record<string, unknown>; section_order: string[] }> =
+    {};
+  for (const [tplId, tpl] of Object.entries(packTemplates)) {
+    templates[tplId] = {
+      name: tpl.name,
+      sections: {},
+      section_order: [],
+    };
+  }
+  const config: Record<string, unknown> = {
+    version: packDefault.version ?? '1.0.0',
+    themeId: opts?.themeId ?? packDefault.themeId ?? 'custom-theme',
+    themeName: opts?.themeName ?? packDefault.themeName ?? 'Creator Basic',
+    settings: JSON.parse(JSON.stringify(packDefault.settings ?? {})),
+    sections: {},
+    layout_order: { header: [], footer: [] },
+    templates,
+  };
+  sanitizeThemeConfigStructure(config);
+  return config;
+}
+
+/** Horizon pack + empty config for Theme Creator (same schema/catalog as dev editor). */
+export async function loadCreatorThemeEditorPack(
+  packId: DevStaticThemePackId = 'horizon'
+): Promise<ThemeEditorLoadResult> {
+  const loaded = await loadPackFromBundled(packId);
+  const editorSchema = loaded.schema as EditorSchemaDoc;
+  const packDefault = JSON.parse(JSON.stringify(loaded.defaultConfig)) as Record<string, unknown>;
+  try {
+    localStorage.removeItem(THEME_CREATOR_CONFIG_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+  const config = createEmptyCreatorConfig(packDefault);
+  sanitizeThemeConfigStructure(config);
+  const values = creatorConfigHasSections(config)
+    ? {
+        ...formValuesFromEditorConfig(editorSchema, config),
+        ...seedSectionEnabledValues(config),
+      }
+    : creatorGlobalSettingsValues(editorSchema, config);
+  const packPreview = previewUrlsForPack(packId);
+  return {
+    themeName: (config.themeName as string) || 'Creator Basic',
+    themePath: `theme-packs/${packId}`,
+    editorSchema,
+    defaultConfig: packDefault,
+    manifest: loaded.manifest,
+    blockCatalog: buildBlockCatalogFromManifest(loaded.manifest, editorSchema),
+    packLoadedFromS3: false,
+    storeOverrides: {},
+    config,
+    values,
+    configMode: 'sections',
+    themeRuntime: { jsUrl: packPreview.jsUrl, cssUrl: packPreview.cssUrl },
+    installed: false,
+    canPersist: false,
+    notice: null,
+    staticPackId: packId,
+  };
+}
+
 /** Load the static reference theme for editor dev mode (no API / S3). */
 export async function loadStaticThemeEditorPack(
   packId: DevStaticThemePackId = getStaticDevPackId()
@@ -296,6 +409,12 @@ export async function loadStaticThemeEditorPack(
   mergeLayoutSectionDefaults(config, defaultConfig, 'footer_utilities');
   mergeTemplateSectionDefaults(config, defaultConfig, 'index', 'hero_main');
   mergeTemplateSectionDefaults(config, defaultConfig, 'index', 'featured_collection');
+  for (const tplId of Object.keys(
+    (defaultConfig.templates ?? {}) as Record<string, unknown>
+  )) {
+    mergeTemplateSectionBlueprintsFromPack(config, defaultConfig, tplId);
+  }
+  sanitizeThemeConfigStructure(config);
   const values = formValuesFromEditorConfig(editorSchema, config);
 
   const packPreview = previewUrlsForPack(packId);

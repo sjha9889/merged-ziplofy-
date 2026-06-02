@@ -22,7 +22,7 @@ export function listSectionTypes(): string[] {
 /** Parse sidebar / preview node id into catalog lookup context. */
 export function parseEditingSelectionContext(nodeId: string): EditingSelectionContext | null {
   const layoutSection = nodeId.match(
-    /^layout:(announcement_bar(?:_\d+)?|header(?:_\d+)?|divider(?:_\d+)?|footer(?:_\d+)?|footer_utilities(?:_\d+)?)$/
+    /^layout:(announcement_bar(?:_\d+)?|header(?:_\d+)?|hero_main(?:_\d+)?|divider(?:_\d+)?|footer(?:_\d+)?|footer_utilities(?:_\d+)?)$/
   );
   if (layoutSection) {
     const instanceId = layoutSection[1];
@@ -39,7 +39,7 @@ export function parseEditingSelectionContext(nodeId: string): EditingSelectionCo
   }
 
   const layoutBlock = nodeId.match(
-    /^layout:(announcement_bar(?:_\d+)?|header(?:_\d+)?|divider(?:_\d+)?|footer(?:_\d+)?|footer_utilities(?:_\d+)?):block:([^:]+)$/
+    /^layout:(announcement_bar(?:_\d+)?|header(?:_\d+)?|hero_main(?:_\d+)?|divider(?:_\d+)?|footer(?:_\d+)?|footer_utilities(?:_\d+)?):block:([^:]+)$/
   );
   if (layoutBlock) {
     const instanceId = layoutBlock[1];
@@ -165,6 +165,7 @@ export function parseEditingSelectionContext(nodeId: string): EditingSelectionCo
 const LAYOUT_BLUEPRINT_TO_TYPE: Record<string, string> = {
   announcement_bar: 'announcement-bar',
   header: 'header',
+  hero_main: 'hero',
   divider: 'divider',
   footer: 'footer',
   footer_utilities: 'footer-utilities',

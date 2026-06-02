@@ -1,7 +1,9 @@
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import { GeneralSettings } from "../models/general-settings/general-settings.model";
 import { NotificationSettings } from "../models/notification-settings/notification-settings.model";
 import { LocationModel } from "../models/location/location.model";
+import { StoreCustomTheme } from "../models/store-custom-theme/store-custom-theme.model";
 import { IStore, Store } from "../models/store/store.model";
 import { Subdomain } from "../models/subdomain.model";
 import { asyncErrorHandler, CustomError } from "../utils/error.utils";
@@ -139,17 +141,61 @@ export const getStoresByUserParam = asyncErrorHandler(async (req: Request, res: 
 export const updateStore = asyncErrorHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const userId = req.user?.id;
-  const update = req.body as Partial<Pick<IStore, 'storeName' | 'storeDescription'>> & { defaultLocation?: string };
+  const body = req.body as Partial<Pick<IStore, "storeName" | "storeDescription">> & {
+    defaultLocation?: string | null;
+    appliedCustomThemeId?: string | null;
+  };
 
   if (!id) {
     throw new CustomError("Store id is required", 400);
   }
 
-  const store = await Store.findOneAndUpdate(
-    { _id: id, userId },
-    update,
-    { new: true, runValidators: true }
-  );
+  const $set: Record<string, unknown> = {};
+
+  if (body.storeName !== undefined) {
+    $set.storeName = body.storeName;
+  }
+  if (body.storeDescription !== undefined) {
+    $set.storeDescription = body.storeDescription;
+  }
+  if (body.defaultLocation !== undefined) {
+    if (body.defaultLocation === null || body.defaultLocation === "") {
+      $set.defaultLocation = null;
+    } else {
+      if (!mongoose.isValidObjectId(body.defaultLocation)) {
+        throw new CustomError("Invalid default location ID", 400);
+      }
+      $set.defaultLocation = new mongoose.Types.ObjectId(body.defaultLocation);
+    }
+  }
+  if (body.appliedCustomThemeId !== undefined) {
+    if (body.appliedCustomThemeId === null || body.appliedCustomThemeId === "") {
+      $set.appliedCustomThemeId = null;
+    } else {
+      if (!mongoose.isValidObjectId(body.appliedCustomThemeId)) {
+        throw new CustomError("Invalid custom theme ID", 400);
+      }
+      const customTheme = await StoreCustomTheme.findOne({
+        _id: body.appliedCustomThemeId,
+        storeId: id,
+      })
+        .select("_id")
+        .lean();
+      if (!customTheme) {
+        throw new CustomError("Store custom theme not found for this store", 404);
+      }
+      $set.appliedCustomThemeId = new mongoose.Types.ObjectId(body.appliedCustomThemeId);
+    }
+  }
+
+  if (Object.keys($set).length === 0) {
+    throw new CustomError("No valid fields to update", 400);
+  }
+
+  const store = await Store.findOneAndUpdate({ _id: id, userId }, { $set }, {
+    new: true,
+    runValidators: true,
+  });
 
   if (!store) {
     throw new CustomError("Store not found", 404);

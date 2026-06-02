@@ -11,6 +11,7 @@ exports.assertStagingThemeFolderKeys = assertStagingThemeFolderKeys;
 exports.assertStagingFolderAndAuxiliaryKeys = assertStagingFolderAndAuxiliaryKeys;
 exports.assertStagingKeys = assertStagingKeys;
 exports.downloadS3KeyToFile = downloadS3KeyToFile;
+exports.readS3JsonObject = readS3JsonObject;
 exports.publicObjectUrlForKey = publicObjectUrlForKey;
 exports.copyS3ObjectSameBucket = copyS3ObjectSameBucket;
 exports.headS3Object = headS3Object;
@@ -116,6 +117,26 @@ async function downloadS3KeyToFile(key, destPath) {
     }
     const rs = body;
     await (0, promises_1.pipeline)(rs, fs_1.default.createWriteStream(destPath));
+}
+/** Read and parse a JSON object from S3 (theme.schema / default-config / manifest). */
+async function readS3JsonObject(key) {
+    try {
+        const res = await s3_client_1.s3Client.send(new client_s3_1.GetObjectCommand({ Bucket: s3_client_1.awsBucket, Key: key }));
+        const body = res.Body;
+        if (!body)
+            return null;
+        const chunks = [];
+        const rs = body;
+        for await (const chunk of rs) {
+            chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        }
+        const raw = Buffer.concat(chunks).toString('utf8');
+        const parsed = JSON.parse(raw);
+        return parsed && typeof parsed === 'object' ? parsed : null;
+    }
+    catch {
+        return null;
+    }
 }
 function publicObjectUrlForKey(key) {
     return `https://${s3_client_1.awsBucket}.s3.${s3_client_1.awsRegion}.amazonaws.com/${key}`;

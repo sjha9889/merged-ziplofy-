@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { config } from '../config';
 import { Store } from '../models/store/store.model';
+import { StoreCustomTheme } from '../models/store-custom-theme/store-custom-theme.model';
 import { Subdomain } from '../models/subdomain.model';
 import { asyncErrorHandler } from '../utils/error.utils';
 
@@ -36,9 +37,23 @@ export const checkSubdomain = asyncErrorHandler(async (req: Request, res: Respon
     return res.status(404).json({ success: false, message: 'Subdomain not found' });
   }
 
-  const store = await Store.findById(mapping.storeId);
+  const store = await Store.findById(mapping.storeId)
+    .select('storeName storeDescription appliedCustomThemeId')
+    .lean();
   if (!store) {
     return res.status(404).json({ success: false, message: 'Store not found for subdomain' });
+  }
+
+  const appliedCustomThemeId = store.appliedCustomThemeId
+    ? String(store.appliedCustomThemeId)
+    : null;
+
+  let appliedCustomThemeName: string | null = null;
+  if (appliedCustomThemeId) {
+    const customTheme = await StoreCustomTheme.findById(appliedCustomThemeId)
+      .select('themeName')
+      .lean();
+    appliedCustomThemeName = customTheme?.themeName ?? null;
   }
 
   return res.status(200).json({
@@ -47,6 +62,8 @@ export const checkSubdomain = asyncErrorHandler(async (req: Request, res: Respon
       storeId: store._id,
       name: store.storeName,
       description: store.storeDescription,
+      appliedCustomThemeId,
+      appliedCustomThemeName,
     }
   });
 });

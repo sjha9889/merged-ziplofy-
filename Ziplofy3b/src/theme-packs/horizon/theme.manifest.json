@@ -30,6 +30,10 @@
   "blockTypes": {
     "basic": [
       {
+        "id": "announcement",
+        "label": "Announcement"
+      },
+      {
         "id": "button",
         "label": "Button"
       },
@@ -85,6 +89,40 @@
       "copyright",
       "policy_links",
       "social"
+    ],
+    "contact-form": [],
+    "email-signup": [],
+    "custom-section": [],
+    "product-highlight": [],
+    "editorial": [],
+    "editorial-jumbo": [],
+    "image-compare": [],
+    "image-with-text": [],
+    "storytelling-logo": [],
+    "storytelling-video": [],
+    "faq": [
+      "faq-item"
+    ],
+    "icons-with-text": [
+      "icon-with-text-item"
+    ],
+    "multicolumn": [
+      "multicolumn-item"
+    ],
+    "pull-quote": [],
+    "rich-text": [],
+    "text-marquee": [],
+    "blog-posts-carousel": [
+      "blog-post-card"
+    ],
+    "blog-posts-editorial": [
+      "blog-post-card"
+    ],
+    "blog-posts-grid": [
+      "blog-post-card"
+    ],
+    "storytelling-carousel": [
+      "carousel-slide"
     ]
   },
   "benchmark": true

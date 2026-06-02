@@ -144,7 +144,7 @@ function collectBlockTypesFromConfig(defaultConfig: Record<string, unknown>): Ma
 
   const templates = (defaultConfig.templates ?? {}) as Record<
     string,
-    { sections?: Record<string, { blocks?: Record<string, { type?: string; label?: string }> }> } }
+    { sections?: Record<string, { blocks?: Record<string, { type?: string; label?: string }> }> }
   >;
   for (const tpl of Object.values(templates)) {
     for (const sec of Object.values(tpl.sections ?? {})) visit(sec.blocks);

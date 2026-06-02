@@ -21,7 +21,10 @@ import {
 } from '../../components/themes/theme-editor-sidebar/add-section-catalog';
 import ThemeEditorSidebar from '../../components/themes/theme-editor-sidebar/ThemeEditorSidebar';
 import type { BlockCatalogItem } from '../../components/themes/theme-editor-sidebar/add-block-catalog';
-import type { ThemeBlockCatalogApi } from '../../components/themes/theme-editor-sidebar/theme-block-catalog.adapter';
+import {
+  getAddBlockCatalogItems,
+  type ThemeBlockCatalogApi,
+} from '../../components/themes/theme-editor-sidebar/theme-block-catalog.adapter';
 import ThemeEditorPagePicker from '../../components/themes/ThemeEditorPagePicker';
 import ThemeEditorLiveConfigModal from '../../components/themes/ThemeEditorLiveConfigModal';
 import { findPageMenuItemByPreview, buildThemeEditorPageMenu } from '../../utils/theme-editor-page-menu';
@@ -67,14 +70,27 @@ import {
   collectEditableFieldPaths,
 } from '../../utils/theme-editor-config.utils';
 import {
+  extendValuesForHeroBlock,
+  extendValuesForLayoutBlock,
   extendValuesForLayoutInstance,
+  extendValuesForTemplateBlock,
+  extendValuesForTemplateInstance,
   getLayoutOrder,
+  insertBlockFromCatalog,
   insertSectionFromCatalog,
   layoutBlueprintKey,
+  mergeTemplateSectionBlueprintsFromPack,
+  templateBlueprintKey,
+  templateIdForPage,
   pruneValuesForLayoutBlock,
   pruneValuesForLayoutInstance,
+  pruneValuesForTemplateBlock,
+  pruneValuesForTemplateInstance,
   removeLayoutBlock,
   removeLayoutSection,
+  removeTemplateBlock,
+  removeTemplateSection,
+  sanitizeThemeConfigStructure,
 } from '../../utils/theme-editor-insert-section';
 import { mergedConfigFromFormValues } from '../../utils/theme-editor-static-save';
 import {
@@ -87,6 +103,10 @@ import {
   fieldTypeFromSchema,
   type ThemeEditorFieldType,
 } from '../../components/themes/theme-editor-sidebar/theme-editor-field.utils';
+import {
+  seedSectionEnabledValues,
+  sectionEnabledPathFromNodeId,
+} from '../../utils/theme-editor-section-visibility.util';
 
 type FieldType = ThemeEditorFieldType;
 
@@ -114,6 +134,7 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [themeRuntime, setThemeRuntime] = useState<{ jsUrl?: string | null; cssUrl?: string | null }>({});
   const [defaultConfig, setDefaultConfig] = useState<Record<string, unknown> | null>(null);
+  const packDefaultRef = useRef<Record<string, unknown> | null>(null);
   const [manifest, setManifest] = useState<Record<string, unknown> | null>(null);
   const [blockCatalog, setBlockCatalog] = useState<ThemeBlockCatalogApi | null>(null);
   const [previewPage, setPreviewPage] = useState<ThemePreviewPage>('index');
@@ -216,11 +237,35 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
       mergeLayoutSectionDefaults(working, packDefault, 'footer');
       mergeLayoutSectionDefaults(working, packDefault, 'footer_utilities');
       mergeTemplateSectionDefaults(working, packDefault, 'index', 'featured_collection');
+      for (const tplId of Object.keys(
+        (packDefault.templates ?? {}) as Record<string, unknown>
+      )) {
+        mergeTemplateSectionBlueprintsFromPack(working, packDefault, tplId);
+      }
+      // Clear legacy footer newsletter copy so the preview shows input-only signup.
+      for (const section of Object.values((working.sections ?? {}) as Record<string, unknown>)) {
+        const sec = section as Record<string, unknown>;
+        if (sec?.type !== 'footer') continue;
+        const blocks = (sec.blocks ?? {}) as Record<string, unknown>;
+        const newsletter = (blocks.newsletter ?? null) as Record<string, unknown> | null;
+        if (!newsletter) continue;
+        const ns = ((newsletter.settings ?? {}) as Record<string, unknown>) || {};
+        ns.title = '';
+        ns.subtitle = '';
+        newsletter.settings = ns;
+        blocks.newsletter = newsletter;
+        sec.blocks = blocks;
+      }
+      sanitizeThemeConfigStructure(working);
+      packDefaultRef.current = packDefault;
       setDefaultConfig(working);
       const schema = (data.editorSchema ?? null) as EditorSchemaDoc | null;
       setValues(
         schema
-          ? formValuesFromEditorConfig(schema, working)
+          ? {
+              ...formValuesFromEditorConfig(schema, working),
+              ...seedSectionEnabledValues(working),
+            }
           : data.values
       );
       setItemOrder(readStructureOrderFromConfig(working, previewPage));
@@ -468,31 +513,192 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
   }, []);
 
   const handleRemoveSettingsSection = useCallback(() => {
-    if (!settingsNode || !defaultConfig) return;
-    const m = settingsNode.id.match(/^layout:(.+)$/);
-    if (!m) {
-      toast.error('This section cannot be removed here');
+    if (!settingsNode || !defaultConfig || !editorSchema) return;
+
+    const layout = settingsNode.id.match(/^layout:(.+)$/);
+    if (layout) {
+      const instanceId = layout[1]!;
+      const order = getLayoutOrder(defaultConfig);
+      const groupId: 'header' | 'footer' = order.footer?.includes(instanceId) ? 'footer' : 'header';
+      const next = removeLayoutSection(defaultConfig, instanceId, groupId);
+      if (!next) {
+        toast.error('This section cannot be removed');
+        return;
+      }
+      const pruned = pruneValuesForLayoutInstance(values, instanceId);
+      setDefaultConfig(next);
+      setValues(pruned);
+      setItemOrder((prev) => {
+        const listKey = groupId === 'header' ? 'sections:header' : 'sections:footer';
+        const ids = (prev[listKey] ?? []).filter((id) => id !== `layout:${instanceId}`);
+        return { ...prev, [listKey]: ids };
+      });
+      setSelectedNodeId('');
+      setStructureSyncKey((k) => k + 1);
+      if (staticDevMode) {
+        saveStaticThemeConfigLocal(mergedConfigFromFormValues(next, pruned, editorSchema));
+      }
+      toast.success('Section removed');
       return;
     }
-    const instanceId = m[1];
-    const order = getLayoutOrder(defaultConfig);
-    const groupId: 'header' | 'footer' = order.footer?.includes(instanceId) ? 'footer' : 'header';
-    const next = removeLayoutSection(defaultConfig, instanceId, groupId);
-    if (!next) {
+
+    const tpl = settingsNode.id.match(/^template:([^:]+):(.+)$/);
+    if (tpl) {
+      const [, tplId, instanceId] = tpl;
+      const next = removeTemplateSection(defaultConfig, tplId, instanceId);
+      if (!next) {
+        toast.error('This section cannot be removed');
+        return;
+      }
+      const pruned = pruneValuesForTemplateInstance(values, tplId, instanceId);
+      setDefaultConfig(next);
+      setValues(pruned);
+      setItemOrder((prev) => {
+        const listKey = `sections:template:${tplId}`;
+        return { ...prev, [listKey]: (prev[listKey] ?? []).filter((id) => id !== settingsNode.id) };
+      });
+      setSelectedNodeId('');
+      setStructureSyncKey((k) => k + 1);
+      if (staticDevMode) {
+        saveStaticThemeConfigLocal(mergedConfigFromFormValues(next, pruned, editorSchema));
+      }
+      toast.success('Section removed');
+      return;
+    }
+
+    toast.error('This section cannot be removed here');
+  }, [defaultConfig, settingsNode, editorSchema, values, staticDevMode]);
+
+  const handleDeleteSidebarNode = useCallback(
+    (nodeId: string) => {
+      if (!defaultConfig) return;
+
+      const layoutBlock = nodeId.match(/^layout:([^:]+):block:([^:]+)$/);
+      if (layoutBlock) {
+        const [, sectionInstanceId, blockId] = layoutBlock;
+        const next = removeLayoutBlock(defaultConfig, sectionInstanceId, blockId);
+        if (!next) {
+          toast.error('This block cannot be removed');
+          return;
+        }
+        setValues((prev) => {
+          const pruned = pruneValuesForLayoutBlock(prev, sectionInstanceId, blockId);
+          setDefaultConfig(next);
+          if (staticDevMode && editorSchema) {
+            saveStaticThemeConfigLocal(mergedConfigFromFormValues(next, pruned, editorSchema));
+          }
+          return pruned;
+        });
+        setItemOrder((prev) => {
+          const listKey = `blocks:layout:${sectionInstanceId}`;
+          return { ...prev, [listKey]: (prev[listKey] ?? []).filter((id) => id !== nodeId) };
+        });
+        if (selectedNodeId === nodeId || selectedNodeId.startsWith(`${nodeId}:`)) {
+          setSelectedNodeId(`layout:${sectionInstanceId}`);
+          setAddBlockTarget(null);
+        }
+        setStructureSyncKey((k) => k + 1);
+        toast.success('Block removed');
+        return;
+      }
+
+      const templateBlock = nodeId.match(/^template:([^:]+):([^:]+):block:([^:]+)$/);
+      if (templateBlock) {
+        const [, tplId, sectionInstanceId, blockId] = templateBlock;
+        const next = removeTemplateBlock(defaultConfig, tplId, sectionInstanceId, blockId);
+        if (!next) {
+          toast.error('This block cannot be removed');
+          return;
+        }
+        setValues((prev) => {
+          const pruned = pruneValuesForTemplateBlock(prev, tplId, sectionInstanceId, blockId);
+          setDefaultConfig(next);
+          if (staticDevMode && editorSchema) {
+            saveStaticThemeConfigLocal(mergedConfigFromFormValues(next, pruned, editorSchema));
+          }
+          return pruned;
+        });
+        setItemOrder((prev) => {
+          const listKey = `blocks:template:${tplId}:${sectionInstanceId}`;
+          return { ...prev, [listKey]: (prev[listKey] ?? []).filter((id) => id !== nodeId) };
+        });
+        if (selectedNodeId === nodeId || selectedNodeId.startsWith(`${nodeId}:`)) {
+          setSelectedNodeId(`template:${tplId}:${sectionInstanceId}`);
+          setAddBlockTarget(null);
+        }
+        setStructureSyncKey((k) => k + 1);
+        toast.success('Block removed');
+        return;
+      }
+      if (nodeId.includes(':block:')) {
+        toast.error('This block cannot be removed');
+        return;
+      }
+
+      const layout = nodeId.match(/^layout:(.+)$/);
+      if (layout) {
+        const instanceId = layout[1];
+        const order = getLayoutOrder(defaultConfig);
+        const groupId: 'header' | 'footer' = order.footer?.includes(instanceId) ? 'footer' : 'header';
+        const next = removeLayoutSection(defaultConfig, instanceId, groupId);
+        if (!next) {
+          toast.error('This section cannot be removed');
+          return;
+        }
+        setValues((prev) => {
+          const pruned = pruneValuesForLayoutInstance(prev, instanceId);
+          setDefaultConfig(next);
+          if (staticDevMode && editorSchema) {
+            saveStaticThemeConfigLocal(mergedConfigFromFormValues(next, pruned, editorSchema));
+          }
+          return pruned;
+        });
+        setItemOrder((prev) => {
+          const listKey = groupId === 'header' ? 'sections:header' : 'sections:footer';
+          return { ...prev, [listKey]: (prev[listKey] ?? []).filter((id) => id !== nodeId) };
+        });
+        if (selectedNodeId === nodeId || selectedNodeId.startsWith(`${nodeId}:`)) {
+          setSelectedNodeId('');
+          setAddBlockTarget(null);
+        }
+        setStructureSyncKey((k) => k + 1);
+        toast.success('Section removed');
+        return;
+      }
+
+      const tpl = nodeId.match(/^template:([^:]+):(.+)$/);
+      if (tpl) {
+        const [, tplId, instanceId] = tpl;
+        const next = removeTemplateSection(defaultConfig, tplId, instanceId);
+        if (!next) {
+          toast.error('This section cannot be removed');
+          return;
+        }
+        setValues((prev) => {
+          const pruned = pruneValuesForTemplateInstance(prev, tplId, instanceId);
+          setDefaultConfig(next);
+          if (staticDevMode && editorSchema) {
+            saveStaticThemeConfigLocal(mergedConfigFromFormValues(next, pruned, editorSchema));
+          }
+          return pruned;
+        });
+        setItemOrder((prev) => {
+          const listKey = `sections:template:${tplId}`;
+          return { ...prev, [listKey]: (prev[listKey] ?? []).filter((id) => id !== nodeId) };
+        });
+        if (selectedNodeId === nodeId || selectedNodeId.startsWith(`${nodeId}:`)) {
+          setSelectedNodeId('');
+          setAddBlockTarget(null);
+        }
+        setStructureSyncKey((k) => k + 1);
+        toast.success('Section removed');
+        return;
+      }
+
       toast.error('This section cannot be removed');
-      return;
-    }
-    setDefaultConfig(next);
-    setValues((prev) => pruneValuesForLayoutInstance(prev, instanceId));
-    setItemOrder((prev) => {
-      const listKey = groupId === 'header' ? 'sections:header' : 'sections:footer';
-      const ids = (prev[listKey] ?? []).filter((id) => id !== `layout:${instanceId}`);
-      return { ...prev, [listKey]: ids };
-    });
-    setSelectedNodeId('');
-    setStructureSyncKey((k) => k + 1);
-    toast.success('Section removed');
-  }, [defaultConfig, settingsNode]);
+    },
+    [defaultConfig, selectedNodeId, staticDevMode, editorSchema]
+  );
 
   const handleRemoveSettingsBlock = useCallback(() => {
     if (!settingsNode || !defaultConfig) return;
@@ -504,7 +710,7 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
     const [, sectionInstanceId, blockId] = m;
     const next = removeLayoutBlock(defaultConfig, sectionInstanceId, blockId);
     if (!next) {
-      toast.error('This block cannot be removed');
+      toast.error('At least one announcement is required');
       return;
     }
     setDefaultConfig(next);
@@ -631,7 +837,13 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
         <ThemeEditorSidebar
           pageLabel={pageLabel}
           sidebarTab={sidebarTab}
-          onSidebarTabChange={setSidebarTab}
+          onSidebarTabChange={(tab) => {
+            setSidebarTab(tab);
+            if (tab === 'theme-settings') {
+              setSelectedNodeId('');
+              setAddBlockTarget(null);
+            }
+          }}
           onExit={() => navigate('/themes/all-themes')}
           tree={activeTree}
           expanded={expanded}
@@ -639,6 +851,12 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
           selectedNodeId={selectedNodeId}
           onSelectNode={(node) => {
             if (node.kind === 'add-block') {
+              const available = getAddBlockCatalogItems(
+                blockCatalog,
+                editorSchema,
+                node.id
+              );
+              if (!available.length) return;
               if (selectedNodeId === node.id) {
                 setSelectedNodeId('');
                 setAddBlockTarget(null);
@@ -689,17 +907,17 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
             }
           }}
           hiddenNodes={hiddenNodes}
+          visibilityValues={values}
           onToggleHidden={(id) => {
-            const announcementMatch = id.match(/^layout:(announcement_bar(?:_\d+)?)$/);
-            if (announcementMatch) {
-              const instanceId = announcementMatch[1];
-              const path = `sections.${instanceId}.settings.enabled`;
+            const path = sectionEnabledPathFromNodeId(id);
+            if (path) {
               const current = values[path] !== false && values[path] !== 'false';
               handleFieldChange(path, 'boolean', !current);
               return;
             }
             setHiddenNodes((prev) => ({ ...prev, [id]: !prev[id] }));
           }}
+          onDeleteNode={handleDeleteSidebarNode}
           onReorder={handleReorder}
           onInsertSection={openAddSectionModal}
           onInsertHoverChange={setInsertHoverHighlight}
@@ -760,9 +978,79 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
         addBlockNodeId={addBlockTarget?.nodeId}
         onClose={() => setAddBlockTarget(null)}
         onSelectBlock={(block: BlockCatalogItem) => {
-          const section = addBlockTarget?.sectionLabel ?? 'section';
+          if (!addBlockTarget || !defaultConfig || !editorSchema) return;
+          const result = insertBlockFromCatalog(
+            defaultConfig,
+            addBlockTarget.nodeId,
+            block.id,
+            editorSchema
+          );
           setAddBlockTarget(null);
-          toast.success(`Added ${block.label} to ${section}`);
+          if (!result) {
+            toast.error(`Could not add ${block.label}`);
+            return;
+          }
+          const nextValues =
+            result.scope === 'template'
+              ? templateBlueprintKey(result.sectionInstanceId) === 'hero_main'
+                ? extendValuesForHeroBlock(
+                    values,
+                    editorSchema,
+                    'template',
+                    result.templateId,
+                    result.sectionInstanceId,
+                    result.blockInstanceId,
+                    block.id,
+                    result.config
+                  )
+                : extendValuesForTemplateBlock(
+                    values,
+                    editorSchema,
+                    result.templateId ?? templateIdForPage(previewPage),
+                    result.sectionInstanceId,
+                    result.blockInstanceId,
+                    block.id,
+                    result.config
+                  )
+              : layoutBlueprintKey(result.sectionInstanceId) === 'hero_main'
+                ? extendValuesForHeroBlock(
+                    values,
+                    editorSchema,
+                    'layout',
+                    undefined,
+                    result.sectionInstanceId,
+                    result.blockInstanceId,
+                    block.id,
+                    result.config
+                  )
+                : extendValuesForLayoutBlock(
+                    values,
+                    editorSchema,
+                    result.sectionInstanceId,
+                    result.blockInstanceId,
+                    block.id,
+                    result.config
+                  );
+          setDefaultConfig(result.config);
+          setValues(nextValues);
+          if (staticDevMode) {
+            saveStaticThemeConfigLocal(
+              mergedConfigFromFormValues(result.config, nextValues, editorSchema)
+            );
+          }
+          setItemOrder(readStructureOrderFromConfig(result.config, previewPage));
+          setSelectedNodeId(result.nodeId);
+          const sectionExpandKey =
+            result.scope === 'template' && result.templateId
+              ? `template:${result.templateId}:${result.sectionInstanceId}`
+              : `layout:${result.sectionInstanceId}`;
+          setExpanded((prev) => ({
+            ...prev,
+            [sectionExpandKey]: true,
+            [result.nodeId]: true,
+          }));
+          setStructureSyncKey((k) => k + 1);
+          toast.success(`Added ${block.label}`);
         }}
       />
 
@@ -784,7 +1072,8 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
             section,
             ctx,
             editorSchema,
-            previewPage
+            previewPage,
+            packDefaultRef.current
           );
           setAddSectionTarget(null);
           if (!result) {
@@ -803,8 +1092,20 @@ const SectionThemeConfigEditor: React.FC<SectionThemeConfigEditorProps> = ({
                     result.instanceId,
                     result.config
                   ),
+                  ...seedSectionEnabledValues(result.config),
                 }
-              : formValuesFromEditorConfig(editorSchema, result.config);
+              : {
+                  ...formValuesFromEditorConfig(editorSchema, result.config),
+                  ...extendValuesForTemplateInstance(
+                    {},
+                    editorSchema,
+                    templateIdForPage(previewPage),
+                    templateBlueprintKey(result.instanceId),
+                    result.instanceId,
+                    result.config
+                  ),
+                  ...seedSectionEnabledValues(result.config),
+                };
           setValues(nextValues);
           setItemOrder(readStructureOrderFromConfig(result.config, previewPage));
           treeInitRef.current = false;

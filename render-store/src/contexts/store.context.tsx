@@ -7,6 +7,11 @@ export interface StorefrontContextType {
   isStoreFront: boolean;
   storeFrontChecked: boolean;
   storeFrontMeta: { name: string; description: string; storeId: string } | null;
+  /** Set when the store has a JSON theme creator theme applied (Store.appliedCustomThemeId). */
+  appliedCustomThemeId: string | null;
+  appliedCustomThemeName: string | null;
+  /** True when theme-runtime is serving a StoreCustomTheme JSON + Horizon bundle. */
+  isStoreCustomTheme: boolean;
   activeThemeId: string | null;
   activeThemeName: string | null;
   activeThemeEntryHtmlUrl: string | null;
@@ -54,6 +59,9 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [isStoreFront, setIsStoreFront] = useState<boolean>(false);
   const [storeFrontChecked, setStoreFrontChecked] = useState<boolean>(false);
   const [storeFrontMeta, setStoreFrontMeta] = useState<{ name: string; description: string; storeId: string } | null>(null);
+  const [appliedCustomThemeId, setAppliedCustomThemeId] = useState<string | null>(null);
+  const [appliedCustomThemeName, setAppliedCustomThemeName] = useState<string | null>(null);
+  const [isStoreCustomTheme, setIsStoreCustomTheme] = useState(false);
   const [activeThemeId, setActiveThemeId] = useState<string | null>(null);
   const [activeThemeName, setActiveThemeName] = useState<string | null>(null);
   const [activeThemeEntryHtmlUrl, setActiveThemeEntryHtmlUrl] = useState<string | null>(null);
@@ -94,13 +102,32 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     (async () => {
       try {
-        const { data } = await axiosi.get<{ success: boolean; data?: { storeId: string; name: string; description: string } }>(
+        const { data } = await axiosi.get<{
+          success: boolean;
+          data?: {
+            storeId: string;
+            name: string;
+            description: string;
+            appliedCustomThemeId?: string | null;
+            appliedCustomThemeName?: string | null;
+          };
+        }>(
           "/store-subdomain/check",
           { params: { subdomain: possibleSub } }
         );
         if (data.success && data.data) {
           setIsStoreFront(true);
           setStoreFrontMeta({ name: data.data.name, description: data.data.description, storeId: data.data.storeId });
+          const customId =
+            data.data.appliedCustomThemeId && String(data.data.appliedCustomThemeId).length > 0
+              ? String(data.data.appliedCustomThemeId)
+              : null;
+          setAppliedCustomThemeId(customId);
+          setAppliedCustomThemeName(
+            customId && data.data.appliedCustomThemeName
+              ? String(data.data.appliedCustomThemeName)
+              : null
+          );
           try {
             const reactPackRes = await axiosi.get<{
               success: boolean;
@@ -133,6 +160,7 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
                 remoteThemeJsUrl?: string | null;
                 remoteThemeCssUrl?: string | null;
                 themeConfig?: Record<string, unknown> | null;
+                isStoreCustomTheme?: boolean;
               } | null;
             }>(`/storefront/${data.data.storeId}/theme-runtime`, {
               params: { _t: Date.now() },
@@ -172,6 +200,7 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             );
             const tc = rt?.themeConfig;
             setThemeConfig(tc && typeof tc === "object" ? tc : null);
+            setIsStoreCustomTheme(Boolean(rt?.isStoreCustomTheme));
           } catch {
             setActiveThemeId(null);
             setActiveThemeName(null);
@@ -183,6 +212,7 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             setRemoteThemeJsUrl(null);
             setRemoteThemeCssUrl(null);
             setThemeConfig(null);
+            setIsStoreCustomTheme(false);
             setLiquidThemeEnabled(false);
             setLiquidRenderPagePath(null);
             setLiquidTemplateNames([]);
@@ -192,6 +222,9 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       } catch {
         setIsStoreFront(false);
         setStoreFrontMeta(null);
+        setAppliedCustomThemeId(null);
+        setAppliedCustomThemeName(null);
+        setIsStoreCustomTheme(false);
         setActiveThemeId(null);
         setActiveThemeName(null);
         setActiveThemeEntryHtmlUrl(null);
@@ -218,6 +251,9 @@ export const StorefrontProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     isStoreFront,
     storeFrontChecked,
     storeFrontMeta,
+    appliedCustomThemeId,
+    appliedCustomThemeName,
+    isStoreCustomTheme,
     activeThemeId,
     activeThemeName,
     activeThemeEntryHtmlUrl,

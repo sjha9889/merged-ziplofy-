@@ -22,3 +22,20 @@ export function fieldValueAsString(
   if (raw === undefined || raw === null) return '';
   return String(raw);
 }
+
+/** Matches layout + template section setting paths (`sections.{id}.settings.*`). */
+export function isSectionSettingsFieldPath(path: string): boolean {
+  return /\.sections\.[^.]+\.settings\./.test(path);
+}
+
+/** Prefer typed panel fields; fall back to any sidebar-visible section settings field. */
+export function filterSidebarSectionPanelFields(
+  fields: EditorFieldDef[],
+  isPanelField: (field: EditorFieldDef) => boolean
+): EditorFieldDef[] {
+  const panelFields = fields.filter(isPanelField);
+  if (panelFields.length) return panelFields;
+  return fields.filter(
+    (field) => field.sidebar !== false && isSectionSettingsFieldPath(field.path ?? '')
+  );
+}

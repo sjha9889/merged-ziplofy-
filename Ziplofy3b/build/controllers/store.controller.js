@@ -1,9 +1,14 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateStore = exports.getStoresByUserParam = exports.getStoresByUserId = exports.createStore = void 0;
+const mongoose_1 = __importDefault(require("mongoose"));
 const general_settings_model_1 = require("../models/general-settings/general-settings.model");
 const notification_settings_model_1 = require("../models/notification-settings/notification-settings.model");
 const location_model_1 = require("../models/location/location.model");
+const store_custom_theme_model_1 = require("../models/store-custom-theme/store-custom-theme.model");
 const store_model_1 = require("../models/store/store.model");
 const subdomain_model_1 = require("../models/subdomain.model");
 const error_utils_1 = require("../utils/error.utils");
@@ -126,11 +131,55 @@ exports.getStoresByUserParam = (0, error_utils_1.asyncErrorHandler)(async (req, 
 exports.updateStore = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const { id } = req.params;
     const userId = req.user?.id;
-    const update = req.body;
+    const body = req.body;
     if (!id) {
         throw new error_utils_1.CustomError("Store id is required", 400);
     }
-    const store = await store_model_1.Store.findOneAndUpdate({ _id: id, userId }, update, { new: true, runValidators: true });
+    const $set = {};
+    if (body.storeName !== undefined) {
+        $set.storeName = body.storeName;
+    }
+    if (body.storeDescription !== undefined) {
+        $set.storeDescription = body.storeDescription;
+    }
+    if (body.defaultLocation !== undefined) {
+        if (body.defaultLocation === null || body.defaultLocation === "") {
+            $set.defaultLocation = null;
+        }
+        else {
+            if (!mongoose_1.default.isValidObjectId(body.defaultLocation)) {
+                throw new error_utils_1.CustomError("Invalid default location ID", 400);
+            }
+            $set.defaultLocation = new mongoose_1.default.Types.ObjectId(body.defaultLocation);
+        }
+    }
+    if (body.appliedCustomThemeId !== undefined) {
+        if (body.appliedCustomThemeId === null || body.appliedCustomThemeId === "") {
+            $set.appliedCustomThemeId = null;
+        }
+        else {
+            if (!mongoose_1.default.isValidObjectId(body.appliedCustomThemeId)) {
+                throw new error_utils_1.CustomError("Invalid custom theme ID", 400);
+            }
+            const customTheme = await store_custom_theme_model_1.StoreCustomTheme.findOne({
+                _id: body.appliedCustomThemeId,
+                storeId: id,
+            })
+                .select("_id")
+                .lean();
+            if (!customTheme) {
+                throw new error_utils_1.CustomError("Store custom theme not found for this store", 404);
+            }
+            $set.appliedCustomThemeId = new mongoose_1.default.Types.ObjectId(body.appliedCustomThemeId);
+        }
+    }
+    if (Object.keys($set).length === 0) {
+        throw new error_utils_1.CustomError("No valid fields to update", 400);
+    }
+    const store = await store_model_1.Store.findOneAndUpdate({ _id: id, userId }, { $set }, {
+        new: true,
+        runValidators: true,
+    });
     if (!store) {
         throw new error_utils_1.CustomError("Store not found", 404);
     }

@@ -9,13 +9,13 @@ This pack is the **reference schema** for Ziplofy section-based theme editors. N
 | `theme.schema.json` | Every editable path, label, type, widget, group, and nested block for the sidebar + bottom settings sheet |
 | `theme.default-config.json` | Default values merged with store overrides in production |
 | `theme.manifest.json` | Templates, block catalog, capabilities |
-| `remote-themes/horizon/` | React preview bundle (`npm run build:preview`) |
+| `remote-themes/horizon/` | React preview source; `npm run build` → `dist/theme.js` served by render-store in dev |
 
 ## Regenerate after changes
 
 ```bash
 node scripts/build-horizon-benchmark-schema.mjs
-cd remote-themes/horizon && npm run build:preview
+cd remote-themes/horizon && npm run build
 ```
 
 ## Schema layout

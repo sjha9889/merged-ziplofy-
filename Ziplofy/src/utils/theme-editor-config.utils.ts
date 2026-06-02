@@ -1,6 +1,11 @@
 import type { EditorFieldDef, EditorSchemaDoc } from '../components/themes/theme-editor-sidebar/theme-editor-sidebar.types';
 import { fieldTypeFromSchema } from '../components/themes/theme-editor-sidebar/theme-editor-field.utils';
-import { layoutBlueprintKey, remapLayoutSchemaPath } from './theme-editor-insert-section';
+import {
+  layoutBlueprintKey,
+  remapLayoutSchemaPath,
+  remapTemplateSchemaPath,
+  templateBlueprintKey,
+} from './theme-editor-insert-section';
 
 export type SchemaFieldPath = { path: string; type: string; label: string };
 
@@ -83,6 +88,35 @@ function pushRemappedBlockFields(
   }
 }
 
+function pushRemappedTemplateFields(
+  fields: EditorFieldDef[] | undefined,
+  tplId: string,
+  instanceId: string,
+  out: SchemaFieldPath[],
+  seen: Set<string>
+): void {
+  for (const field of fields ?? []) {
+    if (!field.path) continue;
+    const path = remapTemplateSchemaPath(field.path, tplId, instanceId);
+    if (seen.has(path)) continue;
+    seen.add(path);
+    out.push({ path, type: field.type, label: field.label || path });
+  }
+}
+
+function pushRemappedTemplateBlockFields(
+  blocks: BlockLike[] | undefined,
+  tplId: string,
+  instanceId: string,
+  out: SchemaFieldPath[],
+  seen: Set<string>
+): void {
+  for (const block of blocks ?? []) {
+    pushRemappedTemplateFields(block.settingsFields, tplId, instanceId, out, seen);
+    pushRemappedTemplateBlockFields(block.blocks, tplId, instanceId, out, seen);
+  }
+}
+
 /**
  * Schema blueprint paths plus remapped paths for extra layout instances
  * (e.g. sections.announcement_bar_2.* added via "Add section").
@@ -104,6 +138,22 @@ export function collectEditableFieldPaths(
     pushRemappedBlockFields(layout.blocks, instanceId, out, seen);
   }
 
+  const templates = config.templates as
+    | Record<string, { sections?: Record<string, unknown> }>
+    | undefined;
+  for (const [tplId, tpl] of Object.entries(templates ?? {})) {
+    const template = schema.templates?.find((t) => t.id === tplId);
+    if (!template?.sections?.length) continue;
+    for (const instanceId of Object.keys(tpl.sections ?? {})) {
+      const blueprint = templateBlueprintKey(instanceId);
+      if (blueprint === instanceId) continue;
+      const sec = template.sections.find((s) => (s.id ?? '') === blueprint);
+      if (!sec) continue;
+      pushRemappedTemplateFields(sec.settingsFields, tplId, instanceId, out, seen);
+      pushRemappedTemplateBlockFields(sec.blocks, tplId, instanceId, out, seen);
+    }
+  }
+
   return out;
 }
 
@@ -114,12 +164,38 @@ function resolveFieldTypeForPath(
   const direct = typeByPath.get(path);
   if (direct) return direct;
 
+  const layoutHero = path.match(/^sections\.(hero_main(?:_\d+)?)\.(.+)$/);
+  if (layoutHero) {
+    const fromTemplate = typeByPath.get(`templates.index.sections.hero_main.${layoutHero[2]}`);
+    if (fromTemplate) return fromTemplate;
+  }
+
+  const tplHero = path.match(/^templates\.([^.]+)\.sections\.(hero_main(?:_\d+)?)\.(.+)$/);
+  if (tplHero) {
+    const fromBlueprint = typeByPath.get(`templates.${tplHero[1]}.sections.hero_main.${tplHero[3]}`);
+    if (fromBlueprint) return fromBlueprint;
+  }
+
   const m = path.match(/^sections\.([^.]+)\.(.+)$/);
-  if (!m) return undefined;
-  const [, instanceId, rest] = m;
-  const blueprint = layoutBlueprintKey(instanceId);
-  if (blueprint === instanceId) return undefined;
-  return typeByPath.get(`sections.${blueprint}.${rest}`);
+  if (m) {
+    const [, instanceId, rest] = m;
+    const blueprint = layoutBlueprintKey(instanceId);
+    if (blueprint !== instanceId) {
+      const fromBlueprint = typeByPath.get(`sections.${blueprint}.${rest}`);
+      if (fromBlueprint) return fromBlueprint;
+    }
+  }
+
+  const tpl = path.match(/^templates\.([^.]+)\.sections\.([^.]+)\.(.+)$/);
+  if (tpl) {
+    const [, tplId, instanceId, rest] = tpl;
+    const blueprint = templateBlueprintKey(instanceId);
+    if (blueprint !== instanceId) {
+      return typeByPath.get(`templates.${tplId}.sections.${blueprint}.${rest}`);
+    }
+  }
+
+  return undefined;
 }
 
 /** Write a value at a dot path; numeric segments use real arrays when the parent is a list. */
@@ -191,7 +267,13 @@ export function applyValuesToThemeConfig(
 
   for (const [path, raw] of Object.entries(values)) {
     const type = resolveFieldTypeForPath(path, typeByPath);
-    if (!type) continue;
+    if (!type) {
+      if (path.endsWith('.enabled')) {
+        const coerced = coerceFieldValue(raw, 'boolean');
+        if (coerced !== undefined) setConfigAtPath(config, path, coerced);
+      }
+      continue;
+    }
     const coerced = coerceFieldValue(raw, type);
     if (coerced === undefined) continue;
     setConfigAtPath(config, path, coerced);

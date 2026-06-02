@@ -1,6 +1,15 @@
 import type { SidebarIcon } from './theme-editor-sidebar.types';
 
-export type BlockCatalogCategory = 'basic' | 'decorative' | 'layout' | 'links' | 'product';
+export type BlockCatalogCategory =
+  | 'basic'
+  | 'collection'
+  | 'custom'
+  | 'decorative'
+  | 'footer'
+  | 'forms'
+  | 'layout'
+  | 'links'
+  | 'product';
 
 export type BlockCatalogIcon =
   | SidebarIcon
@@ -51,6 +60,29 @@ export type BlockPreviewSlide = {
     | 'storytelling-logo'
     | 'faq'
     | 'icons-with-text'
+    | 'icon-only'
+    | 'heading-only'
+    | 'image-only'
+    | 'logo-only'
+    | 'button-only'
+    | 'page-only'
+    | 'text-only'
+    | 'video-only'
+    | 'collection-card-only'
+    | 'collection-title-only'
+    | 'comparison-slider-only'
+    | 'jumbo-text-only'
+    | 'copyright-only'
+    | 'policy-links-only'
+    | 'accordion-only'
+    | 'menu-only'
+    | 'buy-buttons-only'
+    | 'price-only'
+    | 'inventory-only'
+    | 'recommended-only'
+    | 'review-stars-only'
+    | 'special-instructions-only'
+    | 'title-only'
     | 'text-marquee'
     | 'multicolumn'
     | 'pull-quote'
@@ -90,15 +122,63 @@ export const BLOCK_CATALOG_CATEGORIES_COMPACT: { id: BlockCatalogCategory; label
 ];
 
 export const BLOCK_CATALOG_CATEGORIES_EXTENDED: { id: BlockCatalogCategory; label: string }[] = [
+  { id: 'collection', label: 'Collection' },
+  { id: 'footer', label: 'Footer' },
+  { id: 'forms', label: 'Forms' },
   { id: 'links', label: 'Links' },
   { id: 'product', label: 'Product' },
 ];
 
+/** Shopify add-block picker category order (hero and custom section). */
+export const BLOCK_CATALOG_CATEGORIES_SHOPIFY: { id: BlockCatalogCategory; label: string }[] = [
+  { id: 'basic', label: 'Basic' },
+  { id: 'collection', label: 'Collection' },
+  { id: 'decorative', label: 'Decorative' },
+  { id: 'footer', label: 'Footer' },
+  { id: 'forms', label: 'Forms' },
+  { id: 'layout', label: 'Layout' },
+  { id: 'links', label: 'Links' },
+  { id: 'product', label: 'Product' },
+];
+
+export const GENERATE_BLOCK_ITEM: BlockCatalogItem = {
+  id: 'generate',
+  label: 'Generate',
+  category: 'basic',
+  icon: 'placeholder',
+  keywords: ['ai', 'magic', 'create'],
+};
+
 export const BLOCK_CATALOG: BlockCatalogItem[] = [
   { id: 'button', label: 'Button', category: 'basic', icon: 'button', keywords: ['cta', 'link'] },
   { id: 'heading', label: 'Heading', category: 'basic', icon: 'text', keywords: ['title', 'h1'] },
+  { id: 'icon', label: 'Icon', category: 'basic', icon: 'placeholder', keywords: ['symbol'] },
+  { id: 'image', label: 'Image', category: 'basic', icon: 'image', keywords: ['photo', 'media'] },
   { id: 'logo', label: 'Logo', category: 'basic', icon: 'logo', keywords: ['brand', 'image'] },
+  { id: 'page', label: 'Page', category: 'basic', icon: 'placeholder', keywords: ['content'] },
   { id: 'text', label: 'Text', category: 'basic', icon: 'text', keywords: ['paragraph', 'body'] },
+  { id: 'video', label: 'Video', category: 'basic', icon: 'placeholder', keywords: ['media', 'youtube'] },
+  {
+    id: 'collection-card',
+    label: 'Collection card',
+    category: 'collection',
+    icon: 'product-card',
+    keywords: ['collection', 'card'],
+  },
+  {
+    id: 'collection-title',
+    label: 'Collection title',
+    category: 'collection',
+    icon: 'title',
+    keywords: ['collection', 'heading'],
+  },
+  {
+    id: 'image-compare',
+    label: 'Comparison slider',
+    category: 'decorative',
+    icon: 'placeholder',
+    keywords: ['before', 'after', 'compare'],
+  },
   {
     id: 'jumbo-text',
     label: 'Jumbo text',
@@ -107,15 +187,64 @@ export const BLOCK_CATALOG: BlockCatalogItem[] = [
     keywords: ['large', 'display'],
   },
   { id: 'marquee', label: 'Marquee', category: 'decorative', icon: 'marquee', keywords: ['scroll', 'ticker'] },
-  { id: 'group', label: 'Group', category: 'layout', icon: 'group', keywords: ['container', 'wrapper'] },
   {
-    id: 'spacer',
-    label: 'Spacer',
-    category: 'layout',
-    icon: 'spacer',
-    keywords: ['gap', 'space'],
-    extendedOnly: true,
+    id: 'copyright',
+    label: 'Copyright',
+    category: 'footer',
+    icon: 'placeholder',
+    keywords: ['footer', 'legal'],
   },
+  {
+    id: 'follow-on-shop',
+    label: 'Follow on Shop',
+    category: 'footer',
+    icon: 'placeholder',
+    keywords: ['shop', 'social'],
+  },
+  {
+    id: 'payment-icons',
+    label: 'Payment icons',
+    category: 'footer',
+    icon: 'price',
+    keywords: ['payment', 'cards'],
+  },
+  {
+    id: 'policy-links',
+    label: 'Policy links',
+    category: 'footer',
+    icon: 'link',
+    keywords: ['privacy', 'terms'],
+  },
+  {
+    id: 'social',
+    label: 'Social media links',
+    category: 'footer',
+    icon: 'link',
+    keywords: ['social', 'instagram'],
+  },
+  {
+    id: 'contact-form',
+    label: 'Contact form',
+    category: 'forms',
+    icon: 'form',
+    keywords: ['email', 'message'],
+  },
+  {
+    id: 'email-signup',
+    label: 'Email signup',
+    category: 'forms',
+    icon: 'form',
+    keywords: ['newsletter', 'subscribe'],
+  },
+  {
+    id: 'accordion',
+    label: 'Accordion',
+    category: 'layout',
+    icon: 'group',
+    keywords: ['collapse', 'faq'],
+  },
+  { id: 'group', label: 'Group', category: 'layout', icon: 'group', keywords: ['container', 'wrapper'] },
+  { id: 'spacer', label: 'Spacer', category: 'layout', icon: 'spacer', keywords: ['gap', 'space'] },
   { id: 'menu', label: 'Menu', category: 'links', icon: 'link', keywords: ['navigation'], extendedOnly: true },
   {
     id: 'popup-link',
@@ -431,7 +560,7 @@ export const BLOCK_PREVIEW_SLIDES: BlockPreviewSlide[] = [
     id: 'footer-section',
     headline: 'Have an idea?',
     headlineAccent: "Let's bring it to life",
-    caption: 'Footer',
+    caption: 'Join our email list, email signup, and store links',
     variant: 'footer-section',
   },
   {
@@ -557,41 +686,59 @@ export const BLOCK_PREVIEW_SLIDES: BlockPreviewSlide[] = [
 
 const SPACER_ITEM = BLOCK_CATALOG.find((b) => b.id === 'spacer')!;
 
-export function getCatalogSections(showAll: boolean, searchQuery: string): CatalogSection[] {
+export function getCatalogSections(
+  showAll: boolean,
+  searchQuery: string,
+  options?: { shopifyFull?: boolean }
+): CatalogSection[] {
   const q = searchQuery.trim().toLowerCase();
   const searching = q.length > 0;
+  const shopifyFull = options?.shopifyFull ?? false;
+  const categoryOrder = shopifyFull
+    ? BLOCK_CATALOG_CATEGORIES_SHOPIFY
+    : [...BLOCK_CATALOG_CATEGORIES_COMPACT, ...BLOCK_CATALOG_CATEGORIES_EXTENDED];
 
   if (searching) {
     const matched = filterBlockCatalog(searchQuery, true);
     const categories = new Set(matched.map((b) => b.category));
     const sections: CatalogSection[] = [];
-    for (const cat of [...BLOCK_CATALOG_CATEGORIES_COMPACT, ...BLOCK_CATALOG_CATEGORIES_EXTENDED]) {
+    for (const cat of categoryOrder) {
       if (categories.has(cat.id)) sections.push({ type: 'category', id: cat.id, label: cat.label });
     }
     return sections;
   }
 
-  const sections: CatalogSection[] = BLOCK_CATALOG_CATEGORIES_COMPACT.map((c) => ({
-    type: 'category' as const,
-    id: c.id,
-    label: c.label,
-  }));
+  const sections: CatalogSection[] = [];
 
-  if (showAll) {
+  const visibleCategories = shopifyFull
+    ? categoryOrder
+    : showAll
+      ? categoryOrder
+      : BLOCK_CATALOG_CATEGORIES_COMPACT;
+
+  for (const cat of visibleCategories) {
+    sections.push({ type: 'category', id: cat.id, label: cat.label });
+  }
+
+  if (!shopifyFull && showAll) {
     sections.push({ type: 'standalone', item: SPACER_ITEM });
-    for (const cat of BLOCK_CATALOG_CATEGORIES_EXTENDED) {
-      sections.push({ type: 'category', id: cat.id, label: cat.label });
-    }
   }
 
   return sections;
 }
 
-export function filterBlockCatalog(query: string, showAll: boolean): BlockCatalogItem[] {
+export function filterBlockCatalog(
+  query: string,
+  showAll: boolean,
+  options?: { includeGenerate?: boolean }
+): BlockCatalogItem[] {
   const q = query.trim().toLowerCase();
   let pool = BLOCK_CATALOG;
   if (!showAll && !q) {
     pool = BLOCK_CATALOG.filter((b) => !b.extendedOnly);
+  }
+  if (options?.includeGenerate && !q) {
+    pool = [GENERATE_BLOCK_ITEM, ...pool];
   }
   if (!q) return pool;
   return pool.filter(
@@ -617,7 +764,11 @@ export function blocksByCategory(
 ): Record<BlockCatalogCategory, BlockCatalogItem[]> {
   const out: Record<BlockCatalogCategory, BlockCatalogItem[]> = {
     basic: [],
+    collection: [],
+    custom: [],
     decorative: [],
+    footer: [],
+    forms: [],
     layout: [],
     links: [],
     product: [],

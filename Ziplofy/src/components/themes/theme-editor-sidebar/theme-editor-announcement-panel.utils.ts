@@ -2,7 +2,14 @@ import type { EditorFieldDef, SidebarNode } from './theme-editor-sidebar.types';
 import { layoutBlueprintKey } from '../../../utils/theme-editor-insert-section';
 
 /** Groups shown in the bottom "Announcement bar" settings sheet (Shopify-style). */
-const PANEL_GROUPS = new Set(['General', 'Appearance', 'Padding', 'Custom CSS']);
+export const ANNOUNCEMENT_PANEL_GROUP_ORDER = [
+  'General',
+  'Appearance',
+  'Padding',
+  'Custom CSS',
+] as const;
+
+const PANEL_GROUPS = new Set<string>(ANNOUNCEMENT_PANEL_GROUP_ORDER);
 
 const FIELD_SORT_KEYS: Record<string, number> = {
   enabled: 0,
@@ -18,6 +25,29 @@ const FIELD_SORT_KEYS: Record<string, number> = {
 function fieldSortKey(path: string): number {
   const key = path.split('.').pop() ?? path;
   return FIELD_SORT_KEYS[key] ?? 50;
+}
+
+export function isAnnouncementSettingsPanelFields(fields: EditorFieldDef[]): boolean {
+  if (!fields.length) return false;
+  return fields.some(
+    (f) =>
+      /\.sections\.announcement_bar(?:_\d+)?\.settings\./.test(f.path) &&
+      (f.group === 'General' || f.path.endsWith('.settings.enabled'))
+  );
+}
+
+export function groupAnnouncementPanelFields(
+  fields: EditorFieldDef[]
+): Map<string, EditorFieldDef[]> {
+  const map = new Map<string, EditorFieldDef[]>();
+  for (const label of ANNOUNCEMENT_PANEL_GROUP_ORDER) {
+    map.set(label, []);
+  }
+  for (const field of sortAnnouncementPanelFields(filterAnnouncementPanelFields(fields))) {
+    const group = field.group && PANEL_GROUPS.has(field.group) ? field.group : 'General';
+    map.get(group)?.push(field);
+  }
+  return map;
 }
 
 export function isAnnouncementLayoutNodeId(nodeId: string): boolean {
