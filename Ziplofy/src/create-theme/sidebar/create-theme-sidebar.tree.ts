@@ -65,6 +65,7 @@ import {
   headerLogoBlockFieldDefsFromSchema,
   headerLogoBlockFieldsFromNode,
   instanceIdFromHeaderLogoBlockNodeId,
+  isHeaderLogoBlockPanelField,
   prepareHeaderLogoBlockSettingsNode,
 } from './theme-editor-header-logo-block-panel.utils';
 import {
@@ -790,7 +791,9 @@ function mapHeaderBlockNodes(
       if (!base) return null;
       const blockId = blockInstanceId;
       const label = base.label ?? blockId;
-      const blockSettingsFields = remapFields(base.settingsFields, instanceId);
+      const remapped = remapFields(base.settingsFields, instanceId);
+      const isLogo = blockId === 'logo' || (base.id ?? '') === 'logo';
+      const blockSettingsFields = isLogo ? remapped.filter(isHeaderLogoBlockPanelField) : remapped;
       const isMenu = blockId === 'menu' || (base.id ?? '') === 'menu';
 
       return {

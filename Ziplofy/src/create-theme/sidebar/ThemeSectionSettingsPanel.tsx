@@ -6788,11 +6788,7 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-3">
-        {fields.length === 0 ? (
-          <p className="text-[13px] text-gray-500">No settings for this item.</p>
-        ) : isHeaderSectionPanel ? (
-          <HeaderSettingsPanel fields={fields} values={values} onFieldChange={onFieldChange} />
-        ) : isHeaderLogoBlockPanel ? (
+        {isHeaderLogoBlockPanel ? (
           <HeaderLogoBlockSettingsPanel
             fields={fields}
             values={values}
@@ -6804,6 +6800,10 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
             values={values}
             onFieldChange={onFieldChange}
           />
+        ) : fields.length === 0 ? (
+          <p className="text-[13px] text-gray-500">No settings for this item.</p>
+        ) : isHeaderSectionPanel ? (
+          <HeaderSettingsPanel fields={fields} values={values} onFieldChange={onFieldChange} />
         ) : isCopyrightBlockPanel ? (
           <div className="divide-y divide-[#e1e1e1]">
             {(() => {
