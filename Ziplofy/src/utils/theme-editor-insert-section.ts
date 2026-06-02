@@ -2862,7 +2862,7 @@ export function extendValuesForLayoutBlock(
 
   const next = { ...values };
   for (const field of blockDef.settingsFields) {
-    if (!field.path?.includes(`.blocks.${blockTypeId}.`)) continue;
+    if (!field.path?.includes('.blocks.')) continue;
     const newPath = remapLayoutSchemaPath(field.path, sectionInstanceId).replace(
       /\.blocks\.[^.]+\./,
       `.blocks.${blockInstanceId}.`

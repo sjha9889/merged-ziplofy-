@@ -5,6 +5,7 @@ export interface StoreCustomTheme {
   _id: string;
   storeId: string;
   themeName: string;
+  themeDesc?: string;
   themeConfig: Record<string, unknown>;
   createdAt?: string;
   updatedAt?: string;
@@ -18,12 +19,14 @@ interface ApiResponse<T> {
 
 export interface CreateStoreCustomThemePayload {
   storeId: string;
-  themeName?: string;
+  themeName: string;
+  themeDesc?: string;
   themeConfig: Record<string, unknown>;
 }
 
 export interface UpdateStoreCustomThemePayload {
   themeName?: string;
+  themeDesc?: string | null;
   themeConfig?: Record<string, unknown>;
 }
 

@@ -6,8 +6,10 @@ import mongoose, { Document, Model, Schema } from 'mongoose';
  */
 export interface IStoreCustomTheme extends Document {
   storeId: mongoose.Types.ObjectId;
-  /** Display name in admin (e.g. "Summer launch"). */
+  /** Display name in admin (e.g. "Summer launch"). Required — provided by the merchant. */
   themeName: string;
+  /** Optional short description for the theme in admin. */
+  themeDesc?: string;
   /** Full theme document: sections, layout_order, templates, settings, etc. */
   themeConfig: Record<string, unknown>;
   createdAt: Date;
@@ -27,7 +29,11 @@ const storeCustomThemeSchema = new Schema<IStoreCustomTheme>(
       required: [true, 'Theme name is required'],
       trim: true,
       maxlength: [120, 'Theme name cannot exceed 120 characters'],
-      default: 'Untitled theme',
+    },
+    themeDesc: {
+      type: String,
+      trim: true,
+      maxlength: [500, 'Theme description cannot exceed 500 characters'],
     },
     themeConfig: {
       type: Schema.Types.Mixed,

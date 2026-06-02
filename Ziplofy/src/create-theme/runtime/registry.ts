@@ -1,11 +1,15 @@
 import type { SectionRuntimeComponent } from './types';
 import { AnnouncementBar } from '../announcement-bar/runtime/AnnouncementBar';
 import { Divider } from '../divider/runtime/Divider';
+import { Footer } from '../footer/runtime/Footer';
 import { Header } from '../header/runtime/Header';
+import { Hero } from '../hero/runtime/Hero';
 /** Live UI components keyed by schema `section.type`. */
 export const SECTION_RUNTIME_BY_TYPE: Record<string, SectionRuntimeComponent> = {
   header: Header,
   'announcement-bar': AnnouncementBar,
+  hero: Hero,
+  footer: Footer,
   divider: Divider,
 };
 

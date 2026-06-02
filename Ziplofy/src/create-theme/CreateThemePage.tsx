@@ -68,6 +68,13 @@ import {
 import { mergedConfigFromFormValues } from '../utils/theme-editor-static-save';
 import { fieldTypeFromSchema, type ThemeEditorFieldType } from './sidebar/create-theme-field.utils';
 import {
+  announcementBlockFieldDefsFromSchema,
+  announcementBlockNodeIdFromSelection,
+  blockInstanceIdFromAnnouncementBlockNodeId,
+  instanceIdFromAnnouncementBlockNodeId,
+  isAnnouncementBlockNodeId,
+} from './sidebar/theme-editor-announcement-block-panel.utils';
+import {
   headerMenuBlockFieldDefsFromSchema,
   instanceIdFromHeaderMenuBlockNodeId,
 } from './sidebar/theme-editor-header-menu-block-panel.utils';
@@ -78,10 +85,12 @@ import {
 } from '../utils/theme-editor-section-visibility.util';
 import './chrome/create-theme-chrome.css';
 import { insertCreateThemeElement } from './_shared/insert-element';
-import type { CreateThemeBlock } from './blocks/types';
+import { AddBlockModal } from '../components/themes/theme-editor-sidebar/AddBlockModal';
+import type { BlockCatalogItem } from '../components/themes/theme-editor-sidebar/add-block-catalog';
+import type { ThemeBlockCatalogApi } from '../components/themes/theme-editor-sidebar/theme-block-catalog.adapter';
 import { getCreateThemeElement } from './registry';
-import { CreateThemeAddBlockModal } from './shell/CreateThemeAddBlockModal';
 import { CreateThemeAddSectionModal } from './shell/CreateThemeAddSectionModal';
+import { CreateThemeSaveModal } from './shell/CreateThemeSaveModal';
 import type { CreateThemeCatalogGroup } from './types';
 
 type FieldType = ThemeEditorFieldType;
@@ -109,6 +118,7 @@ const CreateThemePage: React.FC = () => {
   const [defaultConfig, setDefaultConfig] = useState<Record<string, unknown> | null>(null);
   const packDefaultRef = useRef<Record<string, unknown> | null>(null);
   const [manifest, setManifest] = useState<Record<string, unknown> | null>(null);
+  const [blockCatalog, setBlockCatalog] = useState<ThemeBlockCatalogApi | null>(null);
   const [themeRuntime, setThemeRuntime] = useState<{ jsUrl?: string | null; cssUrl?: string | null }>({});
 
   const [showViewTheme, setShowViewTheme] = useState(false);
@@ -132,6 +142,8 @@ const CreateThemePage: React.FC = () => {
     nodeId: string;
     sectionLabel: string;
   } | null>(null);
+  const [showSaveThemeModal, setShowSaveThemeModal] = useState(false);
+  const [themeDesc, setThemeDesc] = useState('');
 
   const treeInitRef = useRef(false);
   const previewStoreId = activeStoreId || THEME_EDITOR_STATIC_CONFIG.devStoreId;
@@ -184,6 +196,7 @@ const CreateThemePage: React.FC = () => {
                 }
               : nextValues;
             nextName = saved.themeName?.trim() || nextName;
+            setThemeDesc(saved.themeDesc?.trim() ?? '');
             loadedSavedId = saved._id;
           } else if (editThemeId) {
             toast.error('Saved theme not found');
@@ -197,6 +210,7 @@ const CreateThemePage: React.FC = () => {
         setDefaultConfig(config);
         setValues(nextValues);
         setManifest(data.manifest);
+        setBlockCatalog(data.blockCatalog);
         setThemeRuntime(data.themeRuntime);
         setThemeName(nextName);
         setSavedThemeId(loadedSavedId);
@@ -305,6 +319,37 @@ const CreateThemePage: React.FC = () => {
     });
   }, [selectedNodeId, editorSchema, defaultConfig]);
 
+  /** Seed announcement block field paths when opening a block instance (e.g. announcement_2). */
+  useEffect(() => {
+    if (!editorSchema || !defaultConfig || !isAnnouncementBlockNodeId(selectedNodeId)) return;
+    const instanceId = instanceIdFromAnnouncementBlockNodeId(selectedNodeId);
+    const blockInstanceId = blockInstanceIdFromAnnouncementBlockNodeId(selectedNodeId);
+    if (!instanceId || !blockInstanceId) return;
+    const defs = announcementBlockFieldDefsFromSchema(
+      editorSchema,
+      instanceId,
+      blockInstanceId
+    );
+    if (!defs.length) return;
+
+    setValues((prev) => {
+      const needsSeed = defs.some((f) => prev[f.path] === undefined);
+      if (!needsSeed) return prev;
+      const config = applyValuesToThemeConfig(defaultConfig, prev, editorSchema);
+      const fromConfig = formValuesFromEditorConfig(editorSchema, config);
+      const next = { ...prev };
+      let changed = false;
+      for (const f of defs) {
+        if (next[f.path] !== undefined) continue;
+        const seeded = fromConfig[f.path];
+        if (seeded === undefined) continue;
+        next[f.path] = seeded;
+        changed = true;
+      }
+      return changed ? next : prev;
+    });
+  }, [selectedNodeId, editorSchema, defaultConfig]);
+
   const livePreviewConfig = useMemo(() => {
     if (!defaultConfig || !editorSchema) return defaultConfig ?? {};
     if (!hasSections) return defaultConfig;
@@ -333,51 +378,91 @@ const CreateThemePage: React.FC = () => {
     return mergedConfigFromFormValues({ ...defaultConfig, themeName }, values, editorSchema);
   }, [defaultConfig, values, editorSchema, themeName]);
 
-  const handleSave = useCallback(async () => {
-    const storeId = activeStoreId || THEME_EDITOR_STATIC_CONFIG.devStoreId;
-    if (!storeId) {
-      toast.error('Select a store before saving');
-      return;
-    }
+  const persistTheme = useCallback(
+    async (opts: { themeName: string; themeDesc?: string; isCreate: boolean }) => {
+      const storeId = activeStoreId || THEME_EDITOR_STATIC_CONFIG.devStoreId;
+      if (!storeId) {
+        toast.error('Select a store before saving');
+        return;
+      }
+      if (!defaultConfig || !editorSchema) {
+        toast.error('Theme is still loading');
+        return;
+      }
+
+      const themeConfig = mergedConfigFromFormValues(
+        { ...defaultConfig, themeName: opts.themeName },
+        values,
+        editorSchema
+      );
+
+      if (opts.isCreate) {
+        const created = await createStoreCustomTheme({
+          storeId,
+          themeName: opts.themeName,
+          ...(opts.themeDesc ? { themeDesc: opts.themeDesc } : {}),
+          themeConfig,
+        });
+        setSavedThemeId(created._id);
+        setThemeName(opts.themeName);
+        setThemeDesc(opts.themeDesc ?? '');
+        setShowSaveThemeModal(false);
+        toast.success('Theme created');
+        return;
+      }
+
+      if (!savedThemeId) return;
+      await updateStoreCustomTheme(savedThemeId, {
+        themeName: opts.themeName,
+        themeConfig,
+        ...(opts.themeDesc !== undefined ? { themeDesc: opts.themeDesc || null } : {}),
+      });
+      setThemeName(opts.themeName);
+      if (opts.themeDesc !== undefined) setThemeDesc(opts.themeDesc);
+      toast.success('Theme saved');
+    },
+    [
+      activeStoreId,
+      defaultConfig,
+      editorSchema,
+      values,
+      savedThemeId,
+      createStoreCustomTheme,
+      updateStoreCustomTheme,
+    ]
+  );
+
+  const handleSave = useCallback(() => {
     if (!defaultConfig || !editorSchema) {
       toast.error('Theme is still loading');
       return;
     }
-
-    const themeConfig = mergedConfigFromFormValues(
-      { ...defaultConfig, themeName },
-      values,
-      editorSchema
-    );
-    const name = themeName.trim() || 'Untitled theme';
-
-    try {
-      if (savedThemeId) {
-        await updateStoreCustomTheme(savedThemeId, { themeName: name, themeConfig });
-        toast.success('Theme saved');
-      } else {
-        const created = await createStoreCustomTheme({
-          storeId,
-          themeName: name,
-          themeConfig,
-        });
-        setSavedThemeId(created._id);
-        toast.success('Theme created');
-      }
-    } catch (err: unknown) {
-      const msg = (err as Error)?.message ?? 'Failed to save theme';
-      toast.error(msg);
+    if (!savedThemeId) {
+      setShowSaveThemeModal(true);
+      return;
     }
-  }, [
-    activeStoreId,
-    defaultConfig,
-    editorSchema,
-    themeName,
-    values,
-    savedThemeId,
-    createStoreCustomTheme,
-    updateStoreCustomTheme,
-  ]);
+    const name = themeName.trim();
+    if (!name) {
+      toast.error('Theme name is required');
+      return;
+    }
+    void persistTheme({
+      themeName: name,
+      themeDesc: themeDesc.trim() || undefined,
+      isCreate: false,
+    }).catch((err: unknown) => {
+      toast.error((err as Error)?.message ?? 'Failed to save theme');
+    });
+  }, [defaultConfig, editorSchema, savedThemeId, themeName, themeDesc, persistTheme]);
+
+  const handleSaveThemeModalConfirm = useCallback(
+    (payload: { themeName: string; themeDesc?: string }) => {
+      void persistTheme({ ...payload, isCreate: true }).catch((err: unknown) => {
+        toast.error((err as Error)?.message ?? 'Failed to create theme');
+      });
+    },
+    [persistTheme]
+  );
 
   const handlePreviewPageChange = useCallback(
     (page: ThemePreviewPage) => {
@@ -428,17 +513,19 @@ const CreateThemePage: React.FC = () => {
 
   const handlePreviewSelect = useCallback(
     (nodeId: string) => {
-      if (selectedNodeId === nodeId) {
+      const sidebarNodeId = announcementBlockNodeIdFromSelection(nodeId) ?? nodeId;
+      if (selectedNodeId === sidebarNodeId) {
         setSelectedNodeId('');
         return;
       }
-      setSelectedNodeId(nodeId);
-      const node = findSidebarNode(sectionsTree, nodeId);
+      setSelectedNodeId(sidebarNodeId);
+      const node = findSidebarNode(sectionsTree, sidebarNodeId);
       if (node?.fields?.length || node?.children?.length) {
         setExpanded((prev) => ({
           ...prev,
-          [nodeId]: true,
-          ...expandedIdsForPreviewNode(nodeId, sectionsTree),
+          [sidebarNodeId]: true,
+          ...expandedIdsForPreviewNode(sidebarNodeId, sectionsTree),
+          ...(sidebarNodeId !== nodeId ? expandedIdsForPreviewNode(nodeId, sectionsTree) : {}),
         }));
       }
     },
@@ -499,7 +586,7 @@ const CreateThemePage: React.FC = () => {
   );
 
   const handleInsertBlock = useCallback(
-    (block: CreateThemeBlock) => {
+    (block: BlockCatalogItem) => {
       if (!defaultConfig || !editorSchema || !addBlockTarget) return;
       const result = insertBlockFromCatalog(
         defaultConfig,
@@ -551,9 +638,10 @@ const CreateThemePage: React.FC = () => {
       }
       setSelectedNodeId(result.nodeId);
       setStructureSyncKey((k) => k + 1);
+      bumpValuesSync();
       toast.success('Block added');
     },
-    [defaultConfig, editorSchema, addBlockTarget, previewPage]
+    [defaultConfig, editorSchema, addBlockTarget, previewPage, bumpValuesSync]
   );
 
   const handleDeleteSidebarNode = useCallback(
@@ -829,14 +917,26 @@ const CreateThemePage: React.FC = () => {
         </div>
       </div>
 
-      {addBlockTarget ? (
-        <CreateThemeAddBlockModal
-          open
-          sectionLabel={addBlockTarget.sectionLabel}
-          onClose={() => setAddBlockTarget(null)}
-          onSelect={handleInsertBlock}
-        />
-      ) : null}
+      <AddBlockModal
+        open={Boolean(addBlockTarget)}
+        sectionLabel={addBlockTarget?.sectionLabel}
+        themeBlockCatalog={blockCatalog}
+        editorSchema={editorSchema ?? undefined}
+        addBlockNodeId={addBlockTarget?.nodeId}
+        onClose={() => setAddBlockTarget(null)}
+        onSelectBlock={handleInsertBlock}
+      />
+
+      <CreateThemeSaveModal
+        open={showSaveThemeModal}
+        saving={savingTheme}
+        initialName={themeName.trim() === 'Creator Basic' ? '' : themeName}
+        initialDesc=""
+        onClose={() => {
+          if (!savingTheme) setShowSaveThemeModal(false);
+        }}
+        onSave={handleSaveThemeModalConfirm}
+      />
 
       {addSectionTarget ? (
         <CreateThemeAddSectionModal

@@ -64,6 +64,11 @@ export function blockInstanceIdFromAnnouncementBlockNodeId(nodeId: string): stri
   return m ? m[1] : null;
 }
 
+/** Map instance id (`announcement_2`) → catalog/schema block type (`announcement`). */
+export function announcementSchemaBlockTypeId(blockInstanceId: string): string {
+  return /^announcement(_\d+)?$/.test(blockInstanceId) ? 'announcement' : blockInstanceId;
+}
+
 export function instanceIdFromAnnouncementFieldNodeId(nodeId: string): string | null {
   const m = nodeId.match(/^field:sections\.(announcement_bar(?:_\d+)?)\.blocks\.[^.]+\./);
   return m ? m[1] : null;

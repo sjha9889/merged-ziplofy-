@@ -185,7 +185,11 @@ export function AnnouncementBar({ sectionId = 'announcement_bar' }: Props) {
     );
   };
 
-  const showAllInEditor = isEditorPreview && slides.length > 1;
+  const showAllInEditor = isEditorPreview && slides.length > 1 && !focusedBlockId;
+  const editorSlide =
+    isEditorPreview && focusedBlockId
+      ? slides.find((s) => s.blockId === focusedBlockId) ?? slide
+      : slide;
 
   return (
     <EditorSection
@@ -213,10 +217,8 @@ export function AnnouncementBar({ sectionId = 'announcement_bar' }: Props) {
         }
       >
         {showAllInEditor
-          ? slides.map((s, i) =>
-              renderSlide(s, focusedBlockId ? s.blockId === focusedBlockId : i === displayIndex)
-            )
-          : renderSlide(slide, true)}
+          ? slides.map((s, i) => renderSlide(s, i === displayIndex))
+          : renderSlide(editorSlide, true)}
       </div>
     </EditorSection>
   );

@@ -1,6 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDownIcon, MagnifyingGlassIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { FooterSectionPreviewArt } from '../../../create-theme/_shared/FooterSectionPreviewArt';
+import {
+  HeroDefaultPreviewArt,
+  HeroLandscapeIllustration,
+  HeroSceneFrame,
+} from '../../../create-theme/_shared/HeroSectionPreviewArt';
+import { LayeredSlideshowPreviewArt } from '../../../create-theme/_shared/LayeredSlideshowPreviewArt';
 import { BLOCK_PREVIEW_SLIDES } from './add-block-catalog';
 import {
   defaultExpandedCategoriesForGroup,
@@ -218,78 +225,11 @@ function CategoryBlock({
   );
 }
 
-function SlideshowLandscapeIllustration() {
-  return (
-    <>
-      <div
-        className="absolute inset-0 bg-gradient-to-b from-[#ebe6dc] via-[#e0d9ce] to-[#c5d4b8]"
-        aria-hidden
-      />
-      <div className="absolute left-1/2 top-[9%] h-11 w-11 -translate-x-1/2 rounded-full bg-white shadow-sm" aria-hidden />
-      <div
-        className="absolute bottom-0 left-0 right-0 h-[48%] bg-[#5f9468]/88"
-        style={{
-          clipPath:
-            'polygon(0% 100%, 0% 50%, 18% 58%, 38% 38%, 58% 52%, 78% 32%, 100% 48%, 100% 100%)',
-        }}
-        aria-hidden
-      />
-      <div
-        className="absolute bottom-0 left-0 right-0 h-[32%] bg-[#4a7d56]/92"
-        style={{
-          clipPath: 'polygon(0% 100%, 12% 62%, 35% 72%, 55% 55%, 78% 68%, 100% 58%, 100% 100%)',
-        }}
-        aria-hidden
-      />
-      <div className="absolute bottom-0 left-1/2 flex h-[58%] w-[42%] -translate-x-[8%] justify-center" aria-hidden>
-        <div className="relative h-full w-full">
-          <div className="absolute left-1/2 top-[4%] h-[20%] w-[36%] -translate-x-1/2 rounded-full bg-[#e8c4a8]" />
-          <div className="absolute left-1/2 top-[18%] h-[22%] w-[50%] -translate-x-1/2 rounded-t-md bg-white" />
-          <div className="absolute left-1/2 top-[24%] h-[76%] w-[94%] -translate-x-1/2 overflow-hidden rounded-t-[26%] bg-[#4a7fc4]">
-            <div className="absolute left-[9%] top-0 h-full w-[13%] bg-[#3a6dad]" />
-            <div className="absolute right-[9%] top-0 h-full w-[13%] bg-[#3a6dad]" />
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
 function SlideshowFullFrameScene({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative mx-auto w-full max-w-[400px] overflow-hidden rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.18)]">
       <div className="relative aspect-[4/3] w-full bg-[#ddd6c8]">
-        <SlideshowLandscapeIllustration />
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function HeroSceneFrame({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="relative mx-auto w-full max-w-[400px] overflow-hidden rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.18)]">
-      <div className="relative aspect-[4/3] w-full bg-[#1e3a5f]">
-        <div
-          className="absolute inset-0 bg-gradient-to-b from-[#f4a261]/90 via-[#e76f51]/80 to-[#264653]/95"
-          aria-hidden
-        />
-        <div
-          className="absolute bottom-0 left-0 right-0 h-[45%] bg-gradient-to-t from-[#1a3a4a] to-transparent"
-          aria-hidden
-        />
-        <div
-          className="absolute bottom-[18%] left-0 right-0 h-16 bg-[#2d5a4a]/60"
-          style={{
-            clipPath:
-              'polygon(0% 100%, 8% 40%, 22% 70%, 38% 30%, 55% 55%, 72% 25%, 88% 50%, 100% 35%, 100% 100%)',
-          }}
-          aria-hidden
-        />
-        <div className="absolute left-[18%] top-[52%] h-10 w-14 rounded-t-full bg-[#3d2914]/70" aria-hidden />
-        <div className="absolute left-[22%] top-[48%] h-12 w-10 rounded-t-full bg-[#5c3d1e]/80" aria-hidden />
-        <div className="absolute right-[20%] top-[50%] h-11 w-11 rounded-t-full bg-[#4a3220]/75" aria-hidden />
-        <div className="absolute left-1/2 top-[8%] h-14 w-14 -translate-x-1/2 rounded-full bg-white/95 shadow-sm" aria-hidden />
+        <HeroLandscapeIllustration />
         {children}
       </div>
     </div>
@@ -776,7 +716,7 @@ function PreviewVisual({
     return (
       <div className="relative mx-auto w-full max-w-[340px] overflow-hidden rounded-xl bg-white p-3 shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
         <div className="relative aspect-[5/3] w-full overflow-hidden rounded-lg bg-[#ddd6c8]">
-          <SlideshowLandscapeIllustration />
+          <HeroLandscapeIllustration />
         </div>
         <div className="px-2 pb-1 pt-4 text-center">
           <h3 className="text-[1rem] font-bold leading-tight tracking-tight text-gray-900">New arrivals</h3>
@@ -814,55 +754,7 @@ function PreviewVisual({
     );
   }
   if (variant === 'layered-slideshow') {
-    return (
-      <div className="relative mx-auto w-full max-w-[400px] overflow-hidden rounded-sm border border-white bg-white p-2 shadow-[0_2px_14px_rgba(0,0,0,0.1)]">
-        <div className="relative flex min-h-[172px] overflow-hidden rounded-sm bg-[#f3efe6]">
-          <div className="relative z-10 flex w-[44%] shrink-0 flex-col justify-center px-4 py-5">
-            <h3 className="text-[1.05rem] font-bold leading-tight tracking-tight text-gray-900">
-              New arrivals
-            </h3>
-            <p className="mt-2 text-[0.54rem] leading-snug text-gray-800">
-              Introducing our latest products, made especially for the season. Shop your favorites before
-              they&apos;re gone!
-            </p>
-            <span className="mt-3 inline-flex w-fit rounded-full bg-gray-900 px-3.5 py-1.5 text-[0.62rem] font-medium text-white">
-              Shop now
-            </span>
-          </div>
-          <div className="relative flex min-w-0 flex-1 items-end justify-center pr-[16%]">
-            <div className="relative h-[148px] w-[72%] max-w-[140px]" aria-hidden>
-              <div className="absolute left-1/2 top-[4%] h-[20%] w-[36%] -translate-x-1/2 rounded-full bg-[#e8c4a8]" />
-              <div className="absolute left-1/2 top-[17%] h-[22%] w-[50%] -translate-x-1/2 rounded-t-md bg-white" />
-              <div className="absolute left-1/2 top-[23%] h-[77%] w-[94%] -translate-x-1/2 overflow-hidden rounded-t-[28%] bg-[#4a7fc4]">
-                <div className="absolute left-[9%] top-0 h-full w-[13%] bg-[#3a6dad]" />
-                <div className="absolute right-[9%] top-0 h-full w-[13%] bg-[#3a6dad]" />
-              </div>
-            </div>
-          </div>
-          <div
-            className="absolute right-0 top-0 flex h-full w-[17%] overflow-hidden border-l border-white/40 shadow-[-4px_0_12px_rgba(0,0,0,0.06)]"
-            aria-hidden
-          >
-            <div className="relative h-full w-full bg-gradient-to-b from-[#ebe6dc] via-[#e0d9ce] to-[#b8cdb0]">
-              <div className="absolute left-1/2 top-[12%] h-7 w-7 -translate-x-1/2 rounded-full bg-white/95 shadow-sm" />
-              <div
-                className="absolute bottom-0 left-0 right-0 h-[55%] bg-[#5f9468]/90"
-                style={{
-                  clipPath:
-                    'polygon(0% 100%, 0% 55%, 35% 40%, 65% 60%, 100% 45%, 100% 100%)',
-                }}
-              />
-              <div
-                className="absolute bottom-0 left-0 right-0 h-[38%] bg-[#4a7d56]/92"
-                style={{
-                  clipPath: 'polygon(0% 100%, 20% 65%, 50% 75%, 80% 55%, 100% 70%, 100% 100%)',
-                }}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LayeredSlideshowPreviewArt size="modal" />;
   }
   if (variant === 'large-logo') {
     return (
@@ -928,21 +820,7 @@ function PreviewVisual({
     );
   }
   if (variant === 'hero') {
-    return (
-      <HeroSceneFrame>
-        <div className="absolute inset-0 flex flex-col items-center justify-center px-6 pt-6 text-center">
-          <h3 className="text-[1.65rem] font-bold leading-tight tracking-tight text-white drop-shadow-sm">
-            New arrivals
-          </h3>
-          <p className="mt-2 max-w-[17rem] text-[0.8rem] leading-snug text-white/95">
-            Made with care and unconditionally loved by our customers.
-          </p>
-          <span className="mt-5 inline-flex rounded-full bg-white px-5 py-2 text-sm font-medium text-gray-900 shadow-sm">
-            Shop now
-          </span>
-        </div>
-      </HeroSceneFrame>
-    );
+    return <HeroDefaultPreviewArt size="modal" />;
   }
   if (variant === 'announcement-bar') {
     return (
@@ -1082,24 +960,7 @@ function PreviewVisual({
     );
   }
   if (variant === 'footer-section') {
-    return (
-      <div className="relative mx-auto flex w-full max-w-[420px] items-center gap-5 overflow-hidden rounded-lg border border-[#e1e1e1] bg-[#f6f6f7] px-6 py-5 shadow-[0_2px_14px_rgba(0,0,0,0.1)]">
-        <div className="min-w-0 flex-1">
-          <h3 className="text-[0.82rem] font-bold leading-tight text-gray-900">Join our email list</h3>
-          <p className="mt-1 max-w-[11rem] text-[0.55rem] leading-snug text-gray-600">
-            Get exclusive deals and early access to new products.
-          </p>
-        </div>
-        <div className="flex w-[52%] max-w-[210px] shrink-0 items-center gap-2">
-          <div className="flex min-w-0 flex-1 items-center rounded-full border border-[#c9cccf] bg-white px-3 py-2.5">
-            <span className="truncate text-[0.5rem] text-gray-400">Email address</span>
-          </div>
-          <span className="flex shrink-0 items-center justify-center rounded-full bg-gray-900 px-3.5 py-2.5 text-[0.5rem] font-medium text-white">
-            Sign up
-          </span>
-        </div>
-      </div>
-    );
+    return <FooterSectionPreviewArt size="modal" />;
   }
   if (variant === 'policies-links') {
     return (

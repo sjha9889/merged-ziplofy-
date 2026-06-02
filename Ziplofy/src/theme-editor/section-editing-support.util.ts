@@ -46,7 +46,11 @@ export function parseEditingSelectionContext(nodeId: string): EditingSelectionCo
     const blockId = layoutBlock[2];
     const blueprint = layoutBlueprintKey(instanceId);
     const sectionType = LAYOUT_BLUEPRINT_TO_TYPE[blueprint] ?? blueprint;
-    const block = sectionEditingSupport.sectionTypes[sectionType]?.blocks?.[blockId];
+    const catalogBlockId =
+      sectionType === 'announcement-bar' && /^announcement(_\d+)?$/.test(blockId)
+        ? 'announcement'
+        : blockId;
+    const block = sectionEditingSupport.sectionTypes[sectionType]?.blocks?.[catalogBlockId];
     return {
       sectionType,
       placement: 'layout',
@@ -269,7 +273,11 @@ export function resolveEditingPanelFromCatalog(nodeId: string): ResolvedEditingP
   let kind = ctx.kind;
 
   if (ctx.blockId) {
-    const block = section.blocks?.[ctx.blockId];
+    const catalogBlockId =
+      ctx.sectionType === 'announcement-bar' && /^announcement(_\d+)?$/.test(ctx.blockId)
+        ? 'announcement'
+        : ctx.blockId;
+    const block = section.blocks?.[catalogBlockId];
     if (!block) return null;
     label = block.label;
     kind = 'block';

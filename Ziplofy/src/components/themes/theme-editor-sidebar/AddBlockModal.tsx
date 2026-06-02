@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { FooterSectionPreviewArt } from '../../../create-theme/_shared/FooterSectionPreviewArt';
+import { HeroDefaultPreviewArt } from '../../../create-theme/_shared/HeroSectionPreviewArt';
 import {
   Bars3Icon,
   ChevronDownIcon,
@@ -128,17 +130,21 @@ function CatalogIcon({ icon }: { icon: BlockCatalogIcon }) {
 
 function BlockRow({
   block,
+  selected,
   onHover,
   onSelect,
 }: {
   block: BlockCatalogItem;
+  selected?: boolean;
   onHover?: () => void;
   onSelect: () => void;
 }) {
   return (
     <button
       type="button"
-      className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-gray-800 hover:bg-[#ededed]"
+      className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm text-gray-800 hover:bg-[#ededed] ${
+        selected ? 'bg-[#dcdcdc] font-medium' : ''
+      }`}
       onMouseEnter={onHover}
       onFocus={onHover}
       onClick={onSelect}
@@ -156,6 +162,7 @@ function CategorySection({
   onToggle,
   onHoverBlock,
   onSelectBlock,
+  selectedBlockId,
 }: {
   section: Extract<CatalogSection, { type: 'category' }>;
   items: BlockCatalogItem[];
@@ -163,6 +170,7 @@ function CategorySection({
   onToggle: () => void;
   onHoverBlock?: (block: BlockCatalogItem) => void;
   onSelectBlock: (block: BlockCatalogItem) => void;
+  selectedBlockId?: string;
 }) {
   if (!items.length) return null;
   return (
@@ -184,6 +192,7 @@ function CategorySection({
             <BlockRow
               key={block.id}
               block={block}
+              selected={selectedBlockId === block.id}
               onHover={onHoverBlock ? () => onHoverBlock(block) : undefined}
               onSelect={() => onSelectBlock(block)}
             />
@@ -540,11 +549,7 @@ function PreviewVisual({ variant }: { variant: BlockPreviewSlide['variant'] }) {
     );
   }
   if (variant === 'hero') {
-    return (
-      <div className="mx-auto flex w-full max-w-[360px] items-center justify-center rounded-2xl border border-gray-200 bg-white py-10 shadow-md">
-        <button className="rounded-2xl bg-black px-7 py-3 text-lg font-medium text-white">Shop now</button>
-      </div>
-    );
+    return <HeroDefaultPreviewArt size="modal" />;
   }
   if (variant === 'featured-product') {
     return (
@@ -561,24 +566,7 @@ function PreviewVisual({ variant }: { variant: BlockPreviewSlide['variant'] }) {
     );
   }
   if (variant === 'footer-section') {
-    return (
-      <div className="relative mx-auto flex w-full max-w-[420px] items-center gap-5 overflow-hidden rounded-lg border border-[#e1e1e1] bg-[#f6f6f7] px-6 py-5 shadow-[0_2px_14px_rgba(0,0,0,0.1)]">
-        <div className="min-w-0 flex-1">
-          <h3 className="text-[0.82rem] font-bold leading-tight text-gray-900">Join our email list</h3>
-          <p className="mt-1 max-w-[11rem] text-[0.55rem] leading-snug text-gray-600">
-            Get exclusive deals and early access to new products.
-          </p>
-        </div>
-        <div className="flex w-[52%] max-w-[210px] shrink-0 items-center gap-2">
-          <div className="flex min-w-0 flex-1 items-center rounded-full border border-[#c9cccf] bg-white px-3 py-2.5">
-            <span className="truncate text-[0.5rem] text-gray-400">Email address</span>
-          </div>
-          <span className="flex shrink-0 items-center justify-center rounded-full bg-gray-900 px-3.5 py-2.5 text-[0.5rem] font-medium text-white">
-            Sign up
-          </span>
-        </div>
-      </div>
-    );
+    return <FooterSectionPreviewArt size="modal" />;
   }
   if (variant === 'policies-links') {
     return (
@@ -678,6 +666,7 @@ function previewSlideForBlock(block: BlockCatalogItem): BlockPreviewSlide | null
     'image-compare': 'comparison-slider-only',
     'jumbo-text': 'jumbo-text-only',
     marquee: 'text-marquee',
+    announcement: 'announcement-bar',
     copyright: 'copyright-only',
     'follow-on-shop': 'footer-section',
     'payment-icons': 'footer-section',
@@ -749,6 +738,7 @@ export const AddBlockModal: React.FC<AddBlockModalProps> = ({
     product: true,
   });
   const [hoveredBlock, setHoveredBlock] = useState<BlockCatalogItem | null>(null);
+  const [selectedBlock, setSelectedBlock] = useState<BlockCatalogItem | null>(null);
   const [slideIndex, setSlideIndex] = useState(0);
 
   const sectionType = useMemo(
@@ -782,6 +772,7 @@ export const AddBlockModal: React.FC<AddBlockModalProps> = ({
       setShowAll(shopifyFullPicker);
       setSlideIndex(0);
       setHoveredBlock(null);
+      setSelectedBlock(null);
       if (shopifyFullPicker) {
         setExpandedCats(
           Object.fromEntries(BLOCK_CATALOG_CATEGORIES_SHOPIFY.map((c) => [c.id, true])) as Record<
@@ -841,21 +832,30 @@ export const AddBlockModal: React.FC<AddBlockModalProps> = ({
     return getCatalogSections(effectiveShowAll, search);
   }, [shopifyFullPicker, usesThemeCatalog, themeBlockCatalog, effectiveShowAll, search]);
 
+  const previewBlock = selectedBlock ?? hoveredBlock;
+
   const activeSlide = useMemo(() => {
-    if (hoveredBlock) {
-      const mapped = previewSlideForBlock(hoveredBlock);
+    if (previewBlock) {
+      const mapped = previewSlideForBlock(previewBlock);
       if (mapped) return mapped;
-      const idx = BLOCK_PREVIEW_SLIDES.findIndex((s) => s.id === hoveredBlock.id);
+      const idx = BLOCK_PREVIEW_SLIDES.findIndex((s) => s.id === previewBlock.id);
       if (idx >= 0) return BLOCK_PREVIEW_SLIDES[idx];
-      if (hoveredBlock.category === 'basic' || hoveredBlock.category === 'links') {
+      if (previewBlock.category === 'basic' || previewBlock.category === 'links') {
         return BLOCK_PREVIEW_SLIDES[2];
       }
-      if (hoveredBlock.category === 'decorative') return BLOCK_PREVIEW_SLIDES[0];
-      if (hoveredBlock.category === 'product') return BLOCK_PREVIEW_SLIDES[1];
+      if (previewBlock.category === 'decorative') return BLOCK_PREVIEW_SLIDES[0];
+      if (previewBlock.category === 'product') return BLOCK_PREVIEW_SLIDES[1];
       return BLOCK_PREVIEW_SLIDES[1];
     }
     return BLOCK_PREVIEW_SLIDES[slideIndex] ?? BLOCK_PREVIEW_SLIDES[0];
-  }, [hoveredBlock, slideIndex]);
+  }, [previewBlock, slideIndex]);
+
+  useEffect(() => {
+    if (!open || selectedBlock || !filtered.length) return;
+    if (filtered.length === 1) {
+      setSelectedBlock(filtered[0]);
+    }
+  }, [open, filtered, selectedBlock]);
 
   const toggleCat = (id: string) => {
     setExpandedCats((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -863,8 +863,17 @@ export const AddBlockModal: React.FC<AddBlockModalProps> = ({
 
   if (!open || !mounted) return null;
 
-  const handleSelect = (block: BlockCatalogItem) => {
-    onSelectBlock(block);
+  const handleRowClick = (block: BlockCatalogItem) => {
+    if (selectedBlock?.id === block.id) {
+      onSelectBlock(block);
+      return;
+    }
+    setSelectedBlock(block);
+    setHoveredBlock(null);
+  };
+
+  const handleAddSelected = () => {
+    if (selectedBlock) onSelectBlock(selectedBlock);
   };
 
   const listPanel = (
@@ -901,8 +910,9 @@ export const AddBlockModal: React.FC<AddBlockModalProps> = ({
                       <BlockRow
                         key={block.id}
                         block={block}
+                        selected={selectedBlock?.id === block.id}
                         onHover={() => setHoveredBlock(block)}
-                        onSelect={() => handleSelect(block)}
+                        onSelect={() => handleRowClick(block)}
                       />
                     ))}
                   </div>
@@ -919,7 +929,8 @@ export const AddBlockModal: React.FC<AddBlockModalProps> = ({
                   isOpen={isCatOpen}
                   onToggle={() => toggleCat(catId)}
                   onHoverBlock={setHoveredBlock}
-                  onSelectBlock={handleSelect}
+                  onSelectBlock={handleRowClick}
+                  selectedBlockId={selectedBlock?.id}
                 />
               );
             })}
@@ -966,23 +977,36 @@ export const AddBlockModal: React.FC<AddBlockModalProps> = ({
           <div className="flex flex-1 flex-col items-center justify-center py-6">
             <PreviewVisual variant={activeSlide.variant} />
             <p className="mt-5 text-center text-sm text-gray-600">{activeSlide.caption}</p>
-          </div>
-          <div className="flex justify-center gap-1.5 pb-2">
-            {BLOCK_PREVIEW_SLIDES.map((_, i) => (
+            {selectedBlock ? (
               <button
-                key={i}
                 type="button"
-                aria-label={`Preview slide ${i + 1}`}
-                onClick={() => {
-                  setHoveredBlock(null);
-                  setSlideIndex(i);
-                }}
-                className={`h-2 w-2 rounded-full transition-colors ${
-                  !hoveredBlock && slideIndex === i ? 'bg-gray-700' : 'bg-gray-400/60 hover:bg-gray-500'
-                }`}
-              />
-            ))}
+                className="mt-6 rounded-lg px-5 py-2.5 text-sm font-semibold text-white shadow-sm"
+                style={{ backgroundColor: SHOPIFY_BLUE }}
+                onClick={handleAddSelected}
+              >
+                Add {selectedBlock.label}
+              </button>
+            ) : null}
           </div>
+          {!previewBlock ? (
+            <div className="flex justify-center gap-1.5 pb-2">
+              {BLOCK_PREVIEW_SLIDES.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  aria-label={`Preview slide ${i + 1}`}
+                  onClick={() => {
+                    setHoveredBlock(null);
+                    setSelectedBlock(null);
+                    setSlideIndex(i);
+                  }}
+                  className={`h-2 w-2 rounded-full transition-colors ${
+                    slideIndex === i ? 'bg-gray-700' : 'bg-gray-400/60 hover:bg-gray-500'
+                  }`}
+                />
+              ))}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>,

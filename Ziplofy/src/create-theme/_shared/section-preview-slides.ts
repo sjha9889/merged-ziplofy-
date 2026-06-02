@@ -215,9 +215,9 @@ export const BLOCK_PREVIEW_SLIDES: BlockPreviewSlide[] = [
   },
   {
     id: 'footer-section',
-    headline: 'Have an idea?',
-    headlineAccent: "Let's bring it to life",
-    caption: 'Join our email list, email signup, and store links',
+    headline: 'Grow your audience',
+    headlineAccent: 'Email signup footer',
+    caption: 'Join our email list with heading, subtext, and subscribe form',
     variant: 'footer-section',
   },
   {
@@ -250,9 +250,9 @@ export const BLOCK_PREVIEW_SLIDES: BlockPreviewSlide[] = [
   },
   {
     id: 'hero',
-    headline: 'Have an idea?',
-    headlineAccent: "Let's bring it to life",
-    caption: 'Large heading area with buttons and imagery',
+    headline: 'New arrivals',
+    headlineAccent: 'Hero section',
+    caption: 'Centered heading, subtext, and Shop now over a full-width image',
     variant: 'hero',
   },
   {

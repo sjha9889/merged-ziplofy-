@@ -1,4 +1,6 @@
 import React from 'react';
+import { FooterSectionPreviewArt } from './FooterSectionPreviewArt';
+import { HeroDefaultPreviewArt } from './HeroSectionPreviewArt';
 import { PreviewShell } from './PreviewShell';
 
 type Props = {
@@ -37,7 +39,21 @@ export function SectionPreviewCard({ label, variant = 'text-block' }: Props) {
       </div>
     );
   }
-  if (variant === 'policies-links' || variant === 'footer-section') {
+  if (variant === 'footer-section') {
+    return (
+      <PreviewShell className="bg-[#f1f1f1] p-2">
+        <FooterSectionPreviewArt size="compact" />
+      </PreviewShell>
+    );
+  }
+  if (variant === 'hero') {
+    return (
+      <PreviewShell className="bg-[#f1f1f1] p-2">
+        <HeroDefaultPreviewArt size="compact" />
+      </PreviewShell>
+    );
+  }
+  if (variant === 'policies-links') {
     return (
       <PreviewShell className="flex items-center justify-between gap-4 bg-[#f6f6f7]">
         <span className="text-[0.5rem] text-gray-600">© Store</span>

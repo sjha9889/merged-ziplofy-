@@ -733,16 +733,13 @@ function mapAnnouncementBlockNodes(
   const template = blocks.find((b) => b.id === 'announcement') ?? blocks[0];
   if (!template) return [];
 
-  const byId = new Map(blocks.map((b) => [b.id ?? b.label ?? '', b]));
   const visibleBlocks = order
     .map((blockInstanceId) => {
-      const base = byId.get(blockInstanceId) ?? template;
-      if (blockInstanceId === (base.id ?? base.label)) return base;
-      const settingsFields = (base.settingsFields ?? []).map((f) => ({
+      const settingsFields = (template.settingsFields ?? []).map((f) => ({
         ...f,
         path: f.path.replace(/\.blocks\.[^.]+\./, `.blocks.${blockInstanceId}.`),
       }));
-      return { ...base, id: blockInstanceId, settingsFields };
+      return { ...template, id: blockInstanceId, settingsFields };
     })
     .filter((b): b is BlockDef => Boolean(b));
 
@@ -1974,18 +1971,19 @@ export function settingsNodeForSelection(
   const announcementBlock = findAnnouncementBlockInTree(node.id, tree);
   if (announcementBlock) {
     const blockNode = isAnnouncementBlockNodeId(node.id) ? node : announcementBlock;
-    let fields = announcementBlockFieldsFromNode(blockNode);
-    if (!fields.length && editorSchema) {
-      const instanceId =
-        instanceIdFromAnnouncementBlockNodeId(blockNode.id) ??
-        instanceIdFromAnnouncementFieldNodeId(node.id);
-      const blockInstanceId =
-        blockInstanceIdFromAnnouncementBlockNodeId(blockNode.id) ??
-        blockInstanceIdFromAnnouncementFieldNodeId(node.id) ??
-        'announcement';
-      if (instanceId) {
-        fields = announcementBlockFieldDefsFromSchema(editorSchema, instanceId, blockInstanceId);
-      }
+    const instanceId =
+      instanceIdFromAnnouncementBlockNodeId(blockNode.id) ??
+      instanceIdFromAnnouncementFieldNodeId(node.id);
+    const blockInstanceId =
+      blockInstanceIdFromAnnouncementBlockNodeId(blockNode.id) ??
+      blockInstanceIdFromAnnouncementFieldNodeId(node.id) ??
+      'announcement';
+    let fields =
+      editorSchema && instanceId
+        ? announcementBlockFieldDefsFromSchema(editorSchema, instanceId, blockInstanceId)
+        : [];
+    if (!fields.length) {
+      fields = announcementBlockFieldsFromNode(blockNode);
     }
     if (!fields.length) {
       const catalogBlock = resolveEditingPanelForNode(blockNode.id);
