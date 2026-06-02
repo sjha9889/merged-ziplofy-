@@ -33,6 +33,12 @@ import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { useRafBatchedCounter } from '../hooks/useRafBatchedState';
 import { THEME_EDITOR_STATIC_CONFIG } from '../config/theme-editor-static.config';
 import { useStore } from '../contexts/store.context';
+import type { Collection } from '../contexts/collection.context';
+import {
+  applyCollectionLinksSelectionToConfig,
+  pruneCollectionLinkBlockValues,
+  sectionBaseFromCollectionsPickerPath,
+} from './utils/collection-links-collections.util';
 import { useStoreCustomThemes } from '../contexts/store-custom-themes.context';
 import {
   applyValuesToThemeConfig,
@@ -497,6 +503,41 @@ const CreateThemePage: React.FC = () => {
     [bumpValuesSync]
   );
 
+  const handleCollectionLinksApply = useCallback(
+    (settingsPath: string, collections: Collection[]) => {
+      setDefaultConfig((prev) => {
+        if (!prev) return prev;
+        const { config, blockValuePaths, pickerValue } = applyCollectionLinksSelectionToConfig(
+          prev,
+          settingsPath,
+          collections
+        );
+        const sectionBase = sectionBaseFromCollectionsPickerPath(settingsPath);
+        const keepIds = sectionBase
+          ? new Set(
+              (collections.length
+                ? collections.map((_, i) => `link_${i + 1}`)
+                : []) as string[]
+            )
+          : new Set<string>();
+
+        startTransition(() => {
+          setValues((v) => {
+            let next = { ...v, [settingsPath]: pickerValue, ...blockValuePaths };
+            if (sectionBase) {
+              next = pruneCollectionLinkBlockValues(next, sectionBase, keepIds);
+            }
+            return next;
+          });
+        });
+        bumpValuesSync();
+        setStructureSyncKey((k) => k + 1);
+        return config;
+      });
+    },
+    [bumpValuesSync]
+  );
+
   const handleReorder = useCallback(
     (listKey: string, orderedIds: string[]) => {
       setItemOrder((prev) => mergeItemOrder(prev, listKey, orderedIds));
@@ -875,6 +916,7 @@ const CreateThemePage: React.FC = () => {
           settingsNode={settingsNode}
           settingsValues={values}
           onSettingsFieldChange={handleFieldChange}
+          onCollectionLinksApply={handleCollectionLinksApply}
           onCloseSettings={closeSettings}
           onRemoveSettingsSection={handleRemoveSettingsSection}
           onRemoveSettingsBlock={handleRemoveSettingsBlock}

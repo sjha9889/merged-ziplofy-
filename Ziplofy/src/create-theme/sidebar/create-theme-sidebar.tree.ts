@@ -2163,6 +2163,9 @@ export function settingsNodeForSelection(
   if (node.fields?.length && isImageCompareSettingsPanelFields(node.fields)) {
     return prepareImageCompareSettingsNode(node);
   }
+  if (node.fields?.length && isCollectionLinksSpotlightSettingsPanelFields(node.fields)) {
+    return prepareCollectionLinksSpotlightSettingsNode(node);
+  }
   if (node.fields?.length && isImageWithTextSettingsPanelFields(node.fields)) {
     return prepareImageWithTextSettingsNode(node);
   }
@@ -2219,9 +2222,6 @@ export function settingsNodeForSelection(
   }
   if (node.fields?.length && isRecommendedProductsSettingsPanelFields(node.fields)) {
     return prepareRecommendedProductsSettingsNode(node);
-  }
-  if (node.fields?.length && isCollectionLinksSpotlightSettingsPanelFields(node.fields)) {
-    return prepareCollectionLinksSpotlightSettingsNode(node);
   }
   if (node.fields?.length && isCollectionLinkBlockFieldsOnly(node.fields)) {
     return prepareCollectionLinkBlockSettingsNode(node);

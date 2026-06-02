@@ -1,75 +1,27 @@
 import type { CreateThemeEditing } from '../types';
 
+/** Sidebar order: Collections → Layout → Padding → Custom CSS (matches grouped settings panel). */
 export const editing: CreateThemeEditing = {
-  "sectionLabel": "Collection links: Spotlight",
-  "sectionSettingsOrder": [
-    {
-      "key": "collectionsPicker",
-      "label": "Collections",
-      "type": "text"
-    },
-    {
-      "key": "layoutMode",
-      "label": "Layout",
-      "type": "text"
-    },
-    {
-      "key": "sectionWidth",
-      "label": "Width",
-      "type": "text"
-    },
-    {
-      "key": "alignment",
-      "label": "Alignment",
-      "type": "text"
-    },
-    {
-      "key": "imagePosition",
-      "label": "Image position",
-      "type": "text"
-    },
-    {
-      "key": "imageUrl",
-      "label": "Image",
-      "type": "text"
-    },
-    {
-      "key": "colorScheme",
-      "label": "Color scheme",
-      "type": "text"
-    },
-    {
-      "key": "paddingTop",
-      "label": "Top",
-      "type": "number"
-    },
-    {
-      "key": "paddingBottom",
-      "label": "Bottom",
-      "type": "number"
-    },
-    {
-      "key": "customCss",
-      "label": "Custom CSS",
-      "type": "textarea"
-    }
+  sectionLabel: 'Collection links: Text',
+  sectionSettingsOrder: [
+    { key: 'collectionsPicker', label: 'Collections', type: 'text' },
+    { key: 'layoutMode', label: 'Layout', type: 'select' },
+    { key: 'sectionWidth', label: 'Width', type: 'select' },
+    { key: 'alignment', label: 'Alignment', type: 'select' },
+    { key: 'colorScheme', label: 'Color scheme', type: 'select' },
+    { key: 'paddingTop', label: 'Top', type: 'number' },
+    { key: 'paddingBottom', label: 'Bottom', type: 'number' },
+    { key: 'customCss', label: 'Custom CSS', type: 'textarea' },
   ],
-  "blocks": [
+  blocks: [
     {
-      "blockId": "collection_link",
-      "label": "Collection link",
-      "settingsOrder": [
-        {
-          "key": "title",
-          "label": "Title",
-          "type": "text"
-        },
-        {
-          "key": "productCount",
-          "label": "Product count",
-          "type": "number"
-        }
-      ]
-    }
-  ]
+      blockId: 'collection_link',
+      label: 'Collection link',
+      settingsOrder: [
+        { key: 'title', label: 'Title', type: 'text' },
+        { key: 'productCount', label: 'Product count', type: 'number' },
+        { key: 'collectionHandle', label: 'Collection', type: 'text' },
+      ],
+    },
+  ],
 };

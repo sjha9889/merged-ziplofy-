@@ -169,6 +169,8 @@ import {
   COLLECTION_LINKS_SPOTLIGHT_PANEL_GROUP_ORDER,
   isCollectionLinksSpotlightSettingsPanelFields,
 } from './theme-editor-collection-links-spotlight-panel.utils';
+import { CollectionsPickerFieldRow } from './CollectionsPickerFieldRow';
+import type { Collection } from '../../contexts/collection.context';
 import {
   groupCollectionListBentoPanelFields,
   COLLECTION_LIST_BENTO_PANEL_GROUP_ORDER,
@@ -2343,7 +2345,7 @@ function CollectionListBentoGroupedSettingsPanel({
                     key={field.path}
                     field={field}
                     values={values}
-                    onFieldChange={onFieldChange}
+                    onCollectionsApply={onCollectionLinksApply}
                   />
                 ) : (
                   <DefaultFieldRow
@@ -2477,7 +2479,7 @@ function CollectionListCarouselGroupedSettingsPanel({
                     key={field.path}
                     field={field}
                     values={values}
-                    onFieldChange={onFieldChange}
+                    onCollectionsApply={onCollectionLinksApply}
                   />
                 ) : (
                   <DefaultFieldRow
@@ -2641,7 +2643,7 @@ function CollectionListEditorialGroupedSettingsPanel({
                     key={field.path}
                     field={field}
                     values={values}
-                    onFieldChange={onFieldChange}
+                    onCollectionsApply={onCollectionLinksApply}
                   />
                 ) : (
                   <DefaultFieldRow
@@ -2775,7 +2777,7 @@ function CollectionListGridGroupedSettingsPanel({
                     key={field.path}
                     field={field}
                     values={values}
-                    onFieldChange={onFieldChange}
+                    onCollectionsApply={onCollectionLinksApply}
                   />
                 ) : (
                   <DefaultFieldRow
@@ -3276,10 +3278,12 @@ function CollectionLinksSpotlightGroupedSettingsPanel({
   fields,
   values,
   onFieldChange,
+  onCollectionLinksApply,
 }: {
   fields: EditorFieldDef[];
   values: Record<string, string | boolean>;
   onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
+  onCollectionLinksApply?: (settingsPath: string, collections: Collection[]) => void;
 }) {
   const grouped = useMemo(() => groupCollectionLinksSpotlightPanelFields(fields), [fields]);
   const layoutModeField = fields.find((f) => f.path.endsWith('.layoutMode'));
@@ -3301,7 +3305,7 @@ function CollectionLinksSpotlightGroupedSettingsPanel({
                     key={field.path}
                     field={field}
                     values={values}
-                    onFieldChange={onFieldChange}
+                    onCollectionsApply={onCollectionLinksApply}
                   />
                 ) : (
                   <DefaultFieldRow
@@ -4659,40 +4663,6 @@ function BlogPostsGridGroupedSettingsPanel({
 
         return null;
       })}
-    </div>
-  );
-}
-
-function CollectionsPickerFieldRow({
-  field,
-  values,
-  onFieldChange,
-}: {
-  field: EditorFieldDef;
-  values: Record<string, string | boolean>;
-  onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
-}) {
-  const current = fieldValueAsString(values, field);
-
-  return (
-    <div className="space-y-2 py-1">
-      <span className="block text-[13px] font-medium text-gray-800">{field.label}</span>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          className="min-h-9 flex-1 rounded-lg border border-[#c9cccf] bg-white px-4 py-2 text-left text-[13px] font-medium text-gray-900 shadow-sm hover:bg-gray-50"
-        >
-          {current ? current : 'Select'}
-        </button>
-        <button
-          type="button"
-          title="Connect collections"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[#c9cccf] bg-white text-gray-600 shadow-sm hover:bg-gray-50"
-          aria-label="Connect collections"
-        >
-          <CircleStackIcon className="h-4 w-4" />
-        </button>
-      </div>
     </div>
   );
 }
@@ -6471,6 +6441,7 @@ type ThemeSectionSettingsPanelProps = {
   node: SidebarNode;
   values: Record<string, string | boolean>;
   onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
+  onCollectionLinksApply?: (settingsPath: string, collections: Collection[]) => void;
   onClose: () => void;
   onRemoveSection?: () => void;
   onRemoveBlock?: () => void;
@@ -6480,6 +6451,7 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
   node,
   values,
   onFieldChange,
+  onCollectionLinksApply,
   onClose,
   onRemoveSection,
   onRemoveBlock,
@@ -6511,8 +6483,13 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
     node.label === 'Editorial: Jumbo text' || isEditorialJumboSettingsPanelFields(fields);
   const isImageComparePanel =
     node.label === 'Image compare' || isImageCompareSettingsPanelFields(fields);
+  const isCollectionLinksSpotlightPanel =
+    node.label === 'Collection links: Spotlight' ||
+    node.label === 'Collection links: Text' ||
+    isCollectionLinksSpotlightSettingsPanelFields(fields);
   const isImageWithTextPanel =
-    node.label === 'Image with text' || isImageWithTextSettingsPanelFields(fields);
+    !isCollectionLinksSpotlightPanel &&
+    (node.label === 'Image with text' || isImageWithTextSettingsPanelFields(fields));
   const isHeaderLogoBlockPanel =
     isHeaderLogoBlockNodeId(node.id) ||
     (fields.length > 0 && isHeaderLogoBlockPanelFields(fields));
@@ -6596,10 +6573,6 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
     node.label === 'Product hotspots' || isProductHotspotsSettingsPanelFields(fields);
   const isRecommendedProductsPanel =
     node.label === 'Recommended products' || isRecommendedProductsSettingsPanelFields(fields);
-  const isCollectionLinksSpotlightPanel =
-    node.label === 'Collection links: Spotlight' ||
-    node.label === 'Collection links: Text' ||
-    isCollectionLinksSpotlightSettingsPanelFields(fields);
   const isCollectionListBentoPanel =
     node.label === 'Collection list: Bento' || isCollectionListBentoSettingsPanelFields(fields);
   const isCollectionListCarouselPanel =
@@ -6940,6 +6913,7 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
             fields={fields}
             values={values}
             onFieldChange={onFieldChange}
+            onCollectionLinksApply={onCollectionLinksApply}
           />
         ) : isCollectionListBentoPanel ? (
           <CollectionListBentoGroupedSettingsPanel

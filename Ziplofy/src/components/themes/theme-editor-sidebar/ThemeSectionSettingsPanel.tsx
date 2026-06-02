@@ -6511,8 +6511,13 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
     node.label === 'Editorial: Jumbo text' || isEditorialJumboSettingsPanelFields(fields);
   const isImageComparePanel =
     node.label === 'Image compare' || isImageCompareSettingsPanelFields(fields);
+  const isCollectionLinksSpotlightPanel =
+    node.label === 'Collection links: Spotlight' ||
+    node.label === 'Collection links: Text' ||
+    isCollectionLinksSpotlightSettingsPanelFields(fields);
   const isImageWithTextPanel =
-    node.label === 'Image with text' || isImageWithTextSettingsPanelFields(fields);
+    !isCollectionLinksSpotlightPanel &&
+    (node.label === 'Image with text' || isImageWithTextSettingsPanelFields(fields));
   const isHeaderLogoBlockPanel =
     isHeaderLogoBlockNodeId(node.id) ||
     (fields.length > 0 && isHeaderLogoBlockPanelFields(fields));
@@ -6596,10 +6601,6 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
     node.label === 'Product hotspots' || isProductHotspotsSettingsPanelFields(fields);
   const isRecommendedProductsPanel =
     node.label === 'Recommended products' || isRecommendedProductsSettingsPanelFields(fields);
-  const isCollectionLinksSpotlightPanel =
-    node.label === 'Collection links: Spotlight' ||
-    node.label === 'Collection links: Text' ||
-    isCollectionLinksSpotlightSettingsPanelFields(fields);
   const isCollectionListBentoPanel =
     node.label === 'Collection list: Bento' || isCollectionListBentoSettingsPanelFields(fields);
   const isCollectionListCarouselPanel =

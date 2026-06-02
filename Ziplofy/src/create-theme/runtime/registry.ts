@@ -4,6 +4,7 @@ import { Divider } from '../divider/runtime/Divider';
 import { Footer } from '../footer/runtime/Footer';
 import { Header } from '../header/runtime/Header';
 import { Hero } from '../hero/runtime/Hero';
+import { CollectionLinksSpotlight } from '../collection-links-spotlight/runtime/CollectionLinksSpotlight';
 /** Live UI components keyed by schema `section.type`. */
 export const SECTION_RUNTIME_BY_TYPE: Record<string, SectionRuntimeComponent> = {
   header: Header,
@@ -11,6 +12,7 @@ export const SECTION_RUNTIME_BY_TYPE: Record<string, SectionRuntimeComponent> = 
   hero: Hero,
   footer: Footer,
   divider: Divider,
+  'collection-links-spotlight': CollectionLinksSpotlight,
 };
 
 export function resolveRuntimeForSectionType(sectionType: string): SectionRuntimeComponent | null {
@@ -26,6 +28,8 @@ export function blueprintIdFromInstanceId(instanceId: string): string {
     'divider',
     'hero_main',
     'featured_collection',
+    'collection_links_spotlight',
+    'collection_links_text',
   ];
   for (const base of known) {
     if (instanceId === base || instanceId.startsWith(`${base}_`)) return base;

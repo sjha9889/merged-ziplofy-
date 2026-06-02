@@ -74,14 +74,16 @@ export function groupCollectionLinksSpotlightPanelFields(
 export function isCollectionLinksSpotlightSettingsPanelFields(fields: EditorFieldDef[]): boolean {
   if (!fields.length) return false;
   const keys = new Set(fields.map((f) => f.path.split('.').pop() ?? ''));
-  return keys.has('imagePosition') && keys.has('alignment') && keys.has('layoutMode');
+  return keys.has('collectionsPicker') && keys.has('alignment') && keys.has('layoutMode');
 }
 
 export function prepareCollectionLinksSpotlightSettingsNode(node: SidebarNode): SidebarNode {
   const fields = sortCollectionLinksSpotlightPanelFields(
     filterSidebarSectionPanelFields(node.fields ?? [], isCollectionLinksSpotlightPanelField)
   );
-  const label =
-    node.label === 'Collection links: Text' ? 'Collection links: Text' : 'Collection links: Spotlight';
+  const isTextSection =
+    node.label === 'Collection links: Text' ||
+    node.id.includes('collection_links_text');
+  const label = isTextSection ? 'Collection links: Text' : 'Collection links: Spotlight';
   return { ...node, label, kind: 'section', fields };
 }
