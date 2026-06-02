@@ -52,21 +52,21 @@ export default defineConfig({
         ...remoteThemeRuntimeInputs,
       },
       output: {
-        /** Keep a single React / router graph so remote theme modules share the host runtime. */
+        /**
+         * One chunk for the whole React graph. Splitting react / jsx-runtime into separate
+         * manualChunks duplicated React in vendor-react (useState on null in theme preview).
+         */
         manualChunks(id) {
           const n = id.replace(/\\/g, '/');
-          if (n.includes('node_modules/react-dom/')) return 'vendor-react-dom';
-          if (n.includes('node_modules/react-router')) return 'vendor-react-router';
-          if (n.includes('node_modules/react/jsx-runtime') || n.includes('node_modules/react/jsx-dev-runtime')) {
-            return 'vendor-react-jsx-runtime';
+          if (
+            /node_modules\/(react-dom|react-router-dom|react-router|scheduler)(\/|$)/.test(n) ||
+            /node_modules\/react(\/|$)/.test(n)
+          ) {
+            return 'vendor-react';
           }
-          if (n.includes('node_modules/react/')) return 'vendor-react';
           return undefined;
         },
-        chunkFileNames(chunkInfo) {
-          if (chunkInfo.name === 'vendor-react-jsx-runtime') return 'assets/vendor-react-jsx-runtime.js';
-          return 'assets/[name]-[hash].js';
-        },
+        chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames(chunkInfo) {
           if (chunkInfo.name in remoteThemeRuntimeInputs) {
             const map: Record<string, string> = {
@@ -83,6 +83,8 @@ export default defineConfig({
     },
   },
   resolve: {
+    /** Single React instance for host app + @ziplofy/create-theme (avoids preview hook crashes). */
+    dedupe: ['react', 'react-dom', 'react-router', 'react-router-dom'],
     alias: {
       '@': path.resolve(__dirname, 'src'),
       '@render-store/sdk': path.resolve(__dirname, 'src/sdk/index.ts'),

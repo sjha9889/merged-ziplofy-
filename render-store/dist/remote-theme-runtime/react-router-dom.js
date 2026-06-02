@@ -1,1 +1,1 @@
-import{L as i,u as r,a as t,b as m}from"../assets/vendor-react-router-DUiu9wDO.js";import"../assets/vendor-react-rlLqexjG.js";import"../assets/vendor-react-dom-BnTzPi9B.js";export{i as Link,r as useLocation,t as useNavigate,m as useParams};
+import{L as e,u as o,a as u,b as i}from"../assets/vendor-react-BxV8q1gS.js";export{e as Link,o as useLocation,u as useNavigate,i as useParams};
