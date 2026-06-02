@@ -3,8 +3,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const bloomPages = path.join(__dirname, '../remote-themes/bloom/src/pages');
-const voltPages = path.join(__dirname, '../remote-themes/volt/src/pages');
+/** @deprecated remote-themes/ removed — Volt/Bloom packs are not in this repo layout anymore. */
+console.warn('patch-volt-pages.mjs: skipped (remote-themes folder removed).');
+process.exit(0);
+
+const bloomPages = path.join(__dirname, '../_removed/remote-themes/bloom/src/pages');
+const voltPages = path.join(__dirname, '../_removed/remote-themes/volt/src/pages');
 
 const replacements = [
   ['templates.profile.sections.profile_main', 'templates.profile.sections.account_hub'],

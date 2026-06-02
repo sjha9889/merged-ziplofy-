@@ -9,7 +9,7 @@ export const headerElement: CreateThemeElement = {
   keywords: ['navigation', 'menu', 'logo', 'search', 'cart'],
   previewVariant: 'header',
   catalogIcon: 'section',
-  previewCaption: 'Store logo, navigation, and utility icons',
+  previewCaption: 'My Store, main menu links, search, account, and cart',
   Preview: HeaderPreview,
   editing,
   insert: {

@@ -799,7 +799,7 @@ const CreateThemePage: React.FC = () => {
             }`}
           >
             <CreateThemeLivePreview
-              key={themeRuntime.jsUrl ?? 'no-js'}
+              key={themeRuntime.jsUrl ?? 'composer'}
               className="h-full min-h-0 w-full flex-1"
               storeId={previewStoreId}
               storeName={activeStoreName}

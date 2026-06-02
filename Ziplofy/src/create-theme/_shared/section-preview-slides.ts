@@ -238,7 +238,7 @@ export const BLOCK_PREVIEW_SLIDES: BlockPreviewSlide[] = [
     id: 'header',
     headline: 'Have an idea?',
     headlineAccent: "Let's bring it to life",
-    caption: 'Store logo, navigation, and utility icons',
+    caption: 'My Store, main menu links, search, account, and cart',
     variant: 'header',
   },
   {

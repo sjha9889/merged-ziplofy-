@@ -47,15 +47,10 @@ export const THEME_EDITOR_STATIC_CONFIG = {
   themeName: envOr('Static dev theme', 'VITE_THEME_EDITOR_STATIC_THEME_NAME'),
 
   /**
-   * Live preview bundle URLs — loaded by the render-store iframe (localhost:5180), not from Ziplofy/public.
-   * Dev: render-store serves `remote-themes/horizon/dist/` directly after `cd remote-themes/horizon && npm run build`.
+   * Live preview — empty uses create-theme composer in render-store `/theme-preview` (no theme.js).
    */
-  jsUrl:
-    (import.meta.env.VITE_THEME_EDITOR_STATIC_JS_URL as string | undefined)?.trim() ||
-    '/remote-themes/horizon/theme.js',
-  cssUrl:
-    (import.meta.env.VITE_THEME_EDITOR_STATIC_CSS_URL as string | undefined)?.trim() ||
-    '/remote-themes/horizon/theme.css',
+  jsUrl: (import.meta.env.VITE_THEME_EDITOR_STATIC_JS_URL as string | undefined)?.trim() || '',
+  cssUrl: (import.meta.env.VITE_THEME_EDITOR_STATIC_CSS_URL as string | undefined)?.trim() || '',
 
   /** Fake store id for editor context when no store is selected. */
   devStoreId: envOr('dev-store', 'VITE_THEME_EDITOR_STATIC_STORE_ID'),

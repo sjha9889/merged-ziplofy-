@@ -176,7 +176,7 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
   /** INIT only when runtime identity changes — never on every config keystroke. */
   const postInit = useCallback(() => {
     const frame = iframeRef.current?.contentWindow;
-    if (!frame || !jsUrl || !storeId) return;
+    if (!frame || !storeId) return;
     frame.postMessage(
       {
         source: EDITOR_SOURCE,

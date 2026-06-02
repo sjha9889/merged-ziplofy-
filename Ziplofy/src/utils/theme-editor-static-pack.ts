@@ -252,14 +252,8 @@ export function buildBlockCatalogFromManifest(
   return { categories, blocks, sectionBlockAllowlist };
 }
 
-export function previewUrlsForPack(packId: string): { jsUrl: string; cssUrl: string } {
-  const origin = resolveThemePreviewOrigin();
-  const pathJs = `/remote-themes/${packId}/theme.js`;
-  const pathCss = `/remote-themes/${packId}/theme.css`;
-  return {
-    jsUrl: `${origin}${pathJs}`,
-    cssUrl: `${origin}${pathCss}`,
-  };
+export function previewUrlsForPack(_packId: string): { jsUrl: string | null; cssUrl: string | null } {
+  return { jsUrl: null, cssUrl: null };
 }
 
 function readLocalConfig(packId: string): Record<string, unknown> | null {
@@ -366,7 +360,6 @@ export async function loadCreatorThemeEditorPack(
         ...seedSectionEnabledValues(config),
       }
     : creatorGlobalSettingsValues(editorSchema, config);
-  const packPreview = previewUrlsForPack(packId);
   return {
     themeName: (config.themeName as string) || 'Creator Basic',
     themePath: `theme-packs/${packId}`,
@@ -379,7 +372,7 @@ export async function loadCreatorThemeEditorPack(
     config,
     values,
     configMode: 'sections',
-    themeRuntime: { jsUrl: packPreview.jsUrl, cssUrl: packPreview.cssUrl },
+    themeRuntime: { jsUrl: null, cssUrl: null },
     installed: false,
     canPersist: false,
     notice: null,
@@ -418,8 +411,12 @@ export async function loadStaticThemeEditorPack(
   const values = formValuesFromEditorConfig(editorSchema, config);
 
   const packPreview = previewUrlsForPack(packId);
-  const runtimeJs = staticBaseUrl ? envJs || resolveStaticAssetUrl('theme.js') : packPreview.jsUrl;
-  const runtimeCss = staticBaseUrl ? envCss || resolveStaticAssetUrl('theme.css') : packPreview.cssUrl;
+  const runtimeJs = staticBaseUrl
+    ? envJs || resolveStaticAssetUrl('theme.js')
+    : envJs || packPreview.jsUrl;
+  const runtimeCss = staticBaseUrl
+    ? envCss || resolveStaticAssetUrl('theme.css')
+    : envCss || packPreview.cssUrl;
 
   return {
     themeName: displayNameForDevPack(packId),

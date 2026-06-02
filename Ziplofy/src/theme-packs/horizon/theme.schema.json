@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "themeId": "horizon",
-  "description": "Horizon benchmark theme schema — full editor tree for remote-themes/horizon. Use as reference when generating new theme packs.",
+  "description": "Horizon benchmark theme schema — full editor tree for theme-packs/horizon. Use as reference when generating new theme packs.",
   "globalSettings": {
     "label": "Theme settings",
     "groups": [
@@ -20961,7 +20961,7 @@
   "schemaVersion": "2.0.0",
   "benchmark": true,
   "editorContract": {
-    "remoteThemePath": "remote-themes/horizon",
+    "remoteThemePath": "theme-packs/horizon",
     "configMode": "sections",
     "configRoots": [
       "settings",
@@ -20969,7 +20969,7 @@
       "layout_order",
       "templates"
     ],
-    "previewBundle": "remote-themes/horizon/theme.js",
+    "previewBundle": "create-theme/runtime",
     "templates": [
       "index",
       "product",

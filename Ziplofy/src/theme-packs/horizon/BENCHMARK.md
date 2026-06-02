@@ -9,14 +9,15 @@ This pack is the **reference schema** for Ziplofy section-based theme editors. N
 | `theme.schema.json` | Every editable path, label, type, widget, group, and nested block for the sidebar + bottom settings sheet |
 | `theme.default-config.json` | Default values merged with store overrides in production |
 | `theme.manifest.json` | Templates, block catalog, capabilities |
-| `remote-themes/horizon/` | React preview source; `npm run build` → `dist/theme.js` served by render-store in dev |
+| `create-theme/*/runtime/` | Live section UI; render-store composer reads `themeConfig` (no theme.js) |
 
 ## Regenerate after changes
 
 ```bash
 node scripts/build-horizon-benchmark-schema.mjs
-cd remote-themes/horizon && npm run build
 ```
+
+Add runtimes under `Ziplofy/src/create-theme/{element}/runtime/`.
 
 ## Schema layout
 
@@ -32,4 +33,4 @@ Section-level settings use grouped widgets (General, Appearance, Padding, Custom
 
 ## Field coverage
 
-The benchmark schema includes **300+** field definitions: every path used in `remote-themes/horizon/src` plus editor-only options (e.g. hero `backgroundTone`, product `trust_badges`) for future UI work.
+The benchmark schema includes **300+** field definitions: every path used in create-theme / theme runtimes plus editor-only options (e.g. hero `backgroundTone`, product `trust_badges`) for future UI work.

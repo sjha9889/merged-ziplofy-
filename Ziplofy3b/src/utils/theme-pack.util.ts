@@ -81,10 +81,6 @@ const MANIFEST_NAMES = ['theme.manifest.json'];
 function resolvePackDir(themePath: string): string | null {
   const slug = normalizeThemeSlug(themePath);
   const candidates = [
-    path.join(process.cwd(), '..', 'remote-themes', slug),
-    path.join(process.cwd(), 'remote-themes', slug),
-    path.join(process.cwd(), '..', 'remote-themes', slug, 'config'),
-    path.join(process.cwd(), 'remote-themes', slug, 'config'),
     path.join(__dirname, '..', 'theme-packs', slug),
     path.join(process.cwd(), 'src', 'theme-packs', slug),
     path.join(process.cwd(), 'build', 'theme-packs', slug),

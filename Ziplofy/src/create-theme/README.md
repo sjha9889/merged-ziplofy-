@@ -39,8 +39,13 @@ Re-fork sidebar internals after large dev sidebar changes:
 node scripts/fork-create-theme-sidebar.mjs
 ```
 
-## Shared runtime only (not UI)
+## Live storefront + editor canvas UI
 
-- Horizon live render: `remote-themes/horizon/`
-- Pack load: `loadCreatorThemeEditorPack`
+- Composer: `runtime/` walks `themeConfig` and mounts section runtimes from each element folder.
+- Implemented runtimes: `header/runtime`, `announcement-bar/runtime`, `divider/runtime` (more sections show a placeholder until ported).
+- render-store loads `@ziplofy/create-theme/runtime` when `isStoreCustomTheme` (no `theme.js`).
+
+## Pack load
+
+- `loadCreatorThemeEditorPack`
 - Config insert: `utils/theme-editor-insert-section.ts`

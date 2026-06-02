@@ -15,7 +15,6 @@ export default defineConfig({
     proxy: {
       // Local-only: embed preview on admin origin (optional). Production uses preview.ziplofy.com.
       '/theme-preview': { target: 'http://127.0.0.1:5180', changeOrigin: true },
-      '/remote-themes': { target: 'http://127.0.0.1:5180', changeOrigin: true },
       '/remote-theme-runtime': { target: 'http://127.0.0.1:5180', changeOrigin: true },
     },
   },

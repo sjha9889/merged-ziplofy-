@@ -255,10 +255,6 @@ export const getStoreData = asyncErrorHandler(async (req: Request, res: Response
   });
 });
 
-/** Horizon pack used to render JSON from the theme creator (same bundle as admin preview). */
-const STORE_CUSTOM_THEME_REMOTE_JS = '/remote-themes/horizon/theme.js';
-const STORE_CUSTOM_THEME_REMOTE_CSS = '/remote-themes/horizon/theme.css';
-
 export const getStorefrontThemeRuntime = asyncErrorHandler(async (req: Request, res: Response) => {
   const { storeId } = req.params as { storeId: string };
 
@@ -282,8 +278,8 @@ export const getStorefrontThemeRuntime = asyncErrorHandler(async (req: Request, 
           themeId: customThemeId,
           themeName: customDoc.themeName ?? 'Custom theme',
           isStoreCustomTheme: true,
-          remoteThemeJsUrl: STORE_CUSTOM_THEME_REMOTE_JS,
-          remoteThemeCssUrl: STORE_CUSTOM_THEME_REMOTE_CSS,
+          remoteThemeJsUrl: null,
+          remoteThemeCssUrl: null,
           themeConfig: customDoc.themeConfig as Record<string, unknown>,
           runtimeBaseUrl: null,
           entryHtml: null,

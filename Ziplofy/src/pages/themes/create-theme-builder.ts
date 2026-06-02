@@ -1,5 +1,5 @@
 /**
- * Theme Creator data model — mirrors remote-themes/horizon pack shape so
+ * Theme Creator data model — mirrors theme-packs/horizon shape so
  * generated schema + default-config work in the section theme editor.
  */
 import {

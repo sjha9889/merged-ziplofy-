@@ -83,10 +83,10 @@
         "searchPosition": "right",
         "searchRow": "top",
         "searchPlaceholder": "Search products…",
-        "countryRegionEnabled": true,
+        "countryRegionEnabled": false,
         "countryRegionLabel": "IN · USD",
         "showFlag": false,
-        "languageSelectorEnabled": true,
+        "languageSelectorEnabled": false,
         "languageLabel": "English",
         "localizationFont": "heading",
         "localizationSize": "14px",
@@ -95,7 +95,7 @@
         "sectionWidth": "page",
         "headerHeight": "standard",
         "stickyMode": "always",
-        "borderThickness": 0,
+        "borderThickness": 1,
         "menuStyle": "icons",
         "colorScheme": "scheme-1",
         "homeTransparentBackground": false,
@@ -114,8 +114,8 @@
           "type": "logo",
           "settings": {
             "position": "left",
-            "text": "Horizon",
-            "tagline": "Soft essentials",
+            "text": "My Store",
+            "tagline": "",
             "hideLogoOnHomePage": false,
             "paddingTop": 0,
             "paddingBottom": 0
@@ -125,7 +125,7 @@
           "type": "menu",
           "settings": {
             "position": "left",
-            "row": "top",
+            "row": "",
             "menu": "main-menu",
             "colorScheme": "scheme-1",
             "topLevelSize": "14px",
@@ -140,16 +140,16 @@
             "mobileDividers": false,
             "items": [
               {
-                "label": "Shop",
+                "label": "Home",
+                "href": "/"
+              },
+              {
+                "label": "Catalog",
                 "href": "/products"
               },
               {
-                "label": "Collections",
-                "href": "/collection"
-              },
-              {
-                "label": "About",
-                "href": "/#about"
+                "label": "Contact",
+                "href": "/#contact"
               }
             ]
           },

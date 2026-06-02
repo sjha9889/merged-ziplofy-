@@ -13,7 +13,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "@render-store/sdk": ["src/sdk/index.ts"]
+      "@render-store/sdk": ["src/sdk/index.ts"],
+      "@ziplofy/create-theme/runtime": ["../Ziplofy/src/create-theme/runtime/index.ts"],
+      "@ziplofy/create-theme/runtime/*": ["../Ziplofy/src/create-theme/runtime/*"]
     },
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
@@ -29,5 +31,6 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/create-theme/**"]
 }

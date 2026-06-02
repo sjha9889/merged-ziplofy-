@@ -1,6 +1,7 @@
 import { startTransition, useCallback, useEffect, useRef, useState } from 'react';
 import { PreviewProviders } from './PreviewProviders';
 import { PreviewErrorBoundary } from './PreviewErrorBoundary';
+import { CustomThemeComposerPreview } from './CustomThemeComposerPreview';
 import { ThemePreviewRuntime } from './ThemePreviewRuntime';
 import { PreviewSelectionLayer } from './PreviewSelectionLayer';
 import {
@@ -52,7 +53,7 @@ export function ThemePreviewApp() {
   const [pageRevision, setPageRevision] = useState(0);
   const [selectionHints, setSelectionHints] = useState<ThemePreviewSelectionHint[]>([]);
   const [insertHighlight, setInsertHighlight] = useState<ThemePreviewInsertHighlightPayload>(null);
-  const configDebounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const configDebounceRef = useRef<number | undefined>(undefined);
   const configRef = useRef<Record<string, unknown> | null>(null);
   const lastConfigJsonRef = useRef<string>('');
 
@@ -222,12 +223,16 @@ export function ThemePreviewApp() {
       cssUrl={init.cssUrl}
     >
       <PreviewErrorBoundary>
-        <ThemePreviewRuntime
-          jsUrl={init.jsUrl}
-          cssUrl={init.cssUrl}
-          page={page}
-          pageRevision={pageRevision}
-        />
+        {init.jsUrl ? (
+          <ThemePreviewRuntime
+            jsUrl={init.jsUrl}
+            cssUrl={init.cssUrl}
+            page={page}
+            pageRevision={pageRevision}
+          />
+        ) : (
+          <CustomThemeComposerPreview page={page} pageRevision={pageRevision} />
+        )}
         <PreviewSelectionLayer hints={selectionHints} insertHighlight={insertHighlight} enabled />
       </PreviewErrorBoundary>
     </PreviewProviders>

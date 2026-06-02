@@ -4,8 +4,6 @@ import { defineConfig } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 import { themePreviewFrameHeadersPlugin } from './src/vite-theme-preview-headers.plugin'
-import { serveMonorepoRemoteThemesPlugin } from './src/vite-serve-monorepo-remote-themes.plugin'
-
 const proxyTarget = process.env.VITE_PROXY_TARGET || 'http://127.0.0.1:5000'
 
 /** Extra Rollup inputs so remote theme blob imports resolve in production (no /src/*.ts on static host). */
@@ -37,7 +35,7 @@ function createDevProxy() {
 }
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), serveMonorepoRemoteThemesPlugin(), themePreviewFrameHeadersPlugin()],
+  plugins: [react(), tailwindcss(), themePreviewFrameHeadersPlugin()],
   preview: {
     port: 5180,
     headers: {
@@ -88,6 +86,7 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, 'src'),
       '@render-store/sdk': path.resolve(__dirname, 'src/sdk/index.ts'),
+      '@ziplofy/create-theme': path.resolve(__dirname, '../Ziplofy/src/create-theme'),
     },
   },
   server: {

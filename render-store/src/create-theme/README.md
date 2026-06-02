@@ -4,7 +4,7 @@ Section catalog, presets, and registry — synced from `Ziplofy/src/create-theme
 
 **Live storefront preview today:** when `appliedCustomThemeId` is set, render-store loads the saved
 `themeConfig` JSON from the API and renders it with the **Horizon** bundle
-(`/remote-themes/horizon/theme.js`), same as the admin theme creator preview.
+(create-theme composer in render-store, no theme.js).
 
 Re-copy after element changes:
 

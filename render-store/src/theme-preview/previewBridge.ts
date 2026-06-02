@@ -41,7 +41,8 @@ export type ThemePreviewSelectionHint = {
 export type ThemePreviewInitPayload = {
   storeId: string;
   storeName?: string;
-  jsUrl: string;
+  /** When omitted, preview uses create-theme composer (no theme.js bundle). */
+  jsUrl?: string | null;
   cssUrl?: string | null;
   config: Record<string, unknown>;
   page?: ThemePreviewPage;

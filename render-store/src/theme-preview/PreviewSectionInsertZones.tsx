@@ -4,7 +4,6 @@ import { findElementForNodeId } from './previewSelectionAnnotate';
 import { rafThrottle } from './previewPerf';
 
 const SHOPIFY_BLUE = '#005bd3';
-const MIN_GAP_PX = 2;
 
 export type SectionInsertGap = {
   afterNodeId: string;

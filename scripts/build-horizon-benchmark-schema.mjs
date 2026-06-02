@@ -1,6 +1,6 @@
 /**
  * Horizon benchmark pack — sync rich editor schema + default-config from Ziplofy pack
- * to remote-themes/horizon and Ziplofy3b. Run after editing theme source or schema.
+ * to Ziplofy3b theme-packs. Run after editing theme source or schema.
  *
  *   node scripts/build-horizon-benchmark-schema.mjs
  */
@@ -15,7 +15,6 @@ const ROOT = path.resolve(__dirname, '..');
 const SOURCE_PACK = path.join(ROOT, 'Ziplofy', 'src', 'theme-packs', 'horizon');
 const TARGETS = [
   SOURCE_PACK,
-  path.join(ROOT, 'remote-themes', 'horizon'),
   path.join(ROOT, 'Ziplofy3b', 'src', 'theme-packs', 'horizon'),
 ];
 
@@ -2355,13 +2354,13 @@ function enrichSchemaMeta(schema) {
   schema.schemaVersion = '2.0.0';
   schema.themeId = 'horizon';
   schema.description =
-    'Horizon benchmark theme schema — full editor tree for remote-themes/horizon. Use as reference when generating new theme packs.';
+    'Horizon benchmark theme schema — full editor tree for theme-packs/horizon. Use as reference when generating new theme packs.';
   schema.benchmark = true;
   schema.editorContract = {
-    remoteThemePath: 'remote-themes/horizon',
+    remoteThemePath: 'theme-packs/horizon',
     configMode: 'sections',
     configRoots: ['settings', 'sections', 'layout_order', 'templates'],
-    previewBundle: 'remote-themes/horizon/theme.js',
+    previewBundle: 'create-theme/runtime',
     templates: [
       'index',
       'product',

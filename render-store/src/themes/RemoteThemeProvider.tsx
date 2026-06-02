@@ -182,7 +182,7 @@ export function RemoteThemeProvider({ children }: { children: ReactNode }) {
           {isStoreCustomTheme ? (
             <>
               This store uses a <strong>custom theme</strong> (JSON from the theme creator). Ensure{' '}
-              <code>remote-themes/horizon</code> is built and served by render-store, then reload.
+              Apply a theme with an uploaded React bundle, or use a store custom theme (JSON + create-theme composer).
             </>
           ) : (
             <>

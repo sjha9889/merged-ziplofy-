@@ -1,4 +1,5 @@
 import { useStorefront } from './contexts/store.context';
+import { CustomThemeRoutes } from './custom-theme/CustomThemeRoutes.tsx';
 import { RemoteThemeProvider } from './themes/RemoteThemeProvider.tsx';
 import { StorefrontRoutes } from './StorefrontRoutes.tsx';
 
@@ -7,7 +8,8 @@ import { StorefrontRoutes } from './StorefrontRoutes.tsx';
  * shows loading, a helpful error, or the main app routes.
  */
 export const IsValidStorefront = () => {
-  const { isStoreFront, storeFrontChecked, storeFrontMeta } = useStorefront();
+  const { isStoreFront, storeFrontChecked, storeFrontMeta, isStoreCustomTheme, themeConfig } =
+    useStorefront();
 
   if (!storeFrontChecked) {
     return (
@@ -30,6 +32,10 @@ export const IsValidStorefront = () => {
         </p>
       </div>
     );
+  }
+
+  if (isStoreCustomTheme && themeConfig) {
+    return <CustomThemeRoutes />;
   }
 
   return (
