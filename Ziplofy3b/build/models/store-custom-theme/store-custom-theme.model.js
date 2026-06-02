@@ -47,7 +47,11 @@ const storeCustomThemeSchema = new mongoose_1.Schema({
         required: [true, 'Theme name is required'],
         trim: true,
         maxlength: [120, 'Theme name cannot exceed 120 characters'],
-        default: 'Untitled theme',
+    },
+    themeDesc: {
+        type: String,
+        trim: true,
+        maxlength: [500, 'Theme description cannot exceed 500 characters'],
     },
     themeConfig: {
         type: mongoose_1.Schema.Types.Mixed,

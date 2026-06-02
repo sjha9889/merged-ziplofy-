@@ -21,7 +21,8 @@ exports.hasSectionEditorPack = hasSectionEditorPack;
 exports.resolveStoreThemeConfigSync = resolveStoreThemeConfigSync;
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
-const theme_config_util_1 = require("./theme-config.util");
+const theme_config_util_js_1 = require("./theme-config.util.js");
+const theme_s3_ingest_js_1 = require("./theme-s3-ingest.js");
 const SECTION_THEME_SLUGS = new Set(['makeup', 'lumiere-beauty', 'lumiere']);
 const packCache = new Map();
 function normalizeThemeSlug(themePath) {
@@ -44,10 +45,6 @@ const MANIFEST_NAMES = ['theme.manifest.json'];
 function resolvePackDir(themePath) {
     const slug = normalizeThemeSlug(themePath);
     const candidates = [
-        path_1.default.join(process.cwd(), '..', 'remote-themes', slug),
-        path_1.default.join(process.cwd(), 'remote-themes', slug),
-        path_1.default.join(process.cwd(), '..', 'remote-themes', slug, 'config'),
-        path_1.default.join(process.cwd(), 'remote-themes', slug, 'config'),
         path_1.default.join(__dirname, '..', 'theme-packs', slug),
         path_1.default.join(process.cwd(), 'src', 'theme-packs', slug),
         path_1.default.join(process.cwd(), 'build', 'theme-packs', slug),
@@ -113,16 +110,15 @@ function loadThemePackFromDisk(themePath) {
     return pack;
 }
 async function loadThemePackFromS3Keys(s3Refs) {
-    const { readS3JsonObject } = await import('./theme-s3-ingest');
     const schemaKey = s3Refs.reactThemeSchema?.key;
     const defaultKey = s3Refs.reactThemeDefaultConfig?.key;
     const manifestKey = s3Refs.reactThemeManifest?.key;
     if (!schemaKey || !defaultKey)
         return null;
     const [editorSchema, defaultConfig, manifestFromS3] = await Promise.all([
-        readS3JsonObject(schemaKey),
-        readS3JsonObject(defaultKey),
-        manifestKey ? readS3JsonObject(manifestKey) : Promise.resolve(null),
+        (0, theme_s3_ingest_js_1.readS3JsonObject)(schemaKey),
+        (0, theme_s3_ingest_js_1.readS3JsonObject)(defaultKey),
+        manifestKey ? (0, theme_s3_ingest_js_1.readS3JsonObject)(manifestKey) : Promise.resolve(null),
     ]);
     if (!editorSchema || !defaultConfig)
         return null;
@@ -344,7 +340,7 @@ function formValuesFromPackConfig(config, schema, editorSchema) {
     const fields = editorSchema != null ? collectPackFieldKeys(editorSchema, config) : schema;
     const values = {};
     for (const field of fields) {
-        const v = (0, theme_config_util_1.getNestedValue)(config, field.key);
+        const v = (0, theme_config_util_js_1.getNestedValue)(config, field.key);
         if (field.type === 'boolean') {
             values[field.key] = Boolean(v);
         }
@@ -364,7 +360,7 @@ function mergedConfigFromFormValues(values, schema, defaultConfig, editorSchema)
         const type = resolvePackFieldType(key, typeByKey);
         if (!type)
             continue;
-        (0, theme_config_util_1.setNestedValue)(config, key, type === 'boolean' ? Boolean(raw) : String(raw));
+        (0, theme_config_util_js_1.setNestedValue)(config, key, type === 'boolean' ? Boolean(raw) : String(raw));
     }
     return config;
 }
@@ -374,7 +370,7 @@ async function resolveStoreThemeConfig(saved, themePath, s3Refs) {
         if (pack)
             return mergeThemePackConfig(saved ?? undefined, pack);
     }
-    return (0, theme_config_util_1.mergeThemeConfig)(saved);
+    return (0, theme_config_util_js_1.mergeThemeConfig)(saved);
 }
 /** True when catalog S3 or disk has schema + default config for the section editor. */
 function hasSectionEditorPack(pack, s3Refs) {
@@ -389,5 +385,5 @@ function resolveStoreThemeConfigSync(saved, themePath) {
         if (pack)
             return mergeThemePackConfig(saved ?? undefined, pack);
     }
-    return (0, theme_config_util_1.mergeThemeConfig)(saved);
+    return (0, theme_config_util_js_1.mergeThemeConfig)(saved);
 }

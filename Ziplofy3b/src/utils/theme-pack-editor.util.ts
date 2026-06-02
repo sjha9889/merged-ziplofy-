@@ -1,4 +1,4 @@
-import type { EditorFieldDef, EditorSchemaDoc, ThemePack } from "./theme-pack.util";
+import type { EditorBlockDef, EditorFieldDef, EditorSchemaDoc, ThemePack } from "./theme-pack.util.js";
 
 export type ThemeBlockCatalogItem = {
   id: string;
@@ -15,13 +15,7 @@ export type ThemeBlockCatalog = {
   sectionBlockAllowlist: Record<string, string[]>;
 };
 
-type BlockDef = {
-  id?: string;
-  label?: string;
-  type?: string;
-  settingsFields?: EditorFieldDef[];
-  blocks?: BlockDef[];
-};
+type BlockDef = EditorBlockDef;
 
 function humanize(id: string): string {
   return id
@@ -245,7 +239,7 @@ export function buildBlockCatalogFromPack(pack: ThemePack): ThemeBlockCatalog {
       const secType = sec.type ?? sec.id ?? "";
       if (sectionBlockAllowlist[secType]?.length) continue;
       if (sec.blocks?.length) {
-        sectionBlockAllowlist[secType] = sec.blocks.map((b) => b.id ?? "").filter(Boolean);
+        sectionBlockAllowlist[secType] = sec.blocks.map((b: EditorBlockDef) => b.id ?? "").filter(Boolean);
       } else if (sec.hasBlocks) {
         sectionBlockAllowlist[secType] = blocks.filter((b) => !b.extendedOnly).map((b) => b.id);
       }

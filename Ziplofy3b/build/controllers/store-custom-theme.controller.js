@@ -16,16 +16,30 @@ function parseThemeConfig(raw) {
     }
     return raw;
 }
+function parseOptionalThemeDesc(raw) {
+    if (raw === undefined || raw === null)
+        return undefined;
+    if (typeof raw !== 'string') {
+        throw new error_utils_1.CustomError('themeDesc must be a string', 400);
+    }
+    const trimmed = raw.trim();
+    return trimmed.length ? trimmed : undefined;
+}
 exports.createStoreCustomTheme = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
-    const { storeId, themeConfig, themeName } = req.body;
+    const { storeId, themeConfig, themeName, themeDesc } = req.body;
     if (!storeId || !mongoose_1.default.isValidObjectId(storeId)) {
         throw new error_utils_1.CustomError('Valid storeId is required', 400);
     }
+    const name = typeof themeName === 'string' ? themeName.trim() : '';
+    if (!name) {
+        throw new error_utils_1.CustomError('themeName is required', 400);
+    }
     const config = parseThemeConfig(themeConfig);
-    const name = typeof themeName === 'string' && themeName.trim() ? themeName.trim() : 'Untitled theme';
+    const desc = parseOptionalThemeDesc(themeDesc);
     const created = await store_custom_theme_model_1.StoreCustomTheme.create({
         storeId,
         themeName: name,
+        ...(desc !== undefined ? { themeDesc: desc } : {}),
         themeConfig: config,
     });
     res.status(201).json({
@@ -49,24 +63,40 @@ exports.getStoreCustomThemesByStoreId = (0, error_utils_1.asyncErrorHandler)(asy
 });
 exports.updateStoreCustomTheme = (0, error_utils_1.asyncErrorHandler)(async (req, res) => {
     const { id } = req.params;
-    const { themeConfig, themeName } = req.body;
+    const { themeConfig, themeName, themeDesc } = req.body;
     if (!id || !mongoose_1.default.isValidObjectId(id)) {
         throw new error_utils_1.CustomError('Valid id is required', 400);
     }
-    const update = {};
+    const set = {};
+    const unset = {};
     if (themeConfig !== undefined) {
-        update.themeConfig = parseThemeConfig(themeConfig);
+        set.themeConfig = parseThemeConfig(themeConfig);
     }
     if (themeName !== undefined) {
         const name = String(themeName).trim();
         if (!name)
             throw new error_utils_1.CustomError('themeName cannot be empty', 400);
-        update.themeName = name;
+        set.themeName = name;
     }
-    if (Object.keys(update).length === 0) {
-        throw new error_utils_1.CustomError('Provide themeConfig and/or themeName to update', 400);
+    if (themeDesc !== undefined) {
+        if (themeDesc === null || (typeof themeDesc === 'string' && !themeDesc.trim())) {
+            unset.themeDesc = 1;
+        }
+        else {
+            const desc = parseOptionalThemeDesc(themeDesc);
+            if (desc)
+                set.themeDesc = desc;
+            else
+                unset.themeDesc = 1;
+        }
     }
-    const updated = await store_custom_theme_model_1.StoreCustomTheme.findByIdAndUpdate(id, { $set: update }, {
+    if (Object.keys(set).length === 0 && Object.keys(unset).length === 0) {
+        throw new error_utils_1.CustomError('Provide themeConfig, themeName, and/or themeDesc to update', 400);
+    }
+    const updated = await store_custom_theme_model_1.StoreCustomTheme.findByIdAndUpdate(id, {
+        ...(Object.keys(set).length ? { $set: set } : {}),
+        ...(Object.keys(unset).length ? { $unset: unset } : {}),
+    }, {
         new: true,
         runValidators: true,
     });

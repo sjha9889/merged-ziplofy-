@@ -5,7 +5,8 @@ import {
   getNestedValue,
   mergeThemeConfig,
   setNestedValue,
-} from './theme-config.util';
+} from './theme-config.util.js';
+import { readS3JsonObject } from './theme-s3-ingest.js';
 
 const SECTION_THEME_SLUGS = new Set(['makeup', 'lumiere-beauty', 'lumiere']);
 
@@ -13,6 +14,15 @@ export type EditorFieldDef = {
   path: string;
   type: string;
   label: string;
+};
+
+/** Section / layout block tree (supports nested groups). */
+export type EditorBlockDef = {
+  id?: string;
+  label?: string;
+  type?: string;
+  settingsFields?: EditorFieldDef[];
+  blocks?: EditorBlockDef[];
 };
 
 export type EditorSchemaDoc = {
@@ -29,7 +39,7 @@ export type EditorSchemaDoc = {
       configPath?: string;
       label?: string;
       settingsFields?: EditorFieldDef[];
-      blocks?: Array<{ id?: string; label?: string; settingsFields?: EditorFieldDef[] }>;
+      blocks?: EditorBlockDef[];
     }
   >;
   templates?: Array<{
@@ -41,6 +51,7 @@ export type EditorSchemaDoc = {
       label?: string;
       hasBlocks?: boolean;
       settingsFields?: EditorFieldDef[];
+      blocks?: EditorBlockDef[];
     }>;
   }>;
 };
@@ -147,7 +158,6 @@ export function loadThemePackFromDisk(themePath: string): ThemePack | null {
 }
 
 async function loadThemePackFromS3Keys(s3Refs: ThemePackS3Refs): Promise<ThemePack | null> {
-  const { readS3JsonObject } = await import('./theme-s3-ingest');
   const schemaKey = s3Refs.reactThemeSchema?.key;
   const defaultKey = s3Refs.reactThemeDefaultConfig?.key;
   const manifestKey = s3Refs.reactThemeManifest?.key;
