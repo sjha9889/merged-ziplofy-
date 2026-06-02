@@ -68,6 +68,11 @@ import {
 import { mergedConfigFromFormValues } from '../utils/theme-editor-static-save';
 import { fieldTypeFromSchema, type ThemeEditorFieldType } from './sidebar/create-theme-field.utils';
 import {
+  headerMenuBlockFieldDefsFromSchema,
+  instanceIdFromHeaderMenuBlockNodeId,
+} from './sidebar/theme-editor-header-menu-block-panel.utils';
+import { isHeaderMenuBlockNodeId } from './sidebar/theme-editor-header-panel.utils';
+import {
   seedSectionEnabledValues,
   sectionEnabledPathFromNodeId,
 } from '../utils/theme-editor-section-visibility.util';
@@ -273,6 +278,32 @@ const CreateThemePage: React.FC = () => {
     () => settingsNodeForSelection(selectedNode, activeTree, editorSchema),
     [selectedNode, activeTree, editorSchema]
   );
+
+  /** Seed menu block paths into `values` when opening the panel (avoids blank controls / no-op edits). */
+  useEffect(() => {
+    if (!editorSchema || !defaultConfig || !isHeaderMenuBlockNodeId(selectedNodeId)) return;
+    const instanceId = instanceIdFromHeaderMenuBlockNodeId(selectedNodeId);
+    if (!instanceId) return;
+    const defs = headerMenuBlockFieldDefsFromSchema(editorSchema, instanceId);
+    if (!defs.length) return;
+
+    setValues((prev) => {
+      const needsSeed = defs.some((f) => prev[f.path] === undefined);
+      if (!needsSeed) return prev;
+      const config = applyValuesToThemeConfig(defaultConfig, prev, editorSchema);
+      const fromConfig = formValuesFromEditorConfig(editorSchema, config);
+      const next = { ...prev };
+      let changed = false;
+      for (const f of defs) {
+        if (next[f.path] !== undefined) continue;
+        const seeded = fromConfig[f.path];
+        if (seeded === undefined) continue;
+        next[f.path] = seeded;
+        changed = true;
+      }
+      return changed ? next : prev;
+    });
+  }, [selectedNodeId, editorSchema, defaultConfig]);
 
   const livePreviewConfig = useMemo(() => {
     if (!defaultConfig || !editorSchema) return defaultConfig ?? {};

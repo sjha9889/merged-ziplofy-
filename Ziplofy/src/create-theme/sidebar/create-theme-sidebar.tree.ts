@@ -72,6 +72,7 @@ import {
   headerMenuBlockFieldDefsFromSchema,
   headerMenuBlockFieldsFromNode,
   instanceIdFromHeaderMenuBlockNodeId,
+  isHeaderMenuBlockPanelField,
   prepareHeaderMenuBlockSettingsNode,
 } from './theme-editor-header-menu-block-panel.utils';
 import { isHeaderMenuBlockNodeId } from './theme-editor-header-panel.utils';
@@ -793,8 +794,12 @@ function mapHeaderBlockNodes(
       const label = base.label ?? blockId;
       const remapped = remapFields(base.settingsFields, instanceId);
       const isLogo = blockId === 'logo' || (base.id ?? '') === 'logo';
-      const blockSettingsFields = isLogo ? remapped.filter(isHeaderLogoBlockPanelField) : remapped;
       const isMenu = blockId === 'menu' || (base.id ?? '') === 'menu';
+      const blockSettingsFields = isLogo
+        ? remapped.filter(isHeaderLogoBlockPanelField)
+        : isMenu
+          ? remapped.filter(isHeaderMenuBlockPanelField)
+          : remapped;
 
       return {
         id: `${prefix}:block:${blockId}`,
@@ -2032,12 +2037,13 @@ export function settingsNodeForSelection(
 
   if (isHeaderMenuBlockNodeId(node.id)) {
     const blockNode = findSidebarNode(tree, node.id) ?? node;
-    let fields = headerMenuBlockFieldsFromNode(blockNode);
-    if (!fields.length && editorSchema) {
-      const instanceId = instanceIdFromHeaderMenuBlockNodeId(blockNode.id);
-      if (instanceId) {
-        fields = headerMenuBlockFieldDefsFromSchema(editorSchema, instanceId);
-      }
+    const instanceId = instanceIdFromHeaderMenuBlockNodeId(blockNode.id);
+    let fields: EditorFieldDef[] = [];
+    if (editorSchema && instanceId) {
+      fields = headerMenuBlockFieldDefsFromSchema(editorSchema, instanceId);
+    }
+    if (!fields.length) {
+      fields = headerMenuBlockFieldsFromNode(blockNode);
     }
     if (!fields.length) {
       const catalogBlock = resolveEditingPanelForNode(blockNode.id);

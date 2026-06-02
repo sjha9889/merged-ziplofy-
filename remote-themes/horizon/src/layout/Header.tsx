@@ -12,6 +12,7 @@ import {
   headerSearchEnabled,
   headerSectionWidth,
   headerStickyMode,
+  menuBlockColorScheme,
   scopedHeaderCss,
 } from '../lib/headerStyles';
 import { layoutBlockOrder } from '../lib/structureOrder';
@@ -57,6 +58,21 @@ export function Header({ sectionId = 'header' }: Props) {
       menuPosition: cfgString(config, `${menuBase}.position`, 'left'),
       menuRow: cfgString(config, `${menuBase}.row`, 'top'),
       menuItems: cfgMenuItems(config, `${menuBase}.items`),
+      menuScheme: menuBlockColorScheme(config, menuBase, {
+        background: themeBg,
+        color: themeColors.text,
+        border: layout.line,
+      }),
+      topLevelSize: cfgString(config, `${menuBase}.topLevelSize`, '14px'),
+      menuFont: cfgString(config, `${menuBase}.font`, 'body'),
+      menuTextCase: cfgString(config, `${menuBase}.textCase`, 'default'),
+      submenuCornerRadius: Math.max(
+        0,
+        cfgNumber(config, `${menuBase}.submenuImageCornerRadius`, 0)
+      ),
+      mobileNavigationBar: cfgBool(config, `${menuBase}.mobileNavigationBar`, false),
+      mobileAccordion: cfgBool(config, `${menuBase}.mobileAccordion`, false),
+      mobileDividers: cfgBool(config, `${menuBase}.mobileDividers`, false),
       menuStyle: cfgString(config, `${settingsBase}.menuStyle`, 'icons'),
       searchOn: headerSearchEnabled(config, settingsBase),
       searchPosition: cfgString(config, `${settingsBase}.searchPosition`, 'right'),
@@ -72,7 +88,7 @@ export function Header({ sectionId = 'header' }: Props) {
       countryRegionLabel: cfgString(config, `${settingsBase}.countryRegionLabel`),
       languageLabel: cfgString(config, `${settingsBase}.languageLabel`),
     };
-  }, [config, sectionId, settingsBase, logoBase, menuBase, themeBg, themeColors.text]);
+  }, [config, sectionId, settingsBase, logoBase, menuBase, themeBg, themeColors.text, themeColors]);
 
   const {
     scheme,
@@ -91,6 +107,14 @@ export function Header({ sectionId = 'header' }: Props) {
     menuPosition,
     menuRow,
     menuItems,
+    menuScheme,
+    topLevelSize,
+    menuFont,
+    menuTextCase,
+    submenuCornerRadius,
+    mobileNavigationBar,
+    mobileAccordion,
+    mobileDividers,
     menuStyle,
     searchOn,
     searchPosition,
@@ -107,7 +131,20 @@ export function Header({ sectionId = 'header' }: Props) {
     languageLabel,
   } = headerState;
   const { text, background, border } = scheme;
+  const menuText = menuScheme.color;
   const scopedCss = scopedHeaderCss(sectionId, customCss);
+
+  const menuLinkFontFamily =
+    menuFont === 'heading' ? fontHeading : menuFont === 'subheading' ? fontBody : fontBody;
+  const menuLinkStyle: CSSProperties = {
+    color: menuText,
+    textDecoration: 'none',
+    fontSize: topLevelSize,
+    fontFamily: menuLinkFontFamily,
+    fontWeight: menuFont === 'heading' ? 600 : 400,
+    textTransform: menuTextCase === 'uppercase' ? 'uppercase' : undefined,
+    letterSpacing: menuTextCase === 'uppercase' ? '0.06em' : undefined,
+  };
 
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -184,9 +221,26 @@ export function Header({ sectionId = 'header' }: Props) {
           alignItems: alignFromPosition(menuPosition),
           gap: 8,
           flex: menuPosition === 'center' ? 1 : undefined,
+          borderRadius: submenuCornerRadius,
+          ...(mobileNavigationBar || mobileAccordion || mobileDividers
+            ? { outline: `1px dashed ${menuScheme.border}` }
+            : {}),
         }}
+        data-mobile-nav={mobileNavigationBar ? '1' : '0'}
+        data-mobile-accordion={mobileAccordion ? '1' : '0'}
+        data-mobile-dividers={mobileDividers ? '1' : '0'}
       >
-        <nav style={{ display: 'flex', flexWrap: 'wrap', gap: 16, alignItems: 'center', justifyContent: alignFromPosition(menuPosition) }}>
+        <nav
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 16,
+            alignItems: 'center',
+            justifyContent: alignFromPosition(menuPosition),
+            borderBottom: mobileDividers ? `1px solid ${menuScheme.border}` : undefined,
+            paddingBottom: mobileDividers ? 6 : 0,
+          }}
+        >
           {menuItems.map((item, index) => {
             const nestedIds = ['link_shop', 'link_collections', 'link_about', 'link_account'] as const;
             const nestedId = nestedIds[index] ?? `link_${index}`;
@@ -199,7 +253,7 @@ export function Header({ sectionId = 'header' }: Props) {
                 label={item.label}
               >
                 <EditorField fieldPath={labelPath} label="Label">
-                  <Link to={item.href} style={{ color: text, textDecoration: 'none', fontSize: 14 }}>
+                  <Link to={item.href} style={menuLinkStyle}>
                     {item.label}
                   </Link>
                 </EditorField>

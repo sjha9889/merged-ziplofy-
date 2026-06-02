@@ -2027,12 +2027,13 @@ export function settingsNodeForSelection(
 
   if (isHeaderMenuBlockNodeId(node.id)) {
     const blockNode = findSidebarNode(tree, node.id) ?? node;
-    let fields = headerMenuBlockFieldsFromNode(blockNode);
-    if (!fields.length && editorSchema) {
-      const instanceId = instanceIdFromHeaderMenuBlockNodeId(blockNode.id);
-      if (instanceId) {
-        fields = headerMenuBlockFieldDefsFromSchema(editorSchema, instanceId);
-      }
+    const instanceId = instanceIdFromHeaderMenuBlockNodeId(blockNode.id);
+    let fields: EditorFieldDef[] = [];
+    if (editorSchema && instanceId) {
+      fields = headerMenuBlockFieldDefsFromSchema(editorSchema, instanceId);
+    }
+    if (!fields.length) {
+      fields = headerMenuBlockFieldsFromNode(blockNode);
     }
     if (!fields.length) {
       const catalogBlock = resolveEditingPanelForNode(blockNode.id);

@@ -22,6 +22,16 @@ export function headerColorScheme(
   return COLOR_SCHEMES[key] ?? fallback;
 }
 
+/** Menu block color scheme (`sections.*.blocks.menu.settings.colorScheme`). */
+export function menuBlockColorScheme(
+  config: Record<string, unknown> | null,
+  menuSettingsBase: string,
+  fallback: HeaderScheme
+): HeaderScheme {
+  const key = cfgString(config, `${menuSettingsBase}.colorScheme`, 'scheme-1');
+  return COLOR_SCHEMES[key] ?? fallback;
+}
+
 export function headerSectionWidth(
   config: Record<string, unknown> | null,
   settingsBase: string

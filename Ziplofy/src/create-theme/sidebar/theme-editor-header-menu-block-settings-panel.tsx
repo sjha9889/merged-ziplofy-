@@ -50,7 +50,9 @@ function MenuInlineSelectFieldRow({
           ) : null}
           <select
             value={current}
-            onChange={(e) => onFieldChange(field.path, 'text', e.target.value)}
+            onChange={(e) =>
+              onFieldChange(field.path, fieldTypeFromSchema(field.type), e.target.value)
+            }
             className={`w-full appearance-none rounded-lg border border-[#c9cccf] bg-white py-2 pr-8 text-[13px] text-gray-900 shadow-sm focus:border-[#005bd3] focus:outline-none focus:ring-1 focus:ring-[#005bd3] ${
               leadingIcon ? 'pl-9' : 'pl-3'
             }`}
@@ -99,7 +101,9 @@ function MenuColorSchemeFieldRow({
         </div>
         <select
           value={current}
-          onChange={(e) => onFieldChange(field.path, 'text', e.target.value)}
+          onChange={(e) =>
+            onFieldChange(field.path, fieldTypeFromSchema(field.type), e.target.value)
+          }
           className="w-full appearance-none rounded-lg border border-[#c9cccf] bg-white py-2 pl-[72px] pr-8 text-[13px] text-gray-900 shadow-sm focus:border-[#005bd3] focus:outline-none focus:ring-1 focus:ring-[#005bd3]"
         >
           {(field.options ?? []).map((opt) => (

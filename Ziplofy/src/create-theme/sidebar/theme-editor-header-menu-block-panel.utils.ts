@@ -36,8 +36,10 @@ function blockSettingKey(path: string): string {
 }
 
 export function isHeaderMenuBlockPanelField(field: EditorFieldDef): boolean {
-  if (!/\.blocks\.menu\.settings\./.test(field.path)) return false;
-  return MENU_BLOCK_PANEL_KEYS.has(blockSettingKey(field.path));
+  if (!/\.blocks\.[^.]+\.settings\./.test(field.path)) return false;
+  const key = blockSettingKey(field.path);
+  if (!MENU_BLOCK_PANEL_KEYS.has(key)) return false;
+  return field.path.includes('.blocks.menu.settings.');
 }
 
 export function isHeaderMenuBlockPanelFields(fields: EditorFieldDef[]): boolean {

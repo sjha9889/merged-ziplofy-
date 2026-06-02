@@ -157,12 +157,33 @@ export function collectEditableFieldPaths(
   return out;
 }
 
+const HEADER_MENU_BLOCK_SETTING_TYPES: Record<string, string> = {
+  menu: 'select',
+  colorScheme: 'select',
+  topLevelSize: 'select',
+  submenuSize: 'select',
+  font: 'select',
+  textCase: 'select',
+  submenuMediaType: 'select',
+  submenuImageRatio: 'select',
+  submenuImageCornerRadius: 'number',
+  mobileNavigationBar: 'boolean',
+  mobileAccordion: 'boolean',
+  mobileDividers: 'boolean',
+};
+
 function resolveFieldTypeForPath(
   path: string,
   typeByPath: Map<string, string>
 ): string | undefined {
   const direct = typeByPath.get(path);
   if (direct) return direct;
+
+  const menuSetting = path.match(/^sections\.[^.]+\.blocks\.menu\.settings\.([^.]+)$/);
+  if (menuSetting) {
+    const inferred = HEADER_MENU_BLOCK_SETTING_TYPES[menuSetting[1]];
+    if (inferred) return inferred;
+  }
 
   const layoutHero = path.match(/^sections\.(hero_main(?:_\d+)?)\.(.+)$/);
   if (layoutHero) {

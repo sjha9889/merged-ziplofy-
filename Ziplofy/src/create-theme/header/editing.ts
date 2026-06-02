@@ -170,76 +170,18 @@ export const editing: CreateThemeEditing = {
       "blockId": "menu",
       "label": "Menu",
       "settingsOrder": [
-        {
-          "key": "position",
-          "label": "Position",
-          "type": "text"
-        },
-        {
-          "key": "row",
-          "label": "Row",
-          "type": "text"
-        },
-        {
-          "key": "menu",
-          "label": "Menu",
-          "type": "text"
-        },
-        {
-          "key": "colorScheme",
-          "label": "Color scheme",
-          "type": "text"
-        },
-        {
-          "key": "topLevelSize",
-          "label": "Top level size",
-          "type": "text"
-        },
-        {
-          "key": "submenuSize",
-          "label": "Submenu size",
-          "type": "text"
-        },
-        {
-          "key": "font",
-          "label": "Font",
-          "type": "text"
-        },
-        {
-          "key": "textCase",
-          "label": "Case",
-          "type": "text"
-        },
-        {
-          "key": "submenuMediaType",
-          "label": "Media type",
-          "type": "text"
-        },
-        {
-          "key": "submenuImageRatio",
-          "label": "Image ratio",
-          "type": "text"
-        },
-        {
-          "key": "submenuImageCornerRadius",
-          "label": "Image corner radius",
-          "type": "number"
-        },
-        {
-          "key": "mobileNavigationBar",
-          "label": "Navigation bar",
-          "type": "boolean"
-        },
-        {
-          "key": "mobileAccordion",
-          "label": "Accordion",
-          "type": "boolean"
-        },
-        {
-          "key": "mobileDividers",
-          "label": "Dividers",
-          "type": "boolean"
-        }
+        { "key": "menu", "label": "Menu", "type": "select" },
+        { "key": "colorScheme", "label": "Color scheme", "type": "select" },
+        { "key": "topLevelSize", "label": "Top level size", "type": "select" },
+        { "key": "submenuSize", "label": "Submenu size", "type": "select" },
+        { "key": "font", "label": "Font", "type": "select" },
+        { "key": "textCase", "label": "Case", "type": "select" },
+        { "key": "submenuMediaType", "label": "Media type", "type": "select" },
+        { "key": "submenuImageRatio", "label": "Image ratio", "type": "select" },
+        { "key": "submenuImageCornerRadius", "label": "Image corner radius", "type": "number" },
+        { "key": "mobileNavigationBar", "label": "Navigation bar", "type": "boolean" },
+        { "key": "mobileAccordion", "label": "Accordion", "type": "boolean" },
+        { "key": "mobileDividers", "label": "Dividers", "type": "boolean" }
       ]
     }
   ]
