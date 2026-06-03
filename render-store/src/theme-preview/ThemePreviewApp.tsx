@@ -176,6 +176,9 @@ export function ThemePreviewApp() {
       if (msg.type === 'ZIPLOFY_PREVIEW_SET_PAGE') {
         setPage(msg.payload.page);
         setPageRevision((n) => n + 1);
+        window.setTimeout(() => {
+          postToParent({ source: 'ziplofy-theme-preview', type: 'ZIPLOFY_PREVIEW_LOADED' });
+        }, 0);
       }
 
       if (msg.type === 'ZIPLOFY_PREVIEW_INSERT_HIGHLIGHT') {

@@ -25,6 +25,7 @@ import { CreateThemeHeader } from './chrome/CreateThemeHeader';
 import CreateThemeLivePreview, { type ThemePreviewPage } from './chrome/CreateThemeLivePreview';
 import { CreateThemePoweredByLoader } from './chrome/CreateThemePoweredByLoader';
 import { buildThemeEditorPageMenu, findPageMenuItemByPreview } from './utils/page-menu';
+import { ensureRegistryTemplatesInConfig } from './utils/theme-page-registry';
 import {
   buildThemeEditorSelectionHints,
   expandedIdsForPreviewNode,
@@ -219,6 +220,7 @@ const CreateThemePage: React.FC = () => {
         }
 
         normalizeCreatorThemeConfig(config);
+        ensureRegistryTemplatesInConfig(config);
 
         setEditorSchema(schema);
         setDefaultConfig(config);

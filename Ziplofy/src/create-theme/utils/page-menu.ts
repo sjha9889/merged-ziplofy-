@@ -35,71 +35,20 @@ type MenuSeed = {
   children?: MenuSeed[];
 };
 
-/** Shopify-style online store page list (preview routes in render-store previewBridge). */
-const SHOPIFY_PAGE_MENU: MenuSeed[] = [
-  { previewPage: 'index', label: 'Home page', icon: 'home' },
-  {
-    previewPage: 'products',
-    label: 'Products',
-    icon: 'product',
-    hasSubmenu: true,
-    children: [
-      { previewPage: 'product', label: 'Product page', icon: 'product' },
-      { previewPage: 'products', label: 'All products', icon: 'product' },
-    ],
-  },
-  {
-    previewPage: 'collections',
-    label: 'Collections',
-    icon: 'collection',
-    hasSubmenu: true,
-    children: [
-      { previewPage: 'collections-list', label: 'Collections list', icon: 'collection' },
-      { previewPage: 'collection', label: 'Collection page', icon: 'collection' },
-    ],
-  },
-  { previewPage: 'collections-list', label: 'Collections list', icon: 'collection' },
-  { previewPage: 'gift-card', label: 'Gift card', icon: 'gift' },
-  { previewPage: 'cart', label: 'Cart', icon: 'cart', dividerBefore: true },
-  { previewPage: 'checkout', label: 'Checkout and customer accounts', icon: 'checkout' },
-  { previewPage: 'pages', label: 'Pages', icon: 'page', dividerBefore: true },
-  {
-    previewPage: 'blogs',
-    label: 'Blogs',
-    icon: 'blog',
-    hasSubmenu: true,
-    children: [{ previewPage: 'blog-posts', label: 'Blog posts', icon: 'blog' }],
-  },
-  { previewPage: 'blog-posts', label: 'Blog posts', icon: 'blog' },
-  { previewPage: 'search', label: 'Search', icon: 'search', dividerBefore: true },
-  { previewPage: 'password', label: 'Password', icon: 'lock' },
-];
+import {
+  allRegistryPageIds,
+  registryLabel,
+  THEME_PAGE_MENU_SEEDS,
+} from './theme-page-registry';
+import { previewPageToTemplateId } from '../../utils/preview-page-template';
 
-const DEFAULT_LABELS: Record<string, string> = {
-  index: 'Home page',
-  product: 'Product page',
-  products: 'Products',
-  collections: 'Collections',
-  'collections-list': 'Collections list',
-  collection: 'Collection page',
-  'gift-card': 'Gift card',
-  cart: 'Cart',
-  checkout: 'Checkout and customer accounts',
-  pages: 'Pages',
-  blogs: 'Blogs',
-  'blog-posts': 'Blog posts',
-  search: 'Search',
-  password: 'Password',
-  login: 'Login',
-  signup: 'Sign up',
-  forgot_password: 'Forgot password',
-  profile: 'Profile',
-  orders: 'Orders',
-  preferences: 'Preferences',
-};
+export { previewPageToTemplateId };
+
+/** Shopify-style online store page list — kept in sync via theme-page-registry. */
+const SHOPIFY_PAGE_MENU: MenuSeed[] = THEME_PAGE_MENU_SEEDS as MenuSeed[];
 
 function formatLabel(id: string): string {
-  return DEFAULT_LABELS[id] ?? id.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  return registryLabel(id);
 }
 
 function iconForTemplate(id: string): ThemePageIcon {
@@ -134,26 +83,11 @@ function availableTemplateIds(
   return new Set(rawIds.length ? rawIds : ['index']);
 }
 
-import { previewPageToTemplateId } from '../../utils/preview-page-template';
-export { previewPageToTemplateId };
-
 function templateForPreviewPage(page: ThemePreviewPage): string {
   return previewPageToTemplateId(page);
 }
 
-function collectShopifyPreviewPages(seeds: MenuSeed[]): Set<string> {
-  const pages = new Set<string>();
-  const walk = (list: MenuSeed[]) => {
-    for (const s of list) {
-      pages.add(s.previewPage);
-      if (s.children?.length) walk(s.children);
-    }
-  };
-  walk(seeds);
-  return pages;
-}
-
-const SHOPIFY_PREVIEW_PAGES = collectShopifyPreviewPages(SHOPIFY_PAGE_MENU);
+const SHOPIFY_PREVIEW_PAGES = allRegistryPageIds();
 
 function pageAllowed(page: ThemePreviewPage, available: Set<string>): boolean {
   if (SHOPIFY_PREVIEW_PAGES.has(page)) return true;

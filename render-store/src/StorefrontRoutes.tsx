@@ -58,6 +58,7 @@ export const StorefrontRoutes = () => (
       <Route path="/products" element={<StorefrontHomeRoute />} />
       <Route path="/products/:id" element={<StorefrontProductRoute />} />
       <Route path="/collection" element={<StorefrontHomeRoute />} />
+      <Route path="/collections/all" element={<StorefrontHomeRoute />} />
       <Route path="/collections" element={<StorefrontHomeRoute />} />
       <Route
         path="/collections/:urlHandle"
@@ -75,6 +76,7 @@ export const StorefrontRoutes = () => (
       <Route path="/my-orders" element={<StorefrontOrdersRoute />} />
       <Route path="/preferences" element={<StorefrontPreferencesRoute />} />
       <Route path="/cart" element={<StorefrontCartRoute />} />
+      <Route path="/search" element={<StorefrontHomeRoute />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   </Router>

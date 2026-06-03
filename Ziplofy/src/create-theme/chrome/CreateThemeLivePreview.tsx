@@ -1,6 +1,4 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { creatorConfigHasSections } from '../../utils/theme-editor-static-pack';
-import { previewPageToTemplateId } from '../../utils/preview-page-template';
 import { PreviewLoadingOverlay, PreviewSyncPulse } from './PreviewStatus';
 
 const EDITOR_SOURCE = 'ziplofy-theme-editor';
@@ -432,6 +430,7 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
     );
   }, [insertHoverHighlight, ready]);
 
+  /** Reset iframe handshake only when preview origin/store changes — not on page switch. */
   useEffect(() => {
     initSentRef.current = false;
     setReady(false);
@@ -443,30 +442,13 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
       if (configPostTimerRef.current !== undefined) window.clearTimeout(configPostTimerRef.current);
       if (hintsPostTimerRef.current !== undefined) window.clearTimeout(hintsPostTimerRef.current);
     };
-  }, [storeId, previewSrc, page]);
+  }, [storeId, previewSrc]);
 
   useEffect(() => {
     if (ready && storeId) {
       postInit();
     }
   }, [ready, storeId, page, cssUrl, storeName, jsUrl, postInit]);
-
-  const previewTemplateId = useMemo(() => previewPageToTemplateId(page ?? 'index'), [page]);
-  const previewHasSections = useMemo(
-    () => creatorConfigHasSections(config, previewTemplateId),
-    [config, previewTemplateId]
-  );
-
-  const emptyCanvasMessage = (
-    <div
-      className={`flex min-h-[320px] flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center ${className}`}
-    >
-      <p className="text-base font-medium text-gray-700">Your canvas is empty</p>
-      <p className="mt-2 max-w-sm text-sm text-gray-500">
-        Start adding elements from the sidebar to get a preview here.
-      </p>
-    </div>
-  );
 
   if (!storeId?.trim()) {
     return (
@@ -476,10 +458,6 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
         Select a store to enable live preview.
       </div>
     );
-  }
-
-  if (!previewHasSections) {
-    return emptyCanvasMessage;
   }
 
   return (
@@ -492,7 +470,7 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
         </div>
       )}
       <iframe
-        key={previewHasSections ? 'preview-with-sections' : 'preview-empty'}
+        key="theme-live-preview"
         ref={iframeRef}
         title="Theme live preview"
         src={previewSrc}

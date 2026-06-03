@@ -18,6 +18,7 @@ import {
   syncLayoutOrderFromSections,
 } from './theme-editor-insert-section';
 import { seedSectionEnabledValues } from './theme-editor-section-visibility.util';
+import { THEME_PAGE_REGISTRY } from '../create-theme/utils/theme-page-registry';
 
 const PACK_MODULES: Record<
   string,
@@ -343,6 +344,15 @@ export function createEmptyCreatorConfig(
       sections: {},
       section_order: [],
     };
+  }
+  for (const entry of THEME_PAGE_REGISTRY) {
+    if (!templates[entry.templateId]) {
+      templates[entry.templateId] = {
+        name: entry.label,
+        sections: {},
+        section_order: [],
+      };
+    }
   }
   const config: Record<string, unknown> = {
     version: packDefault.version ?? '1.0.0',

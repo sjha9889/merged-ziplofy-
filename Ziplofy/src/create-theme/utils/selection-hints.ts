@@ -14,7 +14,6 @@ import {
   templateBlueprintKey,
 } from '../../utils/theme-editor-insert-section';
 import { previewPageToTemplateId } from '../../utils/preview-page-template';
-import { previewPageToTemplateId } from '../../utils/preview-page-template';
 
 type SchemaBlock = {
   id?: string;

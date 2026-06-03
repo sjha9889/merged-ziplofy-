@@ -1,8 +1,10 @@
 import { useEffect, useMemo } from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { CustomThemeTemplatePage } from '@ziplofy/create-theme/runtime';
+import { previewPageToTemplateId } from '@ziplofy/create-theme/utils/theme-page-registry';
 import { postToParent } from './previewBridge';
 import { previewPageToRoute, type ThemePreviewPage } from './previewBridge';
+import { renderThemePageRoutes } from './ThemePageRouteElements';
 
 type Props = {
   page: ThemePreviewPage;
@@ -12,33 +14,20 @@ type Props = {
 export function CustomThemeComposerPreview({ page, pageRevision }: Props) {
   useEffect(() => {
     postToParent({ source: 'ziplofy-theme-preview', type: 'ZIPLOFY_PREVIEW_LOADED' });
-  }, []);
+  }, [page, pageRevision]);
 
   const routeKey = `${page}-${pageRevision}`;
   const initialEntry = useMemo(() => previewPageToRoute(page), [page]);
-
-  const templateId = page || 'index';
+  const fallbackTemplateId = previewPageToTemplateId(page);
 
   return (
     <MemoryRouter key={routeKey} initialEntries={[initialEntry]}>
       <Routes>
-        <Route path="/" element={<CustomThemeTemplatePage templateId="index" />} />
-        <Route path="/products" element={<CustomThemeTemplatePage templateId="products" />} />
-        <Route path="/products/:id" element={<CustomThemeTemplatePage templateId="product" />} />
-        <Route path="/collection" element={<CustomThemeTemplatePage templateId="collection" />} />
+        {renderThemePageRoutes()}
         <Route
-          path="/collections"
-          element={<CustomThemeTemplatePage templateId="collections-list" />}
+          path="*"
+          element={<CustomThemeTemplatePage templateId={fallbackTemplateId} />}
         />
-        <Route path="/collections/:urlHandle" element={<CustomThemeTemplatePage templateId="collection" />} />
-        <Route path="/auth/login" element={<CustomThemeTemplatePage templateId="login" />} />
-        <Route path="/auth/signup" element={<CustomThemeTemplatePage templateId="signup" />} />
-        <Route path="/auth/forgot" element={<CustomThemeTemplatePage templateId="forgot_password" />} />
-        <Route path="/profile" element={<CustomThemeTemplatePage templateId="profile" />} />
-        <Route path="/my-orders" element={<CustomThemeTemplatePage templateId="orders" />} />
-        <Route path="/preferences" element={<CustomThemeTemplatePage templateId="preferences" />} />
-        <Route path="/cart" element={<CustomThemeTemplatePage templateId="cart" />} />
-        <Route path="*" element={<CustomThemeTemplatePage templateId={templateId} />} />
       </Routes>
     </MemoryRouter>
   );

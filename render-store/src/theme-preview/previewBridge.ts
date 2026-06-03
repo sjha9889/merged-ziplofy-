@@ -1,36 +1,20 @@
 /** postMessage contract between Ziplofy theme editor (parent) and render-store preview iframe. */
 
+import {
+  previewPageToRoute as registryPreviewPageToRoute,
+  PREVIEW_PAGE_ROUTES,
+} from '@ziplofy/create-theme/utils/theme-page-registry';
+
 export const PREVIEW_MESSAGE_SOURCE = 'ziplofy-theme-editor' as const;
 export const PREVIEW_FRAME_SOURCE = 'ziplofy-theme-preview' as const;
 
 /** Theme template id for preview routing (matches manifest templates). */
 export type ThemePreviewPage = string;
 
-export const PREVIEW_PAGE_ROUTES: Record<string, string> = {
-  index: '/',
-  product: '/products/preview',
-  products: '/products',
-  collections: '/collection',
-  'collections-list': '/collections',
-  collection: '/collection',
-  'gift-card': '/',
-  cart: '/cart',
-  checkout: '/auth/login',
-  pages: '/',
-  blogs: '/',
-  'blog-posts': '/',
-  search: '/',
-  password: '/auth/login',
-  login: '/auth/login',
-  signup: '/auth/signup',
-  forgot_password: '/auth/forgot',
-  profile: '/profile',
-  orders: '/my-orders',
-  preferences: '/preferences',
-};
+export { PREVIEW_PAGE_ROUTES };
 
 export function previewPageToRoute(page: ThemePreviewPage): string {
-  return PREVIEW_PAGE_ROUTES[page] ?? '/';
+  return registryPreviewPageToRoute(page);
 }
 
 export type ThemePreviewSelectionKind = 'section' | 'block' | 'field' | 'element';

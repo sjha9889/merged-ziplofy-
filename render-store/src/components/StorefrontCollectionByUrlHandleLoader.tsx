@@ -7,8 +7,14 @@ import { useStorefrontCollections } from '@/contexts/storefront-collections.cont
  * When the route is `/collections/:urlHandle`, loads collection metadata and products
  * via storefront API (storeId + urlHandle), not collection id.
  */
-export function StorefrontCollectionByUrlHandleLoader() {
-  const { urlHandle } = useParams<{ urlHandle: string }>();
+type Props = {
+  /** Use when the route has no :urlHandle param (e.g. /collections/all). */
+  urlHandleOverride?: string;
+};
+
+export function StorefrontCollectionByUrlHandleLoader({ urlHandleOverride }: Props = {}) {
+  const { urlHandle: paramHandle } = useParams<{ urlHandle: string }>();
+  const urlHandle = urlHandleOverride ?? paramHandle;
   const { storeFrontMeta } = useStorefront();
   const {
     getCollectionDetailsByUrlHandle,

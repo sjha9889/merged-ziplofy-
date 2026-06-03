@@ -8,11 +8,54 @@ import {
 import { LayeredSlideshowPreviewArt } from './LayeredSlideshowPreviewArt';
 import { HeaderPreviewArt } from '../header/preview';
 
+function SlideshowLandscapeIllustration() {
+  return (
+    <>
+      <div
+        className="absolute inset-0 bg-gradient-to-b from-[#ebe6dc] via-[#e0d9ce] to-[#c5d4b8]"
+        aria-hidden
+      />
+      <div
+        className="absolute left-1/2 top-[9%] h-11 w-11 -translate-x-1/2 rounded-full bg-white shadow-sm"
+        aria-hidden
+      />
+      <div
+        className="absolute bottom-0 left-0 right-0 h-[48%] bg-[#5f9468]/88"
+        style={{
+          clipPath:
+            'polygon(0% 100%, 0% 50%, 18% 58%, 38% 38%, 58% 52%, 78% 32%, 100% 48%, 100% 100%)',
+        }}
+        aria-hidden
+      />
+      <div
+        className="absolute bottom-0 left-0 right-0 h-[32%] bg-[#4a7d56]/92"
+        style={{
+          clipPath: 'polygon(0% 100%, 12% 62%, 35% 72%, 55% 55%, 78% 68%, 100% 58%, 100% 100%)',
+        }}
+        aria-hidden
+      />
+      <div
+        className="absolute bottom-0 left-1/2 flex h-[58%] w-[42%] -translate-x-[8%] justify-center"
+        aria-hidden
+      >
+        <div className="relative h-full w-full">
+          <div className="absolute left-1/2 top-[4%] h-[20%] w-[36%] -translate-x-1/2 rounded-full bg-[#e8c4a8]" />
+          <div className="absolute left-1/2 top-[18%] h-[22%] w-[50%] -translate-x-1/2 rounded-t-md bg-white" />
+          <div className="absolute left-1/2 top-[24%] h-[76%] w-[94%] -translate-x-1/2 overflow-hidden rounded-t-[26%] bg-[#4a7fc4]">
+            <div className="absolute left-[9%] top-0 h-full w-[13%] bg-[#3a6dad]" />
+            <div className="absolute right-[9%] top-0 h-full w-[13%] bg-[#3a6dad]" />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function SlideshowFullFrameScene({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative mx-auto w-full max-w-[400px] overflow-hidden rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.18)]">
       <div className="relative aspect-[4/3] w-full bg-[#ddd6c8]">
-        <HeroLandscapeIllustration />
+        <SlideshowLandscapeIllustration />
         {children}
       </div>
     </div>

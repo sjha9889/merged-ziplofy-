@@ -146,6 +146,7 @@ export function ThemePreviewRuntime({ jsUrl, cssUrl, page, pageRevision }: Theme
         <Route path="/products" element={<Home />} />
         <Route path="/products/:id" element={<Product />} />
         <Route path="/collection" element={<Home />} />
+        <Route path="/collections/all" element={<Home />} />
         <Route path="/collections" element={<Home />} />
         <Route path="/collections/:urlHandle" element={<Home />} />
         <Route path="/auth/login" element={<Login />} />
@@ -155,6 +156,7 @@ export function ThemePreviewRuntime({ jsUrl, cssUrl, page, pageRevision }: Theme
         <Route path="/my-orders" element={<Orders />} />
         <Route path="/preferences" element={<Preferences />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/search" element={<Home />} />
         <Route path="*" element={<Home />} />
       </Routes>
     </MemoryRouter>
