@@ -33,6 +33,7 @@ export function SectionRuntimeNode({ sectionId, placement, templateId = 'index' 
     placement === 'layout'
       ? readLayoutSection(config, sectionId)
       : readTemplateSection(config, templateId, sectionId);
+  if (!record) return null;
   const sectionType = sectionTypeFromRecord(sectionId, record);
   const Runtime = resolveRuntimeForSectionType(sectionType);
 

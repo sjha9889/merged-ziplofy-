@@ -47,6 +47,8 @@ export type ThemePreviewInitPayload = {
   config: Record<string, unknown>;
   page?: ThemePreviewPage;
   selectionHints?: ThemePreviewSelectionHint[];
+  /** When false, preview selection / inspector overlay is off (browse mode). */
+  inspectorEnabled?: boolean;
 };
 
 export type ThemePreviewConfigPayload = {
@@ -106,6 +108,11 @@ export type ParentToPreviewMessage =
       source: typeof PREVIEW_MESSAGE_SOURCE;
       type: 'ZIPLOFY_PREVIEW_HINTS';
       payload: { selectionHints: ThemePreviewSelectionHint[] };
+    }
+  | {
+      source: typeof PREVIEW_MESSAGE_SOURCE;
+      type: 'ZIPLOFY_PREVIEW_INSPECTOR';
+      payload: { enabled: boolean };
     };
 
 export type ThemePreviewFieldChangePayload = {

@@ -1771,7 +1771,7 @@ export function buildShopifySidebarTree(
 
   const footerOrder = config
     ? existingLayoutSectionIds(cfg as Record<string, unknown>, 'footer')
-    : ['footer', 'footer_utilities'];
+    : [];
 
   const footerNodes: SidebarNode[] = [];
   const indexTpl = schema.templates?.find((t) => t.id === 'index');

@@ -25,6 +25,7 @@ import { PermissionsProvider } from "./contexts/permissions.context";
 import { PurchaseOrderProvider } from "./contexts/purchase-order.context";
 import { StoreRolesProvider } from "./contexts/store-roles.context";
 import { StoreSecuritySettingsProvider } from "./contexts/store-security-settings.context";
+import { CreateThemePoweredByLoader } from "./create-theme/chrome/CreateThemePoweredByLoader";
 
 // Lazy-loaded page components (code splitting)
 const BasicElementor = lazy(() => import("./pages/themes/BasicElementor"));
@@ -450,7 +451,20 @@ const AdminApp: React.FC = () => {
 
             {/* Themes Subsection */}
             <Route path="/themes/all-themes" element={<AllThemes />} />
-            <Route path="/themes/create" element={<CreateThemePage />} />
+            <Route
+              path="/themes/create"
+              element={
+                <Suspense
+                  fallback={
+                    <div className="fixed inset-0 z-[1310] flex items-center justify-center bg-white">
+                      <CreateThemePoweredByLoader />
+                    </div>
+                  }
+                >
+                  <CreateThemePage />
+                </Suspense>
+              }
+            />
             <Route path="/themes/builder" element={<CustomThemeBuilder />} />
             <Route path="/themes/basic-elementor" element={<BasicElementor />} />
             <Route path="/themes/edit/:themeId" element={<ThemeEditor />} />

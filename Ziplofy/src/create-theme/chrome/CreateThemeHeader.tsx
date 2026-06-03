@@ -1,6 +1,7 @@
 import React from 'react';
 import { ComputerDesktopIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
 import { CreateThemePagePicker } from './CreateThemePagePicker';
+import { InspectorToggleIcon } from './InspectorToggleIcon';
 import type { EditorSchemaDoc } from '../sidebar/create-theme-sidebar.types';
 import type { ThemePreviewPage } from './CreateThemeLivePreview';
 
@@ -19,6 +20,8 @@ type Props = {
   onSave?: () => void;
   saveDisabled?: boolean;
   saving?: boolean;
+  inspectorEnabled?: boolean;
+  onInspectorEnabledChange?: (enabled: boolean) => void;
 };
 
 export function CreateThemeHeader({
@@ -36,6 +39,8 @@ export function CreateThemeHeader({
   onSave,
   saveDisabled = false,
   saving = false,
+  inspectorEnabled = true,
+  onInspectorEnabledChange,
 }: Props) {
   return (
     <header className="relative grid h-14 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-gray-200 bg-white px-3">
@@ -73,6 +78,22 @@ export function CreateThemeHeader({
           >
             <span className="font-mono text-[11px] text-gray-500">{'{}'}</span>
             View theme JSON
+          </button>
+        ) : null}
+        {onInspectorEnabledChange ? (
+          <button
+            type="button"
+            onClick={() => onInspectorEnabledChange(!inspectorEnabled)}
+            className={`flex h-9 w-9 items-center justify-center rounded-lg border transition-colors ${
+              inspectorEnabled
+                ? 'border-[#b4cce8] bg-[#e8f0fe] text-[#005bd3]'
+                : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+            }`}
+            title={inspectorEnabled ? 'Turn off inspector' : 'Turn on inspector'}
+            aria-pressed={inspectorEnabled}
+            aria-label="Inspector"
+          >
+            <InspectorToggleIcon className="h-5 w-5" />
           </button>
         ) : null}
         <div className="flex rounded-lg border border-gray-200 p-0.5">

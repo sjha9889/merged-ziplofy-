@@ -210,9 +210,6 @@ export function existingLayoutSectionIds(
   if (group === 'footer') {
     for (const id of ordered) add(id);
     for (const id of footerLayoutSectionIds(config ?? {})) add(id);
-    if (!out.length) {
-      defaultFooterSectionOrder(config ?? {}).forEach(add);
-    }
     return out;
   }
 
@@ -268,11 +265,9 @@ export function sanitizeThemeConfigStructure(config: Record<string, unknown>): v
 
   const headerIds = new Set(order.header ?? []);
   const footerIds = new Set(order.footer ?? []);
+  const listedLayoutIds = new Set([...headerIds, ...footerIds]);
   for (const id of Object.keys(layoutSections)) {
-    if (headerIds.has(id) || footerIds.has(id)) continue;
-    if (id === 'header' || id === 'footer' || id === 'footer_utilities') continue;
-    if (id.startsWith('header_') && headerIds.has('header')) continue;
-    if (!headerIds.has(id) && !footerIds.has(id)) {
+    if (!listedLayoutIds.has(id)) {
       delete layoutSections[id];
     }
   }
@@ -286,15 +281,18 @@ export function sanitizeThemeConfigStructure(config: Record<string, unknown>): v
     const keys = new Set(Object.keys(sections));
     const order = Array.isArray(tpl.section_order) ? tpl.section_order : [];
     const next = order.filter((id) => keys.has(id));
-    if (next.length !== order.length) {
-      tpl.section_order = next;
+    tpl.section_order = next;
+    for (const id of Object.keys(sections)) {
+      if (!next.includes(id)) {
+        delete sections[id];
+      }
     }
   }
 }
 
 export function defaultHeaderSectionOrder(config: Record<string, unknown>): string[] {
   const sections = config.sections as Record<string, unknown> | undefined;
-  if (!sections) return ['announcement_bar', 'header'];
+  if (!sections) return [];
   const keys = Object.keys(sections);
   const announcements = keys.filter((k) => k === 'announcement_bar' || k.startsWith('announcement_bar_'));
   const header = keys.includes('header') ? ['header'] : [];
@@ -303,11 +301,11 @@ export function defaultHeaderSectionOrder(config: Record<string, unknown>): stri
 
 export function defaultFooterSectionOrder(config: Record<string, unknown>): string[] {
   const sections = config.sections as Record<string, unknown> | undefined;
-  if (!sections) return ['footer', 'footer_utilities'];
+  if (!sections) return [];
   const out: string[] = [];
   if (sections.footer) out.push('footer');
   if (sections.footer_utilities) out.push('footer_utilities');
-  return out.length ? out : ['footer'];
+  return out;
 }
 
 export function ensureLayoutOrder(config: Record<string, unknown>): LayoutOrder {
@@ -428,11 +426,17 @@ export function remapTemplateSchemaPath(path: string, tplId: string, instanceId:
 }
 
 export function layoutBlueprintKey(sectionId: string): string {
-  if (sectionId === 'header' || sectionId === 'footer' || sectionId === 'footer_utilities') {
-    return sectionId;
-  }
   if (sectionId === 'announcement_bar' || sectionId.startsWith('announcement_bar_')) {
     return 'announcement_bar';
+  }
+  if (sectionId === 'header' || sectionId.startsWith('header_')) {
+    return 'header';
+  }
+  if (sectionId === 'footer_utilities' || sectionId.startsWith('footer_utilities_')) {
+    return 'footer_utilities';
+  }
+  if (sectionId === 'footer' || sectionId.startsWith('footer_')) {
+    return 'footer';
   }
   if (sectionId === 'hero_main' || sectionId.startsWith('hero_main_')) {
     return 'hero_main';

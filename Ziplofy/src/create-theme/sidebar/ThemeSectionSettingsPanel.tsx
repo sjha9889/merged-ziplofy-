@@ -171,6 +171,7 @@ import {
 } from './theme-editor-collection-links-spotlight-panel.utils';
 import { CollectionsPickerFieldRow } from './CollectionsPickerFieldRow';
 import type { Collection } from '../../contexts/collection.context';
+import type { StoreMenu, StoreMenuItem } from '../../contexts/store-menu.context';
 import {
   groupCollectionListBentoPanelFields,
   COLLECTION_LIST_BENTO_PANEL_GROUP_ORDER,
@@ -6442,6 +6443,11 @@ type ThemeSectionSettingsPanelProps = {
   values: Record<string, string | boolean>;
   onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
   onCollectionLinksApply?: (settingsPath: string, collections: Collection[]) => void;
+  onStoreMenuSelect?: (
+    menuFieldPath: string,
+    menu: StoreMenu,
+    items: StoreMenuItem[]
+  ) => void;
   onClose: () => void;
   onRemoveSection?: () => void;
   onRemoveBlock?: () => void;
@@ -6452,6 +6458,7 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
   values,
   onFieldChange,
   onCollectionLinksApply,
+  onStoreMenuSelect,
   onClose,
   onRemoveSection,
   onRemoveBlock,
@@ -6772,6 +6779,7 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
             fields={fields}
             values={values}
             onFieldChange={onFieldChange}
+            onStoreMenuSelect={onStoreMenuSelect}
           />
         ) : fields.length === 0 ? (
           <p className="text-[13px] text-gray-500">No settings for this item.</p>

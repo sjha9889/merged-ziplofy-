@@ -24,6 +24,7 @@ import { SectionInsertZone } from './CreateThemeSectionInsertZone';
 import type { SectionCatalogGroup, SectionInsertContext } from './insert-context';
 import { ThemeSectionSettingsPanel } from './ThemeSectionSettingsPanel';
 import type { Collection } from '../../contexts/collection.context';
+import type { StoreMenu, StoreMenuItem } from '../../contexts/store-menu.context';
 import type { ThemeEditorFieldType } from './create-theme-field.utils';
 import {
   isSectionVisibilityHidden,
@@ -657,6 +658,7 @@ export type CreateThemeEditorSidebarProps = {
     value: string | boolean
   ) => void;
   onCollectionLinksApply?: (settingsPath: string, collections: Collection[]) => void;
+  onStoreMenuSelect?: (menuFieldPath: string, menu: StoreMenu, items: StoreMenuItem[]) => void;
   onCloseSettings?: () => void;
   onRemoveSettingsSection?: () => void;
   onRemoveSettingsBlock?: () => void;
@@ -685,6 +687,7 @@ const CreateThemeEditorSidebarInner: React.FC<CreateThemeEditorSidebarProps> = (
   settingsValues = {},
   onSettingsFieldChange,
   onCollectionLinksApply,
+  onStoreMenuSelect,
   onCloseSettings,
   onRemoveSettingsSection,
   onRemoveSettingsBlock,
@@ -810,6 +813,7 @@ const CreateThemeEditorSidebarInner: React.FC<CreateThemeEditorSidebarProps> = (
             values={settingsValues}
             onFieldChange={onSettingsFieldChange!}
             onCollectionLinksApply={onCollectionLinksApply}
+            onStoreMenuSelect={onStoreMenuSelect}
             onClose={onCloseSettings!}
             onRemoveSection={onRemoveSettingsSection}
             onRemoveBlock={onRemoveSettingsBlock}

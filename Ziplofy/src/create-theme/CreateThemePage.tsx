@@ -23,7 +23,7 @@ import {
 } from './sidebar';
 import { CreateThemeHeader } from './chrome/CreateThemeHeader';
 import CreateThemeLivePreview, { type ThemePreviewPage } from './chrome/CreateThemeLivePreview';
-import { EditorBlockingOverlay } from './chrome/PreviewStatus';
+import { CreateThemePoweredByLoader } from './chrome/CreateThemePoweredByLoader';
 import { buildThemeEditorPageMenu, findPageMenuItemByPreview } from './utils/page-menu';
 import {
   buildThemeEditorSelectionHints,
@@ -34,11 +34,13 @@ import { useRafBatchedCounter } from '../hooks/useRafBatchedState';
 import { THEME_EDITOR_STATIC_CONFIG } from '../config/theme-editor-static.config';
 import { useStore } from '../contexts/store.context';
 import type { Collection } from '../contexts/collection.context';
+import type { StoreMenu, StoreMenuItem } from '../contexts/store-menu.context';
 import {
   applyCollectionLinksSelectionToConfig,
   pruneCollectionLinkBlockValues,
   sectionBaseFromCollectionsPickerPath,
 } from './utils/collection-links-collections.util';
+import { applyStoreMenuSelectionToConfig } from './utils/store-menu-header.util';
 import { useStoreCustomThemes } from '../contexts/store-custom-themes.context';
 import {
   applyValuesToThemeConfig,
@@ -66,10 +68,9 @@ import {
   creatorConfigHasSections,
   formValuesFromEditorConfig,
   loadCreatorThemeEditorPack,
+  normalizeCreatorThemeConfig,
 } from '../utils/theme-editor-static-pack';
 import {
-  sanitizeThemeConfigStructure,
-  syncLayoutOrderFromSections,
 } from '../utils/theme-editor-insert-section';
 import { mergedConfigFromFormValues } from '../utils/theme-editor-static-save';
 import { fieldTypeFromSchema, type ThemeEditorFieldType } from './sidebar/create-theme-field.utils';
@@ -130,6 +131,7 @@ const CreateThemePage: React.FC = () => {
   const [showViewTheme, setShowViewTheme] = useState(false);
   const [previewPage, setPreviewPage] = useState<ThemePreviewPage>('index');
   const [device, setDevice] = useState<'desktop' | 'mobile'>('desktop');
+  const [inspectorEnabled, setInspectorEnabled] = useState(true);
   const [sidebarTab, setSidebarTab] = useState<ThemeEditorSidebarTab>('sections');
   const [selectedNodeId, setSelectedNodeId] = useState('');
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -193,8 +195,7 @@ const CreateThemePage: React.FC = () => {
           const saved = list.find((t) => t._id === editThemeId);
           if (saved?.themeConfig && typeof saved.themeConfig === 'object') {
             config = JSON.parse(JSON.stringify(saved.themeConfig)) as Record<string, unknown>;
-            sanitizeThemeConfigStructure(config);
-            syncLayoutOrderFromSections(config);
+            normalizeCreatorThemeConfig(config);
             nextValues = creatorConfigHasSections(config)
               ? {
                   ...formValuesFromEditorConfig(schema, config),
@@ -209,8 +210,7 @@ const CreateThemePage: React.FC = () => {
           }
         }
 
-        sanitizeThemeConfigStructure(config);
-        syncLayoutOrderFromSections(config);
+        normalizeCreatorThemeConfig(config);
 
         setEditorSchema(schema);
         setDefaultConfig(config);
@@ -503,6 +503,27 @@ const CreateThemePage: React.FC = () => {
     [bumpValuesSync]
   );
 
+  const handleStoreMenuSelect = useCallback(
+    (menuFieldPath: string, menu: StoreMenu, items: StoreMenuItem[]) => {
+      setDefaultConfig((prev) => {
+        if (!prev) return prev;
+        const { config, itemValuePaths } = applyStoreMenuSelectionToConfig(
+          prev,
+          menuFieldPath,
+          menu,
+          items
+        );
+        startTransition(() => {
+          setValues((v) => ({ ...v, ...itemValuePaths }));
+        });
+        bumpValuesSync();
+        setStructureSyncKey((k) => k + 1);
+        return config;
+      });
+    },
+    [bumpValuesSync]
+  );
+
   const handleCollectionLinksApply = useCallback(
     (settingsPath: string, collections: Collection[]) => {
       setDefaultConfig((prev) => {
@@ -592,7 +613,7 @@ const CreateThemePage: React.FC = () => {
         toast.error('Could not add this section yet');
         return;
       }
-      syncLayoutOrderFromSections(result.config);
+      normalizeCreatorThemeConfig(result.config);
       setDefaultConfig(result.config);
       const el = getCreateThemeElement(elementId);
       if (el?.insert.placement === 'layout') {
@@ -783,6 +804,14 @@ const CreateThemePage: React.FC = () => {
     setSelectedNodeId('');
   }, []);
 
+  const handleInspectorEnabledChange = useCallback((enabled: boolean) => {
+    setInspectorEnabled(enabled);
+    if (!enabled) {
+      setSelectedNodeId('');
+      setInsertHoverHighlight(null);
+    }
+  }, []);
+
   const handleRemoveSettingsSection = useCallback(() => {
     if (!settingsNode) return;
     handleDeleteSidebarNode(settingsNode.id);
@@ -795,8 +824,8 @@ const CreateThemePage: React.FC = () => {
 
   if (loading && !editorSchema) {
     return (
-      <div className="fixed inset-0 z-[1310] flex flex-col bg-[#1e1e1e]">
-        <EditorBlockingOverlay label="Loading theme creator…" />
+      <div className="fixed inset-0 z-[1310] flex items-center justify-center bg-white">
+        <CreateThemePoweredByLoader />
       </div>
     );
   }
@@ -832,6 +861,8 @@ const CreateThemePage: React.FC = () => {
         onSave={handleSave}
         saveDisabled={!defaultConfig || !editorSchema || loading}
         saving={savingTheme}
+        inspectorEnabled={inspectorEnabled}
+        onInspectorEnabledChange={handleInspectorEnabledChange}
       />
 
       <div className="flex min-h-0 flex-1">
@@ -917,6 +948,7 @@ const CreateThemePage: React.FC = () => {
           settingsValues={values}
           onSettingsFieldChange={handleFieldChange}
           onCollectionLinksApply={handleCollectionLinksApply}
+          onStoreMenuSelect={handleStoreMenuSelect}
           onCloseSettings={closeSettings}
           onRemoveSettingsSection={handleRemoveSettingsSection}
           onRemoveSettingsBlock={handleRemoveSettingsBlock}
@@ -940,7 +972,8 @@ const CreateThemePage: React.FC = () => {
               valuesSyncKey={valuesSyncKey}
               page={previewPage}
               selectionHints={selectionHints}
-              highlightNodeId={selectedNodeId || null}
+              highlightNodeId={inspectorEnabled ? selectedNodeId || null : null}
+              inspectorEnabled={inspectorEnabled}
               onPreviewSelect={({ nodeId }) => handlePreviewSelect(nodeId)}
               onPreviewDeselect={() => setSelectedNodeId('')}
               onPreviewFieldChange={(fieldPath, value) => {

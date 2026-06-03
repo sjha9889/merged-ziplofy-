@@ -406,8 +406,16 @@ function headerMenuBlockPreview(
   const raw = values[path];
   if (raw === undefined || raw === null || raw === '') return undefined;
   const value = String(raw);
+  const menuNamePath = remapLayoutSchemaPath(
+    menuField.path.replace(/\.menu$/, '.menuName'),
+    layoutInstance
+  );
+  const menuName = values[menuNamePath];
+  if (menuName != null && String(menuName).trim()) return String(menuName);
   const opt = menuField.options?.find((o) => o.value === value);
-  return opt?.label ?? value;
+  if (opt?.label) return opt.label;
+  if (/^[0-9a-fA-F]{24}$/.test(value)) return 'Store menu';
+  return value;
 }
 
 /** Shopify Hero: Bottom aligned — Group → Group → Text / Heading + Text. */
@@ -1781,7 +1789,7 @@ export function buildShopifySidebarTree(
 
   const footerOrder = config
     ? existingLayoutSectionIds(cfg as Record<string, unknown>, 'footer')
-    : ['footer', 'footer_utilities'];
+    : [];
 
   const footerNodes: SidebarNode[] = [];
   const indexTpl = schema.templates?.find((t) => t.id === 'index');

@@ -187,6 +187,12 @@ export function PreviewSelectionLayer({
   }, [enabled]);
 
   useEffect(() => {
+    if (enabled) return;
+    clearPreviewSelection({ commitEdit: false });
+    postToParent({ source: 'ziplofy-theme-preview', type: 'ZIPLOFY_PREVIEW_DESELECT' });
+  }, [enabled, clearPreviewSelection]);
+
+  useEffect(() => {
     if (!enabled || isEditingRef.current) return;
     const structureKey = hintsStructureKey(hints);
     const matchKey = hintsMatchKey(hints);

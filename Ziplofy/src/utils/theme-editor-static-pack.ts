@@ -15,6 +15,7 @@ import {
 import {
   mergeTemplateSectionBlueprintsFromPack,
   sanitizeThemeConfigStructure,
+  syncLayoutOrderFromSections,
 } from './theme-editor-insert-section';
 import { seedSectionEnabledValues } from './theme-editor-section-visibility.util';
 
@@ -275,18 +276,34 @@ export function saveStaticThemeConfigLocal(
 
 export const THEME_CREATOR_CONFIG_STORAGE_KEY = 'ziplofy-theme-creator-config';
 
-/** True when the creator config has at least one layout or template section instance. */
+/** True when the creator config has at least one section listed in layout_order or template section_order. */
 export function creatorConfigHasSections(
   config: Record<string, unknown> | null,
   templateId = 'index'
 ): boolean {
   if (!config) return false;
-  const layout = (config.sections ?? {}) as Record<string, unknown>;
-  if (Object.keys(layout).length > 0) return true;
-  const tpl = (config.templates as Record<string, { sections?: Record<string, unknown> }> | undefined)?.[
+  const layoutSections = (config.sections ?? {}) as Record<string, unknown>;
+  const layoutKeys = new Set(Object.keys(layoutSections));
+  const layoutOrder = (config.layout_order ?? {}) as { header?: string[]; footer?: string[] };
+  const listedLayout = [...(layoutOrder.header ?? []), ...(layoutOrder.footer ?? [])].filter((id) =>
+    layoutKeys.has(id)
+  );
+  if (listedLayout.length > 0) return true;
+
+  const tpl = (config.templates as Record<string, { sections?: Record<string, unknown>; section_order?: string[] }> | undefined)?.[
     templateId
   ];
-  return Object.keys(tpl?.sections ?? {}).length > 0;
+  const tplSections = tpl?.sections ?? {};
+  const tplKeys = new Set(Object.keys(tplSections));
+  const tplOrder = Array.isArray(tpl?.section_order) ? tpl.section_order : [];
+  return tplOrder.some((id) => tplKeys.has(id));
+}
+
+/** Drop orphan layout/template sections and sync order — use after load/save in Theme Creator. */
+export function normalizeCreatorThemeConfig(config: Record<string, unknown>): void {
+  sanitizeThemeConfigStructure(config);
+  syncLayoutOrderFromSections(config);
+  sanitizeThemeConfigStructure(config);
 }
 
 /** Theme settings only — avoids materializing layout/template sections via applyValues. */

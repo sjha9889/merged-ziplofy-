@@ -52,6 +52,8 @@ export type CreateThemeLivePreviewProps = {
   onPreviewInsertSection?: (payload: { afterNodeId?: string; beforeNodeId?: string }) => void;
   insertHoverHighlight?: { afterNodeId?: string; beforeNodeId?: string } | null;
   highlightNodeId?: string | null;
+  /** Theme inspector: click sections/blocks in preview to select and edit. */
+  inspectorEnabled?: boolean;
   /** Bumped on sidebar structure reorder — posts config to iframe immediately. */
   structureSyncKey?: number;
   /** Bumped on sidebar / inline field edits — posts config immediately (keeps preview in sync). */
@@ -119,6 +121,7 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
   onPreviewInsertSection,
   insertHoverHighlight = null,
   highlightNodeId,
+  inspectorEnabled = true,
   structureSyncKey = 0,
   valuesSyncKey = 0,
   className = '',
@@ -148,6 +151,8 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
   const configPostTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const hintsPostTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const highlightRafRef = useRef(0);
+  const inspectorEnabledRef = useRef(inspectorEnabled);
+  inspectorEnabledRef.current = inspectorEnabled;
   const [syncPulse, setSyncPulse] = useState(false);
 
   /** Stable key so we only re-sync when config content changes, not object identity. */
@@ -190,12 +195,26 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
           config: configRef.current,
           page,
           selectionHints: selectionHintsRef.current,
+          inspectorEnabled: inspectorEnabledRef.current,
         },
       },
       '*'
     );
     initSentRef.current = true;
   }, [storeId, storeName, jsUrl, cssUrl, page]);
+
+  const postInspectorState = useCallback((enabled: boolean) => {
+    const frame = iframeRef.current?.contentWindow;
+    if (!frame || !initSentRef.current) return;
+    frame.postMessage(
+      {
+        source: EDITOR_SOURCE,
+        type: 'ZIPLOFY_PREVIEW_INSPECTOR',
+        payload: { enabled },
+      },
+      '*'
+    );
+  }, []);
 
   const postConfigNow = useCallback((immediate = false) => {
     const frame = iframeRef.current?.contentWindow;
@@ -393,6 +412,11 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
 
   useEffect(() => {
     if (!ready) return;
+    postInspectorState(inspectorEnabled);
+  }, [inspectorEnabled, ready, postInspectorState]);
+
+  useEffect(() => {
+    if (!ready) return;
     const frame = iframeRef.current?.contentWindow;
     if (!frame) return;
     const payload = insertHoverHighlight
@@ -466,6 +490,7 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
         </div>
       )}
       <iframe
+        key={previewHasSections ? 'preview-with-sections' : 'preview-empty'}
         ref={iframeRef}
         title="Theme live preview"
         src={previewSrc}

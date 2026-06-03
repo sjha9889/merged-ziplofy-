@@ -6,10 +6,7 @@ import type {
 } from '../sidebar/create-theme-sidebar.types';
 import { expandedIdsFromSidebarTree } from '../sidebar/create-theme-sidebar.tree';
 import {
-  defaultFooterSectionOrder,
-  defaultHeaderSectionOrder,
-  ensureLayoutOrder,
-  getLayoutOrder,
+  existingLayoutSectionIds,
   layoutBlueprintKey,
   remapLayoutSchemaPath,
   remapTemplateHeroSchemaPath,
@@ -263,10 +260,8 @@ export function buildThemeEditorSelectionHints(
   const seen = new Set<string>();
   const tplId = templateIdForPage(page);
 
-  ensureLayoutOrder(config);
-  const layoutOrder = getLayoutOrder(config);
-  const headerIds = layoutOrder.header ?? defaultHeaderSectionOrder(config);
-  const footerIds = layoutOrder.footer ?? defaultFooterSectionOrder(config);
+  const headerIds = existingLayoutSectionIds(config, 'header');
+  const footerIds = existingLayoutSectionIds(config, 'footer');
   const instanceIds = [...headerIds, ...footerIds];
 
   const indexHeroSchema = schema.templates?.find((t) => t.id === 'index')?.sections?.find((s) => s.id === 'hero_main');

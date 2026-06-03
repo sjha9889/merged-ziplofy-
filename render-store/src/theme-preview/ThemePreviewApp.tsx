@@ -53,6 +53,7 @@ export function ThemePreviewApp() {
   const [pageRevision, setPageRevision] = useState(0);
   const [selectionHints, setSelectionHints] = useState<ThemePreviewSelectionHint[]>([]);
   const [insertHighlight, setInsertHighlight] = useState<ThemePreviewInsertHighlightPayload>(null);
+  const [inspectorEnabled, setInspectorEnabled] = useState(true);
   const configDebounceRef = useRef<number | undefined>(undefined);
   const configRef = useRef<Record<string, unknown> | null>(null);
   const lastConfigJsonRef = useRef<string>('');
@@ -133,6 +134,11 @@ export function ThemePreviewApp() {
         applyConfigImmediate(payload.config);
         setPage(payload.page ?? 'index');
         setSelectionHints(payload.selectionHints ?? []);
+        setInspectorEnabled(payload.inspectorEnabled !== false);
+      }
+
+      if (msg.type === 'ZIPLOFY_PREVIEW_INSPECTOR') {
+        setInspectorEnabled(Boolean(msg.payload.enabled));
       }
 
       if (msg.type === 'ZIPLOFY_PREVIEW_CONFIG') {
@@ -233,7 +239,11 @@ export function ThemePreviewApp() {
         ) : (
           <CustomThemeComposerPreview page={page} pageRevision={pageRevision} />
         )}
-        <PreviewSelectionLayer hints={selectionHints} insertHighlight={insertHighlight} enabled />
+        <PreviewSelectionLayer
+          hints={selectionHints}
+          insertHighlight={insertHighlight}
+          enabled={inspectorEnabled}
+        />
       </PreviewErrorBoundary>
     </PreviewProviders>
   );

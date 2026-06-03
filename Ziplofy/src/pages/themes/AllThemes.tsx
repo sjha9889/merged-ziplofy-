@@ -470,7 +470,9 @@ const AllThemes: React.FC = () => {
     filteredThemes.length;
 
   const handleOpenStoreCustomTheme = (themeId: string) => {
-    navigate(`/themes/create?id=${themeId}`);
+    const url = new URL('/themes/create', window.location.origin);
+    url.searchParams.set('id', themeId);
+    window.open(url.toString(), '_blank', 'noopener,noreferrer');
   };
 
   const handleInstallStoreCustomTheme = async (theme: StoreCustomTheme) => {
