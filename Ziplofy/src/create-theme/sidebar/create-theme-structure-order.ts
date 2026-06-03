@@ -1,11 +1,8 @@
 import type { ThemePreviewPage } from '../chrome/CreateThemeLivePreview';
 import { bottomAlignedHeroStructureOrder } from '../../utils/hero-bottom-aligned.util';
 import { existingLayoutSectionIds } from '../../utils/theme-editor-insert-section';
+import { previewPageToTemplateId } from '../../utils/preview-page-template';
 import type { SidebarNode } from './create-theme-sidebar.types';
-
-function templateIdForPage(page: ThemePreviewPage): string {
-  return page || 'index';
-}
 
 export function listKeyTemplateSections(tplId: string): string {
   return `sections:template:${tplId}`;
@@ -106,7 +103,7 @@ export function readStructureOrderFromConfig(
   page: ThemePreviewPage
 ): Record<string, string[]> {
   if (!config) return {};
-  const tplId = templateIdForPage(page);
+  const tplId = previewPageToTemplateId(page);
   const out: Record<string, string[]> = {};
 
   const headerIds = existingLayoutSectionIds(config, 'header');
@@ -238,7 +235,7 @@ export function applyStructureOrderToConfig(
   orderedNodeIds: string[],
   page: ThemePreviewPage
 ): void {
-  const tplId = templateIdForPage(page);
+  const tplId = previewPageToTemplateId(page);
 
   if (listKey === listKeyHeaderSections()) {
     const sectionIds = orderedNodeIds

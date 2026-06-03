@@ -2,24 +2,32 @@ import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from '
 import { createPortal } from 'react-dom';
 import {
   ChevronDownIcon,
+  ChevronRightIcon,
   HomeIcon,
   MagnifyingGlassIcon,
-  ShoppingBagIcon,
   ShoppingCartIcon,
   DocumentTextIcon,
   UserIcon,
   ClipboardDocumentListIcon,
   ArrowLeftOnRectangleIcon,
+  GiftIcon,
+  CreditCardIcon,
+  MagnifyingGlassCircleIcon,
+  LockClosedIcon,
+  NewspaperIcon,
+  RectangleStackIcon,
+  TagIcon,
 } from '@heroicons/react/24/outline';
 import type { ThemePreviewPage } from './CreateThemeLivePreview';
 import {
   buildThemeEditorPageMenu,
-  filterPageMenuItems,
+  buildVisiblePageMenuRows,
   findPageMenuItemByPreview,
   type ThemeEditorPageMenuItem,
   type ThemePageIcon,
 } from '../utils/page-menu';
 import type { EditorSchemaDoc } from '../sidebar/create-theme-sidebar.types';
+import './create-theme-page-picker.css';
 
 type CreateThemePagePickerProps = {
   value: ThemePreviewPage;
@@ -29,14 +37,26 @@ type CreateThemePagePickerProps = {
 };
 
 function PageIcon({ icon, className }: { icon: ThemePageIcon; className?: string }) {
-  const cls = className ?? 'h-[18px] w-[18px] shrink-0 text-gray-600';
+  const cls = className ?? 'h-[18px] w-[18px] shrink-0 text-gray-700';
   switch (icon) {
     case 'home':
       return <HomeIcon className={cls} />;
     case 'product':
-      return <ShoppingBagIcon className={cls} />;
+      return <TagIcon className={cls} />;
+    case 'collection':
+      return <RectangleStackIcon className={cls} />;
     case 'cart':
       return <ShoppingCartIcon className={cls} />;
+    case 'gift':
+      return <GiftIcon className={cls} />;
+    case 'checkout':
+      return <CreditCardIcon className={cls} />;
+    case 'search':
+      return <MagnifyingGlassCircleIcon className={cls} />;
+    case 'lock':
+      return <LockClosedIcon className={cls} />;
+    case 'blog':
+      return <NewspaperIcon className={cls} />;
     case 'user':
       return <UserIcon className={cls} />;
     case 'orders':
@@ -56,6 +76,7 @@ const CreateThemePagePickerInner: React.FC<CreateThemePagePickerProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [expandedMenus, setExpandedMenus] = useState<Set<string>>(() => new Set());
   const [menuPos, setMenuPos] = useState<{ top: number; left: number; width: number } | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
@@ -76,16 +97,16 @@ const CreateThemePagePickerInner: React.FC<CreateThemePagePickerProps> = ({
     [allItems, value]
   );
 
-  const visibleItems = useMemo(
-    () => filterPageMenuItems(allItems, query, new Set()),
-    [allItems, query]
+  const visibleRows = useMemo(
+    () => buildVisiblePageMenuRows(allItems, query, expandedMenus),
+    [allItems, query, expandedMenus]
   );
 
   const updateMenuPosition = useCallback(() => {
     const el = triggerRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
-    const width = Math.min(360, Math.max(280, rect.width));
+    const width = 320;
     setMenuPos({
       top: rect.bottom + 6,
       left: rect.left + rect.width / 2 - width / 2,
@@ -128,6 +149,35 @@ const CreateThemePagePickerInner: React.FC<CreateThemePagePickerProps> = ({
     [onChange]
   );
 
+  const toggleSubmenu = useCallback((menuId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setExpandedMenus((prev) => {
+      const next = new Set(prev);
+      if (next.has(menuId)) next.delete(menuId);
+      else next.add(menuId);
+      return next;
+    });
+  }, []);
+
+  const handleRowClick = useCallback(
+    (item: ThemeEditorPageMenuItem, showChevron: boolean, e: React.MouseEvent) => {
+      if (showChevron && item.children?.length) {
+        const chevronHit = (e.target as HTMLElement).closest('[data-submenu-chevron]');
+        if (chevronHit) {
+          toggleSubmenu(item.menuId, e);
+          return;
+        }
+        if (!expandedMenus.has(item.menuId)) {
+          toggleSubmenu(item.menuId, e);
+          return;
+        }
+      }
+      selectPage(item.previewPage);
+    },
+    [expandedMenus, selectPage, toggleSubmenu]
+  );
+
   const menu =
     open && menuPos
       ? createPortal(
@@ -139,7 +189,7 @@ const CreateThemePagePickerInner: React.FC<CreateThemePagePickerProps> = ({
               onClick={() => setOpen(false)}
             />
             <div
-              className="fixed z-[1410] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl"
+              className="create-theme-page-picker-menu fixed z-[1410] overflow-hidden rounded-[12px] border border-[#e3e3e3] bg-white"
               style={{
                 top: menuPos.top,
                 left: Math.max(8, Math.min(menuPos.left, window.innerWidth - menuPos.width - 8)),
@@ -148,44 +198,77 @@ const CreateThemePagePickerInner: React.FC<CreateThemePagePickerProps> = ({
               role="listbox"
               aria-label="Store pages"
             >
-              <div className="border-b border-gray-100 p-2.5">
-                <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-2">
-                  <MagnifyingGlassIcon className="h-4 w-4 shrink-0 text-gray-400" />
+              <div className="p-2">
+                <div className="create-theme-page-picker-search flex items-center gap-2 rounded-[10px] border border-[#c9cccf] bg-white px-2.5 py-2 transition-shadow">
+                  <MagnifyingGlassIcon className="h-[18px] w-[18px] shrink-0 text-gray-500" />
                   <input
                     ref={searchRef}
                     type="search"
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search online store"
-                    className="min-w-0 flex-1 bg-transparent text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
+                    className="min-w-0 flex-1 bg-transparent text-[13px] text-gray-900 placeholder:text-gray-500 focus:outline-none"
                   />
                 </div>
               </div>
-              <ul className="max-h-[min(60vh,420px)] overflow-y-auto py-1">
-                {visibleItems.length ? (
-                  visibleItems.map((item) => {
+
+              <div className="create-theme-page-picker-list max-h-[min(420px,55vh)] overflow-y-auto pb-1.5">
+                {visibleRows.length ? (
+                  visibleRows.map((row) => {
+                    if (row.type === 'divider') {
+                      return (
+                        <div
+                          key={row.key}
+                          className="mx-2 my-1 border-t border-[#e8e8e8]"
+                          role="separator"
+                        />
+                      );
+                    }
+
+                    const { item, depth, showChevron } = row;
                     const isSelected = item.previewPage === value;
+                    const padLeft = 10 + depth * 16;
+
                     return (
-                      <li key={item.menuId}>
+                      <div key={`${row.item.menuId}-${depth}`} className="px-1.5">
                         <button
                           type="button"
-                          className={`flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm transition-colors ${
+                          role="option"
+                          aria-selected={isSelected}
+                          className={`flex w-full items-center gap-2 rounded-[8px] py-[7px] pr-2 text-left text-[13px] transition-colors ${
                             isSelected
-                              ? 'bg-gray-100 font-medium text-gray-900'
-                              : 'text-gray-700 hover:bg-gray-50'
+                              ? 'bg-[#ebebeb] font-medium text-gray-900'
+                              : 'text-gray-800 hover:bg-[#f1f1f1]'
                           }`}
-                          onClick={() => selectPage(item.previewPage)}
+                          style={{ paddingLeft: padLeft }}
+                          onClick={(e) => handleRowClick(item, showChevron, e)}
                         >
                           <PageIcon icon={item.icon} />
-                          <span className="min-w-0 flex-1 truncate">{item.label}</span>
+                          <span className="min-w-0 flex-1 truncate leading-snug">{item.label}</span>
+                          {showChevron ? (
+                            <span
+                              data-submenu-chevron
+                              className="ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded text-gray-500 hover:bg-gray-200/80"
+                              onClick={(e) => toggleSubmenu(item.menuId, e)}
+                              aria-label="Expand submenu"
+                            >
+                              <ChevronRightIcon
+                                className={`h-4 w-4 transition-transform ${
+                                  expandedMenus.has(item.menuId) ? 'rotate-90' : ''
+                                }`}
+                              />
+                            </span>
+                          ) : (
+                            <span className="w-6 shrink-0" aria-hidden />
+                          )}
                         </button>
-                      </li>
+                      </div>
                     );
                   })
                 ) : (
-                  <li className="px-3 py-6 text-center text-sm text-gray-500">No pages found</li>
+                  <p className="px-4 py-8 text-center text-[13px] text-gray-500">No pages found</p>
                 )}
-              </ul>
+              </div>
             </div>
           </>,
           document.body
@@ -198,11 +281,11 @@ const CreateThemePagePickerInner: React.FC<CreateThemePagePickerProps> = ({
         ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex min-w-[200px] max-w-[min(92vw,320px)] items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-900 shadow-sm transition-colors hover:bg-gray-50"
+        className="flex min-w-[200px] max-w-[min(92vw,300px)] items-center justify-center gap-2 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-sm font-medium text-gray-900 shadow-sm transition-colors hover:bg-gray-50"
         aria-expanded={open}
         aria-haspopup="listbox"
       >
-        <PageIcon icon={current.icon} className="h-[18px] w-[18px] shrink-0 text-gray-700" />
+        <PageIcon icon={current.icon} className="h-[18px] w-[18px] shrink-0 text-gray-800" />
         <span className="truncate">{current.label}</span>
         <ChevronDownIcon
           className={`h-4 w-4 shrink-0 text-gray-500 transition-transform ${open ? 'rotate-180' : ''}`}

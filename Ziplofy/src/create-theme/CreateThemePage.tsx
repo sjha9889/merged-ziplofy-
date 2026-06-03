@@ -33,6 +33,7 @@ import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import { useRafBatchedCounter } from '../hooks/useRafBatchedState';
 import { THEME_EDITOR_STATIC_CONFIG } from '../config/theme-editor-static.config';
 import { useStore } from '../contexts/store.context';
+import { useStoreSubdomain } from '../contexts/storeSubdomain.context';
 import type { Collection } from '../contexts/collection.context';
 import type { StoreMenu, StoreMenuItem } from '../contexts/store-menu.context';
 import {
@@ -109,6 +110,7 @@ const CreateThemePage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const editThemeId = searchParams.get('id');
   const { activeStoreId, stores } = useStore();
+  const { storeSubdomain, getByStoreId: fetchStoreSubdomain } = useStoreSubdomain();
   const {
     create: createStoreCustomTheme,
     update: updateStoreCustomTheme,
@@ -157,6 +159,12 @@ const CreateThemePage: React.FC = () => {
   const previewStoreId = activeStoreId || THEME_EDITOR_STATIC_CONFIG.devStoreId;
   const activeStoreName =
     stores.find((s) => s._id === previewStoreId)?.storeName ?? 'Preview store';
+
+  useEffect(() => {
+    if (activeStoreId) {
+      void fetchStoreSubdomain(activeStoreId);
+    }
+  }, [activeStoreId, fetchStoreSubdomain]);
 
   const openAddSectionModal = useCallback((ctx: SectionInsertContext) => {
     setInsertHoverHighlight(null);
@@ -863,6 +871,7 @@ const CreateThemePage: React.FC = () => {
         saving={savingTheme}
         inspectorEnabled={inspectorEnabled}
         onInspectorEnabledChange={handleInspectorEnabledChange}
+        storeUrl={storeSubdomain?.url ?? null}
       />
 
       <div className="flex min-h-0 flex-1">
@@ -903,7 +912,7 @@ const CreateThemePage: React.FC = () => {
                 const order = itemOrder['sections:footer'] ?? [];
                 beforeNodeId = order[0];
               } else {
-                const order = itemOrder[`sections:template:${previewPage}`] ?? [];
+                const order = itemOrder[`sections:template:${tplId}`] ?? [];
                 afterNodeId = order[order.length - 1];
               }
               openAddSectionModal({

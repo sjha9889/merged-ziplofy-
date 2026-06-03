@@ -356,10 +356,7 @@ import {
   catalogSidebarBlocksForSectionType,
   settingsNodeFromCatalog,
 } from '../../theme-editor/catalog-sidebar.util';
-
-function templateIdForPage(previewPage: ThemePreviewPage): string {
-  return previewPage || 'index';
-}
+import { previewPageToTemplateId } from '../../utils/preview-page-template';
 
 type LayoutSectionDef = NonNullable<EditorSchemaDoc['layout']>[string];
 type BlockDef = NonNullable<LayoutSectionDef['blocks']>[number];
@@ -1682,7 +1679,7 @@ function sectionToNode(
 export function buildEmptyShopifySidebarTree(
   previewPage: ThemePreviewPage = 'index'
 ): SidebarNode[] {
-  const templateId = templateIdForPage(previewPage);
+  const templateId = previewPageToTemplateId(previewPage);
   return [
     {
       id: 'group:header',
@@ -1721,7 +1718,7 @@ export function buildShopifySidebarTree(
   config: Record<string, unknown> | null = null
 ): SidebarNode[] {
   const tree: SidebarNode[] = [];
-  const templateId = templateIdForPage(previewPage);
+  const templateId = previewPageToTemplateId(previewPage);
   const layout = schema.layout ?? {};
   const cfg = config ?? {};
 

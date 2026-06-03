@@ -1,5 +1,6 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { creatorConfigHasSections } from '../../utils/theme-editor-static-pack';
+import { previewPageToTemplateId } from '../../utils/preview-page-template';
 import { PreviewLoadingOverlay, PreviewSyncPulse } from './PreviewStatus';
 
 const EDITOR_SOURCE = 'ziplofy-theme-editor';
@@ -450,9 +451,10 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
     }
   }, [ready, storeId, page, cssUrl, storeName, jsUrl, postInit]);
 
+  const previewTemplateId = useMemo(() => previewPageToTemplateId(page ?? 'index'), [page]);
   const previewHasSections = useMemo(
-    () => creatorConfigHasSections(config, page),
-    [config, page]
+    () => creatorConfigHasSections(config, previewTemplateId),
+    [config, previewTemplateId]
   );
 
   const emptyCanvasMessage = (

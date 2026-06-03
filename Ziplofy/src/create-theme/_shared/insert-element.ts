@@ -212,7 +212,7 @@ export function insertCreateThemeTemplateSection(
     config: next,
     instanceId,
     nodeId: `template:${templateId}:${instanceId}`,
-    listKey: `sections:template:${previewPage}`,
+    listKey: `sections:template:${templateId}`,
   };
 }
 

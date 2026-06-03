@@ -24,6 +24,7 @@ export function CustomThemeRoutes() {
         <Route path="/products" element={<CustomThemeHomeRoute />} />
         <Route path="/products/:id" element={<CustomThemeProductRoute />} />
         <Route path="/collection" element={<CustomThemeHomeRoute />} />
+        <Route path="/collections" element={<CustomThemeTemplatePage templateId="collections-list" />} />
         <Route
           path="/collections/:urlHandle"
           element={

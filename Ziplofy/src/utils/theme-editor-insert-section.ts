@@ -146,9 +146,8 @@ const CATALOG_BLUEPRINT: Record<string, { blueprintId: string; type: string; lab
   },
 };
 
-export function templateIdForPage(page: ThemePreviewPage): string {
-  return page || 'index';
-}
+import { previewPageToTemplateId, templateIdForPage } from './preview-page-template';
+export { previewPageToTemplateId, templateIdForPage };
 
 function getNested(obj: Record<string, unknown>, path: string[]): unknown {
   let cur: unknown = obj;

@@ -1,5 +1,7 @@
-import React from 'react';
-import { ComputerDesktopIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
+import React, { useCallback, useState } from 'react';
+import { ComputerDesktopIcon, DevicePhoneMobileIcon, EllipsisVerticalIcon } from '@heroicons/react/24/outline';
+import DropdownMenu from '../../components/DropdownMenu';
+import DropdownMenuItem from '../../components/DropdownMenuItem';
 import { CreateThemePagePicker } from './CreateThemePagePicker';
 import { InspectorToggleIcon } from './InspectorToggleIcon';
 import type { EditorSchemaDoc } from '../sidebar/create-theme-sidebar.types';
@@ -22,6 +24,8 @@ type Props = {
   saving?: boolean;
   inspectorEnabled?: boolean;
   onInspectorEnabledChange?: (enabled: boolean) => void;
+  /** Live storefront URL — used by the ⋮ menu “View” action. */
+  storeUrl?: string | null;
 };
 
 export function CreateThemeHeader({
@@ -41,7 +45,20 @@ export function CreateThemeHeader({
   saving = false,
   inspectorEnabled = true,
   onInspectorEnabledChange,
+  storeUrl,
 }: Props) {
+  const [moreMenuAnchor, setMoreMenuAnchor] = useState<HTMLElement | null>(null);
+  const moreMenuOpen = Boolean(moreMenuAnchor);
+  const storefrontHref = storeUrl?.trim() || '';
+
+  const closeMoreMenu = useCallback(() => setMoreMenuAnchor(null), []);
+
+  const handleViewStore = useCallback(() => {
+    if (!storefrontHref) return;
+    window.open(storefrontHref, '_blank', 'noopener,noreferrer');
+    closeMoreMenu();
+  }, [storefrontHref, closeMoreMenu]);
+
   return (
     <header className="relative grid h-14 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-gray-200 bg-white px-3">
       <div className="flex min-w-0 items-center gap-2 justify-self-start">
@@ -120,9 +137,25 @@ export function CreateThemeHeader({
         </div>
         <button
           type="button"
+          onClick={(e) => setMoreMenuAnchor(moreMenuOpen ? null : e.currentTarget)}
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+          title="More actions"
+          aria-label="More actions"
+          aria-expanded={moreMenuOpen}
+          aria-haspopup="menu"
+        >
+          <EllipsisVerticalIcon className="h-5 w-5" />
+        </button>
+        <DropdownMenu anchorEl={moreMenuAnchor} open={moreMenuOpen} onClose={closeMoreMenu}>
+          <DropdownMenuItem onClick={handleViewStore} disabled={!storefrontHref}>
+            View
+          </DropdownMenuItem>
+        </DropdownMenu>
+        <button
+          type="button"
           onClick={onSave}
           disabled={saveDisabled || saving}
-          className="ml-1 rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {saving ? 'Saving…' : 'Save'}
         </button>

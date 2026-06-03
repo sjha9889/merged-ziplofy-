@@ -13,6 +13,8 @@ import {
   remapTemplateSchemaPath,
   templateBlueprintKey,
 } from '../../utils/theme-editor-insert-section';
+import { previewPageToTemplateId } from '../../utils/preview-page-template';
+import { previewPageToTemplateId } from '../../utils/preview-page-template';
 
 type SchemaBlock = {
   id?: string;
@@ -207,10 +209,6 @@ export type ThemePreviewSelectionHint = {
   fieldType?: 'text' | 'textarea' | 'color' | 'boolean' | 'number';
 };
 
-function templateIdForPage(page: ThemePreviewPage): string {
-  return page || 'index';
-}
-
 function getNested(config: Record<string, unknown>, dotPath: string): unknown {
   const parts = dotPath.split('.');
   let cur: unknown = config;
@@ -258,7 +256,7 @@ export function buildThemeEditorSelectionHints(
 
   const hints: ThemePreviewSelectionHint[] = [];
   const seen = new Set<string>();
-  const tplId = templateIdForPage(page);
+  const tplId = previewPageToTemplateId(page);
 
   const headerIds = existingLayoutSectionIds(config, 'header');
   const footerIds = existingLayoutSectionIds(config, 'footer');
