@@ -27,6 +27,8 @@ export type ThemePageRouteSpec = {
   withCollectionLoader?: boolean;
   /** Fixed collection urlHandle, e.g. "all" for /collections/all (all products) */
   loadCollectionUrlHandle?: string;
+  /** Load product detail for `/products/:id` (preview uses first catalog product when id is `preview`) */
+  withProductLoader?: boolean;
 };
 
 export type ThemePageRegistryEntry = {
@@ -71,7 +73,14 @@ export const THEME_PAGE_REGISTRY: ThemePageRegistryEntry[] = [
     label: 'Product page',
     icon: 'product',
     previewPath: '/products/preview',
-    routes: [{ path: '/products/:id', templateId: 'product', fallbackSectionIds: ['product_main'] }],
+    routes: [
+      {
+        path: '/products/:id',
+        templateId: 'product',
+        fallbackSectionIds: ['product_main'],
+        withProductLoader: true,
+      },
+    ],
   },
   {
     pageId: 'collections-list',

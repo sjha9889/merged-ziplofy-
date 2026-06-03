@@ -3,6 +3,7 @@ import { Route } from 'react-router-dom';
 import { CustomThemeTemplatePage } from '@ziplofy/create-theme/runtime';
 import { listThemePageRouteSpecs } from '@ziplofy/create-theme/utils/theme-page-registry';
 import { StorefrontCollectionByUrlHandleLoader } from '../components/StorefrontCollectionByUrlHandleLoader.tsx';
+import { StorefrontProductPreviewLoader } from '../components/StorefrontProductPreviewLoader.tsx';
 
 const ROUTE_SPECS = listThemePageRouteSpecs();
 
@@ -15,14 +16,23 @@ export function renderThemePageRoutes(): ReactElement[] {
         fallbackSectionIds={spec.fallbackSectionIds}
       />
     );
-    const element = spec.withCollectionLoader ? (
-      <>
-        <StorefrontCollectionByUrlHandleLoader urlHandleOverride={spec.loadCollectionUrlHandle} />
-        {page}
-      </>
-    ) : (
-      page
-    );
+    let element = page;
+    if (spec.withCollectionLoader) {
+      element = (
+        <>
+          <StorefrontCollectionByUrlHandleLoader urlHandleOverride={spec.loadCollectionUrlHandle} />
+          {page}
+        </>
+      );
+    }
+    if (spec.withProductLoader) {
+      element = (
+        <>
+          <StorefrontProductPreviewLoader />
+          {element}
+        </>
+      );
+    }
     return <Route key={spec.path} path={spec.path} element={element} />;
   });
 }

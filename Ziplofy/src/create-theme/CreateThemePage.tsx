@@ -27,6 +27,10 @@ import { CreateThemePoweredByLoader } from './chrome/CreateThemePoweredByLoader'
 import { buildThemeEditorPageMenu, findPageMenuItemByPreview } from './utils/page-menu';
 import { ensureRegistryTemplatesInConfig } from './utils/theme-page-registry';
 import {
+  extendValuesForSeededTemplate,
+  seedTemplateFromPackIfEmpty,
+} from './utils/seed-page-template-from-pack';
+import {
   buildThemeEditorSelectionHints,
   expandedIdsForPreviewNode,
 } from './utils/selection-hints';
@@ -489,11 +493,29 @@ const CreateThemePage: React.FC = () => {
       setAddBlockTarget(null);
       setInsertHoverHighlight(null);
       treeInitRef.current = false;
+
+      const pack = packDefaultRef.current;
+      const tplId = templateIdForPage(page);
+      if (defaultConfig && pack) {
+        const next = JSON.parse(JSON.stringify(defaultConfig)) as Record<string, unknown>;
+        const seeded = seedTemplateFromPackIfEmpty(next, tplId, pack);
+        if (seeded) {
+          normalizeCreatorThemeConfig(next);
+          setDefaultConfig(next);
+          if (editorSchema) {
+            setValues((prev) => extendValuesForSeededTemplate(prev, editorSchema, tplId, next));
+          }
+          setItemOrder(readStructureOrderFromConfig(next, page));
+          setStructureSyncKey((k) => k + 1);
+          return;
+        }
+      }
+
       if (defaultConfig) {
         setItemOrder(readStructureOrderFromConfig(defaultConfig, page));
       }
     },
-    [defaultConfig, previewPage]
+    [defaultConfig, previewPage, editorSchema]
   );
 
   const toggleExpand = useCallback((id: string) => {
