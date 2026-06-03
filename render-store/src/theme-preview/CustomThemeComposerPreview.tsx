@@ -26,10 +26,7 @@ export function CustomThemeComposerPreview({ page, pageRevision }: Props) {
         <Route path="/products" element={<CustomThemeTemplatePage templateId="index" />} />
         <Route path="/products/:id" element={<CustomThemeTemplatePage templateId="product" />} />
         <Route path="/collection" element={<CustomThemeTemplatePage templateId="index" />} />
-        <Route
-          path="/collections/:collectionId/:urlHandle"
-          element={<CustomThemeTemplatePage templateId="index" />}
-        />
+        <Route path="/collections/:urlHandle" element={<CustomThemeTemplatePage templateId="index" />} />
         <Route path="/auth/login" element={<CustomThemeTemplatePage templateId="login" />} />
         <Route path="/auth/signup" element={<CustomThemeTemplatePage templateId="signup" />} />
         <Route path="/auth/forgot" element={<CustomThemeTemplatePage templateId="forgot_password" />} />

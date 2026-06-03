@@ -22,14 +22,8 @@ import toast from 'react-hot-toast';
 import { useCollections, type Collection } from '../contexts/collection.context';
 import { useProducts, type Product } from '../contexts/product.context';
 import { useStore } from '../contexts/store.context';
-
-type MenuItemDraft = {
-  id: string;
-  label: string;
-  link: string;
-  /** Friendly name shown in the Link field (e.g. collection title). */
-  linkLabel?: string;
-};
+import { useStoreMenus } from '../contexts/store-menu.context';
+import { menuItemDraftsToApiInputs, type MenuItemDraft } from '../utils/store-menu-draft.util';
 
 type LinkPickerOption = {
   id: string;
@@ -72,7 +66,7 @@ const LINK_PICKER_SECTIONS: LinkPickerSection[] = [
   },
 ];
 
-function slugifyMenuHandle(name: string): string {
+export function slugifyMenuHandle(name: string): string {
   const slug = name
     .trim()
     .toLowerCase()
@@ -81,13 +75,16 @@ function slugifyMenuHandle(name: string): string {
   return slug || 'menu';
 }
 
-function createMenuItem(): MenuItemDraft {
+export function createMenuItem(): MenuItemDraft {
   return { id: `item-${Date.now()}-${Math.random().toString(36).slice(2)}`, label: '', link: '' };
 }
 
 type LinkPickerSelection = {
   link: string;
   label?: string;
+  linkType?: MenuItemDraft['linkType'];
+  collectionId?: string;
+  productId?: string;
 };
 
 type LinkPickerView = 'root' | 'collections' | 'products';
@@ -228,7 +225,13 @@ function LinkPickerDropdown({
               <>
                 <button
                   type="button"
-                  onClick={() => pickAndClose({ link: '/collections', label: 'All collections' })}
+                  onClick={() =>
+                    pickAndClose({
+                      link: '/collections',
+                      label: 'All collections',
+                      linkType: 'all-collections',
+                    })
+                  }
                   className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-100"
                 >
                   <TagIcon className="h-5 w-5 shrink-0 text-gray-500" />
@@ -242,6 +245,8 @@ function LinkPickerDropdown({
                       pickAndClose({
                         link: collectionLinkPath(collection),
                         label: collection.title,
+                        linkType: 'specific-collection',
+                        collectionId: collection._id,
                       })
                     }
                     className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-100"
@@ -269,7 +274,13 @@ function LinkPickerDropdown({
             <>
               <button
                 type="button"
-                onClick={() => pickAndClose({ link: '/products', label: 'All products' })}
+                onClick={() =>
+                  pickAndClose({
+                    link: '/collections/all',
+                    label: 'All products',
+                    linkType: 'all-products',
+                  })
+                }
                 className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-100"
               >
                 <TagIcon className="h-5 w-5 shrink-0 text-gray-500" />
@@ -285,6 +296,8 @@ function LinkPickerDropdown({
                       pickAndClose({
                         link: productLinkPath(product),
                         label: product.title,
+                        linkType: 'specific-product',
+                        productId: product._id,
                       })
                     }
                     className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-100"
@@ -328,7 +341,16 @@ function LinkPickerDropdown({
                       return;
                     }
                     if (opt.hasChildren) return;
-                    pickAndClose({ link: opt.value, label: opt.label });
+                    pickAndClose({
+                      link: opt.value,
+                      label: opt.label,
+                      linkType:
+                        opt.id === 'home'
+                          ? 'homepage'
+                          : opt.value.startsWith('/')
+                            ? 'custom'
+                            : undefined,
+                    });
                   }}
                   className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-100"
                 >
@@ -347,7 +369,7 @@ function LinkPickerDropdown({
   );
 }
 
-function MenuItemRow({
+export function MenuItemRow({
   item,
   storeId,
   onChange,
@@ -405,10 +427,13 @@ function MenuItemRow({
               storeId={storeId}
               searchQuery={item.linkLabel ?? item.link}
               onClose={() => setLinkPickerOpen(false)}
-              onSelect={({ link, label }) =>
+              onSelect={({ link, label, linkType, collectionId, productId }) =>
                 onChange({
                   link,
                   linkLabel: label,
+                  linkType: linkType ?? (link.trim() ? 'custom' : undefined),
+                  collectionId,
+                  productId,
                   ...(label && !item.label.trim() ? { label } : {}),
                 })
               }
@@ -442,6 +467,7 @@ function MenuItemRow({
 export const ContentMenuCreatePage = () => {
   const navigate = useNavigate();
   const { activeStoreId } = useStore();
+  const { createMenu } = useStoreMenus();
   const nameInputId = useId();
   const [menuName, setMenuName] = useState('');
   const [items, setItems] = useState<MenuItemDraft[]>([]);
@@ -467,15 +493,33 @@ export const ContentMenuCreatePage = () => {
       toast.error('Menu name is required');
       return;
     }
+    if (!activeStoreId) {
+      toast.error('Select a store before saving a menu');
+      return;
+    }
+
+    const apiItems = menuItemDraftsToApiInputs(items);
+    if (items.some((row) => row.label.trim()) && apiItems.length === 0) {
+      toast.error('Add at least one valid menu item with a label and link');
+      return;
+    }
 
     setSaving(true);
     try {
-      // API wiring can replace this placeholder save.
-      await new Promise((r) => setTimeout(r, 400));
+      await createMenu({
+        storeId: activeStoreId,
+        menuName: name,
+        handle: displayHandle,
+        items: apiItems,
+      });
       toast.success('Menu saved');
       navigate('/content/menus');
-    } catch {
-      toast.error('Failed to save menu');
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === 'object' && 'response' in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+      toast.error(msg || 'Failed to save menu');
     } finally {
       setSaving(false);
     }

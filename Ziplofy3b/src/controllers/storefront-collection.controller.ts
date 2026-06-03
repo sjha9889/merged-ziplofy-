@@ -1,57 +1,83 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 import { asyncErrorHandler, CustomError } from "../utils/error.utils";
-import { Collections, ICollection } from "../models/collections/collections.model";
+import { Collections } from "../models/collections/collections.model";
 import { CollectionEntry } from "../models/collection-entry/collection-entry.model";
 import { Product } from "../models/product/product.model";
 import { AmountOffProductsDiscount, AmountOffProductsEntry, AmountOffOrderDiscount } from "../models";
 import { absolutizeImageUrlsArray, publicOriginFromRequest } from "../utils/public-origin.util";
 
+function normalizeUrlHandle(raw: string): string {
+  return raw.trim().toLowerCase();
+}
+
+function assertValidStoreId(storeId: string): void {
+  if (!storeId || !mongoose.isValidObjectId(storeId)) {
+    throw new CustomError("Valid storeId is required", 400);
+  }
+}
+
 // Get collections by store id
 export const getCollectionsByStoreId = asyncErrorHandler(async (req: Request, res: Response) => {
-    const { storeId } = req.params;
-    if (!storeId) throw new CustomError("storeId is required", 400);
+  const { storeId } = req.params;
+  if (!storeId) throw new CustomError("storeId is required", 400);
 
-    const collections = await Collections.find({ storeId }).sort({ createdAt: -1 });
-    res.status(200).json({ success: true, data: collections, count: collections.length });
+  const collections = await Collections.find({ storeId }).sort({ createdAt: -1 });
+  res.status(200).json({ success: true, data: collections, count: collections.length });
 });
-  
-// Get products inside a collection (storefront)
-export const getProductsInCollection = asyncErrorHandler(async (req: Request, res: Response) => {
-  const { collectionId } = req.params;
-  const { page = 1, limit = 12, q } = req.query as Record<string, any>;
 
-  if (!collectionId || !mongoose.isValidObjectId(collectionId)) {
-    throw new CustomError("Valid collectionId is required", 400);
+/** Storefront: resolve a published collection by store + url handle. */
+export const getCollectionDetailsByUrlHandle = asyncErrorHandler(async (req: Request, res: Response) => {
+  const { storeId, urlHandle } = req.params;
+  assertValidStoreId(storeId);
+  if (!urlHandle?.trim()) throw new CustomError("urlHandle is required", 400);
+
+  const collection = await Collections.findOne({
+    storeId,
+    urlHandle: normalizeUrlHandle(urlHandle),
+    status: "published",
+  }).lean();
+
+  if (!collection) {
+    throw new CustomError("Collection not found", 404);
   }
+
+  const productCount = await CollectionEntry.countDocuments({ collectionId: collection._id });
+
+  res.status(200).json({
+    success: true,
+    data: { ...collection, productCount },
+  });
+});
+
+async function sendStorefrontCollectionProductsResponse(
+  req: Request,
+  res: Response,
+  collectionId: mongoose.Types.ObjectId,
+  storeId: mongoose.Types.ObjectId
+): Promise<void> {
+  const { page = 1, limit = 12, q } = req.query as Record<string, any>;
 
   const pageNum = Math.max(1, Number(page) || 1);
   const limitNum = Math.min(100, Math.max(1, Number(limit) || 12));
   const skip = (pageNum - 1) * limitNum;
 
-  // Get the collection to find the storeId
-  const collection = await Collections.findById(collectionId).select('storeId').lean();
-  if (!collection) {
-    throw new CustomError("Collection not found", 404);
-  }
-  const storeId = collection.storeId;
-
-  // Resolve product ids from collection entries
   const productIds: mongoose.Types.ObjectId[] = await CollectionEntry.find({ collectionId })
     .distinct("productId");
 
   if (productIds.length === 0) {
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       data: [],
       pagination: { currentPage: pageNum, totalPages: 0, totalItems: 0, itemsPerPage: limitNum },
-      orderDiscount: null
+      orderDiscount: null,
     });
+    return;
   }
 
   const filter: any = { _id: { $in: productIds }, isDeleted: { $ne: true } };
-  if (q && typeof q === 'string') {
-    const rx = new RegExp(q.trim(), 'i');
+  if (q && typeof q === "string") {
+    const rx = new RegExp(q.trim(), "i");
     filter.$or = [{ title: rx }, { sku: rx }];
   }
 
@@ -73,16 +99,15 @@ export const getProductsInCollection = asyncErrorHandler(async (req: Request, re
         createdAt: 1,
         updatedAt: 1,
       })
-      .populate({ path: 'vendor', select: 'name' })
-      .populate({ path: 'category', select: 'name' })
+      .populate({ path: "vendor", select: "name" })
+      .populate({ path: "category", select: "name" })
       .lean(),
     Product.countDocuments(filter),
   ]);
 
-  // ===== DISCOUNT LOGIC START =====
   const now = new Date();
-  const nowDateStr = now.toISOString().split('T')[0];
-  const nowTimeStr = now.toISOString().split('T')[1].substring(0, 5);
+  const nowDateStr = now.toISOString().split("T")[0];
+  const nowTimeStr = now.toISOString().split("T")[1].substring(0, 5);
 
   const isDiscountActive = (d: any): boolean => {
     if (d.startDate && d.startDate > nowDateStr) return false;
@@ -94,22 +119,21 @@ export const getProductsInCollection = asyncErrorHandler(async (req: Request, re
     return false;
   };
 
-  // ===== AMOUNT OFF PRODUCTS DISCOUNTS =====
   const activeProductDiscounts = await AmountOffProductsDiscount.find({
     storeId,
-    status: 'active',
-    // Fetch both automatic and discount-code based discounts
+    status: "active",
   }).lean();
 
   const validProductDiscounts = activeProductDiscounts.filter(isDiscountActive);
 
   const productDiscountIds = validProductDiscounts.map((d: any) => d._id);
-  const productDiscountEntries = productDiscountIds.length > 0
-    ? await AmountOffProductsEntry.find({
-        storeId,
-        discountId: { $in: productDiscountIds }
-      }).lean()
-    : [];
+  const productDiscountEntries =
+    productDiscountIds.length > 0
+      ? await AmountOffProductsEntry.find({
+          storeId,
+          discountId: { $in: productDiscountIds },
+        }).lean()
+      : [];
 
   const entriesByDiscount = new Map<string, any[]>();
   for (const entry of productDiscountEntries) {
@@ -122,10 +146,10 @@ export const getProductsInCollection = asyncErrorHandler(async (req: Request, re
     .filter((e: any) => e.collectionId)
     .map((e: any) => e.collectionId);
 
-  let collectionProductMap = new Map<string, string[]>();
+  const collectionProductMap = new Map<string, string[]>();
   if (collectionIdsInEntries.length > 0) {
     const collectionEntries = await CollectionEntry.find({
-      collectionId: { $in: collectionIdsInEntries }
+      collectionId: { $in: collectionIdsInEntries },
     }).lean();
     for (const ce of collectionEntries) {
       const colKey = String(ce.collectionId);
@@ -134,21 +158,24 @@ export const getProductsInCollection = asyncErrorHandler(async (req: Request, re
     }
   }
 
-  const productDiscountMap = new Map<string, { 
-    valueType: 'percentage' | 'fixed-amount'; 
-    percentage?: number; 
-    fixedAmount?: number; 
-    title?: string;
-    method: 'automatic' | 'discount-code';
-    discountCode?: string;
-  }>();
+  const productDiscountMap = new Map<
+    string,
+    {
+      valueType: "percentage" | "fixed-amount";
+      percentage?: number;
+      fixedAmount?: number;
+      title?: string;
+      method: "automatic" | "discount-code";
+      discountCode?: string;
+    }
+  >();
 
   for (const discount of validProductDiscounts) {
     const discountId = String(discount._id);
     const entries = entriesByDiscount.get(discountId) || [];
-    
+
     const applicableProductIds: string[] = [];
-    
+
     for (const entry of entries) {
       if (entry.productId) {
         applicableProductIds.push(String(entry.productId));
@@ -161,42 +188,43 @@ export const getProductsInCollection = asyncErrorHandler(async (req: Request, re
     for (const productId of applicableProductIds) {
       const existing = productDiscountMap.get(productId);
       const newDiscount = {
-        valueType: (discount as any).valueType as 'percentage' | 'fixed-amount',
+        valueType: (discount as any).valueType as "percentage" | "fixed-amount",
         percentage: (discount as any).percentage,
         fixedAmount: (discount as any).fixedAmount,
         title: (discount as any).title,
-        method: (discount as any).method as 'automatic' | 'discount-code',
-        discountCode: (discount as any).discountCode
+        method: (discount as any).method as "automatic" | "discount-code",
+        discountCode: (discount as any).discountCode,
       };
 
       if (!existing) {
         productDiscountMap.set(productId, newDiscount);
       } else {
-        const existingValue = existing.valueType === 'percentage' ? (existing.percentage || 0) : (existing.fixedAmount || 0);
-        const newValue = newDiscount.valueType === 'percentage' ? (newDiscount.percentage || 0) : (newDiscount.fixedAmount || 0);
-        
+        const existingValue =
+          existing.valueType === "percentage" ? existing.percentage || 0 : existing.fixedAmount || 0;
+        const newValue =
+          newDiscount.valueType === "percentage" ? newDiscount.percentage || 0 : newDiscount.fixedAmount || 0;
+
         if (existing.valueType === newDiscount.valueType) {
           if (newValue > existingValue) {
             productDiscountMap.set(productId, newDiscount);
           }
-        } else if (newDiscount.valueType === 'fixed-amount' && newValue > existingValue) {
+        } else if (newDiscount.valueType === "fixed-amount" && newValue > existingValue) {
           productDiscountMap.set(productId, newDiscount);
         }
       }
     }
   }
 
-  // ===== AMOUNT OFF ORDER DISCOUNTS =====
   const activeOrderDiscounts = await AmountOffOrderDiscount.find({
     storeId,
-    status: 'active',
-    method: 'automatic',
+    status: "active",
+    method: "automatic",
   }).lean();
 
   const validOrderDiscounts = activeOrderDiscounts.filter(isDiscountActive);
 
   let bestOrderDiscount: {
-    valueType: 'percentage' | 'fixed-amount';
+    valueType: "percentage" | "fixed-amount";
     percentage?: number;
     fixedAmount?: number;
     title?: string;
@@ -208,32 +236,31 @@ export const getProductsInCollection = asyncErrorHandler(async (req: Request, re
   for (const discount of validOrderDiscounts) {
     const d = discount as any;
     const newDiscount = {
-      valueType: d.valueType as 'percentage' | 'fixed-amount',
+      valueType: d.valueType as "percentage" | "fixed-amount",
       percentage: d.percentage,
       fixedAmount: d.fixedAmount,
       title: d.title,
       minimumPurchase: d.minimumPurchase,
       minimumAmount: d.minimumAmount,
-      minimumQuantity: d.minimumQuantity
+      minimumQuantity: d.minimumQuantity,
     };
 
     if (!bestOrderDiscount) {
       bestOrderDiscount = newDiscount;
     } else {
-      const existingValue = bestOrderDiscount.valueType === 'percentage' 
-        ? (bestOrderDiscount.percentage || 0) 
-        : (bestOrderDiscount.fixedAmount || 0);
-      const newValue = newDiscount.valueType === 'percentage' 
-        ? (newDiscount.percentage || 0) 
-        : (newDiscount.fixedAmount || 0);
-      
+      const existingValue =
+        bestOrderDiscount.valueType === "percentage"
+          ? bestOrderDiscount.percentage || 0
+          : bestOrderDiscount.fixedAmount || 0;
+      const newValue =
+        newDiscount.valueType === "percentage" ? newDiscount.percentage || 0 : newDiscount.fixedAmount || 0;
+
       if (newValue > existingValue) {
         bestOrderDiscount = newDiscount;
       }
     }
   }
 
-  // Enrich products with discount info
   const publicOrigin = publicOriginFromRequest(req);
   const enrichedProducts = products.map((product: any) => {
     const productId = String(product._id);
@@ -241,10 +268,9 @@ export const getProductsInCollection = asyncErrorHandler(async (req: Request, re
     return {
       ...product,
       imageUrls: absolutizeImageUrlsArray(publicOrigin, product.imageUrls),
-      productDiscount: discount || null
+      productDiscount: discount || null,
     };
   });
-  // ===== DISCOUNT LOGIC END =====
 
   res.status(200).json({
     success: true,
@@ -255,6 +281,43 @@ export const getProductsInCollection = asyncErrorHandler(async (req: Request, re
       totalItems: total,
       itemsPerPage: limitNum,
     },
-    orderDiscount: bestOrderDiscount
+    orderDiscount: bestOrderDiscount,
   });
+}
+
+// Get products inside a collection by url handle (storefront)
+export const getProductsInCollectionByUrlHandle = asyncErrorHandler(async (req: Request, res: Response) => {
+  const { storeId, urlHandle } = req.params;
+  assertValidStoreId(storeId);
+  if (!urlHandle?.trim()) throw new CustomError("urlHandle is required", 400);
+
+  const collection = await Collections.findOne({
+    storeId,
+    urlHandle: normalizeUrlHandle(urlHandle),
+    status: "published",
+  })
+    .select("_id storeId")
+    .lean();
+
+  if (!collection) {
+    throw new CustomError("Collection not found", 404);
+  }
+
+  await sendStorefrontCollectionProductsResponse(req, res, collection._id, collection.storeId);
+});
+
+// Get products inside a collection by id (legacy storefront)
+export const getProductsInCollection = asyncErrorHandler(async (req: Request, res: Response) => {
+  const { collectionId } = req.params;
+
+  if (!collectionId || !mongoose.isValidObjectId(collectionId)) {
+    throw new CustomError("Valid collectionId is required", 400);
+  }
+
+  const collection = await Collections.findById(collectionId).select("storeId").lean();
+  if (!collection) {
+    throw new CustomError("Collection not found", 404);
+  }
+
+  await sendStorefrontCollectionProductsResponse(req, res, collection._id, collection.storeId);
 });

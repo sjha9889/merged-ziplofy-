@@ -141,6 +141,9 @@ const ContentMenusPage = lazy(() => import("./pages/ContentMenusPage").then(m =>
 const ContentMenuCreatePage = lazy(() =>
   import("./pages/ContentMenuCreatePage").then(m => ({ default: m.ContentMenuCreatePage }))
 );
+const ContentMenuEditPage = lazy(() =>
+  import("./pages/ContentMenuEditPage").then(m => ({ default: m.ContentMenuEditPage }))
+);
 const ContentUrlRedirectsPage = lazy(() =>
   import("./pages/ContentUrlRedirectsPage").then(m => ({ default: m.ContentUrlRedirectsPage }))
 );
@@ -181,6 +184,7 @@ import { CatalogProvider } from "./contexts/catalog.context";
 import { CheckoutSettingsProvider } from "./contexts/checkout-settings.context";
 import { CollectionEntriesProvider } from "./contexts/collection-entries.context";
 import { CollectionProvider } from "./contexts/collection.context";
+import { StoreMenuProvider } from "./contexts/store-menu.context";
 import { CountryTaxOverrideProvider } from "./contexts/country-tax-override.context";
 import { CountryTaxProvider } from "./contexts/country-tax.context";
 import { CountryProvider } from "./contexts/country.context";
@@ -364,6 +368,7 @@ const AdminApp: React.FC = () => {
             <Route path="/content/files" element={<ContentFilesPage />} />
             <Route path="/content/menus" element={<ContentMenusPage />} />
             <Route path="/content/menus/new" element={<ContentMenuCreatePage />} />
+            <Route path="/content/menus/:menuId" element={<ContentMenuEditPage />} />
             <Route path="/content/url-redirects" element={<ContentUrlRedirectsPage />} />
             <Route path="/content/metaobjects" element={<ContentMetaObjectsPage />} />
             <Route path="/online-store" element={<OnlineStorePage />} />
@@ -480,6 +485,7 @@ const App: React.FC = () => {
           <StoreCustomThemesProvider>
         <VendorProvider>
         <CollectionProvider>
+        <StoreMenuProvider>
         <CustomerTagsProvider>
         <ProductTagsProvider>
         <CustomerProvider>
@@ -654,6 +660,7 @@ const App: React.FC = () => {
         </CustomerProvider>
         </ProductTagsProvider>
         </CustomerTagsProvider>
+        </StoreMenuProvider>
         </CollectionProvider>
         </VendorProvider>
         </StoreCustomThemesProvider>

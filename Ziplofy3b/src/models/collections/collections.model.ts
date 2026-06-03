@@ -85,6 +85,7 @@ const collectionSchema = new Schema<ICollection & Document>({
 collectionSchema.index({ title: 1 });
 collectionSchema.index({ storeId: 1 });
 collectionSchema.index({ urlHandle: 1 });
+collectionSchema.index({ storeId: 1, urlHandle: 1 });
 collectionSchema.index({ createdAt: -1 });
 collectionSchema.index({ updatedAt: -1 });
 

@@ -103,6 +103,7 @@ const collectionSchema = new mongoose_1.Schema({
 collectionSchema.index({ title: 1 });
 collectionSchema.index({ storeId: 1 });
 collectionSchema.index({ urlHandle: 1 });
+collectionSchema.index({ storeId: 1, urlHandle: 1 });
 collectionSchema.index({ createdAt: -1 });
 collectionSchema.index({ updatedAt: -1 });
 exports.Collections = mongoose_1.default.model("Collections", collectionSchema);

@@ -146,7 +146,7 @@ export function ThemePreviewRuntime({ jsUrl, cssUrl, page, pageRevision }: Theme
         <Route path="/products" element={<Home />} />
         <Route path="/products/:id" element={<Product />} />
         <Route path="/collection" element={<Home />} />
-        <Route path="/collections/:collectionId/:urlHandle" element={<Home />} />
+        <Route path="/collections/:urlHandle" element={<Home />} />
         <Route path="/auth/login" element={<Login />} />
         <Route path="/auth/signup" element={<Signup />} />
         <Route path="/auth/forgot" element={<Forgot />} />

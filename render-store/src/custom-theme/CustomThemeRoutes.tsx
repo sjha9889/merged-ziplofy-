@@ -1,4 +1,5 @@
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { StorefrontCollectionByUrlHandleLoader } from '../components/StorefrontCollectionByUrlHandleLoader.tsx';
 import { CustomThemeTemplatePage } from '@ziplofy/create-theme/runtime';
 
 const CustomThemeHomeRoute = () => <CustomThemeTemplatePage templateId="index" />;
@@ -24,8 +25,13 @@ export function CustomThemeRoutes() {
         <Route path="/products/:id" element={<CustomThemeProductRoute />} />
         <Route path="/collection" element={<CustomThemeHomeRoute />} />
         <Route
-          path="/collections/:collectionId/:urlHandle"
-          element={<CustomThemeHomeRoute />}
+          path="/collections/:urlHandle"
+          element={
+            <>
+              <StorefrontCollectionByUrlHandleLoader />
+              <CustomThemeHomeRoute />
+            </>
+          }
         />
         <Route path="/auth/login" element={<CustomThemeAuthRoute />} />
         <Route path="/auth/signup" element={<CustomThemeAuthRoute />} />

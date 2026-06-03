@@ -25,6 +25,7 @@ const client_user_stats_route_1 = require("./routes/client-user-stats.route");
 const client_route_1 = require("./routes/client.route");
 const collection_entry_route_1 = require("./routes/collection-entry.route");
 const collections_route_1 = require("./routes/collections.route");
+const store_menu_route_1 = require("./routes/store-menu.route");
 const customer_address_route_1 = require("./routes/customer-address.route");
 const customer_tags_route_1 = require("./routes/customer-tags.route");
 const customer_timeline_route_1 = require("./routes/customer-timeline.route");
@@ -194,6 +195,7 @@ app.use("/api/purchase-order-tags", purchase_order_tag_route_1.purchaseOrderTagR
 app.use("/api/transfers", transfer_route_1.transferRouter);
 app.use("/api/transfer-entries", transfer_entry_route_1.transferEntryRouter);
 app.use("/api/collections", collections_route_1.collectionsRouter);
+app.use("/api/store-menus", store_menu_route_1.storeMenuRouter);
 app.use("/api/storefront/collections", storefront_collection_route_1.storeFrontCollectionRouter);
 app.use("/api/collection-entries", collection_entry_route_1.collectionEntryRouter);
 app.use("/api/categories", category_route_1.categoryRouter);

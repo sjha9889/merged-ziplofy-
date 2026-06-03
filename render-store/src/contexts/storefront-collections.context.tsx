@@ -10,8 +10,13 @@ export interface StorefrontCollection {
 	pageTitle: string;
 	metaDescription: string;
 	urlHandle: string;
-	onlineStorePublishing: boolean;
-	pointOfSalePublishing: boolean;
+	imageUrl?: string;
+	imageAltText?: string;
+	productSort?: string;
+	status?: string;
+	productCount?: number;
+	onlineStorePublishing?: boolean;
+	pointOfSalePublishing?: boolean;
 	createdAt: string;
 	updatedAt: string;
 }
@@ -20,6 +25,11 @@ interface FetchCollectionsApiResponse {
 	success: boolean;
 	data: StorefrontCollection[];
 	count: number;
+}
+
+interface FetchCollectionDetailsApiResponse {
+	success: boolean;
+	data: StorefrontCollection;
 }
 
 interface FetchProductsInCollectionPagination {
@@ -38,22 +48,40 @@ interface FetchProductsInCollectionApiResponse {
 
 interface StorefrontCollectionsContextType {
 	collections: StorefrontCollection[];
+	/** Collection resolved from the current `/collections/:urlHandle` route, if any. */
+	activeCollection: StorefrontCollection | null;
 	products: StorefrontProductItem[];
 	orderDiscount: OrderDiscount | null;
 	loading: boolean;
 	error: string | null;
 	fetchCollectionsByStoreId: (storeId: string) => Promise<StorefrontCollection[]>;
+	getCollectionDetailsByUrlHandle: (
+		storeId: string,
+		urlHandle: string
+	) => Promise<StorefrontCollection>;
+	fetchProductsInCollectionByUrlHandle: (
+		storeId: string,
+		urlHandle: string,
+		params?: { page?: number; limit?: number; q?: string }
+	) => Promise<void>;
+	/** @deprecated Use fetchProductsInCollectionByUrlHandle */
 	fetchProductsInCollection: (
 		collectionId: string,
 		params?: { page?: number; limit?: number; q?: string }
 	) => Promise<void>;
 	clear: () => void;
+	clearActiveCollection: () => void;
 }
 
 const StorefrontCollectionsContext = createContext<StorefrontCollectionsContextType | undefined>(undefined);
 
+function encodeUrlHandle(urlHandle: string): string {
+	return encodeURIComponent(urlHandle.trim().toLowerCase());
+}
+
 export const StorefrontCollectionsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 	const [collections, setCollections] = useState<StorefrontCollection[]>([]);
+	const [activeCollection, setActiveCollection] = useState<StorefrontCollection | null>(null);
 	const [products, setProducts] = useState<StorefrontProductItem[]>([]);
 	const [orderDiscount, setOrderDiscount] = useState<OrderDiscount | null>(null);
 	const [loading, setLoading] = useState(false);
@@ -75,6 +103,68 @@ export const StorefrontCollectionsProvider: React.FC<{ children: React.ReactNode
 			setLoading(false);
 		}
 	}, []);
+
+	const getCollectionDetailsByUrlHandle = useCallback(
+		async (storeId: string, urlHandle: string): Promise<StorefrontCollection> => {
+			try {
+				setLoading(true);
+				setError(null);
+				const res = await axiosi.get<FetchCollectionDetailsApiResponse>(
+					`/storefront/collections/store/${storeId}/url-handle/${encodeUrlHandle(urlHandle)}`
+				);
+				const collection = res.data?.data;
+				if (!collection) {
+					throw new Error('Collection not found');
+				}
+				setActiveCollection(collection);
+				return collection;
+			} catch (err: any) {
+				const msg =
+					err?.response?.data?.message || err?.message || 'Failed to fetch collection details';
+				setError(msg);
+				setActiveCollection(null);
+				throw err;
+			} finally {
+				setLoading(false);
+			}
+		},
+		[]
+	);
+
+	const fetchProductsInCollectionByUrlHandle = useCallback(
+		async (
+			storeId: string,
+			urlHandle: string,
+			params?: { page?: number; limit?: number; q?: string }
+		): Promise<void> => {
+			try {
+				setLoading(true);
+				setError(null);
+				const res = await axiosi.get<FetchProductsInCollectionApiResponse>(
+					`/storefront/collections/store/${storeId}/url-handle/${encodeUrlHandle(urlHandle)}/products`,
+					{
+						params: {
+							page: params?.page,
+							limit: params?.limit,
+							q: params?.q,
+						},
+					}
+				);
+				setProducts(res.data?.data ?? []);
+				setOrderDiscount(res.data?.orderDiscount || null);
+			} catch (err: any) {
+				const msg =
+					err?.response?.data?.message || err?.message || 'Failed to fetch products in collection';
+				setError(msg);
+				setProducts([]);
+				setOrderDiscount(null);
+				throw err;
+			} finally {
+				setLoading(false);
+			}
+		},
+		[]
+	);
 
 	const fetchProductsInCollection = useCallback(async (
 		collectionId: string,
@@ -103,8 +193,13 @@ export const StorefrontCollectionsProvider: React.FC<{ children: React.ReactNode
 		}
 	}, []);
 
+	const clearActiveCollection = useCallback(() => {
+		setActiveCollection(null);
+	}, []);
+
 	const clear = useCallback(() => {
 		setCollections([]);
+		setActiveCollection(null);
 		setProducts([]);
 		setOrderDiscount(null);
 		setError(null);
@@ -112,13 +207,17 @@ export const StorefrontCollectionsProvider: React.FC<{ children: React.ReactNode
 
 	const value: StorefrontCollectionsContextType = {
 		collections,
+		activeCollection,
 		products,
 		orderDiscount,
 		loading,
 		error,
 		fetchCollectionsByStoreId,
+		getCollectionDetailsByUrlHandle,
+		fetchProductsInCollectionByUrlHandle,
 		fetchProductsInCollection,
 		clear,
+		clearActiveCollection,
 	};
 
 	return (

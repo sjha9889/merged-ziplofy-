@@ -14,6 +14,7 @@ import { FreeShippingProvider } from '@/contexts/storefront-free-shipping.contex
 import { StorefrontOrderProvider } from '@/contexts/storefront-order.context';
 import { PaymentProvider } from '@/contexts/payment.context';
 import { ProductOffersProvider } from '@/contexts/product-offers.context';
+import { StorefrontCollectionByUrlHandleLoader } from '@/components/StorefrontCollectionByUrlHandleLoader';
 import { PreviewCollectionsLoader } from './PreviewCollectionsLoader';
 import { PreviewStorefrontProvider } from './PreviewStorefrontProvider';
 
@@ -53,6 +54,7 @@ export function PreviewProviders({
                   <StorefrontCountryProvider>
                     <StorefrontCollectionsProvider>
                       <PreviewCollectionsLoader storeId={storeId} />
+                      <StorefrontCollectionByUrlHandleLoader />
                       <StorefrontSearchProvider>
                         <AmountOffOrderProvider>
                           <AmountOffProductProvider>

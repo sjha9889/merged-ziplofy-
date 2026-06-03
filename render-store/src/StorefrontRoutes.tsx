@@ -1,4 +1,5 @@
 import { Navigate, Route, BrowserRouter as Router, Routes, useLocation } from 'react-router-dom';
+import { StorefrontCollectionByUrlHandleLoader } from './components/StorefrontCollectionByUrlHandleLoader.tsx';
 import { useLoadedThemeContract } from './themes/RemoteThemeProvider.tsx';
 
 const StorefrontHomeRoute = () => {
@@ -57,7 +58,15 @@ export const StorefrontRoutes = () => (
       <Route path="/products" element={<StorefrontHomeRoute />} />
       <Route path="/products/:id" element={<StorefrontProductRoute />} />
       <Route path="/collection" element={<StorefrontHomeRoute />} />
-      <Route path="/collections/:collectionId/:urlHandle" element={<StorefrontHomeRoute />} />
+      <Route
+        path="/collections/:urlHandle"
+        element={
+          <>
+            <StorefrontCollectionByUrlHandleLoader />
+            <StorefrontHomeRoute />
+          </>
+        }
+      />
       <Route path="/auth/login" element={<StorefrontAuthRoute />} />
       <Route path="/auth/signup" element={<StorefrontAuthRoute />} />
       <Route path="/auth/forgot" element={<StorefrontForgotRoute />} />
