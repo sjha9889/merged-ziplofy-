@@ -232,9 +232,19 @@ export const editing: CreateThemeEditing = {
           "type": "text"
         },
         {
+          "key": "desktopCustomWidth",
+          "label": "Custom width",
+          "type": "number"
+        },
+        {
           "key": "mobileWidth",
           "label": "Mobile width",
           "type": "text"
+        },
+        {
+          "key": "mobileCustomWidth",
+          "label": "Custom width",
+          "type": "number"
         },
         {
           "key": "ariaLabel",
@@ -273,9 +283,19 @@ export const editing: CreateThemeEditing = {
           "type": "text"
         },
         {
+          "key": "desktopCustomWidth",
+          "label": "Custom width",
+          "type": "number"
+        },
+        {
           "key": "mobileWidth",
           "label": "Mobile width",
           "type": "text"
+        },
+        {
+          "key": "mobileCustomWidth",
+          "label": "Custom width",
+          "type": "number"
         },
         {
           "key": "ariaLabel",

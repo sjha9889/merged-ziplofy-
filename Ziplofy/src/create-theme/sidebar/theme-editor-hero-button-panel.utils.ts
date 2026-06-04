@@ -16,8 +16,15 @@ const BUTTON_PANEL_KEYS = new Set([
   'openInNewTab',
   'buttonStyle',
   'desktopWidth',
+  'desktopCustomWidth',
   'mobileWidth',
+  'mobileCustomWidth',
 ]);
+
+const BUTTON_WIDTH_MODE_OPTIONS = [
+  { value: 'fit', label: 'Fit' },
+  { value: 'custom', label: 'Custom' },
+] as const;
 
 const CANON_BUTTON_TEMPLATE_ID = 'index';
 const CANON_BUTTON_SECTION_ID = 'hero_main';
@@ -68,7 +75,9 @@ function fieldSortKey(path: string): number {
     openInNewTab: 2,
     buttonStyle: 10,
     desktopWidth: 11,
-    mobileWidth: 12,
+    desktopCustomWidth: 12,
+    mobileWidth: 13,
+    mobileCustomWidth: 14,
   };
   return rank[key] ?? 50;
 }
@@ -123,6 +132,51 @@ export function pickHeroButtonPanelField(
   key: string
 ): EditorFieldDef | undefined {
   return fields.find((f) => f.path.split('.').pop() === key);
+}
+
+/** Segmented Fit / Custom for desktop or mobile width. */
+export function heroButtonWidthModeField(
+  field: EditorFieldDef | undefined
+): EditorFieldDef | null {
+  if (!field) return null;
+  return {
+    ...field,
+    options: [...BUTTON_WIDTH_MODE_OPTIONS],
+    widget: 'segmented',
+  };
+}
+
+/** Percent slider shown when width mode is Custom (Shopify-style). */
+export function resolveHeroButtonCustomWidthField(
+  fields: EditorFieldDef[],
+  anchor: EditorFieldDef | undefined,
+  key: 'desktopCustomWidth' | 'mobileCustomWidth'
+): EditorFieldDef | null {
+  const existing = pickHeroButtonPanelField(fields, key);
+  if (existing) {
+    return {
+      ...existing,
+      label: 'Custom width',
+      type: 'number',
+      min: existing.min ?? 1,
+      max: existing.max ?? 100,
+      step: existing.step ?? 1,
+      unit: existing.unit ?? '%',
+      group: 'Size',
+    };
+  }
+  if (!anchor) return null;
+  const prefix = anchor.path.replace(/\.(?:desktop|mobile)Width$/, '');
+  return {
+    path: `${prefix}.${key}`,
+    label: 'Custom width',
+    type: 'number',
+    group: 'Size',
+    min: 1,
+    max: 100,
+    step: 1,
+    unit: '%',
+  };
 }
 
 function canonicalButtonFieldsFromSchema(editorSchema: EditorSchemaDoc): EditorFieldDef[] {

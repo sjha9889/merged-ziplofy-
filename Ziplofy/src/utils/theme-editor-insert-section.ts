@@ -2507,7 +2507,9 @@ function insertHeroBlock(
         openInNewTab: false,
         buttonStyle: isSecondary ? 'secondary' : 'primary',
         desktopWidth: 'fit',
+        desktopCustomWidth: 100,
         mobileWidth: 'fit',
+        mobileCustomWidth: 100,
         ariaLabel: '',
       },
     };

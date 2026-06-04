@@ -79,15 +79,24 @@ function HeroButton({
 
   if (!label.trim()) return null;
 
+  const btnScopeId = `${sectionNodePrefix.replace(/:/g, '-')}-${blockId}`;
+  const btnResponsiveCss =
+    btnStyle.width !== btnStyle.mobileWidth
+      ? `@media (max-width: 749px) { [data-hero-btn="${btnScopeId}"] { width: ${btnStyle.mobileWidth} !important; } }`
+      : '';
+
   return (
     <EditorBlock nodeId={`${sectionNodePrefix}:block:${blockId}`} label="Button">
+      {btnResponsiveCss ? <style>{btnResponsiveCss}</style> : null}
       <Link
         to={href}
         target={btnStyle.openInNewTab ? '_blank' : undefined}
         rel={btnStyle.openInNewTab ? 'noopener noreferrer' : undefined}
+        data-hero-btn={btnScopeId}
         style={{
           display: 'inline-block',
           width: btnStyle.width,
+          maxWidth: '100%',
           minWidth: btnStyle.minWidth,
           padding: btnStyle.padding,
           borderRadius: btnStyle.borderRadius,
@@ -98,6 +107,7 @@ function HeroButton({
           fontWeight: btnStyle.fontWeight,
           fontSize: btnStyle.fontSize,
           boxSizing: 'border-box',
+          textAlign: 'center',
         }}
       >
         <EditorField fieldPath={`${base}.label`} label="Label">

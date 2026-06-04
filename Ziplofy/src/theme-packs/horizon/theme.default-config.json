@@ -1369,7 +1369,9 @@
                 "openInNewTab": false,
                 "buttonStyle": "primary",
                 "desktopWidth": "fit",
+                "desktopCustomWidth": 100,
                 "mobileWidth": "fit",
+                "mobileCustomWidth": 100,
                 "ariaLabel": ""
               },
               "settings_field_order": [
@@ -1385,7 +1387,9 @@
                 "openInNewTab": false,
                 "buttonStyle": "secondary",
                 "desktopWidth": "fit",
+                "desktopCustomWidth": 100,
                 "mobileWidth": "fit",
+                "mobileCustomWidth": 100,
                 "ariaLabel": ""
               },
               "settings_field_order": [

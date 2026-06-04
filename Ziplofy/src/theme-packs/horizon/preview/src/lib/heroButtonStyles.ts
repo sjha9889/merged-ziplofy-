@@ -1,8 +1,9 @@
-import { cfgBool, cfgString } from './config';
+import { cfgBool, cfgNumber, cfgString } from './config';
 
 export type HeroButtonStyle = {
   variant: 'primary' | 'secondary';
   width: string;
+  mobileWidth: string;
   minWidth: string | undefined;
   padding: string;
   borderRadius: number;
@@ -23,7 +24,15 @@ export function readHeroButtonStyle(
 ): HeroButtonStyle {
   const variantKey = cfgString(config, `${settingsBase}.buttonStyle`, fallbackVariant);
   const variant = variantKey === 'primary' ? 'primary' : 'secondary';
-  const desktopWidth = cfgString(config, `${settingsBase}.desktopWidth`, 'fit');
+  const desktopMode = cfgString(config, `${settingsBase}.desktopWidth`, 'fit');
+  const mobileMode = cfgString(config, `${settingsBase}.mobileWidth`, 'fit');
+  const desktopPercent = cfgNumber(config, `${settingsBase}.desktopCustomWidth`, 100);
+  const mobilePercent = cfgNumber(config, `${settingsBase}.mobileCustomWidth`, 100);
+  const clampPct = (n: number) => Math.min(100, Math.max(1, Number.isFinite(n) ? n : 100));
+  const width =
+    desktopMode === 'custom' ? `${clampPct(desktopPercent)}%` : 'fit-content';
+  const mobileWidth =
+    mobileMode === 'custom' ? `${clampPct(mobilePercent)}%` : 'fit-content';
 
   const isPrimary = variant === 'primary';
   const onImage = Boolean(options?.onImageHero);
@@ -31,8 +40,9 @@ export function readHeroButtonStyle(
   if (onImage && isPrimary) {
     return {
       variant,
-      width: desktopWidth === 'custom' ? 'auto' : 'fit-content',
-      minWidth: desktopWidth === 'custom' ? '140px' : undefined,
+      width,
+      minWidth: undefined,
+      mobileWidth,
       padding: '12px 28px',
       borderRadius: 9999,
       fontSize: 15,
@@ -46,8 +56,9 @@ export function readHeroButtonStyle(
 
   return {
     variant,
-    width: desktopWidth === 'custom' ? 'auto' : 'fit-content',
-    minWidth: desktopWidth === 'custom' ? '140px' : undefined,
+    width,
+    mobileWidth,
+    minWidth: undefined,
     padding: isPrimary ? '14px 28px' : '14px 24px',
     borderRadius: 8,
     fontSize: 14,

@@ -9643,6 +9643,28 @@
                   ]
                 },
                 {
+                  "path": "templates.index.sections.hero_main.blocks.primary_button.settings.desktopCustomWidth",
+                  "type": "number",
+                  "label": "Custom width",
+                  "group": "Size",
+                  "sidebar": false,
+                  "min": 1,
+                  "max": 100,
+                  "step": 1,
+                  "unit": "%"
+                },
+                {
+                  "path": "templates.index.sections.hero_main.blocks.primary_button.settings.mobileCustomWidth",
+                  "type": "number",
+                  "label": "Custom width",
+                  "group": "Size",
+                  "sidebar": false,
+                  "min": 1,
+                  "max": 100,
+                  "step": 1,
+                  "unit": "%"
+                },
+                {
                   "path": "templates.index.sections.hero_main.blocks.primary_button.settings.ariaLabel",
                   "type": "text",
                   "label": "Accessibility label",
@@ -9730,6 +9752,28 @@
                       "label": "Custom"
                     }
                   ]
+                },
+                {
+                  "path": "templates.index.sections.hero_main.blocks.secondary_button.settings.desktopCustomWidth",
+                  "type": "number",
+                  "label": "Custom width",
+                  "group": "Size",
+                  "sidebar": false,
+                  "min": 1,
+                  "max": 100,
+                  "step": 1,
+                  "unit": "%"
+                },
+                {
+                  "path": "templates.index.sections.hero_main.blocks.secondary_button.settings.mobileCustomWidth",
+                  "type": "number",
+                  "label": "Custom width",
+                  "group": "Size",
+                  "sidebar": false,
+                  "min": 1,
+                  "max": 100,
+                  "step": 1,
+                  "unit": "%"
                 },
                 {
                   "path": "templates.index.sections.hero_main.blocks.secondary_button.settings.ariaLabel",

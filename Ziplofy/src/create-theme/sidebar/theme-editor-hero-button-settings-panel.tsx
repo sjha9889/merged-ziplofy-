@@ -11,8 +11,10 @@ import {
 import {
   groupHeroButtonPanelFields,
   HERO_BUTTON_PANEL_GROUP_ORDER,
+  heroButtonWidthModeField,
   pickHeroButtonPanelField,
   prepareHeroButtonSettingsNode,
+  resolveHeroButtonCustomWidthField,
 } from './theme-editor-hero-button-panel.utils';
 
 function HeroButtonLabelFieldRow({
@@ -139,7 +141,7 @@ function HeroButtonStyleFieldRow({
   );
 }
 
-function HeroButtonSizeFieldRow({
+function HeroButtonWidthModeFieldRow({
   field,
   values,
   onFieldChange,
@@ -148,8 +150,21 @@ function HeroButtonSizeFieldRow({
   values: Record<string, string | boolean>;
   onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
 }) {
-  const current = fieldValueAsString(values, field) || field.options?.[0]?.value || '';
+  const current = fieldValueAsString(values, field) || 'fit';
   const changeType = fieldTypeFromSchema(field.type);
+
+  const handleChange = (value: string) => {
+    onFieldChange(field.path, changeType, value);
+    if (value === 'custom') {
+      const customKey =
+        field.path.endsWith('desktopWidth') ? 'desktopCustomWidth' : 'mobileCustomWidth';
+      const customPath = field.path.replace(/\.(?:desktop|mobile)Width$/, `.${customKey}`);
+      const cur = values[customPath];
+      if (cur === undefined || cur === '' || cur === null) {
+        onFieldChange(customPath, 'number', '100');
+      }
+    }
+  };
 
   return (
     <div className="grid grid-cols-[1fr_auto] items-center gap-3 py-1">
@@ -159,7 +174,7 @@ function HeroButtonSizeFieldRow({
           <button
             key={opt.value}
             type="button"
-            onClick={() => onFieldChange(field.path, changeType, opt.value)}
+            onClick={() => handleChange(opt.value)}
             className={`rounded-md px-3 py-1 text-[12px] font-medium transition-colors ${
               current === opt.value
                 ? 'bg-white text-gray-900 shadow-sm'
@@ -169,6 +184,129 @@ function HeroButtonSizeFieldRow({
             {opt.label}
           </button>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function buttonPercentValue(
+  values: Record<string, string | boolean>,
+  field: EditorFieldDef
+): number {
+  const min = field.min ?? 1;
+  const max = field.max ?? 100;
+  const raw = values[field.path];
+  const n = typeof raw === 'number' ? raw : Number(raw);
+  if (!Number.isFinite(n)) return 100;
+  return Math.min(max, Math.max(min, n));
+}
+
+function HeroButtonCustomWidthFieldRow({
+  field,
+  values,
+  onFieldChange,
+}: {
+  field: EditorFieldDef;
+  values: Record<string, string | boolean>;
+  onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
+}) {
+  const min = field.min ?? 1;
+  const max = field.max ?? 100;
+  const step = field.step ?? 1;
+  const current = buttonPercentValue(values, field);
+  const id = fieldInputId(field.path);
+
+  return (
+    <div className="grid grid-cols-[1fr_auto] items-center gap-3 py-1">
+      <label htmlFor={id} className="text-[13px] text-gray-800">
+        {field.label}
+      </label>
+      <div className="flex items-center gap-2">
+        <input
+          id={id}
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={current}
+          onChange={(e) => onFieldChange(field.path, 'number', e.target.value)}
+          className="h-1.5 w-[120px] cursor-pointer accent-gray-900"
+        />
+        <div className="flex items-center rounded-lg border border-[#c9cccf] bg-white shadow-sm">
+          <input
+            type="number"
+            min={min}
+            max={max}
+            step={step}
+            value={current}
+            onChange={(e) => onFieldChange(field.path, 'number', e.target.value)}
+            className="w-10 border-0 bg-transparent px-2 py-1.5 text-center text-[13px] text-gray-900 focus:outline-none"
+            aria-label={field.label}
+          />
+          <span className="border-l border-[#e1e1e1] px-2 text-[12px] text-gray-500">%</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HeroButtonSizeSettingsGroup({
+  fields,
+  values,
+  onFieldChange,
+}: {
+  fields: EditorFieldDef[];
+  values: Record<string, string | boolean>;
+  onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
+}) {
+  const desktopWidthRaw = pickHeroButtonPanelField(fields, 'desktopWidth');
+  const mobileWidthRaw = pickHeroButtonPanelField(fields, 'mobileWidth');
+  const desktopWidth = heroButtonWidthModeField(desktopWidthRaw);
+  const mobileWidth = heroButtonWidthModeField(mobileWidthRaw);
+  const desktopCustom = resolveHeroButtonCustomWidthField(fields, desktopWidthRaw, 'desktopCustomWidth');
+  const mobileCustom = resolveHeroButtonCustomWidthField(fields, mobileWidthRaw, 'mobileCustomWidth');
+
+  const desktopMode = desktopWidth ? fieldValueAsString(values, desktopWidth) || 'fit' : 'fit';
+  const mobileMode = mobileWidth ? fieldValueAsString(values, mobileWidth) || 'fit' : 'fit';
+
+  if (!desktopWidth && !mobileWidth) return null;
+
+  return (
+    <div className="px-1 py-3">
+      <h3 className="mb-2 text-[13px] font-semibold text-gray-900">Size</h3>
+      <div className="space-y-1">
+        {desktopWidth ? (
+          <>
+            <HeroButtonWidthModeFieldRow
+              field={desktopWidth}
+              values={values}
+              onFieldChange={onFieldChange}
+            />
+            {desktopMode === 'custom' && desktopCustom ? (
+              <HeroButtonCustomWidthFieldRow
+                field={desktopCustom}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            ) : null}
+          </>
+        ) : null}
+        {mobileWidth ? (
+          <>
+            <HeroButtonWidthModeFieldRow
+              field={mobileWidth}
+              values={values}
+              onFieldChange={onFieldChange}
+            />
+            {mobileMode === 'custom' && mobileCustom ? (
+              <HeroButtonCustomWidthFieldRow
+                field={mobileCustom}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            ) : null}
+          </>
+        ) : null}
       </div>
     </div>
   );
@@ -194,7 +332,10 @@ export function HeroButtonSettingsPanel({
   const hrefField = pickHeroButtonPanelField(prepared.fields ?? [], 'href');
   const openTabField = pickHeroButtonPanelField(prepared.fields ?? [], 'openInNewTab');
   const styleField = pickHeroButtonPanelField(prepared.fields ?? [], 'buttonStyle');
-  const sizeFields = grouped.get('Size') ?? [];
+  const hasSizeFields = (grouped.get('Size') ?? []).some((f) => {
+    const key = f.path.split('.').pop() ?? '';
+    return key === 'desktopWidth' || key === 'mobileWidth';
+  });
 
   return (
     <div className="divide-y divide-[#e1e1e1]">
@@ -231,20 +372,12 @@ export function HeroButtonSettingsPanel({
           ) : null;
         })
       )}
-      {sizeFields.length ? (
-        <div className="px-1 py-3">
-          <h3 className="mb-2 text-[13px] font-semibold text-gray-900">Size</h3>
-          <div className="space-y-1">
-            {sizeFields.map((field) => (
-              <HeroButtonSizeFieldRow
-                key={field.path}
-                field={field}
-                values={values}
-                onFieldChange={onFieldChange}
-              />
-            ))}
-          </div>
-        </div>
+      {hasSizeFields ? (
+        <HeroButtonSizeSettingsGroup
+          fields={prepared.fields ?? []}
+          values={values}
+          onFieldChange={onFieldChange}
+        />
       ) : null}
     </div>
   );

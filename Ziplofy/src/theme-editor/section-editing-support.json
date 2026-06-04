@@ -10196,6 +10196,26 @@
               ]
             },
             {
+              "key": "desktopCustomWidth",
+              "type": "number",
+              "label": "Custom width",
+              "group": "Size",
+              "min": 1,
+              "max": 100,
+              "step": 1,
+              "unit": "%"
+            },
+            {
+              "key": "mobileCustomWidth",
+              "type": "number",
+              "label": "Custom width",
+              "group": "Size",
+              "min": 1,
+              "max": 100,
+              "step": 1,
+              "unit": "%"
+            },
+            {
               "key": "ariaLabel",
               "type": "text",
               "label": "Accessibility label"
@@ -10285,6 +10305,26 @@
                   "label": "Custom"
                 }
               ]
+            },
+            {
+              "key": "desktopCustomWidth",
+              "type": "number",
+              "label": "Custom width",
+              "group": "Size",
+              "min": 1,
+              "max": 100,
+              "step": 1,
+              "unit": "%"
+            },
+            {
+              "key": "mobileCustomWidth",
+              "type": "number",
+              "label": "Custom width",
+              "group": "Size",
+              "min": 1,
+              "max": 100,
+              "step": 1,
+              "unit": "%"
             },
             {
               "key": "ariaLabel",
