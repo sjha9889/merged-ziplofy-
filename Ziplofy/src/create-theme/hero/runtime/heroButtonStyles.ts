@@ -39,13 +39,13 @@ export function readHeroButtonStyle(
 
   if (onImage && isPrimary) {
     return {
-      padding: '11px 26px',
-      borderRadius: 6,
+      padding: '12px 28px',
+      borderRadius: 9999,
       fontSize: 15,
       fontWeight: 500,
-      background: 'transparent',
+      background: 'rgba(0, 0, 0, 0.28)',
       color: '#ffffff',
-      border: '1px solid rgba(255,255,255,0.9)',
+      border: '1px solid rgba(255, 255, 255, 0.9)',
       openInNewTab: cfgBool(config, `${settingsBase}.openInNewTab`, false),
     };
   }

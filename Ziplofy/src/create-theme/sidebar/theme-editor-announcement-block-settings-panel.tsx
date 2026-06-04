@@ -12,6 +12,7 @@ import {
   fieldValueAsString,
   type ThemeEditorFieldType,
 } from './create-theme-field.utils';
+import { ThemeEditorLinkField } from '../../components/theme-editor/ThemeEditorLinkField';
 import { pickAnnouncementBlockField } from './theme-editor-announcement-block-panel.utils';
 
 function AnnouncementRichTextFieldRow({
@@ -93,34 +94,15 @@ function AnnouncementLinkFieldRow({
   values: Record<string, string | boolean>;
   onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
 }) {
-  const id = fieldInputId(field.path);
-
   return (
-    <div className="space-y-1.5 py-1">
-      <div className="flex items-center justify-between gap-2">
-        <label htmlFor={id} className="text-[13px] font-medium text-gray-800">
-          {field.label}
-        </label>
-        <button
-          type="button"
-          title="Connect dynamic source"
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
-        >
-          <CircleStackIcon className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="relative">
-        <input
-          id={id}
-          type="text"
-          value={fieldValueAsString(values, field)}
-          onChange={(e) => onFieldChange(field.path, 'text', e.target.value)}
-          placeholder={field.placeholder ?? 'Paste a link or search'}
-          className="w-full rounded-lg border border-[#c9cccf] bg-white py-2 pl-3 pr-9 text-[13px] text-gray-900 shadow-sm focus:border-[#005bd3] focus:outline-none focus:ring-1 focus:ring-[#005bd3]"
-        />
-        <LinkIcon className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-      </div>
-    </div>
+    <ThemeEditorLinkField
+      id={fieldInputId(field.path)}
+      label={field.label}
+      value={fieldValueAsString(values, field)}
+      placeholder={field.placeholder ?? 'Paste a link or search'}
+      onChange={(next) => onFieldChange(field.path, 'text', next)}
+      showDynamicSource
+    />
   );
 }
 

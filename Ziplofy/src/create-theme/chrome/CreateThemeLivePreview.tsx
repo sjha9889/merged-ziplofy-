@@ -1,11 +1,11 @@
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { PreviewLoadingOverlay, PreviewSyncPulse } from './PreviewStatus';
+import { PreviewLoadingOverlay } from './PreviewStatus';
 
 const EDITOR_SOURCE = 'ziplofy-theme-editor';
 const FRAME_SOURCE = 'ziplofy-theme-preview';
 
-/** Debounce full config sync to iframe — avoids message spam while typing in sidebar. */
-const PREVIEW_CONFIG_POST_MS = 180;
+/** Config is debounced upstream; post to iframe soon after it lands. */
+const PREVIEW_CONFIG_POST_MS = 40;
 
 function hintsPostKey(hints: ThemePreviewSelectionHint[]): string {
   return hints
@@ -55,8 +55,6 @@ export type CreateThemeLivePreviewProps = {
   inspectorEnabled?: boolean;
   /** Bumped on sidebar structure reorder — posts config to iframe immediately. */
   structureSyncKey?: number;
-  /** Bumped on sidebar / inline field edits — posts config immediately (keeps preview in sync). */
-  valuesSyncKey?: number;
   className?: string;
 };
 
@@ -122,7 +120,6 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
   highlightNodeId,
   inspectorEnabled = true,
   structureSyncKey = 0,
-  valuesSyncKey = 0,
   className = '',
 }) => {
   const previewSrc = buildPreviewSrc();
@@ -152,8 +149,6 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
   const highlightRafRef = useRef(0);
   const inspectorEnabledRef = useRef(inspectorEnabled);
   inspectorEnabledRef.current = inspectorEnabled;
-  const [syncPulse, setSyncPulse] = useState(false);
-
   /** Stable key so we only re-sync when config content changes, not object identity. */
   const configStableKey = useMemo(() => {
     try {
@@ -231,10 +226,6 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
     );
   }, []);
 
-  const endSyncPulse = useCallback(() => {
-    setSyncPulse(false);
-  }, []);
-
   const schedulePostConfig = useCallback(
     (immediate = false) => {
       if (configPostTimerRef.current !== undefined) {
@@ -244,19 +235,16 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
 
       const json = JSON.stringify(configRef.current);
       if (!immediate && json === lastPostedConfigRef.current) {
-        endSyncPulse();
         return;
       }
 
-      setSyncPulse(true);
       const delay = immediate ? 0 : PREVIEW_CONFIG_POST_MS;
       configPostTimerRef.current = window.setTimeout(() => {
         configPostTimerRef.current = undefined;
         postConfigNow(immediate);
-        endSyncPulse();
       }, delay);
     },
-    [postConfigNow, endSyncPulse]
+    [postConfigNow]
   );
 
   const postSelectionHints = useCallback(() => {
@@ -341,26 +329,13 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
         window.clearTimeout(configPostTimerRef.current);
         configPostTimerRef.current = undefined;
       }
-      endSyncPulse();
     };
-  }, [configStableKey, ready, schedulePostConfig, endSyncPulse]);
+  }, [configStableKey, ready, schedulePostConfig]);
 
   useEffect(() => {
     if (!ready || !initSentRef.current || structureSyncKey < 1) return;
     schedulePostConfig(true);
   }, [structureSyncKey, ready, schedulePostConfig]);
-
-  useEffect(() => {
-    if (!ready || !initSentRef.current || valuesSyncKey < 1) return;
-    schedulePostConfig(true);
-  }, [valuesSyncKey, ready, schedulePostConfig]);
-
-  /** Never leave "Updating preview" stuck if debounce timers are cancelled mid-flight. */
-  useEffect(() => {
-    if (!syncPulse) return;
-    const failsafe = window.setTimeout(() => endSyncPulse(), 4000);
-    return () => window.clearTimeout(failsafe);
-  }, [syncPulse, endSyncPulse]);
 
   useEffect(() => {
     if (!ready || !initSentRef.current) return;
@@ -434,7 +409,6 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
   useEffect(() => {
     initSentRef.current = false;
     setReady(false);
-    setSyncPulse(false);
     lastPostedConfigRef.current = '';
     lastPostedHintsKeyRef.current = '';
     return () => {
@@ -463,7 +437,6 @@ const CreateThemeLivePreviewInner: React.FC<CreateThemeLivePreviewProps> = ({
   return (
     <div className={`relative h-full w-full overflow-hidden bg-white ${className}`}>
       {!ready ? <PreviewLoadingOverlay origin={previewOrigin} /> : null}
-      <PreviewSyncPulse visible={syncPulse && ready} />
       {loadError && (
         <div className="absolute left-0 right-0 top-0 z-20 border-b border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
           {loadError}

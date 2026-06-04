@@ -9519,7 +9519,7 @@
           "blocks": [
             {
               "id": "heading",
-              "label": "Text",
+              "label": "Heading",
               "settingsFields": [
                 {
                   "path": "templates.index.sections.hero_main.settings.title",
@@ -9571,6 +9571,28 @@
                     {
                       "value": "none",
                       "label": "None"
+                    }
+                  ]
+                },
+                {
+                  "path": "templates.index.sections.hero_main.settings.headingAlignment",
+                  "type": "select",
+                  "label": "Alignment",
+                  "group": "Layout",
+                  "widget": "segmented",
+                  "sidebar": false,
+                  "options": [
+                    {
+                      "value": "left",
+                      "label": "Left"
+                    },
+                    {
+                      "value": "center",
+                      "label": "Center"
+                    },
+                    {
+                      "value": "right",
+                      "label": "Right"
                     }
                   ]
                 },
@@ -9632,6 +9654,27 @@
                   "type": "boolean",
                   "label": "Background",
                   "group": "Appearance",
+                  "widget": "toggle",
+                  "sidebar": false
+                },
+                {
+                  "path": "templates.index.sections.hero_main.settings.headingBackgroundColor",
+                  "type": "color",
+                  "label": "Background color",
+                  "group": "Appearance",
+                  "widget": "color",
+                  "sidebar": false
+                },
+                {
+                  "path": "templates.index.sections.hero_main.settings.headingCornerRadius",
+                  "type": "number",
+                  "label": "Corner radius",
+                  "group": "Appearance",
+                  "widget": "slider",
+                  "min": 0,
+                  "max": 40,
+                  "step": 1,
+                  "unit": "px",
                   "sidebar": false
                 },
                 {

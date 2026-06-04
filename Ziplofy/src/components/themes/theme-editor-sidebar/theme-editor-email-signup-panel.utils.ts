@@ -1,5 +1,5 @@
-import type { EditorFieldDef, SidebarNode } from './theme-editor-sidebar.types';
-import { filterSidebarSectionPanelFields } from './theme-editor-field.utils';
+import type { EditorFieldDef, SidebarNode } from './create-theme-sidebar.types';
+import { filterSidebarSectionPanelFields } from './create-theme-field.utils';
 
 /** Shopify-style Email signup section settings sheet order. */
 export const EMAIL_SIGNUP_PANEL_GROUP_ORDER = [
@@ -73,6 +73,7 @@ export function groupEmailSignupPanelFields(fields: EditorFieldDef[]): Map<strin
 export function isEmailSignupSettingsPanelFields(fields: EditorFieldDef[]): boolean {
   if (!fields.length) return false;
   const keys = new Set(fields.map((f) => f.path.split('.').pop() ?? ''));
+  if (keys.has('media1Type') || keys.has('media1ImageUrl') || keys.has('media2Type')) return false;
   return keys.has('direction') && keys.has('sectionWidth') && keys.has('colorScheme');
 }
 

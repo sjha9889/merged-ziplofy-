@@ -1,4 +1,4 @@
-import { cfgBool, cfgNumber, cfgString } from './config';
+import { cfgBool, cfgNumber, cfgString } from '../../runtime/shared/config';
 
 const TYPOGRAPHY_PRESETS: Record<string, { fontSize: number; fontWeight: number; lineHeight: number }> = {
   'heading-1': { fontSize: 40, fontWeight: 700, lineHeight: 1.15 },

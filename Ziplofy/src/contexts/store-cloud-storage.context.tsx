@@ -73,6 +73,10 @@ interface StoreCloudStorageContextType {
     options?: UploadFileForStoreOptions
   ) => Promise<{ upload: StoreCloudStorageUpload; objectUrl: string; key: string }>;
   getObjectUrlForKey: (key: string) => string | null;
+  /** Resolve a public S3 URL for a registered upload (needs bucket/region meta). */
+  resolveUploadPreviewUrl: (upload: StoreCloudStorageUpload) => string | null;
+  /** Load bucket/region from session or presign API so list previews can render. */
+  ensureS3Meta: () => Promise<S3ObjectMeta | null>;
   clearUploads: () => void;
   clearError: () => void;
 }
@@ -83,7 +87,8 @@ const StoreCloudStorageContext = createContext<StoreCloudStorageContextType | un
   undefined
 );
 
-const defaultContentFilesFolder = (storeId: string) => `stores/${storeId}/content-files`;
+export const defaultContentFilesFolder = (storeId: string) =>
+  `stores/${storeId}/content-files`;
 
 export const buildS3ObjectUrl = (
   key: string,
@@ -126,11 +131,18 @@ export const fileNameFromStorageKey = (key: string): string => {
 };
 
 export const isImageStorageKey = (key: string): boolean =>
-  /\.(jpe?g|png|gif|webp|svg)$/i.test(key);
+  /\.(jpe?g|png|gif|webp|svg|avif|bmp|heic|heif)$/i.test(key);
+
+const isValidStoreObjectId = (storeId: string): boolean => /^[a-f\d]{24}$/i.test(storeId);
 
 /** Must be rendered inside AwsUploadProvider. */
 const StoreCloudStorageProviderInner: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { uploadImageWithSignedUrl, deleteImagesFromS3, lastSignedUrlData } = useAwsUpload();
+  const {
+    uploadImageWithSignedUrl,
+    deleteImagesFromS3,
+    lastSignedUrlData,
+    generateImageUploadSignedUrl,
+  } = useAwsUpload();
 
   const [uploads, setUploads] = useState<StoreCloudStorageUpload[]>([]);
   const [loading, setLoading] = useState(false);
@@ -154,6 +166,43 @@ const StoreCloudStorageProviderInner: React.FC<{ children: ReactNode }> = ({ chi
     [lastS3Meta]
   );
 
+  const ensureS3Meta = useCallback(async (): Promise<S3ObjectMeta | null> => {
+    if (lastS3Meta?.bucket && lastS3Meta?.region) return lastS3Meta;
+
+    const stored = readStoredS3Meta();
+    if (stored?.bucket && stored?.region) {
+      setStoredS3Meta(stored);
+      return stored;
+    }
+
+    try {
+      const data = await generateImageUploadSignedUrl({
+        fileName: 'preview-bootstrap.png',
+        fileType: 'image/png',
+        folder: 'uploads/images',
+      });
+      const meta = { bucket: data.bucket, region: data.region };
+      setStoredS3Meta(meta);
+      persistS3Meta(meta);
+      return meta;
+    } catch {
+      return null;
+    }
+  }, [lastS3Meta, generateImageUploadSignedUrl]);
+
+  const resolveUploadPreviewUrl = useCallback(
+    (upload: StoreCloudStorageUpload): string | null => {
+      if (!isImageStorageKey(upload.key)) return null;
+      return (
+        getObjectUrlForKey(upload.key) ??
+        (lastS3Meta
+          ? buildS3ObjectUrl(upload.key, lastS3Meta.bucket, lastS3Meta.region)
+          : null)
+      );
+    },
+    [getObjectUrlForKey, lastS3Meta]
+  );
+
   const persistRegisteredUpload = useCallback(async (payload: RegisterStoreUploadPayload) => {
     const res = await axiosi.post<ApiResponse<StoreCloudStorageUpload>>(
       `${CLOUD_STORAGE_BASE}/register`,
@@ -166,6 +215,13 @@ const StoreCloudStorageProviderInner: React.FC<{ children: ReactNode }> = ({ chi
   }, []);
 
   const fetchUploadsByStoreId = useCallback(async (storeId: string) => {
+    if (!isValidStoreObjectId(storeId)) {
+      const msg = 'Select a valid store before loading files';
+      setError(msg);
+      setUploads([]);
+      throw new Error(msg);
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -176,6 +232,9 @@ const StoreCloudStorageProviderInner: React.FC<{ children: ReactNode }> = ({ chi
       if (!success) throw new Error(message || 'Failed to fetch store files');
       const list = Array.isArray(data) ? data : [];
       setUploads(list);
+      if (list.length > 0) {
+        await ensureS3Meta();
+      }
       return list;
     } catch (err: unknown) {
       const msg =
@@ -188,7 +247,7 @@ const StoreCloudStorageProviderInner: React.FC<{ children: ReactNode }> = ({ chi
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [ensureS3Meta]);
 
   const registerUpload = useCallback(
     async (payload: RegisterStoreUploadPayload) => {
@@ -340,6 +399,8 @@ const StoreCloudStorageProviderInner: React.FC<{ children: ReactNode }> = ({ chi
       uploadFilesForStore,
       uploadFileForStoreQuiet,
       getObjectUrlForKey,
+      resolveUploadPreviewUrl,
+      ensureS3Meta,
       clearUploads,
       clearError,
     }),
@@ -357,6 +418,8 @@ const StoreCloudStorageProviderInner: React.FC<{ children: ReactNode }> = ({ chi
       uploadFilesForStore,
       uploadFileForStoreQuiet,
       getObjectUrlForKey,
+      resolveUploadPreviewUrl,
+      ensureS3Meta,
       clearUploads,
       clearError,
     ]

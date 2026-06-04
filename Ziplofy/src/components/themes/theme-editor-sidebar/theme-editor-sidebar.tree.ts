@@ -298,24 +298,28 @@ import {
   findHeroSectionInTree,
   heroSectionFieldDefsFromSchema,
   isHeroSectionNodeId,
+  isHeroSectionSettingsNode,
   prepareHeroSettingsNode,
   prepareHeroBottomAlignedSettingsNode,
   prepareHeroMarqueeSettingsNode,
   prepareHeroLargeLogoSettingsNode,
   prepareHeroSplitShowcaseSettingsNode,
+  prepareHeroSectionSettingsForNode,
   isHeroBottomAlignedSidebarSection,
   isHeroMarqueeSidebarSection,
   isHeroLargeLogoSidebarSection,
   isHeroSplitShowcaseSidebarSection,
 } from './theme-editor-hero-panel.utils';
 import {
-  heroHeadingFieldDefsFromSchema,
-  isHeroHeadingBlockNodeId,
-  prepareHeroHeadingSettingsNode,
-} from './theme-editor-hero-heading-panel.utils';
+  headingBlockFieldDefsFromSchema,
+  isHeadingBlockNodeId,
+  isHeadingPanelField,
+  prepareHeadingBlockSettingsNode,
+} from './theme-editor-heading-block-panel.utils';
 import {
   heroButtonFieldDefsFromSchema,
   isHeroButtonBlockNodeId,
+  isHeroButtonPanelField,
   prepareHeroButtonSettingsNode,
 } from './theme-editor-hero-button-panel.utils';
 import {
@@ -823,12 +827,20 @@ function mapHeroBlockNodes(
       ? remapFields(block.settingsFields, layoutInstance)
       : (block.settingsFields ?? []);
 
+    const isHeadingBlock = blockId === 'heading' || blockId.startsWith('heading_');
+    const isButtonBlock =
+      blockId === 'primary_button' ||
+      blockId === 'secondary_button' ||
+      blockId.startsWith('button_');
     return {
       id: `${prefix}:block:${blockId}`,
       label: heroBlockSidebarLabel(blockId, block.label ?? blockId),
       kind: 'block' as const,
       icon: iconForBlockLabel(heroBlockSidebarLabel(blockId, block.label ?? blockId)),
-      fields: blockSettingsFields.length ? blockSettingsFields : undefined,
+      fields:
+        !isHeadingBlock && !isButtonBlock && blockSettingsFields.length
+          ? blockSettingsFields
+          : undefined,
       preview: heroBlockPreview(blockId, block, prefix, values),
       showVisibilityToggle: true,
       showDeleteButton: true,
@@ -1318,7 +1330,7 @@ function layoutHeroSectionNode(
     label: heroSectionSidebarLabel(catalogVariant, sec.label ?? 'Hero'),
     kind: 'section',
     icon: 'section',
-    fields: remappedSectionFields.length ? remappedSectionFields : undefined,
+    fields: undefined,
     children: children.length ? children : undefined,
     childrenListKey,
     showVisibilityToggle: true,
@@ -1624,7 +1636,12 @@ function sectionToNode(
                                                 : sec.label ?? blueprintId,
     kind: 'section',
     icon: 'section',
-    fields: remappedSectionFields.length ? remappedSectionFields : undefined,
+    fields:
+      isHero
+        ? undefined
+        : remappedSectionFields.length
+          ? remappedSectionFields
+          : undefined,
     preview: previewField ? fieldPreview(previewField, values) : undefined,
     children: children.length ? children : undefined,
     childrenListKey,
@@ -1950,6 +1967,9 @@ const SECTION_PANEL_BY_LABEL: Record<string, (node: SidebarNode) => SidebarNode>
   'Contact form': prepareContactFormSettingsNode,
   'Email signup': prepareEmailSignupSettingsNode,
   'Custom section': prepareCustomSectionSettingsNode,
+  Hero: prepareHeroSettingsNode,
+  'Hero: Bottom aligned': prepareHeroBottomAlignedSettingsNode,
+  'Hero: Marquee': prepareHeroMarqueeSettingsNode,
 };
 
 export function settingsNodeForSelection(
@@ -2048,6 +2068,33 @@ export function settingsNodeForSelection(
     return prepareHeaderSettingsNode(headerSection);
   }
 
+  if (isHeadingBlockNodeId(node.id)) {
+    let fields = editorSchema ? headingBlockFieldDefsFromSchema(editorSchema, node.id) : [];
+    if (!fields.length) {
+      fields = (node.fields ?? []).filter(isHeadingPanelField);
+    }
+    return prepareHeadingBlockSettingsNode({ ...node, fields });
+  }
+
+  if (isHeroButtonBlockNodeId(node.id)) {
+    let fields = editorSchema ? heroButtonFieldDefsFromSchema(editorSchema, node.id) : [];
+    if (!fields.length) {
+      fields = (node.fields ?? []).filter(isHeroButtonPanelField);
+    }
+    return prepareHeroButtonSettingsNode({ ...node, fields });
+  }
+
+  const heroSectionForPanel =
+    node.kind === 'section' && isHeroSectionNodeId(node.id)
+      ? node
+      : findHeroSectionInTree(node.id, tree);
+  if (heroSectionForPanel && editorSchema) {
+    const heroFields = heroSectionFieldDefsFromSchema(editorSchema, heroSectionForPanel.id);
+    if (heroFields.length) {
+      return prepareHeroSectionSettingsForNode(heroSectionForPanel, heroFields);
+    }
+  }
+
   const catalogNode = settingsNodeFromCatalog(node);
   if (catalogNode) return catalogNode;
 
@@ -2119,15 +2166,27 @@ export function settingsNodeForSelection(
     return prepareFooterUtilitiesSettingsNode(footerUtilitiesSection);
   }
 
-  if (node.fields?.length && isContactFormSettingsPanelFields(node.fields)) {
+  if (
+    !isHeroSectionSettingsNode(node) &&
+    node.fields?.length &&
+    isContactFormSettingsPanelFields(node.fields)
+  ) {
     return prepareContactFormSettingsNode(node);
   }
 
-  if (node.fields?.length && isEmailSignupSettingsPanelFields(node.fields)) {
+  if (
+    !isHeroSectionSettingsNode(node) &&
+    node.fields?.length &&
+    isEmailSignupSettingsPanelFields(node.fields)
+  ) {
     return prepareEmailSignupSettingsNode(node);
   }
 
-  if (node.fields?.length && isCustomSectionSettingsPanelFields(node.fields)) {
+  if (
+    !isHeroSectionSettingsNode(node) &&
+    node.fields?.length &&
+    isCustomSectionSettingsPanelFields(node.fields)
+  ) {
     return prepareCustomSectionSettingsNode(node);
   }
 
@@ -2251,29 +2310,6 @@ export function settingsNodeForSelection(
     node.kind === 'section' && isHeroSectionNodeId(node.id)
       ? node
       : findHeroSectionInTree(node.id, tree);
-  if (isHeroButtonBlockNodeId(node.id)) {
-    const blockId = node.id.split(':block:').pop() ?? 'primary_button';
-    const layoutInstanceId = layoutHeroInstanceFromNodeId(node.id);
-    let fields = node.fields ?? [];
-    if (!fields.length && editorSchema) {
-      fields = heroButtonFieldDefsFromSchema(editorSchema, blockId, layoutInstanceId);
-    }
-    if (fields.length) {
-      return prepareHeroButtonSettingsNode({ ...node, fields });
-    }
-  }
-
-  if (isHeroHeadingBlockNodeId(node.id)) {
-    const layoutInstanceId = layoutHeroInstanceFromNodeId(node.id);
-    let fields = node.fields ?? [];
-    if (!fields.length && editorSchema) {
-      fields = heroHeadingFieldDefsFromSchema(editorSchema, layoutInstanceId);
-    }
-    if (fields.length) {
-      return prepareHeroHeadingSettingsNode({ ...node, fields });
-    }
-  }
-
   const heroTextBlock = node.id.match(
     /^(template:[^:]+:hero_main(?:_\d+)?|layout:hero_main(?:_\d+)?):block:(text(?:_\d+)?)$/
   );
@@ -2302,25 +2338,6 @@ export function settingsNodeForSelection(
     }
     if (fields.length) {
       return { ...node, label: 'Text', kind: 'block', fields };
-    }
-  }
-
-  if (heroSection && editorSchema) {
-    const fields = heroSectionFieldDefsFromSchema(editorSchema, heroSection.id);
-    if (fields.length) {
-      if (isHeroBottomAlignedSidebarSection(heroSection)) {
-        return prepareHeroBottomAlignedSettingsNode({ ...heroSection, fields });
-      }
-      if (isHeroMarqueeSidebarSection(heroSection)) {
-        return prepareHeroMarqueeSettingsNode({ ...heroSection, fields });
-      }
-      if (isHeroLargeLogoSidebarSection(heroSection)) {
-        return prepareHeroLargeLogoSettingsNode({ ...heroSection, fields });
-      }
-      if (isHeroSplitShowcaseSidebarSection(heroSection)) {
-        return prepareHeroSplitShowcaseSettingsNode({ ...heroSection, fields });
-      }
-      return prepareHeroSettingsNode({ ...heroSection, fields });
     }
   }
 

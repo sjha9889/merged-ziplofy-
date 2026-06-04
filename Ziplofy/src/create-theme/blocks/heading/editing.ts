@@ -5,7 +5,7 @@ export const editing: CreateThemeBlockEditing = {
   "label": "Text",
   "settingsOrder": [
     {
-      "key": "title",
+      "key": "heading",
       "label": "Text",
       "type": "textarea"
     },
@@ -17,6 +17,11 @@ export const editing: CreateThemeBlockEditing = {
     {
       "key": "headingMaxWidth",
       "label": "Max width",
+      "type": "text"
+    },
+    {
+      "key": "headingAlignment",
+      "label": "Alignment",
       "type": "text"
     },
     {
@@ -33,6 +38,16 @@ export const editing: CreateThemeBlockEditing = {
       "key": "headingBackgroundEnabled",
       "label": "Background",
       "type": "boolean"
+    },
+    {
+      "key": "headingBackgroundColor",
+      "label": "Background color",
+      "type": "color"
+    },
+    {
+      "key": "headingCornerRadius",
+      "label": "Corner radius",
+      "type": "number"
     },
     {
       "key": "headingPaddingTop",

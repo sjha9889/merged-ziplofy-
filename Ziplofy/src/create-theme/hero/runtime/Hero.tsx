@@ -12,8 +12,15 @@ import {
   heroBottomAlignedPaths,
 } from '../../../utils/hero-bottom-aligned.util';
 import { readHeroButtonStyle } from './heroButtonStyles';
-import { readHeroStyle, scopedHeroCss } from './heroStyles';
+import { readHeroHeadingStyle } from './heroHeadingStyles';
+import {
+  heroDualMediaResponsiveCss,
+  heroResponsiveCss,
+  readHeroStyle,
+  scopedHeroCss,
+} from './heroStyles';
 import { HeroLandscapeBackdrop } from './HeroLandscapeBackdrop';
+import { HeroMediaBackground } from './HeroMediaBackground';
 
 type Props = {
   sectionId: string;
@@ -153,11 +160,21 @@ export function Hero({
     [primary, background]
   );
 
+  const headingStyle = useMemo(
+    () =>
+      readHeroHeadingStyle(config, settingsBase, fontHeading, {
+        text,
+        heading: hero.scheme.color,
+        accent: primary,
+      }),
+    [config, settingsBase, fontHeading, text, hero.scheme.color, primary]
+  );
+
   const defaultBlockOrder = isMarquee
     ? ['primary_button']
     : isBottomAligned
       ? []
-      : ['heading', 'primary_button', 'secondary_button'];
+      : ['heading', 'primary_button'];
 
   const blockOrder =
     placement === 'layout'
@@ -171,8 +188,19 @@ export function Hero({
         : `linear-gradient(180deg, ${hero.overlayColor} 0%, transparent 100%)`
       : hero.overlayColor;
 
-  const bgUrl = hero.media1Url.trim();
+  const media1Url = hero.media1Url.trim();
+  const media2Url = hero.media2Url.trim();
+  const hasDualMedia = Boolean(media1Url && media2Url);
   const scopedCss = scopedHeroCss(sectionId, hero.customCss);
+  const responsiveCss = heroResponsiveCss(
+    sectionId,
+    hero.mobileStackMedia,
+    hero.mobileDifferentMedia
+  );
+  const dualMediaCss =
+    hasDualMedia && hero.mobileStackMedia
+      ? heroDualMediaResponsiveCss(sectionId, true)
+      : '';
 
   if (isBottomAligned) {
     const bottomPaths = heroBottomAlignedPaths(blocksBase);
@@ -200,9 +228,10 @@ export function Hero({
     const sectionMinHeight = hero.minHeight;
     const sidePad = 40;
     const bottomPad = Math.max(hero.paddingBottom, 48);
-    const bottomBgUrl = bgUrl || HERO_BOTTOM_ALIGNED_DEFAULT_IMAGE;
     const topPad = hero.paddingTop > 0 ? hero.paddingTop : 0;
-    const bottomOverlay = hero.mediaOverlay ? overlayBackground : undefined;
+    const bottomHasMedia = Boolean(media1Url || media2Url);
+    const bottomOverlay =
+      hero.mediaOverlay && (bottomHasMedia || true) ? overlayBackground : undefined;
     const textColor = '#ffffff';
 
     const bottomRow = (
@@ -323,6 +352,7 @@ export function Hero({
     return (
       <>
         {scopedCss ? <style>{scopedCss}</style> : null}
+        {dualMediaCss ? <style>{dualMediaCss}</style> : null}
         <EditorSection
           sectionId={sectionId}
           editorNodeId={sectionNodePrefix}
@@ -339,18 +369,11 @@ export function Hero({
             boxSizing: 'border-box',
           }}
         >
-          {bottomBgUrl ? (
-            <div
-              aria-hidden
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: `center/cover url(${bottomBgUrl}) no-repeat`,
-              }}
-            />
-          ) : (
-            <HeroLandscapeBackdrop />
-          )}
+          <HeroMediaBackground
+            media1Url={media1Url}
+            media2Url={media2Url}
+            fallbackUrl={HERO_BOTTOM_ALIGNED_DEFAULT_IMAGE}
+          />
           {bottomOverlay ? (
             <div
               aria-hidden
@@ -377,7 +400,6 @@ export function Hero({
     );
     const sectionMinHeight = hero.minHeight;
     const bottomPad = Math.max(hero.paddingBottom, 48);
-    const marqueeBgUrl = bgUrl || HERO_BOTTOM_ALIGNED_DEFAULT_IMAGE;
     const marqueeOverlay = hero.mediaOverlay ? overlayBackground : undefined;
     const marqueeAnimId = `ziplofy-hero-marquee-${sectionId.replace(/[^a-z0-9_-]/gi, '-')}`;
 
@@ -480,6 +502,7 @@ export function Hero({
     return (
       <>
         {scopedCss ? <style>{scopedCss}</style> : null}
+        {dualMediaCss ? <style>{dualMediaCss}</style> : null}
         <EditorSection
           sectionId={sectionId}
           editorNodeId={sectionNodePrefix}
@@ -496,18 +519,11 @@ export function Hero({
             boxSizing: 'border-box',
           }}
         >
-          {marqueeBgUrl ? (
-            <div
-              aria-hidden
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: `center/cover url(${marqueeBgUrl}) no-repeat`,
-              }}
-            />
-          ) : (
-            <HeroLandscapeBackdrop />
-          )}
+          <HeroMediaBackground
+            media1Url={media1Url}
+            media2Url={media2Url}
+            fallbackUrl={HERO_BOTTOM_ALIGNED_DEFAULT_IMAGE}
+          />
           {marqueeOverlay ? (
             <div
               aria-hidden
@@ -705,242 +721,261 @@ export function Hero({
     );
   }
 
-  const renderHeading = (classic: boolean) => {
-    const headingFieldPath = `${blocksBase}.heading.settings.heading`;
-    const headingText =
-      cfgString(config, headingFieldPath, '') || title;
-    if (!headingText.trim()) return null;
+  if (isClassicHero) {
+    const hasMedia = Boolean(media1Url || media2Url);
+    const classicOverlay = hero.mediaOverlay ? overlayBackground : undefined;
+    const useRowMediaLayout = hero.direction === 'row' && hasMedia;
+    /** Vertical + media uses full-bleed (or 50/50) backdrop; horizontal uses side-by-side panels. */
+    const useFullBleedBackdrop = hasMedia && hero.direction === 'column';
 
-    return (
-      <EditorBlock
-        nodeId={heroBlockNodeId(sectionId, placement, templateId, 'heading')}
-        label="Heading"
-      >
-        <EditorField
-          fieldPath={headingFieldPath}
-          label="Text"
-          as="h1"
+    const contentColumnAlign =
+      hero.alignTextBaseline && hero.direction === 'row'
+        ? 'baseline'
+        : hero.textAlign === 'left'
+          ? 'flex-start'
+          : hero.textAlign === 'right'
+            ? 'flex-end'
+            : 'center';
+
+    const classicHeadingStyle = {
+      margin: 0,
+      width: headingStyle.width,
+      maxWidth: headingStyle.maxWidth,
+      fontFamily: headingStyle.fontFamily,
+      fontSize: headingStyle.fontSize,
+      fontWeight: headingStyle.fontWeight,
+      lineHeight: headingStyle.lineHeight,
+      color: '#ffffff',
+      textAlign: headingStyle.textAlign ?? hero.textAlign,
+      textShadow: '0 2px 20px rgba(0, 0, 0, 0.35)',
+      background: headingStyle.background,
+      paddingTop: headingStyle.paddingTop,
+      paddingBottom: headingStyle.paddingBottom,
+      paddingLeft: headingStyle.paddingLeft,
+      paddingRight: headingStyle.paddingRight,
+      borderRadius: headingStyle.borderRadius,
+      boxSizing: 'border-box' as const,
+    };
+
+    const mediaPanel = (url: string, className: string) =>
+      url ? (
+        <div
+          className={className}
           style={{
-            margin: 0,
-            width: '100%',
-            maxWidth: 720,
-            fontFamily: fontHeading,
-            fontSize: classic ? 'clamp(2.25rem, 5vw, 3.25rem)' : 'clamp(2rem, 4vw, 2.75rem)',
-            fontWeight: 700,
-            lineHeight: 1.08,
-            letterSpacing: '-0.02em',
-            color: '#ffffff',
-            textAlign: 'center',
+            flex: 1,
+            minHeight: hero.direction === 'row' ? '100%' : 240,
+            background: `center/cover url(${url}) no-repeat`,
+            filter: hero.blurredReflection ? 'blur(12px)' : undefined,
+            transform: hero.blurredReflection ? 'scale(1.05)' : undefined,
           }}
-        >
-          {headingText}
-        </EditorField>
-      </EditorBlock>
-    );
-  };
-
-  const renderBodyText = () => {
-    const body =
-      cfgString(config, `${blocksBase}.text_2.settings.text`, '') || subtitle;
-    if (!body.trim()) return null;
-    return (
-      <EditorBlock
-        nodeId={heroBlockNodeId(sectionId, placement, templateId, 'text_2')}
-        label="Text"
-      >
-        <EditorField
-          fieldPath={`${blocksBase}.text_2.settings.text`}
-          label="Text"
-          as="p"
-          style={{
-            margin: 0,
-            fontSize: 'clamp(0.95rem, 2vw, 1.125rem)',
-            lineHeight: 1.55,
-            maxWidth: 620,
-            fontWeight: 400,
-            color: 'rgba(255,255,255,0.95)',
-            textAlign: 'center',
-          }}
-        >
-          {body}
-        </EditorField>
-      </EditorBlock>
-    );
-  };
-
-  const renderBlock = (blockId: string, classic: boolean): ReactNode => {
-    if (blockId === 'heading' || blockId.startsWith('heading_')) {
-      return renderHeading(classic);
-    }
-    if (blockId === 'text_2' || (blockId.startsWith('text_') && blockId !== 'heading')) {
-      return renderBodyText();
-    }
-    if (blockId === 'primary_button' || blockId === 'secondary_button') {
-      const variant: 'primary' | 'secondary' =
-        blockId === 'secondary_button' ? 'secondary' : 'primary';
-      return (
-        <HeroButton
-          key={blockId}
-          blockId={blockId}
-          fallbackVariant={variant}
-          blocksBase={blocksBase}
-          sectionNodePrefix={sectionNodePrefix}
-          colors={buttonColors}
-          onImageHero={classic || isMarquee}
         />
-      );
-    }
-    if (blockId.endsWith('_button')) {
-      return (
-        <HeroButton
-          key={blockId}
-          blockId={blockId}
-          fallbackVariant="primary"
-          blocksBase={blocksBase}
-          sectionNodePrefix={sectionNodePrefix}
-          colors={buttonColors}
-          onImageHero={classic}
-        />
-      );
-    }
-    return null;
-  };
+      ) : null;
 
-  const classicContent = (
-    <div
-      style={{
-        position: 'relative',
-        zIndex: 2,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        textAlign: 'center',
-        minHeight: hero.minHeight,
-        width: '100%',
-        padding: `${hero.paddingTop}px 24px ${hero.paddingBottom}px`,
-        boxSizing: 'border-box',
-        gap: Math.min(hero.gap, 20),
-      }}
-    >
-      {eyebrow.trim() ? (
-        <EditorField
-          fieldPath={`${settingsBase}.eyebrow`}
-          label="Eyebrow"
-          as="p"
-          style={{
-            margin: 0,
-            fontSize: 12,
-            letterSpacing: '0.18em',
-            textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.85)',
-          }}
-        >
-          {eyebrow}
-        </EditorField>
-      ) : null}
-      {blockOrder.length > 0
-        ? blockOrder.map((blockId) => (
-            <span key={blockId} style={{ display: 'contents' }}>
-              {renderBlock(blockId, true)}
-            </span>
-          ))
-        : (
-          <>
-            {renderHeading(true)}
-            {renderBodyText()}
-          </>
-        )}
-      {!blockOrder.includes('heading') && title.trim() ? (
-        <EditorField
-          fieldPath={`${settingsBase}.title`}
-          label="Text"
-          as="h1"
-          style={{
-            margin: 0,
-            maxWidth: 720,
-            fontFamily: fontHeading,
-            fontSize: 'clamp(2.25rem, 5vw, 3.25rem)',
-            fontWeight: 700,
-            lineHeight: 1.08,
-            letterSpacing: '-0.02em',
-            color: '#ffffff',
-            textAlign: 'center',
-          }}
-        >
-          {title}
-        </EditorField>
-      ) : null}
-    </div>
-  );
+    const renderClassicBlock = (blockId: string): ReactNode => {
+      if (blockId === 'heading' || blockId.startsWith('heading_')) {
+        const headingFieldPath = `${blocksBase}.${blockId}.settings.heading`;
+        const headingText =
+          cfgString(config, headingFieldPath, '') ||
+          (blockId === 'heading' ? title : '');
+        if (!headingText.trim()) return null;
+        return (
+          <EditorBlock
+            nodeId={heroBlockNodeId(sectionId, placement, templateId, blockId)}
+            label="Heading"
+          >
+            <EditorField fieldPath={headingFieldPath} label="Text" as="h1" style={classicHeadingStyle}>
+              {headingText}
+            </EditorField>
+          </EditorBlock>
+        );
+      }
+      if (blockId === 'primary_button' || blockId === 'secondary_button') {
+        const variant: 'primary' | 'secondary' =
+          blockId === 'secondary_button' ? 'secondary' : 'primary';
+        return (
+          <HeroButton
+            key={blockId}
+            blockId={blockId}
+            fallbackVariant={variant}
+            blocksBase={blocksBase}
+            sectionNodePrefix={sectionNodePrefix}
+            colors={buttonColors}
+            onImageHero
+          />
+        );
+      }
+      if (blockId === 'text_2' || (blockId.startsWith('text_') && blockId !== 'heading')) {
+        const body =
+          cfgString(config, `${blocksBase}.${blockId}.settings.text`, '') ||
+          (blockId === 'text_2' ? subtitle : '');
+        if (!body.trim()) return null;
+        return (
+          <EditorBlock
+            nodeId={heroBlockNodeId(sectionId, placement, templateId, blockId)}
+            label="Text"
+          >
+            <EditorField
+              fieldPath={`${blocksBase}.${blockId}.settings.text`}
+              label="Text"
+              as="p"
+              style={{
+                margin: 0,
+                fontSize: 'clamp(1rem, 2vw, 1.125rem)',
+                lineHeight: 1.55,
+                maxWidth: 620,
+                fontWeight: 400,
+                color: '#ffffff',
+                textAlign: hero.textAlign,
+                textShadow: '0 1px 12px rgba(0, 0, 0, 0.3)',
+              }}
+            >
+              {body}
+            </EditorField>
+          </EditorBlock>
+        );
+      }
+      if (blockId.endsWith('_button')) {
+        return (
+          <HeroButton
+            key={blockId}
+            blockId={blockId}
+            fallbackVariant="primary"
+            blocksBase={blocksBase}
+            sectionNodePrefix={sectionNodePrefix}
+            colors={buttonColors}
+            onImageHero
+          />
+        );
+      }
+      return null;
+    };
 
-  const stack = classicContent;
-
-  const body = hero.sectionLink ? (
-    <Link
-      to={hero.sectionLink}
-      target={hero.sectionLinkNewTab ? '_blank' : undefined}
-      rel={hero.sectionLinkNewTab ? 'noopener noreferrer' : undefined}
-      style={{ textDecoration: 'none', color: 'inherit', display: 'block', width: '100%' }}
-    >
-      {stack}
-    </Link>
-  ) : (
-    stack
-  );
-
-  const sectionLabel = 'Hero';
-
-  const classicOverlay =
-    hero.mediaOverlay && (bgUrl || isClassicHero)
-      ? overlayBackground
-      : undefined;
-
-  return (
-    <>
-      {scopedCss ? <style>{scopedCss}</style> : null}
-      <EditorSection
-        sectionId={sectionId}
-        editorNodeId={sectionNodePrefix}
-        label={sectionLabel}
+    const contentColumn = (
+      <div
         style={{
           position: 'relative',
-          overflow: 'hidden',
-          width: '100%',
-          minHeight: hero.minHeight,
-          padding: 0,
-          background: '#1a3a4a',
-          fontFamily: fontBody,
-          color: '#ffffff',
+          zIndex: 2,
+          flex: hero.direction === 'row' ? '0 0 42%' : undefined,
+          maxWidth:
+            hero.direction === 'column' && typeof hero.maxWidth === 'number'
+              ? hero.maxWidth
+              : undefined,
+          width: hero.direction === 'column' ? '100%' : undefined,
+          margin: hero.direction === 'column' ? '0 auto' : undefined,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: contentColumnAlign,
+          textAlign: hero.textAlign,
+          gap: hero.gap,
           boxSizing: 'border-box',
         }}
       >
-        {bgUrl ? (
-          <div
-            aria-hidden
-            style={{
-              position: 'absolute',
-              inset: 0,
-              background: `center/cover url(${bgUrl}) no-repeat`,
-            }}
-          />
+        {blockOrder.map((blockId) => (
+          <span key={blockId} style={{ display: 'contents' }}>
+            {renderClassicBlock(blockId)}
+          </span>
+        ))}
+      </div>
+    );
+
+    const classicInner = (
+      <div
+        className="hero-media-grid"
+        style={{
+          position: 'relative',
+          zIndex: 2,
+          display: 'flex',
+          flexDirection: hero.direction,
+          alignItems: hero.alignItems,
+          justifyContent: hero.justifyContent,
+          gap: hero.gap,
+          minHeight: hero.minHeight,
+          width: '100%',
+          maxWidth: typeof hero.maxWidth === 'number' ? hero.maxWidth : '100%',
+          margin: '0 auto',
+          padding: `${hero.paddingTop}px ${hero.paddingX}px ${hero.paddingBottom}px`,
+          boxSizing: 'border-box',
+        }}
+      >
+        {useRowMediaLayout ? (
+          <>
+            {mediaPanel(media1Url, 'hero-media-1')}
+            {contentColumn}
+            {media2Url ? mediaPanel(media2Url, 'hero-media-2') : null}
+          </>
         ) : (
-          <HeroLandscapeBackdrop />
+          contentColumn
         )}
-        {classicOverlay ? (
+        {hero.mobileDifferentMedia && hero.mobileImageUrl ? (
           <div
-            aria-hidden
+            className="hero-media-mobile"
             style={{
-              position: 'absolute',
-              inset: 0,
-              background: classicOverlay,
-              zIndex: 1,
-              pointerEvents: 'none',
+              display: 'none',
+              flex: 1,
+              minHeight: 200,
+              background: `center/cover url(${hero.mobileImageUrl}) no-repeat`,
             }}
           />
         ) : null}
-        {body}
-      </EditorSection>
-    </>
-  );
+      </div>
+    );
+
+    const classicBody = hero.sectionLink ? (
+      <Link
+        to={hero.sectionLink}
+        target={hero.sectionLinkNewTab ? '_blank' : undefined}
+        rel={hero.sectionLinkNewTab ? 'noopener noreferrer' : undefined}
+        style={{ textDecoration: 'none', color: 'inherit', display: 'block', width: '100%' }}
+      >
+        {classicInner}
+      </Link>
+    ) : (
+      classicInner
+    );
+
+    return (
+      <>
+        {scopedCss ? <style>{scopedCss}</style> : null}
+        {responsiveCss ? <style>{responsiveCss}</style> : null}
+        {dualMediaCss ? <style>{dualMediaCss}</style> : null}
+        <EditorSection
+          sectionId={sectionId}
+          editorNodeId={sectionNodePrefix}
+          label="Hero"
+          style={{
+            position: 'relative',
+            overflow: 'hidden',
+            width: '100%',
+            minHeight: hero.minHeight,
+            padding: 0,
+            background: useFullBleedBackdrop ? '#2d6478' : hero.scheme.background,
+            fontFamily: fontBody,
+            color: '#ffffff',
+            boxSizing: 'border-box',
+          }}
+        >
+          {useFullBleedBackdrop ? (
+            <HeroMediaBackground media1Url={media1Url} media2Url={media2Url} />
+          ) : !hasMedia ? (
+            <HeroLandscapeBackdrop />
+          ) : null}
+          {classicOverlay && useFullBleedBackdrop ? (
+            <div
+              aria-hidden
+              style={{
+                position: 'absolute',
+                inset: 0,
+                background: classicOverlay,
+                zIndex: 1,
+                pointerEvents: 'none',
+              }}
+            />
+          ) : null}
+          {classicBody}
+        </EditorSection>
+      </>
+    );
+  }
+
+  return null;
 }

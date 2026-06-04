@@ -16,18 +16,28 @@ export function PreviewLoadingOverlay({ origin }: { origin?: string }) {
   );
 }
 
+/** @deprecated Replaced by {@link PreviewSyncProgressBar} on the create-theme preview canvas. */
 export function PreviewSyncPulse({ visible }: { visible: boolean }) {
   if (!visible) return null;
+  return null;
+}
+
+type PreviewSyncProgressBarProps = {
+  runKey: number;
+  onComplete: () => void;
+};
+
+/** Thin light-grey progress line below the editor header; runs left→right, then `onComplete`. */
+export function PreviewSyncProgressBar({ runKey, onComplete }: PreviewSyncProgressBarProps) {
+  if (runKey < 1) return null;
+
   return (
-    <div
-      className="pointer-events-none absolute right-3 top-3 z-20 flex items-center gap-1.5 rounded-full border border-gray-200 bg-white/95 px-2.5 py-1 text-[11px] font-medium text-gray-600 shadow-sm transition-opacity duration-200"
-      aria-live="polite"
-    >
-      <span className="relative flex h-2 w-2">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#005bd3] opacity-40" />
-        <span className="relative inline-flex h-2 w-2 rounded-full bg-[#005bd3]" />
-      </span>
-      Updating preview
+    <div className="preview-sync-progress-track" aria-live="polite" aria-label="Updating preview">
+      <div
+        key={runKey}
+        className="preview-sync-progress-bar"
+        onAnimationEnd={onComplete}
+      />
     </div>
   );
 }

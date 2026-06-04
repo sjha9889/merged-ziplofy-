@@ -2,20 +2,18 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   ArrowsUpDownIcon,
-  ChevronDownIcon,
   MagnifyingGlassIcon,
   Squares2X2Icon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
-import { useAwsUpload } from '../../contexts/aws-upload.context';
 import { useStore } from '../../contexts/store.context';
-import { THEME_EDITOR_STATIC_CONFIG } from '../../config/theme-editor-static.config';
 import {
-  addUploadedThemeEditorMedia,
-  allThemeEditorMediaFiles,
-  type ThemeEditorMediaFile,
-} from '../../utils/theme-editor-media-library.util';
+  defaultContentFilesFolder,
+  fileNameFromStorageKey,
+  isImageStorageKey,
+  useStoreCloudStorage,
+} from '../../contexts/store-cloud-storage.context';
 
 export type ThemeEditorImagePickerModalProps = {
   open: boolean;
@@ -26,23 +24,12 @@ export type ThemeEditorImagePickerModalProps = {
 
 type SortKey = 'newest' | 'name';
 
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function FilterChip({ label }: { label: string }) {
-  return (
-    <button
-      type="button"
-      className="inline-flex items-center gap-1 rounded-lg border border-[#c9cccf] bg-white px-2.5 py-1 text-[12px] font-medium text-gray-800 shadow-sm hover:bg-gray-50"
-    >
-      {label}
-      <ChevronDownIcon className="h-3.5 w-3.5 text-gray-500" />
-    </button>
-  );
-}
+type PickerImage = {
+  id: string;
+  name: string;
+  url: string | null;
+  createdAt: string;
+};
 
 export const ThemeEditorImagePickerModal: React.FC<ThemeEditorImagePickerModalProps> = ({
   open,
@@ -51,13 +38,21 @@ export const ThemeEditorImagePickerModal: React.FC<ThemeEditorImagePickerModalPr
   initialUrl = '',
 }) => {
   const { activeStoreId } = useStore();
-  const { uploadImageWithSignedUrl, loading: uploadLoading } = useAwsUpload();
-  const storeId = activeStoreId || THEME_EDITOR_STATIC_CONFIG.devStoreId;
+
+  const {
+    uploads,
+    loading: fetchLoading,
+    imageUploadLoading,
+    error: storageError,
+    fetchUploadsByStoreId,
+    uploadFileForStoreQuiet,
+    resolveUploadPreviewUrl,
+    clearError,
+  } = useStoreCloudStorage();
 
   const [mounted, setMounted] = useState(false);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('newest');
-  const [uploaded, setUploaded] = useState<ThemeEditorMediaFile[]>([]);
   const [pendingUrl, setPendingUrl] = useState(initialUrl);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -69,68 +64,68 @@ export const ThemeEditorImagePickerModal: React.FC<ThemeEditorImagePickerModalPr
     if (!open) return;
     setSearch('');
     setPendingUrl(initialUrl);
-    setUploaded(allThemeEditorMediaFiles(storeId).filter((f) => f.source === 'upload'));
-  }, [open, initialUrl, storeId]);
+    clearError();
+    if (!activeStoreId) return;
+    fetchUploadsByStoreId(activeStoreId).catch((err: unknown) => {
+      toast.error((err as Error)?.message || 'Failed to load store files');
+    });
+  }, [open, initialUrl, activeStoreId, fetchUploadsByStoreId, clearError]);
 
-  const allFiles = useMemo(() => allThemeEditorMediaFiles(storeId), [storeId, uploaded]);
+  const images = useMemo((): PickerImage[] => {
+    return uploads
+      .filter((upload) => isImageStorageKey(upload.key))
+      .map((upload) => ({
+        id: upload._id,
+        name: fileNameFromStorageKey(upload.key),
+        url: resolveUploadPreviewUrl(upload),
+        createdAt: upload.createdAt,
+      }));
+  }, [uploads, resolveUploadPreviewUrl]);
+
+  const selectableImages = useMemo(
+    () => images.filter((f): f is PickerImage & { url: string } => Boolean(f.url)),
+    [images]
+  );
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    let list = allFiles;
+    let list = selectableImages;
     if (q) {
-      list = list.filter((f) => f.name.toLowerCase().includes(q) || f.url.toLowerCase().includes(q));
+      list = list.filter(
+        (f) => f.name.toLowerCase().includes(q) || f.url.toLowerCase().includes(q)
+      );
     }
     if (sort === 'name') {
       return [...list].sort((a, b) => a.name.localeCompare(b.name));
     }
-    return [...list].sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
-  }, [allFiles, search, sort]);
+    return [...list].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [selectableImages, search, sort]);
 
   const handleUpload = async (file: File | undefined) => {
+    if (!activeStoreId) {
+      toast.error('Select a store before uploading files');
+      return;
+    }
     if (!file || !file.type.startsWith('image/')) {
       toast.error('Please choose an image file');
       return;
     }
 
-    const id = `upload-${Date.now()}`;
-    const name = file.name.replace(/\.[^.]+$/, '') || 'Uploaded image';
-
     try {
-      let url = '';
-      try {
-        const result = await uploadImageWithSignedUrl(file, {
-          folder: `${storeId}/theme-editor`,
-        });
-        url = result.objectUrl;
-      } catch {
-        url = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () =>
-            resolve(typeof reader.result === 'string' ? reader.result : '');
-          reader.onerror = () => reject(new Error('Could not read file'));
-          reader.readAsDataURL(file);
-        });
-      }
-
-      if (!url) {
+      clearError();
+      const { objectUrl } = await uploadFileForStoreQuiet(activeStoreId, file, {
+        folder: defaultContentFilesFolder(activeStoreId),
+      });
+      if (!objectUrl) {
         toast.error('Upload failed');
         return;
       }
-
-      const entry: ThemeEditorMediaFile = {
-        id,
-        name,
-        url,
-        sizeLabel: formatBytes(file.size),
-        source: 'upload',
-        createdAt: Date.now(),
-      };
-      const next = addUploadedThemeEditorMedia(storeId, entry);
-      setUploaded(next.filter((f) => f.source === 'upload'));
-      setPendingUrl(url);
+      setPendingUrl(objectUrl);
       toast.success('Image uploaded');
-    } catch {
-      toast.error('Could not upload image');
+    } catch (err: unknown) {
+      toast.error((err as Error)?.message || 'Could not upload image');
     }
   };
 
@@ -139,6 +134,10 @@ export const ThemeEditorImagePickerModal: React.FC<ThemeEditorImagePickerModalPr
     onSelect(pendingUrl.trim());
     onClose();
   };
+
+  const uploadBusy = imageUploadLoading;
+  const totalImageCount = images.length;
+  const pendingPreviewCount = images.filter((f) => !f.url).length;
 
   if (!open || !mounted) return null;
 
@@ -169,7 +168,7 @@ export const ThemeEditorImagePickerModal: React.FC<ThemeEditorImagePickerModalPr
           </button>
         </div>
 
-        <div className="shrink-0 space-y-2 border-b border-[#e1e1e1] px-4 py-3">
+        <div className="shrink-0 border-b border-[#e1e1e1] px-4 py-3">
           <div className="flex gap-2">
             <div className="relative min-w-0 flex-1">
               <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -202,28 +201,49 @@ export const ThemeEditorImagePickerModal: React.FC<ThemeEditorImagePickerModalPr
               <Squares2X2Icon className="h-4 w-4" />
             </button>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <FilterChip label="File size" />
-            <FilterChip label="Used in" />
-            <FilterChip label="Product" />
-          </div>
+          {!fetchLoading && activeStoreId && totalImageCount > 0 ? (
+            <p className="mt-2 text-[12px] text-gray-500">
+              {selectableImages.length} of {totalImageCount} image
+              {totalImageCount === 1 ? '' : 's'} from your store library
+            </p>
+          ) : null}
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-          {filtered.length === 0 ? (
+          {!activeStoreId ? (
+            <div className="flex flex-col items-center justify-center px-4 py-10 text-center">
+              <p className="text-[15px] font-semibold text-gray-900">No store selected</p>
+              <p className="mt-1 max-w-[280px] text-[13px] text-gray-500">
+                Choose a store from the header, then open this picker again.
+              </p>
+            </div>
+          ) : fetchLoading ? (
+            <div className="flex flex-col items-center justify-center px-4 py-10 text-center">
+              <p className="text-[13px] text-gray-500">Loading files from cloud storage…</p>
+            </div>
+          ) : storageError && selectableImages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center px-4 py-10 text-center">
+              <p className="text-[15px] font-semibold text-gray-900">Could not load files</p>
+              <p className="mt-1 max-w-[280px] text-[13px] text-gray-500">{storageError}</p>
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center px-4 py-10 text-center">
               <MagnifyingGlassIcon className="mb-3 h-12 w-12 text-gray-300" />
-              <p className="text-[15px] font-semibold text-gray-900">No results found</p>
+              <p className="text-[15px] font-semibold text-gray-900">No images found</p>
               <p className="mt-1 max-w-[280px] text-[13px] text-gray-500">
-                Edit your search criteria, or upload a new image.
+                {search.trim()
+                  ? 'Edit your search criteria, or upload a new image.'
+                  : pendingPreviewCount > 0
+                    ? `${pendingPreviewCount} image(s) are registered but previews are unavailable. Upload a new image or open Content → Files first.`
+                    : 'Upload images in Content → Files, or add one here.'}
               </p>
               <button
                 type="button"
-                disabled={uploadLoading}
+                disabled={uploadBusy}
                 onClick={() => fileRef.current?.click()}
                 className="mt-5 rounded-lg border border-[#c9cccf] bg-white px-4 py-2 text-[13px] font-medium text-gray-900 shadow-sm hover:bg-gray-50 disabled:opacity-60"
               >
-                {uploadLoading ? 'Uploading…' : 'Upload image'}
+                {uploadBusy ? 'Uploading…' : 'Upload image'}
               </button>
             </div>
           ) : (
@@ -236,7 +256,9 @@ export const ThemeEditorImagePickerModal: React.FC<ThemeEditorImagePickerModalPr
                     type="button"
                     onClick={() => setPendingUrl(file.url)}
                     className={`group overflow-hidden rounded-lg border-2 bg-[#f6f6f7] text-left transition-colors ${
-                      selected ? 'border-[#005bd3] ring-2 ring-[#005bd3]/25' : 'border-transparent hover:border-[#c9cccf]'
+                      selected
+                        ? 'border-[#005bd3] ring-2 ring-[#005bd3]/25'
+                        : 'border-transparent hover:border-[#c9cccf]'
                     }`}
                   >
                     <div className="aspect-square w-full overflow-hidden bg-white">
@@ -258,7 +280,7 @@ export const ThemeEditorImagePickerModal: React.FC<ThemeEditorImagePickerModalPr
         <div className="flex shrink-0 items-center justify-between gap-3 border-t border-[#e1e1e1] px-4 py-3">
           <button
             type="button"
-            disabled={uploadLoading}
+            disabled={uploadBusy || !activeStoreId}
             onClick={() => fileRef.current?.click()}
             className="text-[13px] font-medium text-[#005bd3] hover:underline disabled:opacity-60"
           >

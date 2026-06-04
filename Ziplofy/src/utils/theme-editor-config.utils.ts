@@ -216,7 +216,44 @@ function resolveFieldTypeForPath(
     }
   }
 
+  const tplBlockHeading = path.match(
+    /^templates\.([^.]+)\.sections\.([^.]+)\.blocks\.[^.]+\.settings\.heading$/
+  );
+  if (tplBlockHeading) {
+    return (
+      typeByPath.get(
+        `templates.${tplBlockHeading[1]}.sections.${tplBlockHeading[2]}.settings.title`
+      ) ?? 'textarea'
+    );
+  }
+
+  const layoutBlockHeading = path.match(/^sections\.([^.]+)\.blocks\.[^.]+\.settings\.heading$/);
+  if (layoutBlockHeading) {
+    return (
+      typeByPath.get(`templates.index.sections.hero_main.settings.title`) ??
+      typeByPath.get(`sections.${layoutBlockHeading[1]}.settings.title`) ??
+      'textarea'
+    );
+  }
+
   return undefined;
+}
+
+/** Keep hero heading copy in sync between section `title` and block `heading` settings. */
+function syncHeroHeadingTextPaths(
+  config: Record<string, unknown>,
+  path: string,
+  value: string | boolean | number
+): void {
+  const block = path.match(/^(.+)\.blocks\.([^.]+)\.settings\.heading$/);
+  if (block) {
+    setConfigAtPath(config, `${block[1]}.settings.title`, value);
+    return;
+  }
+  const title = path.match(/^(.+)\.settings\.title$/);
+  if (title) {
+    setConfigAtPath(config, `${title[1]}.blocks.heading.settings.heading`, value);
+  }
 }
 
 /** Write a value at a dot path; numeric segments use real arrays when the parent is a list. */
@@ -298,6 +335,9 @@ export function applyValuesToThemeConfig(
     const coerced = coerceFieldValue(raw, type);
     if (coerced === undefined) continue;
     setConfigAtPath(config, path, coerced);
+    if (typeof coerced === 'string') {
+      syncHeroHeadingTextPaths(config, path, coerced);
+    }
   }
 
   return config;

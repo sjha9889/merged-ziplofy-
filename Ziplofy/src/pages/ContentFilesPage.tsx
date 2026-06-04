@@ -12,7 +12,6 @@ import {
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
 import {
-  buildS3ObjectUrl,
   fileNameFromStorageKey,
   isImageStorageKey,
   useStoreCloudStorage,
@@ -54,11 +53,10 @@ export const ContentFilesPage = () => {
     uploads,
     loading: fetchLoading,
     deleteLoading,
-    lastS3Meta,
     fetchUploadsByStoreId,
     uploadFileForStoreQuiet,
     deleteUpload,
-    getObjectUrlForKey,
+    resolveUploadPreviewUrl,
     clearUploads,
     clearError,
   } = useStoreCloudStorage();
@@ -91,17 +89,6 @@ export const ContentFilesPage = () => {
       toast.error((err as Error)?.message || 'Failed to load files');
     });
   }, [activeStoreId, fetchUploadsByStoreId, clearUploads]);
-
-  const resolvePreviewUrl = useCallback(
-    (upload: StoreCloudStorageUpload): string | null => {
-      if (!isImageStorageKey(upload.key)) return null;
-      return (
-        getObjectUrlForKey(upload.key) ??
-        (lastS3Meta ? buildS3ObjectUrl(upload.key, lastS3Meta.bucket, lastS3Meta.region) : null)
-      );
-    },
-    [getObjectUrlForKey, lastS3Meta]
-  );
 
   const drainUploadQueue = useCallback(async () => {
     if (!activeStoreId) return;
@@ -327,7 +314,7 @@ export const ContentFilesPage = () => {
       </p>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
         {uploads.map((upload) => {
-          const previewUrl = resolvePreviewUrl(upload);
+          const previewUrl = resolveUploadPreviewUrl(upload);
           const name = fileNameFromStorageKey(upload.key);
           const isDeleting = deletingId === upload._id;
 

@@ -48,6 +48,17 @@ export function sectionTypeUsesCatalogSidebar(sectionType: string | undefined): 
 
 /** Settings panel node from catalog when available (catalog-first editing flow). */
 export function settingsNodeFromCatalog(node: SidebarNode): SidebarNode | null {
+  // Hero heading block uses schema-backed section settings (see prepareHeadingBlockSettingsNode).
+  if (
+    /^template:[^:]+:[^:]+:block:(heading(?:_\d+)?)$/.test(node.id) ||
+    /^layout:[^:]+:block:(heading(?:_\d+)?)$/.test(node.id) ||
+    /^template:[^:]+:[^:]+:block:(?:primary_button|secondary_button|button_\d+)$/.test(node.id) ||
+    /^layout:[^:]+:block:(?:primary_button|secondary_button|button_\d+)$/.test(node.id) ||
+    /^template:[^:]+:hero_main(?:_\d+)?$/.test(node.id) ||
+    /^layout:hero_main(?:_\d+)?$/.test(node.id)
+  ) {
+    return null;
+  }
   const catalog = resolveEditingPanelForNode(node.id);
   if (!catalog?.fields.length) return null;
 

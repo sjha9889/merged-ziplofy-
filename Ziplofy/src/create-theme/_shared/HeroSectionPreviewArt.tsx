@@ -49,41 +49,74 @@ type FrameProps = {
   size?: 'modal' | 'compact';
 };
 
+/** Same landscape scene as `HeroLandscapeBackdrop` (runtime hero). */
+function HeroClassicSceneBackdrop() {
+  return (
+    <div
+      className="absolute inset-0"
+      style={{
+        background:
+          'linear-gradient(180deg, #e8b89a 0%, #c9a07a 18%, #8fb8a8 42%, #4a8f9c 68%, #2d6478 100%)',
+      }}
+      aria-hidden
+    >
+      <svg
+        viewBox="0 0 1200 600"
+        preserveAspectRatio="xMidYMid slice"
+        className="absolute inset-0 h-full w-full"
+      >
+        <rect width="1200" height="600" fill="#e8b89a" />
+        <ellipse cx="600" cy="120" rx="280" ry="80" fill="#f5d4b8" opacity="0.9" />
+        <circle cx="180" cy="90" r="36" fill="#fff8f0" opacity="0.85" />
+        <path
+          d="M0 380 L120 320 L240 360 L400 280 L560 340 L720 260 L880 300 L1040 240 L1200 280 L1200 600 L0 600 Z"
+          fill="#3d6b5a"
+        />
+        <path
+          d="M0 400 L200 360 L380 390 L520 330 L680 370 L860 310 L1000 350 L1200 320 L1200 600 L0 600 Z"
+          fill="#2d8a7a"
+        />
+        <path d="M0 420 Q600 380 1200 420 L1200 600 L0 600 Z" fill="#3a9e8c" />
+        <ellipse cx="420" cy="430" rx="200" ry="28" fill="#1f5f6e" opacity="0.35" />
+        <ellipse cx="340" cy="518" rx="88" ry="52" fill="#3d2f28" opacity="0.92" />
+        <ellipse cx="395" cy="505" rx="36" ry="34" fill="#4a382f" opacity="0.95" />
+        <ellipse cx="520" cy="522" rx="78" ry="48" fill="#352820" opacity="0.9" />
+        <ellipse cx="565" cy="508" rx="32" ry="30" fill="#45352c" opacity="0.95" />
+      </svg>
+    </div>
+  );
+}
+
 export function HeroSceneFrame({ children, size = 'modal' }: FrameProps) {
   const maxW = size === 'modal' ? 'max-w-[540px]' : 'max-w-[400px]';
   return (
     <div
       className={`relative mx-auto w-full ${maxW} overflow-hidden rounded-xl border-2 border-white shadow-[0_8px_28px_rgba(0,0,0,0.14)] ring-1 ring-black/[0.06]`}
     >
-      <div className="relative aspect-[4/3] w-full bg-[#ddd6c8]">
-        <HeroLandscapeIllustration />
+      <div className="relative aspect-[16/9] w-full bg-[#2d6478]">
+        <HeroClassicSceneBackdrop />
         {children}
       </div>
     </div>
   );
 }
 
-/** Default Hero section preview — centered copy + Shop now CTA. */
+/** Default Hero section preview — centered headline + ghost CTA (matches live runtime). */
 export function HeroDefaultPreviewArt({ size = 'modal' }: { size?: 'modal' | 'compact' }) {
   const titleCls =
     size === 'modal'
-      ? 'text-[1.75rem] font-bold leading-tight tracking-tight text-white drop-shadow-md'
-      : 'text-[1.1rem] font-bold leading-tight tracking-tight text-white drop-shadow-sm';
-  const bodyCls =
-    size === 'modal'
-      ? 'mt-3 max-w-[22rem] text-[0.95rem] leading-snug text-white drop-shadow-sm'
-      : 'mt-2 max-w-[14rem] text-[0.65rem] leading-snug text-white/95';
+      ? 'max-w-[20rem] text-[1.75rem] font-bold leading-tight tracking-tight text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.35)]'
+      : 'max-w-[12rem] text-[1.05rem] font-bold leading-tight tracking-tight text-white drop-shadow-sm';
   const btnCls =
     size === 'modal'
-      ? 'mt-6 inline-flex rounded-md bg-white px-6 py-2.5 text-sm font-medium text-gray-900 shadow-md'
-      : 'mt-4 inline-flex rounded-md bg-white px-4 py-1.5 text-[0.65rem] font-medium text-gray-900 shadow-sm';
+      ? 'mt-6 inline-flex rounded-full border border-white/90 bg-black/25 px-7 py-2.5 text-sm font-medium text-white'
+      : 'mt-4 inline-flex rounded-full border border-white/90 bg-black/25 px-5 py-1.5 text-[0.65rem] font-medium text-white';
 
   return (
     <HeroSceneFrame size={size}>
-      <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
-        <h3 className={titleCls}>New arrivals</h3>
-        <p className={bodyCls}>Made with care and unconditionally loved by our customers.</p>
-        <span className={btnCls}>Shop now</span>
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 px-8 text-center">
+        <h3 className={titleCls}>Browse our latest products</h3>
+        <span className={btnCls}>Shop all</span>
       </div>
     </HeroSceneFrame>
   );

@@ -1,6 +1,8 @@
 import {
+  layoutBlueprintKey,
   remapTemplateHeroSchemaPath,
   remapTemplateSchemaPath,
+  templateBlueprintKey,
 } from '../../utils/theme-editor-insert-section';
 import type { EditorFieldDef, EditorSchemaDoc, SidebarNode } from './create-theme-sidebar.types';
 
@@ -74,6 +76,16 @@ export function isHeroSectionNodeId(nodeId: string): boolean {
   );
 }
 
+/** True when the settings sheet should use the Shopify hero section panel. */
+export function isHeroSectionSettingsNode(
+  node: Pick<SidebarNode, 'id' | 'label' | 'kind'>
+): boolean {
+  if (node.kind !== 'section') return false;
+  if (isHeroSectionNodeId(node.id)) return true;
+  const label = node.label ?? '';
+  return label === 'Hero' || label.startsWith('Hero:');
+}
+
 function fieldSortKey(path: string): number {
   const key = path.split('.').pop() ?? '';
   const rank: Record<string, number> = {
@@ -107,10 +119,8 @@ function fieldSortKey(path: string): number {
 }
 
 export function isHeroSettingsPath(path: string): boolean {
-  return (
-    /\.sections\.hero_main(?:_\d+)?\.settings\./.test(path) ||
-    /^sections\.hero_main(?:_\d+)?\.settings\./.test(path)
-  );
+  if (/\.blocks\./.test(path)) return false;
+  return /\.sections\.[^.]+\.settings\./.test(path) || /^sections\.[^.]+\.settings\./.test(path);
 }
 
 export function isHeroPanelField(field: EditorFieldDef): boolean {
@@ -165,33 +175,85 @@ export function enrichHeroPanelFields(fields: EditorFieldDef[]): EditorFieldDef[
   return fields.map(enrichHeroPanelField);
 }
 
-/** Hero section settings from index template schema (layout + template instances). */
+const CANON_HERO_TEMPLATE_ID = 'index';
+const CANON_HERO_SECTION_ID = 'hero_main';
+
+function canonicalHeroSectionFieldsFromSchema(editorSchema: EditorSchemaDoc): EditorFieldDef[] {
+  const tpl = editorSchema.templates?.find((t) => t.id === CANON_HERO_TEMPLATE_ID);
+  const sec = tpl?.sections?.find((s) => (s.id ?? '') === CANON_HERO_SECTION_ID);
+  return sec?.settingsFields ?? [];
+}
+
+/** Hero section settings from theme schema (layout + template instances). */
 export function heroSectionFieldDefsFromSchema(
   editorSchema: EditorSchemaDoc,
   nodeId: string
 ): EditorFieldDef[] {
-  const tplHero = editorSchema.templates?.find((t) => t.id === 'index')?.sections?.find((s) => s.id === 'hero_main');
-  const raw = tplHero?.settingsFields ?? [];
-  if (!raw.length) return [];
+  const canon = canonicalHeroSectionFieldsFromSchema(editorSchema);
+  if (!canon.length) return [];
 
-  const layout = nodeId.match(/^layout:(hero_main(?:_\d+)?)$/);
+  const layout = nodeId.match(/^layout:(.+)$/);
   if (layout) {
+    const instanceId = layout[1]!;
+    const blueprint = layoutBlueprintKey(instanceId);
+    const fromLayout = editorSchema.layout?.[blueprint]?.settingsFields;
+    const raw = fromLayout?.length ? fromLayout : canon;
+    if (instanceId.startsWith('hero_main')) {
+      return raw.map((f) => ({
+        ...f,
+        path: remapTemplateHeroSchemaPath(f.path, instanceId),
+      }));
+    }
     return raw.map((f) => ({
       ...f,
-      path: remapTemplateHeroSchemaPath(f.path, layout[1]),
+      path: f.path.replace(/\.sections\.[^.]+\./, `.sections.${instanceId}.`),
     }));
   }
 
-  const tpl = nodeId.match(/^template:([^:]+):(hero_main(?:_\d+)?)$/);
+  const tpl = nodeId.match(/^template:([^:]+):(.+)$/);
   if (tpl) {
     const [, tplId, instanceId] = tpl;
+    const blueprint = templateBlueprintKey(instanceId);
+    const sec = editorSchema.templates?.find((t) => t.id === tplId)?.sections?.find((s) => (s.id ?? '') === blueprint);
+    const raw = sec?.settingsFields?.length ? sec.settingsFields : canon;
+    if (blueprint === instanceId) {
+      return raw.map((f) => ({
+        ...f,
+        path: remapTemplateSchemaPath(f.path, tplId, instanceId),
+      }));
+    }
     return raw.map((f) => ({
       ...f,
-      path: remapTemplateSchemaPath(f.path, tplId, instanceId),
+      path: remapTemplateSchemaPath(
+        f.path.replace(/\.sections\.[^.]+\./, `.sections.${instanceId}.`),
+        tplId,
+        instanceId
+      ),
     }));
   }
 
-  return raw;
+  return canon;
+}
+
+/** Apply the correct Shopify-style hero section panel for this sidebar node. */
+export function prepareHeroSectionSettingsForNode(
+  heroSection: SidebarNode,
+  fields: EditorFieldDef[]
+): SidebarNode {
+  const base = { ...heroSection, fields };
+  if (isHeroBottomAlignedSidebarSection(heroSection)) {
+    return prepareHeroBottomAlignedSettingsNode(base);
+  }
+  if (isHeroMarqueeSidebarSection(heroSection)) {
+    return prepareHeroMarqueeSettingsNode(base);
+  }
+  if (isHeroLargeLogoSidebarSection(heroSection)) {
+    return prepareHeroLargeLogoSettingsNode(base);
+  }
+  if (isHeroSplitShowcaseSidebarSection(heroSection)) {
+    return prepareHeroSplitShowcaseSettingsNode(base);
+  }
+  return prepareHeroSettingsNode(base);
 }
 
 export function sortHeroPanelFields(fields: EditorFieldDef[]): EditorFieldDef[] {
@@ -258,7 +320,8 @@ export { prepareLargeLogoSettingsNode as prepareHeroLargeLogoSettingsNode } from
 
 export function isHeroSettingsPanelFields(fields: EditorFieldDef[]): boolean {
   if (!fields.length) return false;
-  return fields.every(isHeroPanelField);
+  const keys = new Set(fields.map((f) => f.path.split('.').pop() ?? ''));
+  return keys.has('media1Type') || keys.has('media1ImageUrl') || keys.has('media2Type');
 }
 
 /** Group hero panel fields in Shopify editor order (Media 1 → Custom CSS). */

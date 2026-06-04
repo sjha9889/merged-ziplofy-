@@ -23,6 +23,8 @@ import {
 } from './sidebar';
 import { CreateThemeHeader } from './chrome/CreateThemeHeader';
 import CreateThemeLivePreview, { type ThemePreviewPage } from './chrome/CreateThemeLivePreview';
+import { PreviewSyncProgressBar } from './chrome/PreviewStatus';
+import { usePreviewEditSync } from './chrome/usePreviewEditSync';
 import { CreateThemePoweredByLoader } from './chrome/CreateThemePoweredByLoader';
 import { buildThemeEditorPageMenu, findPageMenuItemByPreview } from './utils/page-menu';
 import { ensureRegistryTemplatesInConfig } from './utils/theme-page-registry';
@@ -34,8 +36,12 @@ import {
   buildThemeEditorSelectionHints,
   expandedIdsForPreviewNode,
 } from './utils/selection-hints';
+import {
+  isHeadingBlockNodeId,
+  mirrorHeadingTextInValues,
+  parseHeadingBlockNodeId,
+} from './sidebar/theme-editor-heading-block-panel.utils';
 import { useDebouncedValue } from '../hooks/useDebouncedValue';
-import { useRafBatchedCounter } from '../hooks/useRafBatchedState';
 import { THEME_EDITOR_STATIC_CONFIG } from '../config/theme-editor-static.config';
 import { useStore } from '../contexts/store.context';
 import { useStoreSubdomain } from '../contexts/storeSubdomain.context';
@@ -145,7 +151,13 @@ const CreateThemePage: React.FC = () => {
   const [hiddenNodes, setHiddenNodes] = useState<Record<string, boolean>>({});
   const [itemOrder, setItemOrder] = useState<Record<string, string[]>>({});
   const [structureSyncKey, setStructureSyncKey] = useState(0);
-  const [valuesSyncKey, bumpValuesSync] = useRafBatchedCounter();
+  const {
+    committedValues,
+    previewBarRunKey,
+    onPreviewBarComplete,
+    seedCommittedPreview,
+    commitPreviewNow,
+  } = usePreviewEditSync(values);
   const [insertHoverHighlight, setInsertHoverHighlight] = useState<SectionInsertContext | null>(null);
   const [addSectionTarget, setAddSectionTarget] = useState<{
     groupId: CreateThemeCatalogGroup;
@@ -229,6 +241,7 @@ const CreateThemePage: React.FC = () => {
         setEditorSchema(schema);
         setDefaultConfig(config);
         setValues(nextValues);
+        seedCommittedPreview(nextValues);
         setManifest(data.manifest);
         setBlockCatalog(data.blockCatalog);
         setThemeRuntime(data.themeRuntime);
@@ -313,6 +326,36 @@ const CreateThemePage: React.FC = () => {
     [selectedNode, activeTree, editorSchema]
   );
 
+  /** Sync hero heading text between block `heading` and section `title` value keys. */
+  useEffect(() => {
+    if (!isHeadingBlockNodeId(selectedNodeId)) return;
+    const parsed = parseHeadingBlockNodeId(selectedNodeId);
+    if (!parsed) return;
+    const settingsBase =
+      parsed.placement === 'layout'
+        ? `sections.${parsed.sectionInstanceId}.settings`
+        : `templates.${parsed.templateId}.sections.${parsed.sectionInstanceId}.settings`;
+    const blocksBase =
+      parsed.placement === 'layout'
+        ? `sections.${parsed.sectionInstanceId}.blocks`
+        : `templates.${parsed.templateId}.sections.${parsed.sectionInstanceId}.blocks`;
+    const titlePath = `${settingsBase}.title`;
+    const blockPath = `${blocksBase}.${parsed.blockInstanceId}.settings.heading`;
+
+    setValues((prev) => {
+      const title = prev[titlePath];
+      const block = prev[blockPath];
+      if (title !== undefined && block !== undefined) return prev;
+      if (title === undefined && block !== undefined) {
+        return mirrorHeadingTextInValues(prev, blockPath, block);
+      }
+      if (block === undefined && title !== undefined) {
+        return mirrorHeadingTextInValues(prev, titlePath, title);
+      }
+      return prev;
+    });
+  }, [selectedNodeId]);
+
   /** Seed menu block paths into `values` when opening the panel (avoids blank controls / no-op edits). */
   useEffect(() => {
     if (!editorSchema || !defaultConfig || !isHeaderMenuBlockNodeId(selectedNodeId)) return;
@@ -373,8 +416,8 @@ const CreateThemePage: React.FC = () => {
   const livePreviewConfig = useMemo(() => {
     if (!defaultConfig || !editorSchema) return defaultConfig ?? {};
     if (!hasSections) return defaultConfig;
-    return applyValuesToThemeConfig(defaultConfig, values, editorSchema);
-  }, [defaultConfig, values, editorSchema, hasSections]);
+    return applyValuesToThemeConfig(defaultConfig, committedValues, editorSchema);
+  }, [defaultConfig, committedValues, editorSchema, hasSections]);
 
   const debouncedConfigForHints = useDebouncedValue(livePreviewConfig, 320);
 
@@ -524,15 +567,12 @@ const CreateThemePage: React.FC = () => {
 
   const handleFieldChange = useCallback(
     (path: string, type: FieldType, raw: string | boolean) => {
+      const value = type === 'boolean' ? Boolean(raw) : String(raw);
       startTransition(() => {
-        setValues((prev) => ({
-          ...prev,
-          [path]: type === 'boolean' ? Boolean(raw) : String(raw),
-        }));
+        setValues((prev) => mirrorHeadingTextInValues(prev, path, value));
       });
-      bumpValuesSync();
     },
-    [bumpValuesSync]
+    []
   );
 
   const handleStoreMenuSelect = useCallback(
@@ -548,12 +588,12 @@ const CreateThemePage: React.FC = () => {
         startTransition(() => {
           setValues((v) => ({ ...v, ...itemValuePaths }));
         });
-        bumpValuesSync();
+        commitPreviewNow();
         setStructureSyncKey((k) => k + 1);
         return config;
       });
     },
-    [bumpValuesSync]
+    [commitPreviewNow]
   );
 
   const handleCollectionLinksApply = useCallback(
@@ -583,12 +623,12 @@ const CreateThemePage: React.FC = () => {
             return next;
           });
         });
-        bumpValuesSync();
+        commitPreviewNow();
         setStructureSyncKey((k) => k + 1);
         return config;
       });
     },
-    [bumpValuesSync]
+    [commitPreviewNow]
   );
 
   const handleReorder = useCallback(
@@ -732,10 +772,10 @@ const CreateThemePage: React.FC = () => {
       }
       setSelectedNodeId(result.nodeId);
       setStructureSyncKey((k) => k + 1);
-      bumpValuesSync();
+      commitPreviewNow();
       toast.success('Block added');
     },
-    [defaultConfig, editorSchema, addBlockTarget, previewPage, bumpValuesSync]
+    [defaultConfig, editorSchema, addBlockTarget, previewPage, commitPreviewNow]
   );
 
   const handleDeleteSidebarNode = useCallback(
@@ -879,6 +919,11 @@ const CreateThemePage: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-[1310] flex flex-col bg-[#1e1e1e]">
+      <PreviewSyncProgressBar
+        runKey={previewBarRunKey}
+        onComplete={onPreviewBarComplete}
+      />
+
       <CreateThemeHeader
         themeName={themeName}
         onThemeNameChange={setThemeName}
@@ -989,7 +1034,7 @@ const CreateThemePage: React.FC = () => {
 
         <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-white">
           <div
-            className={`create-theme-preview-canvas flex min-h-0 flex-1 flex-col overflow-hidden bg-white ${
+            className={`create-theme-preview-canvas relative flex min-h-0 flex-1 flex-col overflow-hidden bg-white ${
               device === 'mobile' ? 'mx-auto w-full max-w-[390px] border-x border-gray-200' : 'h-full w-full'
             }`}
           >
@@ -1002,7 +1047,6 @@ const CreateThemePage: React.FC = () => {
               cssUrl={themeRuntime.cssUrl}
               config={livePreviewConfig}
               structureSyncKey={structureSyncKey}
-              valuesSyncKey={valuesSyncKey}
               page={previewPage}
               selectionHints={selectionHints}
               highlightNodeId={inspectorEnabled ? selectedNodeId || null : null}

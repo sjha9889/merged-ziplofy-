@@ -5,6 +5,7 @@ import { cfgBool, cfgNumber, cfgString } from '../lib/config';
 import { readHeroButtonStyle } from '../lib/heroButtonStyles';
 import { readHeroHeadingStyle } from '../lib/heroHeadingStyles';
 import {
+  heroDualMediaResponsiveCss,
   heroResponsiveCss,
   readHeroStyle,
   scopedHeroCss,
@@ -15,6 +16,7 @@ import { layoutBlockOrder, templateBlockOrder } from '../lib/structureOrder';
 import { EditorBlock, EditorField, EditorSection } from '../lib/editorAttrs';
 import { layout, useThemeColors } from '../tokens';
 import { HeroLandscapeBackdrop } from './HeroLandscapeBackdrop';
+import { HeroMediaBackground } from './HeroMediaBackground';
 
 type HeroPlacement = 'layout' | 'template';
 
@@ -253,6 +255,13 @@ export function HeroSection({
 
   const scopedCss = scopedHeroCss(sectionId, hero.customCss);
   const responsiveCss = heroResponsiveCss(sectionId, hero.mobileStackMedia, hero.mobileDifferentMedia);
+  const media1Url = hero.media1Url.trim();
+  const media2Url = hero.media2Url.trim();
+  const hasDualMedia = Boolean(media1Url && media2Url);
+  const dualMediaCss =
+    hasDualMedia && hero.mobileStackMedia
+      ? heroDualMediaResponsiveCss(sectionId, true)
+      : '';
 
   const overlayBackground =
     hero.overlayStyle === 'gradient'
@@ -326,6 +335,7 @@ export function HeroSection({
                     paddingLeft: headingStyle.paddingLeft,
                     paddingRight: headingStyle.paddingRight,
                     borderRadius: headingStyle.borderRadius,
+                    textAlign: headingStyle.textAlign,
                     boxSizing: 'border-box',
                   }
             }
@@ -743,15 +753,11 @@ export function HeroSection({
   );
 
   if (isBottomAligned) {
-    const bgUrl = hero.media1Url.trim();
     const sectionMinHeight = hero.minHeight;
     const sidePad = Math.max(hero.paddingX, 40);
     const bottomPad = Math.max(hero.paddingBottom, 48);
     const topPad = hero.paddingTop > 0 ? hero.paddingTop : 0;
-    const bottomOverlay =
-      hero.mediaOverlay && (bgUrl || !hasMedia)
-        ? overlayBackground
-        : undefined;
+    const bottomOverlay = hero.mediaOverlay ? overlayBackground : undefined;
 
     const bottomStack = (
       <div
@@ -788,6 +794,7 @@ export function HeroSection({
       <>
         {scopedCss ? <style>{scopedCss}</style> : null}
         {responsiveCss ? <style>{responsiveCss}</style> : null}
+        {dualMediaCss ? <style>{dualMediaCss}</style> : null}
         <EditorSection
           sectionId={sectionId}
           editorNodeId={sectionNodePrefix}
@@ -804,18 +811,7 @@ export function HeroSection({
             boxSizing: 'border-box',
           }}
         >
-          {bgUrl ? (
-            <div
-              aria-hidden
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: `center/cover url(${bgUrl}) no-repeat`,
-              }}
-            />
-          ) : (
-            <HeroLandscapeBackdrop />
-          )}
+          <HeroMediaBackground media1Url={media1Url} media2Url={media2Url} />
           {bottomOverlay ? (
             <div
               aria-hidden
@@ -835,11 +831,9 @@ export function HeroSection({
   }
 
   if (isMarquee) {
-    const bgUrl = hero.media1Url.trim();
     const sectionMinHeight = hero.minHeight;
     const bottomPad = Math.max(hero.paddingBottom, 48);
-    const marqueeOverlay =
-      hero.mediaOverlay && (bgUrl || !hasMedia) ? overlayBackground : undefined;
+    const marqueeOverlay = hero.mediaOverlay ? overlayBackground : undefined;
 
     const marqueeBody = (
       <div
@@ -893,6 +887,7 @@ export function HeroSection({
       <>
         {scopedCss ? <style>{scopedCss}</style> : null}
         {responsiveCss ? <style>{responsiveCss}</style> : null}
+        {dualMediaCss ? <style>{dualMediaCss}</style> : null}
         <EditorSection
           sectionId={sectionId}
           editorNodeId={sectionNodePrefix}
@@ -909,18 +904,7 @@ export function HeroSection({
             boxSizing: 'border-box',
           }}
         >
-          {bgUrl ? (
-            <div
-              aria-hidden
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: `center/cover url(${bgUrl}) no-repeat`,
-              }}
-            />
-          ) : (
-            <HeroLandscapeBackdrop />
-          )}
+          <HeroMediaBackground media1Url={media1Url} media2Url={media2Url} />
           {marqueeOverlay ? (
             <div
               aria-hidden
@@ -1333,7 +1317,6 @@ export function HeroSection({
   }
 
   if (isClassicHero) {
-    const bgUrl = hero.media1Url.trim();
     const classicMinHeight = hero.minHeight;
     const classicOverlay = hero.mediaOverlay
       ? hero.overlayStyle === 'gradient'
@@ -1381,6 +1364,7 @@ export function HeroSection({
       <>
         {scopedCss ? <style>{scopedCss}</style> : null}
         {responsiveCss ? <style>{responsiveCss}</style> : null}
+        {dualMediaCss ? <style>{dualMediaCss}</style> : null}
         <EditorSection
           sectionId={sectionId}
           editorNodeId={sectionNodePrefix}
@@ -1397,18 +1381,7 @@ export function HeroSection({
             boxSizing: 'border-box',
           }}
         >
-          {bgUrl ? (
-            <div
-              aria-hidden
-              style={{
-                position: 'absolute',
-                inset: 0,
-                background: `center/cover url(${bgUrl}) no-repeat`,
-              }}
-            />
-          ) : (
-            <HeroLandscapeBackdrop />
-          )}
+          <HeroMediaBackground media1Url={media1Url} media2Url={media2Url} />
           {classicOverlay ? (
             <div
               aria-hidden

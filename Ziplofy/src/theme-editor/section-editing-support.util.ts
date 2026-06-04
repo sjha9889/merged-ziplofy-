@@ -175,12 +175,19 @@ const LAYOUT_BLUEPRINT_TO_TYPE: Record<string, string> = {
   footer_utilities: 'footer-utilities',
 };
 
+function isHeroHeadingBlockId(blockId: string | undefined): boolean {
+  return blockId === 'heading' || Boolean(blockId?.startsWith('heading_'));
+}
+
 function settingsPathPrefix(ctx: EditingSelectionContext): string {
   if (ctx.placement === 'layout') {
     if (ctx.nestedBlockId && ctx.blockId) {
       return `sections.${ctx.sectionInstanceId}.blocks.${ctx.blockId}.settings`;
     }
     if (ctx.blockId) {
+      if (ctx.sectionType === 'hero' && isHeroHeadingBlockId(ctx.blockId)) {
+        return `sections.${ctx.sectionInstanceId}.settings`;
+      }
       return `sections.${ctx.sectionInstanceId}.blocks.${ctx.blockId}.settings`;
     }
     return `sections.${ctx.sectionInstanceId}.settings`;
@@ -188,6 +195,9 @@ function settingsPathPrefix(ctx: EditingSelectionContext): string {
   const tpl = ctx.templateId ?? 'index';
   const sec = ctx.sectionInstanceId;
   if (ctx.blockId) {
+    if (ctx.sectionType === 'hero' && isHeroHeadingBlockId(ctx.blockId)) {
+      return `templates.${tpl}.sections.${sec}.settings`;
+    }
     return `templates.${tpl}.sections.${sec}.blocks.${ctx.blockId}.settings`;
   }
   return `templates.${tpl}.sections.${sec}.settings`;

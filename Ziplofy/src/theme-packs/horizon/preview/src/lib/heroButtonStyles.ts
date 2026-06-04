@@ -37,9 +37,9 @@ export function readHeroButtonStyle(
       borderRadius: 9999,
       fontSize: 15,
       fontWeight: 500,
-      background: 'transparent',
+      background: 'rgba(0, 0, 0, 0.28)',
       color: '#ffffff',
-      border: '1px solid rgba(255,255,255,0.85)',
+      border: '1px solid rgba(255, 255, 255, 0.9)',
       openInNewTab: cfgBool(config, `${settingsBase}.openInNewTab`, false),
     };
   }

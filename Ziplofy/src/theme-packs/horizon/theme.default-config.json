@@ -1298,7 +1298,7 @@
           "enabled": true,
           "settings": {
             "media1Type": "image",
-            "media1ImageUrl": "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2400&q=85",
+            "media1ImageUrl": "",
             "media2Type": "image",
             "media2ImageUrl": "",
             "mobileStackMedia": false,
@@ -1324,9 +1324,12 @@
             "title": "Browse our latest products",
             "headingWidth": "fit",
             "headingMaxWidth": "normal",
+            "headingAlignment": "left",
             "headingTypographyPreset": "heading-1",
             "headingColor": "heading",
             "headingBackgroundEnabled": false,
+            "headingBackgroundColor": "#00000026",
+            "headingCornerRadius": 0,
             "headingPaddingTop": 0,
             "headingPaddingBottom": 0,
             "headingPaddingLeft": 0,
@@ -1346,6 +1349,12 @@
             "templates.index.sections.hero_main.settings.subtitle"
           ],
           "blocks": {
+            "heading": {
+              "type": "heading",
+              "settings": {
+                "heading": "Browse our latest products"
+              }
+            },
             "primary_button": {
               "type": "button",
               "settings": {

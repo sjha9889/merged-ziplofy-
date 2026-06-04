@@ -73,6 +73,7 @@ export function groupCustomSectionPanelFields(fields: EditorFieldDef[]): Map<str
 export function isCustomSectionSettingsPanelFields(fields: EditorFieldDef[]): boolean {
   if (!fields.length) return false;
   const keys = new Set(fields.map((f) => f.path.split('.').pop() ?? ''));
+  if (keys.has('media1Type') || keys.has('media1ImageUrl') || keys.has('media2Type')) return false;
   return keys.has('direction') && keys.has('sectionWidth') && keys.has('colorScheme');
 }
 

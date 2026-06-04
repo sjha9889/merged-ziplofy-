@@ -15,13 +15,27 @@ import {
   fieldValueAsString,
   type ThemeEditorFieldType,
 } from './theme-editor-field.utils';
+import { ThemeEditorLinkField } from '../../theme-editor/ThemeEditorLinkField';
 import { ThemeEditorImagePickerModal } from './ThemeEditorImagePickerModal';
 import {
   groupHeroPanelFields,
   HERO_PANEL_GROUP_ORDER,
   isHeroSectionNodeId,
+  isHeroSectionSettingsNode,
   isHeroSettingsPanelFields,
 } from './theme-editor-hero-panel.utils';
+import {
+  groupHeadingPanelFields,
+  HEADING_PANEL_GROUP_ORDER,
+  isHeadingBlockPanelFields,
+  isHeadingBlockNodeId,
+  prepareHeadingBlockSettingsNode,
+} from './theme-editor-heading-block-panel.utils';
+import {
+  isHeroButtonBlockNodeId,
+  isHeroButtonPanelFields,
+} from './theme-editor-hero-button-panel.utils';
+import { HeroButtonSettingsPanel } from './theme-editor-hero-button-settings-panel';
 import {
   groupLargeLogoPanelFields,
   LARGE_LOGO_PANEL_GROUP_ORDER,
@@ -671,34 +685,15 @@ function LinkFieldRow({
   values: Record<string, string | boolean>;
   onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
 }) {
-  const id = fieldInputId(field.path);
-
   return (
-    <div className="space-y-1.5 py-1">
-      <div className="flex items-center justify-between gap-2">
-        <label htmlFor={id} className="text-[13px] font-medium text-gray-800">
-          {field.label}
-        </label>
-        <button
-          type="button"
-          title="Connect dynamic source"
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
-        >
-          <CircleStackIcon className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="relative">
-        <input
-          id={id}
-          type="text"
-          value={fieldValueAsString(values, field)}
-          onChange={(e) => onFieldChange(field.path, 'text', e.target.value)}
-          placeholder={field.placeholder ?? 'Paste a link or search'}
-          className="w-full rounded-lg border border-[#c9cccf] bg-white py-2 pl-3 pr-9 text-[13px] text-gray-900 shadow-sm focus:border-[#005bd3] focus:outline-none focus:ring-1 focus:ring-[#005bd3]"
-        />
-        <LinkIcon className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-      </div>
-    </div>
+    <ThemeEditorLinkField
+      id={fieldInputId(field.path)}
+      label={field.label}
+      value={fieldValueAsString(values, field)}
+      placeholder={field.placeholder ?? 'Paste a link or search'}
+      onChange={(next) => onFieldChange(field.path, 'text', next)}
+      showDynamicSource
+    />
   );
 }
 
@@ -902,6 +897,187 @@ function HeroPaddingSettingsGroup({
           <SliderFieldRow field={bottom} values={values} onFieldChange={onFieldChange} />
         ) : null}
       </div>
+    </div>
+  );
+}
+
+const HEADING_PADDING_ORDER = [
+  'headingPaddingTop',
+  'headingPaddingBottom',
+  'headingPaddingLeft',
+  'headingPaddingRight',
+] as const;
+
+function HeadingPaddingSettingsGroup({
+  fields,
+  values,
+  onFieldChange,
+}: {
+  fields: EditorFieldDef[];
+  values: Record<string, string | boolean>;
+  onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
+}) {
+  const ordered = [...fields].sort((a, b) => {
+    const ka = a.path.split('.').pop() ?? '';
+    const kb = b.path.split('.').pop() ?? '';
+    const ia = HEADING_PADDING_ORDER.indexOf(ka as (typeof HEADING_PADDING_ORDER)[number]);
+    const ib = HEADING_PADDING_ORDER.indexOf(kb as (typeof HEADING_PADDING_ORDER)[number]);
+    return (ia >= 0 ? ia : 99) - (ib >= 0 ? ib : 99);
+  });
+
+  return (
+    <div className="px-1 py-3">
+      <h3 className="mb-2 text-[13px] font-semibold text-gray-900">Padding</h3>
+      <div className="space-y-1">
+        {ordered.map((field) => (
+          <SliderFieldRow key={field.path} field={field} values={values} onFieldChange={onFieldChange} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HeadingAppearanceSettingsGroup({
+  fields,
+  values,
+  onFieldChange,
+}: {
+  fields: EditorFieldDef[];
+  values: Record<string, string | boolean>;
+  onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
+}) {
+  const background = fields.find((f) => f.path.endsWith('headingBackgroundEnabled'));
+  const backgroundColor = fields.find((f) => f.path.endsWith('headingBackgroundColor'));
+  const cornerRadius = fields.find((f) => f.path.endsWith('headingCornerRadius'));
+  if (!background) return null;
+
+  const backgroundOn =
+    values[background.path] === true || values[background.path] === 'true';
+
+  return (
+    <div className="px-1 py-3">
+      <h3 className="mb-2 text-[13px] font-semibold text-gray-900">Appearance</h3>
+      <div className="space-y-1">
+        <ToggleSwitchFieldRow field={background} values={values} onFieldChange={onFieldChange} />
+        {backgroundOn && backgroundColor ? (
+          <ColorPickerFieldRow
+            field={backgroundColor}
+            values={values}
+            onFieldChange={onFieldChange}
+          />
+        ) : null}
+        {backgroundOn && cornerRadius ? (
+          <SliderFieldRow field={cornerRadius} values={values} onFieldChange={onFieldChange} />
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function HeadingTypographySettingsGroup({
+  fields,
+  values,
+  onFieldChange,
+}: {
+  fields: EditorFieldDef[];
+  values: Record<string, string | boolean>;
+  onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
+}) {
+  const preset = fields.find((f) => f.path.endsWith('headingTypographyPreset'));
+  const color = fields.find((f) => f.path.endsWith('headingColor'));
+
+  return (
+    <div className="px-1 py-3">
+      <h3 className="mb-2 text-[13px] font-semibold text-gray-900">Typography</h3>
+      <div className="space-y-1">
+        {preset ? (
+          <div>
+            <SelectFieldRow field={preset} values={values} onFieldChange={onFieldChange} />
+            {preset.description ? (
+              <p className="pb-1 text-[12px] text-gray-500">
+                Edit presets in{' '}
+                <a href="/settings/theme" className="text-[#005bd3] hover:underline">
+                  theme settings
+                </a>
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+        {color ? <SelectFieldRow field={color} values={values} onFieldChange={onFieldChange} /> : null}
+      </div>
+    </div>
+  );
+}
+
+function HeadingBlockSettingsPanel({
+  fields,
+  values,
+  onFieldChange,
+}: {
+  fields: EditorFieldDef[];
+  values: Record<string, string | boolean>;
+  onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
+}) {
+  const prepared = prepareHeadingBlockSettingsNode({ id: '', label: 'Heading', kind: 'block', fields });
+  const grouped = useMemo(() => groupHeadingPanelFields(prepared.fields ?? []), [prepared.fields]);
+
+  return (
+    <div className="divide-y divide-[#e1e1e1]">
+      {HEADING_PANEL_GROUP_ORDER.map((label) => {
+        const groupFields = grouped.get(label);
+        if (!groupFields?.length) return null;
+
+        if (label === 'Text') {
+          return (
+            <div key={label} className="px-1 py-3">
+              {groupFields.map((field) => (
+                <SettingsFieldRow key={field.path} field={field} values={values} onFieldChange={onFieldChange} />
+              ))}
+            </div>
+          );
+        }
+        if (label === 'Layout') {
+          return (
+            <HeroLayoutSettingsGroup
+              key={label}
+              fields={groupFields}
+              values={values}
+              onFieldChange={onFieldChange}
+            />
+          );
+        }
+        if (label === 'Typography') {
+          return (
+            <HeadingTypographySettingsGroup
+              key={label}
+              fields={groupFields}
+              values={values}
+              onFieldChange={onFieldChange}
+            />
+          );
+        }
+        if (label === 'Appearance') {
+          return (
+            <HeadingAppearanceSettingsGroup
+              key={label}
+              fields={groupFields}
+              values={values}
+              onFieldChange={onFieldChange}
+            />
+          );
+        }
+        if (label === 'Padding') {
+          return (
+            <HeadingPaddingSettingsGroup
+              key={label}
+              fields={groupFields}
+              values={values}
+              onFieldChange={onFieldChange}
+            />
+          );
+        }
+        return null;
+      })}
     </div>
   );
 }
@@ -6496,11 +6672,15 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
     node.label === 'Utilities' ||
     isFooterUtilitiesSettingsPanelFields(fields);
   const isContactFormPanel =
-    node.label === 'Contact form' || isContactFormSettingsPanelFields(fields);
+    !isHeroSectionSettingsNode(node) &&
+    (node.label === 'Contact form' || isContactFormSettingsPanelFields(fields));
   const isEmailSignupPanel =
-    node.kind !== 'block' && (node.label === 'Email signup' || isEmailSignupSettingsPanelFields(fields));
+    !isHeroSectionSettingsNode(node) &&
+    node.kind !== 'block' &&
+    (node.label === 'Email signup' || isEmailSignupSettingsPanelFields(fields));
   const isCustomSectionPanel =
-    node.label === 'Custom section' || isCustomSectionSettingsPanelFields(fields);
+    !isHeroSectionSettingsNode(node) &&
+    (node.label === 'Custom section' || isCustomSectionSettingsPanelFields(fields));
   const isFeaturedProductPanel =
     node.label === 'Featured product' || isFeaturedProductSettingsPanelFields(fields);
   const isProductHighlightPanel =
@@ -6625,9 +6805,21 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
     node.label === 'Carousel' || isStorytellingCarouselSettingsPanelFields(fields);
   const isDividerPanel =
     node.label === 'Divider' || isDividerSettingsPanelFields(fields);
+  const isHeadingBlockPanel =
+    node.kind === 'block' &&
+    (node.label === 'Heading' ||
+      isHeadingBlockNodeId(node.id) ||
+      isHeadingBlockPanelFields(fields));
+  const isHeroButtonBlockPanel =
+    node.kind === 'block' &&
+    (node.label === 'Button' ||
+      isHeroButtonBlockNodeId(node.id) ||
+      isHeroButtonPanelFields(fields));
   const isAnnouncementBlockPanel =
     !isHeaderLogoBlockPanel &&
     !isHeaderMenuBlockPanel &&
+    !isHeadingBlockPanel &&
+    !isHeroButtonBlockPanel &&
     (isAnnouncementBlockNodeId(node.id) ||
       node.label === 'Announcement' ||
       (fields.length > 0 && isAnnouncementBlockPanelFields(fields)));
@@ -6674,53 +6866,12 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
   const isHeroPanel =
     !isLargeLogoPanel &&
     !isSplitShowcasePanel &&
-    !isAnnouncementBlockPanel &&
-    !isAnnouncementBarPanel &&
-    !isCopyrightBlockPanel &&
-    !isSocialLinksBlockPanel &&
-    !isFooterPanel &&
-    !isFooterUtilitiesPanel &&
-    !isContactFormPanel &&
-    !isEmailSignupPanel &&
-    !isCustomSectionPanel &&
-    !isFeaturedProductPanel &&
-    !isProductHighlightPanel &&
-    !isEditorialPanel &&
-    !isEditorialJumboPanel &&
-    !isImageComparePanel &&
-    !isImageWithTextPanel &&
-    !isStorytellingLogoPanel &&
-    !isStorytellingVideoPanel &&
-    !isFaqPanel &&
-    !isIconsWithTextPanel &&
-    !isMulticolumnPanel &&
-    !isPullQuotePanel &&
-    !isRichTextPanel &&
-    !isTextMarqueePanel &&
-    !isFeaturedCollectionCarouselPanel &&
-    !isFeaturedCollectionEditorialPanel &&
-    !isBlogPostsCarouselPanel &&
-    !isBlogPostsEditorialPanel &&
-    !isBlogPostsGridPanel &&
-    !isProductHotspotsPanel &&
-    !isRecommendedProductsPanel &&
-    !isCollectionLinksSpotlightPanel &&
-    !isCollectionListBentoPanel &&
-    !isCollectionListCarouselPanel &&
-    !isCollectionListEditorialPanel &&
-    !isCollectionListGridPanel &&
-    !isLayeredSlideshowPanel &&
-    !isSlideshowFullFramePanel &&
-    !isSlideshowInsetPanel &&
-    !isStorytellingCarouselPanel &&
-    !isDividerPanel &&
-    !isAnnouncementBlockPanel &&
-    !isAnnouncementBarPanel &&
-    (isHeroSectionNodeId(node.id) || isHeroSettingsPanelFields(fields));
+    (isHeroSectionSettingsNode(node) || isHeroSettingsPanelFields(fields));
   const useGrouped =
     !isHeaderSectionPanel &&
     !isLargeLogoPanel &&
     !isSplitShowcasePanel &&
+    !isHeadingBlockPanel &&
     !isAnnouncementBlockPanel &&
     !isAnnouncementBarPanel &&
     !isFooterPanel &&
@@ -6884,6 +7035,12 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
             values={values}
             onFieldChange={onFieldChange}
           />
+        ) : isHeadingBlockPanel ? (
+          <HeadingBlockSettingsPanel fields={fields} values={values} onFieldChange={onFieldChange} />
+        ) : isHeroButtonBlockPanel ? (
+          <HeroButtonSettingsPanel fields={fields} values={values} onFieldChange={onFieldChange} />
+        ) : isHeroPanel ? (
+          <HeroGroupedSettingsPanel fields={fields} values={values} onFieldChange={onFieldChange} />
         ) : isAnnouncementBlockPanel ? (
           <AnnouncementBlockSettingsPanel
             fields={fields}
@@ -7135,8 +7292,6 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
           />
         ) : isFooterPanel ? (
           <FooterGroupedSettingsPanel fields={fields} values={values} onFieldChange={onFieldChange} />
-        ) : isHeroPanel ? (
-          <HeroGroupedSettingsPanel fields={fields} values={values} onFieldChange={onFieldChange} />
         ) : useGrouped ? (
           <GroupedSettingsFields fields={fields} values={values} onFieldChange={onFieldChange} />
         ) : (

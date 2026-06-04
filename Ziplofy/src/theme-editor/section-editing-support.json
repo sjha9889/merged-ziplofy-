@@ -9934,7 +9934,7 @@
       ],
       "blocks": {
         "heading": {
-          "label": "Text",
+          "label": "Heading",
           "fields": [
             {
               "key": "title",

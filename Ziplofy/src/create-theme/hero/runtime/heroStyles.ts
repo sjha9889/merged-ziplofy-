@@ -25,14 +25,26 @@ const HEIGHT_PX: Record<string, number> = {
 export type HeroStyle = {
   scheme: HeroScheme;
   minHeight: number;
+  maxWidth: string | number;
   paddingTop: number;
   paddingBottom: number;
+  paddingX: number;
+  direction: 'row' | 'column';
+  alignItems: string;
+  justifyContent: string;
+  alignTextBaseline: boolean;
+  textAlign: 'left' | 'center' | 'right';
   gap: number;
   media1Url: string;
+  media2Url: string;
+  mobileImageUrl: string;
+  mobileStackMedia: boolean;
+  mobileDifferentMedia: boolean;
   mediaOverlay: boolean;
   overlayColor: string;
   overlayStyle: 'solid' | 'gradient';
   overlayGradientDirection: 'up' | 'down';
+  blurredReflection: boolean;
   sectionLink: string;
   sectionLinkNewTab: boolean;
   customCss: string;
@@ -46,24 +58,65 @@ export function readHeroStyle(
   const schemeKey = cfgString(config, `${settingsBase}.colorScheme`, 'scheme-6');
   const scheme = COLOR_SCHEMES[schemeKey] ?? fallback;
 
+  const legacyAlign = cfgString(config, `${settingsBase}.textAlign`, '');
+  const layoutAlignment = cfgString(
+    config,
+    `${settingsBase}.layoutAlignment`,
+    legacyAlign || 'center'
+  );
+  const textAlign: HeroStyle['textAlign'] =
+    layoutAlignment === 'left' ? 'left' : layoutAlignment === 'right' ? 'right' : 'center';
+
+  const fullWidthLegacy = cfgBool(config, `${settingsBase}.fullWidth`, false);
+  const sectionWidth = cfgString(
+    config,
+    `${settingsBase}.sectionWidth`,
+    fullWidthLegacy ? 'full' : 'page'
+  );
+
   const heightKey = cfgString(config, `${settingsBase}.height`, '');
   const legacyMin = cfgNumber(config, `${settingsBase}.minHeight`, 0);
   const minHeight =
     HEIGHT_PX[heightKey] ?? (legacyMin > 0 ? legacyMin : HEIGHT_PX.medium);
 
+  const position = cfgString(config, `${settingsBase}.position`, 'center');
+  const alignItems =
+    position === 'top'
+      ? 'flex-start'
+      : position === 'center' || position === 'space-between'
+        ? 'center'
+        : 'flex-end';
+  const justifyContent =
+    textAlign === 'left' ? 'flex-start' : textAlign === 'right' ? 'flex-end' : 'center';
+
+  const direction = cfgString(config, `${settingsBase}.direction`, 'vertical');
+  const flexDirection: HeroStyle['direction'] = direction === 'horizontal' ? 'row' : 'column';
+
   return {
     scheme,
     minHeight,
+    maxWidth: sectionWidth === 'full' ? '100%' : 1200,
     paddingTop: cfgNumber(config, `${settingsBase}.paddingTop`, 56),
     paddingBottom: cfgNumber(config, `${settingsBase}.paddingBottom`, 56),
+    paddingX: 24,
+    direction: flexDirection,
+    alignItems,
+    justifyContent,
+    alignTextBaseline: cfgBool(config, `${settingsBase}.alignTextBaseline`, false),
+    textAlign,
     gap: cfgNumber(config, `${settingsBase}.layoutGap`, 16),
     media1Url: cfgString(config, `${settingsBase}.media1ImageUrl`, ''),
+    media2Url: cfgString(config, `${settingsBase}.media2ImageUrl`, ''),
+    mobileImageUrl: cfgString(config, `${settingsBase}.mobileImageUrl`, ''),
+    mobileStackMedia: cfgBool(config, `${settingsBase}.mobileStackMedia`, false),
+    mobileDifferentMedia: cfgBool(config, `${settingsBase}.mobileDifferentMedia`, false),
     mediaOverlay: cfgBool(config, `${settingsBase}.mediaOverlay`, true),
     overlayColor: cfgString(config, `${settingsBase}.overlayColor`, '#12121266'),
     overlayStyle:
       cfgString(config, `${settingsBase}.overlayStyle`, 'solid') === 'gradient' ? 'gradient' : 'solid',
     overlayGradientDirection:
       cfgString(config, `${settingsBase}.overlayGradientDirection`, 'up') === 'down' ? 'down' : 'up',
+    blurredReflection: cfgBool(config, `${settingsBase}.blurredReflection`, false),
     sectionLink: cfgString(config, `${settingsBase}.sectionLink`, ''),
     sectionLinkNewTab: cfgBool(config, `${settingsBase}.sectionLinkNewTab`, false),
     customCss: cfgString(config, `${settingsBase}.customCss`, ''),
@@ -77,4 +130,29 @@ export function scopedHeroCss(sectionId: string, css: string): string {
     .split('\n')
     .map((line) => `[data-ziplofy-section="${sectionId}"] ${line}`)
     .join('\n');
+}
+
+export function heroResponsiveCss(
+  sectionId: string,
+  stackMedia: boolean,
+  differentMobile: boolean
+): string {
+  if (!stackMedia && !differentMobile) return '';
+  const sel = `[data-ziplofy-section="${sectionId}"] .hero-media-grid`;
+  let css = '';
+  if (stackMedia) {
+    css += `@media (max-width: 749px) { ${sel} { flex-direction: column !important; } }`;
+  }
+  if (differentMobile) {
+    css += `@media (max-width: 749px) { ${sel} .hero-media-1 { display: none; } ${sel} .hero-media-2 { display: none; } ${sel} .hero-media-mobile { display: block !important; flex: 1; min-height: 200px; } }`;
+  }
+  return css;
+}
+
+/** Stack dual hero media vertically on small screens when enabled in settings. */
+export function heroDualMediaResponsiveCss(sectionId: string, stackOnMobile: boolean): string {
+  if (!stackOnMobile) return '';
+  const root = `[data-ziplofy-section="${sectionId}"] .hero-dual-media-backdrop`;
+  const tile = `[data-ziplofy-section="${sectionId}"] .hero-dual-media-tile`;
+  return `@media (max-width: 749px) { ${root} { flex-direction: column !important; } ${tile} { flex: 1 1 50% !important; width: 100% !important; max-width: 100% !important; min-height: 50%; } }`;
 }

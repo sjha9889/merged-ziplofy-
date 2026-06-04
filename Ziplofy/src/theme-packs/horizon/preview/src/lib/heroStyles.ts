@@ -155,3 +155,10 @@ export function heroResponsiveCss(
   }
   return css;
 }
+
+export function heroDualMediaResponsiveCss(sectionId: string, stackOnMobile: boolean): string {
+  if (!stackOnMobile) return '';
+  const root = `[data-ziplofy-section="${sectionId}"] .hero-dual-media-backdrop`;
+  const tile = `[data-ziplofy-section="${sectionId}"] .hero-dual-media-tile`;
+  return `@media (max-width: 749px) { ${root} { flex-direction: column !important; } ${tile} { flex: 1 1 50% !important; width: 100% !important; max-width: 100% !important; min-height: 50%; } }`;
+}
