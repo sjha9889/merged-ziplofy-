@@ -30,6 +30,36 @@ export const editing: CreateThemeBlockEditing = {
       "type": "text"
     },
     {
+      "key": "headingFont",
+      "label": "Font",
+      "type": "text"
+    },
+    {
+      "key": "headingFontSize",
+      "label": "Size",
+      "type": "text"
+    },
+    {
+      "key": "headingLineHeight",
+      "label": "Line height",
+      "type": "text"
+    },
+    {
+      "key": "headingLetterSpacing",
+      "label": "Letter spacing",
+      "type": "text"
+    },
+    {
+      "key": "headingTextCase",
+      "label": "Case",
+      "type": "text"
+    },
+    {
+      "key": "headingWrap",
+      "label": "Wrap",
+      "type": "text"
+    },
+    {
       "key": "headingColor",
       "label": "Color",
       "type": "text"

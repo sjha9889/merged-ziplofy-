@@ -17,6 +17,12 @@ export const HEADING_PANEL_SETTING_KEYS = new Set([
   'headingMaxWidth',
   'headingAlignment',
   'headingTypographyPreset',
+  'headingFont',
+  'headingFontSize',
+  'headingLineHeight',
+  'headingLetterSpacing',
+  'headingTextCase',
+  'headingWrap',
   'headingColor',
   'headingBackgroundEnabled',
   'headingBackgroundColor',
@@ -79,7 +85,13 @@ function fieldSortKey(path: string): number {
     headingMaxWidth: 2,
     headingAlignment: 3,
     headingTypographyPreset: 10,
-    headingColor: 11,
+    headingFont: 11,
+    headingFontSize: 12,
+    headingLineHeight: 13,
+    headingLetterSpacing: 14,
+    headingTextCase: 15,
+    headingWrap: 16,
+    headingColor: 17,
     headingBackgroundEnabled: 20,
     headingBackgroundColor: 21,
     headingCornerRadius: 22,
@@ -96,6 +108,12 @@ const HEADING_SECTION_STYLE_KEYS = new Set([
   'headingMaxWidth',
   'headingAlignment',
   'headingTypographyPreset',
+  'headingFont',
+  'headingFontSize',
+  'headingLineHeight',
+  'headingLetterSpacing',
+  'headingTextCase',
+  'headingWrap',
   'headingColor',
   'headingBackgroundEnabled',
   'headingBackgroundColor',
@@ -111,7 +129,18 @@ function assignHeadingPanelGroup(key: string): string | undefined {
   if (key === 'headingWidth' || key === 'headingMaxWidth' || key === 'headingAlignment') {
     return 'Layout';
   }
-  if (key === 'headingTypographyPreset' || key === 'headingColor') return 'Typography';
+  if (
+    key === 'headingTypographyPreset' ||
+    key === 'headingFont' ||
+    key === 'headingFontSize' ||
+    key === 'headingLineHeight' ||
+    key === 'headingLetterSpacing' ||
+    key === 'headingTextCase' ||
+    key === 'headingWrap' ||
+    key === 'headingColor'
+  ) {
+    return 'Typography';
+  }
   if (
     key === 'headingBackgroundEnabled' ||
     key === 'headingBackgroundColor' ||
@@ -344,6 +373,23 @@ function remapFieldsForNode(
   return remapped;
 }
 
+function syncHeadingTextPathsInValues(
+  next: Record<string, string | boolean>,
+  sectionPrefix: string,
+  raw: string | boolean
+): void {
+  next[`${sectionPrefix}.settings.title`] = raw;
+  for (const key of Object.keys(next)) {
+    if (key.startsWith(`${sectionPrefix}.blocks.`) && key.endsWith('.settings.heading')) {
+      next[key] = raw;
+    }
+  }
+  const canonical = `${sectionPrefix}.blocks.heading.settings.heading`;
+  if (next[canonical] === undefined) {
+    next[canonical] = raw;
+  }
+}
+
 /** Mirror hero heading copy between section `title` and block `settings.heading` in sidebar values. */
 export function mirrorHeadingTextInValues(
   values: Record<string, string | boolean>,
@@ -353,12 +399,12 @@ export function mirrorHeadingTextInValues(
   const next = { ...values, [path]: raw };
   const block = path.match(/^(.+)\.blocks\.([^.]+)\.settings\.heading$/);
   if (block) {
-    next[`${block[1]}.settings.title`] = raw;
+    syncHeadingTextPathsInValues(next, block[1]!, raw);
     return next;
   }
   const title = path.match(/^(.+)\.settings\.title$/);
   if (title) {
-    next[`${title[1]}.blocks.heading.settings.heading`] = raw;
+    syncHeadingTextPathsInValues(next, title[1]!, raw);
   }
   return next;
 }
@@ -394,4 +440,133 @@ export function heroHeadingFieldDefsFromSchema(
     );
   }
   return headingBlockFieldDefsFromSchema(editorSchema, `template:index:hero_main:block:heading`);
+}
+
+export const HEADING_CUSTOM_TYPOGRAPHY_KEYS = [
+  'headingFont',
+  'headingFontSize',
+  'headingLineHeight',
+  'headingLetterSpacing',
+  'headingTextCase',
+  'headingWrap',
+] as const;
+
+export const HEADING_FONT_OPTIONS = [
+  { value: 'body', label: 'Body' },
+  { value: 'subheading', label: 'Subheading' },
+  { value: 'heading', label: 'Heading' },
+  { value: 'accent', label: 'Accent' },
+] as const;
+
+export const HEADING_FONT_SIZE_OPTIONS = [
+  '10px',
+  '12px',
+  '14px',
+  '16px',
+  '18px',
+  '20px',
+  '24px',
+  '28px',
+  '32px',
+  '36px',
+  '40px',
+  '48px',
+  '56px',
+  '64px',
+  '72px',
+].map((value) => ({ value, label: value }));
+
+const TIGHT_NORMAL_LOOSE = [
+  { value: 'tight', label: 'Tight' },
+  { value: 'normal', label: 'Normal' },
+  { value: 'loose', label: 'Loose' },
+] as const;
+
+export const HEADING_LINE_HEIGHT_OPTIONS = [...TIGHT_NORMAL_LOOSE];
+export const HEADING_LETTER_SPACING_OPTIONS = [...TIGHT_NORMAL_LOOSE];
+
+export const HEADING_TEXT_CASE_OPTIONS = [
+  { value: 'default', label: 'Default' },
+  { value: 'uppercase', label: 'Uppercase' },
+] as const;
+
+export const HEADING_WRAP_OPTIONS = [
+  { value: 'pretty', label: 'Pretty' },
+  { value: 'balance', label: 'Balance' },
+  { value: 'nowrap', label: 'No wrap' },
+] as const;
+
+type HeadingTypographyFieldKey =
+  | (typeof HEADING_CUSTOM_TYPOGRAPHY_KEYS)[number]
+  | 'headingColor';
+
+const HEADING_TYPO_FIELD_FALLBACKS: Record<
+  HeadingTypographyFieldKey,
+  Omit<EditorFieldDef, 'path'>
+> = {
+  headingFont: {
+    type: 'select',
+    label: 'Font',
+    group: 'Typography',
+    widget: 'select',
+    options: [...HEADING_FONT_OPTIONS],
+  },
+  headingFontSize: {
+    type: 'select',
+    label: 'Size',
+    group: 'Typography',
+    widget: 'select',
+    options: [...HEADING_FONT_SIZE_OPTIONS],
+  },
+  headingLineHeight: {
+    type: 'select',
+    label: 'Line height',
+    group: 'Typography',
+    widget: 'segmented',
+    options: [...HEADING_LINE_HEIGHT_OPTIONS],
+  },
+  headingLetterSpacing: {
+    type: 'select',
+    label: 'Letter spacing',
+    group: 'Typography',
+    widget: 'segmented',
+    options: [...HEADING_LETTER_SPACING_OPTIONS],
+  },
+  headingTextCase: {
+    type: 'select',
+    label: 'Case',
+    group: 'Typography',
+    widget: 'segmented',
+    options: [...HEADING_TEXT_CASE_OPTIONS],
+  },
+  headingWrap: {
+    type: 'select',
+    label: 'Wrap',
+    group: 'Typography',
+    widget: 'select',
+    options: [...HEADING_WRAP_OPTIONS],
+  },
+  headingColor: {
+    type: 'select',
+    label: 'Color',
+    group: 'Typography',
+    widget: 'select',
+    options: [
+      { value: 'text', label: 'Text' },
+      { value: 'heading', label: 'Heading' },
+      { value: 'link', label: 'Link' },
+    ],
+  },
+};
+
+/** Resolve a typography field from schema defs or build a fallback for the section settings base path. */
+export function resolveHeadingTypographyField(
+  key: HeadingTypographyFieldKey,
+  settingsBase: string,
+  fields: EditorFieldDef[]
+): EditorFieldDef {
+  const fromSchema = fields.find((f) => f.path.endsWith(key));
+  if (fromSchema) return fromSchema;
+  const fallback = HEADING_TYPO_FIELD_FALLBACKS[key];
+  return { ...fallback, path: `${settingsBase}.${key}` };
 }

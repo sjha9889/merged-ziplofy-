@@ -1,9 +1,11 @@
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, type CSSProperties, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useThemeConfig } from '@render-store/sdk';
 import { cfgBool, cfgNumber, cfgString } from '../lib/config';
 import { readHeroButtonStyle } from '../lib/heroButtonStyles';
-import { readHeroHeadingStyle } from '../lib/heroHeadingStyles';
+import { readHeroHeadingStyle, readHeroHeadingText } from '../lib/heroHeadingStyles';
+import { ThemeEditorRichTextContent } from '../../../../../create-theme/runtime/shared/ThemeEditorRichTextContent';
+import { richTextHasBlockMarkup } from '../../../../../utils/theme-editor-rich-text.util';
 import {
   heroDualMediaResponsiveCss,
   heroResponsiveCss,
@@ -152,7 +154,7 @@ export function HeroSection({
 }: Props) {
   const config = useThemeConfig();
   const themeColors = useThemeColors();
-  const { text, background, primary, fontHeading, fontBody } = themeColors;
+  const { text, background, primary, link, fontHeading, fontBody } = themeColors;
 
   const settingsBase = heroSettingsBase(sectionId, placement, templateId);
   const blocksBase = heroBlocksBase(sectionId, placement, templateId);
@@ -220,12 +222,12 @@ export function HeroSection({
 
   const headingStyle = useMemo(
     () =>
-      readHeroHeadingStyle(config, settingsBase, fontHeading, {
+      readHeroHeadingStyle(config, settingsBase, { fontHeading, fontBody }, {
         text: hero.scheme.color,
         heading: hero.scheme.color,
-        accent: primary,
+        link,
       }),
-    [config, settingsBase, fontHeading, hero.scheme.color, primary]
+    [config, settingsBase, fontHeading, fontBody, hero.scheme.color, link]
   );
 
   const buttonColors = useMemo(
@@ -298,49 +300,60 @@ export function HeroSection({
   const renderHeroBlock = (blockId: string, classic = false): ReactNode => {
     if (blockId === 'heading' || blockId.startsWith('heading_')) {
       const headingFieldPath = `${blocksBase}.${blockId}.settings.heading`;
-      const headingText = cfgString(config, headingFieldPath, blockId === 'heading' ? title : '');
+      const headingText = readHeroHeadingText(config, settingsBase, blocksBase, blockId);
       if (!headingText.trim()) return null;
+      const headingTag = richTextHasBlockMarkup(headingText) ? 'div' : 'h1';
+      const headingTypographyStyle = classic
+        ? {
+            margin: 0,
+            width: '100%',
+            maxWidth: 720,
+            fontFamily: fontHeading,
+            fontSize: 'clamp(2.4rem, 5.2vw, 3.5rem)',
+            fontWeight: 700,
+            lineHeight: 1.05,
+            letterSpacing: '-0.02em',
+            color: '#ffffff',
+            textAlign: 'center' as const,
+          }
+        : {
+            margin: 0,
+            width: headingStyle.width,
+            maxWidth: headingStyle.maxWidth,
+            fontFamily: headingStyle.fontFamily,
+            fontSize: headingStyle.fontSize,
+            fontWeight: headingStyle.fontWeight,
+            lineHeight: headingStyle.lineHeight,
+            ...(headingStyle.fontStyle ? { fontStyle: headingStyle.fontStyle } : {}),
+            ...(headingStyle.letterSpacing ? { letterSpacing: headingStyle.letterSpacing } : {}),
+            ...(headingStyle.textTransform ? { textTransform: headingStyle.textTransform } : {}),
+            ...(headingStyle.textWrap
+              ? { textWrap: headingStyle.textWrap as CSSProperties['textWrap'] }
+              : {}),
+            color: headingStyle.color,
+            background: headingStyle.background,
+            paddingTop: headingStyle.paddingTop,
+            paddingBottom: headingStyle.paddingBottom,
+            paddingLeft: headingStyle.paddingLeft,
+            paddingRight: headingStyle.paddingRight,
+            borderRadius: headingStyle.borderRadius,
+            textAlign: headingStyle.textAlign,
+            boxSizing: 'border-box' as const,
+          };
       return (
         <EditorBlock nodeId={heroBlockNodeId(sectionId, placement, templateId, blockId)} label="Heading">
           <EditorField
             fieldPath={headingFieldPath}
             label="Text"
-            as="h1"
-            style={
-              classic
-                ? {
-                    margin: 0,
-                    width: '100%',
-                    maxWidth: 720,
-                    fontFamily: fontHeading,
-                    fontSize: 'clamp(2.4rem, 5.2vw, 3.5rem)',
-                    fontWeight: 700,
-                    lineHeight: 1.05,
-                    letterSpacing: '-0.02em',
-                    color: '#ffffff',
-                    textAlign: 'center',
-                  }
-                : {
-                    margin: 0,
-                    width: headingStyle.width,
-                    maxWidth: headingStyle.maxWidth,
-                    fontFamily: headingStyle.fontFamily,
-                    fontSize: headingStyle.fontSize,
-                    fontWeight: headingStyle.fontWeight,
-                    lineHeight: headingStyle.lineHeight,
-                    color: headingStyle.color,
-                    background: headingStyle.background,
-                    paddingTop: headingStyle.paddingTop,
-                    paddingBottom: headingStyle.paddingBottom,
-                    paddingLeft: headingStyle.paddingLeft,
-                    paddingRight: headingStyle.paddingRight,
-                    borderRadius: headingStyle.borderRadius,
-                    textAlign: headingStyle.textAlign,
-                    boxSizing: 'border-box',
-                  }
-            }
+            as={headingTag}
+            style={{
+              margin: 0,
+              width: headingTypographyStyle.width,
+              maxWidth: headingTypographyStyle.maxWidth,
+              textAlign: headingTypographyStyle.textAlign,
+            }}
           >
-            {headingText}
+            <ThemeEditorRichTextContent html={headingText} style={headingTypographyStyle} />
           </EditorField>
         </EditorBlock>
       );

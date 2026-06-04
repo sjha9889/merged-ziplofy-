@@ -12,7 +12,11 @@ import {
   heroBottomAlignedPaths,
 } from '../../../utils/hero-bottom-aligned.util';
 import { readHeroButtonStyle } from './heroButtonStyles';
-import { readHeroHeadingStyle } from './heroHeadingStyles';
+import {
+  heroHeadingTypographyCss,
+  readHeroHeadingStyle,
+  readHeroHeadingText,
+} from './heroHeadingStyles';
 import {
   heroDualMediaResponsiveCss,
   heroResponsiveCss,
@@ -21,6 +25,8 @@ import {
 } from './heroStyles';
 import { HeroLandscapeBackdrop } from './HeroLandscapeBackdrop';
 import { HeroMediaBackground } from './HeroMediaBackground';
+import { ThemeEditorRichTextContent } from '../../runtime/shared/ThemeEditorRichTextContent';
+import { richTextHasBlockMarkup } from '../../../utils/theme-editor-rich-text.util';
 
 type Props = {
   sectionId: string;
@@ -120,7 +126,8 @@ export function Hero({
   templateId = 'index',
 }: Props) {
   const config = useThemeConfig();
-  const { primary, background, text, fontHeading, fontBody } = useThemeColors();
+  const { primary, background, text, link, fontHeading, fontBody } = useThemeColors();
+  const themeFonts = useMemo(() => ({ fontHeading, fontBody }), [fontHeading, fontBody]);
 
   const settingsBase = heroSettingsBase(sectionId, placement, templateId);
   const blocksBase = heroBlocksBase(sectionId, placement, templateId);
@@ -162,12 +169,12 @@ export function Hero({
 
   const headingStyle = useMemo(
     () =>
-      readHeroHeadingStyle(config, settingsBase, fontHeading, {
+      readHeroHeadingStyle(config, settingsBase, themeFonts, {
         text,
         heading: hero.scheme.color,
-        accent: primary,
+        link,
       }),
-    [config, settingsBase, fontHeading, text, hero.scheme.color, primary]
+    [config, settingsBase, themeFonts, text, hero.scheme.color, link]
   );
 
   const defaultBlockOrder = isMarquee
@@ -737,14 +744,16 @@ export function Hero({
             ? 'flex-end'
             : 'center';
 
+    const headingFillWidth = headingStyle.width === '100%';
     const classicHeadingStyle = {
       margin: 0,
       width: headingStyle.width,
       maxWidth: headingStyle.maxWidth,
-      fontFamily: headingStyle.fontFamily,
-      fontSize: headingStyle.fontSize,
-      fontWeight: headingStyle.fontWeight,
-      lineHeight: headingStyle.lineHeight,
+      marginLeft: headingStyle.marginLeft,
+      marginRight: headingStyle.marginRight,
+      alignSelf: headingFillWidth ? 'stretch' : undefined,
+      boxSizing: 'border-box' as const,
+      ...heroHeadingTypographyCss(headingStyle),
       color: '#ffffff',
       textAlign: headingStyle.textAlign ?? hero.textAlign,
       textShadow: '0 2px 20px rgba(0, 0, 0, 0.35)',
@@ -754,7 +763,6 @@ export function Hero({
       paddingLeft: headingStyle.paddingLeft,
       paddingRight: headingStyle.paddingRight,
       borderRadius: headingStyle.borderRadius,
-      boxSizing: 'border-box' as const,
     };
 
     const mediaPanel = (url: string, className: string) =>
@@ -774,17 +782,30 @@ export function Hero({
     const renderClassicBlock = (blockId: string): ReactNode => {
       if (blockId === 'heading' || blockId.startsWith('heading_')) {
         const headingFieldPath = `${blocksBase}.${blockId}.settings.heading`;
-        const headingText =
-          cfgString(config, headingFieldPath, '') ||
-          (blockId === 'heading' ? title : '');
+        const headingText = readHeroHeadingText(config, settingsBase, blocksBase, blockId);
         if (!headingText.trim()) return null;
+        const headingTag = richTextHasBlockMarkup(headingText) ? 'div' : 'h1';
         return (
           <EditorBlock
             nodeId={heroBlockNodeId(sectionId, placement, templateId, blockId)}
             label="Heading"
           >
-            <EditorField fieldPath={headingFieldPath} label="Text" as="h1" style={classicHeadingStyle}>
-              {headingText}
+            <EditorField
+              fieldPath={headingFieldPath}
+              label="Text"
+              as={headingTag}
+              style={{
+                margin: 0,
+                width: classicHeadingStyle.width,
+                maxWidth: classicHeadingStyle.maxWidth,
+                alignSelf: classicHeadingStyle.alignSelf,
+                marginLeft: classicHeadingStyle.marginLeft,
+                marginRight: classicHeadingStyle.marginRight,
+                textAlign: classicHeadingStyle.textAlign,
+                boxSizing: classicHeadingStyle.boxSizing,
+              }}
+            >
+              <ThemeEditorRichTextContent html={headingText} style={classicHeadingStyle} />
             </EditorField>
           </EditorBlock>
         );

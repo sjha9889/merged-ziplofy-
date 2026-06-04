@@ -6,13 +6,15 @@ export function useThemeColors() {
   const primary = String(getThemeConfigValue(config, 'settings.colors.primary') ?? '#111827');
   const background = String(getThemeConfigValue(config, 'settings.colors.background') ?? '#ffffff');
   const text = String(getThemeConfigValue(config, 'settings.colors.text') ?? '#111827');
+  const accent = String(getThemeConfigValue(config, 'settings.colors.accent') ?? primary);
+  const link = accent;
   const fontHeading = String(
     getThemeConfigValue(config, 'settings.typography.fontFamily') ?? "Georgia, serif"
   );
   const fontBody = String(
     getThemeConfigValue(config, 'settings.typography.fontFamilyBody') ?? 'system-ui, sans-serif'
   );
-  return { primary, background, text, fontHeading, fontBody };
+  return { primary, background, text, accent, link, fontHeading, fontBody };
 }
 
 export const layout = {

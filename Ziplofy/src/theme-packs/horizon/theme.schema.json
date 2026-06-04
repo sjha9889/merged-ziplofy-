@@ -9565,10 +9565,6 @@
                       "label": "Normal"
                     },
                     {
-                      "value": "wide",
-                      "label": "Wide"
-                    },
-                    {
                       "value": "none",
                       "label": "None"
                     }
@@ -9606,6 +9602,14 @@
                   "description": "Edit presets in theme settings",
                   "options": [
                     {
+                      "value": "default",
+                      "label": "Default"
+                    },
+                    {
+                      "value": "paragraph",
+                      "label": "Paragraph"
+                    },
+                    {
                       "value": "heading-1",
                       "label": "Heading 1"
                     },
@@ -9622,9 +9626,107 @@
                       "label": "Heading 4"
                     },
                     {
-                      "value": "body",
-                      "label": "Body"
+                      "value": "heading-5",
+                      "label": "Heading 5"
+                    },
+                    {
+                      "value": "heading-6",
+                      "label": "Heading 6"
+                    },
+                    {
+                      "value": "custom",
+                      "label": "Custom"
                     }
+                  ]
+                },
+                {
+                  "path": "templates.index.sections.hero_main.settings.headingFont",
+                  "type": "select",
+                  "label": "Font",
+                  "group": "Typography",
+                  "widget": "select",
+                  "sidebar": false,
+                  "options": [
+                    { "value": "body", "label": "Body" },
+                    { "value": "subheading", "label": "Subheading" },
+                    { "value": "heading", "label": "Heading" },
+                    { "value": "accent", "label": "Accent" }
+                  ]
+                },
+                {
+                  "path": "templates.index.sections.hero_main.settings.headingFontSize",
+                  "type": "select",
+                  "label": "Size",
+                  "group": "Typography",
+                  "widget": "select",
+                  "sidebar": false,
+                  "options": [
+                    { "value": "10px", "label": "10px" },
+                    { "value": "12px", "label": "12px" },
+                    { "value": "14px", "label": "14px" },
+                    { "value": "16px", "label": "16px" },
+                    { "value": "18px", "label": "18px" },
+                    { "value": "20px", "label": "20px" },
+                    { "value": "24px", "label": "24px" },
+                    { "value": "28px", "label": "28px" },
+                    { "value": "32px", "label": "32px" },
+                    { "value": "36px", "label": "36px" },
+                    { "value": "40px", "label": "40px" },
+                    { "value": "48px", "label": "48px" },
+                    { "value": "56px", "label": "56px" },
+                    { "value": "64px", "label": "64px" },
+                    { "value": "72px", "label": "72px" }
+                  ]
+                },
+                {
+                  "path": "templates.index.sections.hero_main.settings.headingLineHeight",
+                  "type": "select",
+                  "label": "Line height",
+                  "group": "Typography",
+                  "widget": "segmented",
+                  "sidebar": false,
+                  "options": [
+                    { "value": "tight", "label": "Tight" },
+                    { "value": "normal", "label": "Normal" },
+                    { "value": "loose", "label": "Loose" }
+                  ]
+                },
+                {
+                  "path": "templates.index.sections.hero_main.settings.headingLetterSpacing",
+                  "type": "select",
+                  "label": "Letter spacing",
+                  "group": "Typography",
+                  "widget": "segmented",
+                  "sidebar": false,
+                  "options": [
+                    { "value": "tight", "label": "Tight" },
+                    { "value": "normal", "label": "Normal" },
+                    { "value": "loose", "label": "Loose" }
+                  ]
+                },
+                {
+                  "path": "templates.index.sections.hero_main.settings.headingTextCase",
+                  "type": "select",
+                  "label": "Case",
+                  "group": "Typography",
+                  "widget": "segmented",
+                  "sidebar": false,
+                  "options": [
+                    { "value": "default", "label": "Default" },
+                    { "value": "uppercase", "label": "Uppercase" }
+                  ]
+                },
+                {
+                  "path": "templates.index.sections.hero_main.settings.headingWrap",
+                  "type": "select",
+                  "label": "Wrap",
+                  "group": "Typography",
+                  "widget": "select",
+                  "sidebar": false,
+                  "options": [
+                    { "value": "pretty", "label": "Pretty" },
+                    { "value": "balance", "label": "Balance" },
+                    { "value": "nowrap", "label": "No wrap" }
                   ]
                 },
                 {
@@ -9644,8 +9746,8 @@
                       "label": "Heading"
                     },
                     {
-                      "value": "accent",
-                      "label": "Accent"
+                      "value": "link",
+                      "label": "Link"
                     }
                   ]
                 },

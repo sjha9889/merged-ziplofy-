@@ -93,12 +93,15 @@ export function ThemeEditorLinkPickerDropdown({
   onSelect,
   onClose,
   storeId: storeIdProp,
+  placement = 'below',
 }: {
   open: boolean;
   searchQuery: string;
   onSelect: (selection: LinkPickerSelection) => void;
   onClose: () => void;
   storeId?: string | null;
+  /** Pop above the anchor (e.g. Insert link modal) or below (default). */
+  placement?: 'below' | 'above';
 }) {
   const { activeStoreId } = useStore();
   const storeId = storeIdProp ?? activeStoreId;
@@ -227,10 +230,15 @@ export function ThemeEditorLinkPickerDropdown({
             searchQuery
           ).length;
 
+  const positionClass =
+    placement === 'above'
+      ? 'absolute left-0 right-0 bottom-full z-[10065] mb-1'
+      : 'absolute left-0 right-0 top-full z-30 mt-1';
+
   return (
     <div
       ref={panelRef}
-      className="absolute left-0 right-0 top-full z-30 mt-1 max-h-[min(320px,50vh)] overflow-y-auto rounded-xl border border-[#e1e1e1] bg-white py-1 shadow-lg ring-1 ring-black/5"
+      className={`${positionClass} max-h-[min(320px,50vh)] overflow-y-auto rounded-xl border border-[#e1e1e1] bg-white py-1 shadow-lg ring-1 ring-black/5`}
     >
       {isDrillDown ? (
         <>

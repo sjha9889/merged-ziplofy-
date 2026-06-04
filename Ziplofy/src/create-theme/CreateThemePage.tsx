@@ -416,8 +416,8 @@ const CreateThemePage: React.FC = () => {
   const livePreviewConfig = useMemo(() => {
     if (!defaultConfig || !editorSchema) return defaultConfig ?? {};
     if (!hasSections) return defaultConfig;
-    return applyValuesToThemeConfig(defaultConfig, committedValues, editorSchema);
-  }, [defaultConfig, committedValues, editorSchema, hasSections]);
+    return applyValuesToThemeConfig(defaultConfig, values, editorSchema);
+  }, [defaultConfig, values, editorSchema, hasSections]);
 
   const debouncedConfigForHints = useDebouncedValue(livePreviewConfig, 320);
 

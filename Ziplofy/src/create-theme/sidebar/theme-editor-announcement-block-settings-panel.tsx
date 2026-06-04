@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  ChevronDownIcon,
-  CircleStackIcon,
-  LinkIcon,
-  SparklesIcon,
-} from '@heroicons/react/24/outline';
+import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import type { EditorFieldDef } from './create-theme-sidebar.types';
 import {
   fieldInputId,
@@ -13,6 +8,7 @@ import {
   type ThemeEditorFieldType,
 } from './create-theme-field.utils';
 import { ThemeEditorLinkField } from '../../components/theme-editor/ThemeEditorLinkField';
+import { ThemeEditorRichTextField } from '../../components/theme-editor/ThemeEditorRichTextField';
 import { pickAnnouncementBlockField } from './theme-editor-announcement-block-panel.utils';
 
 function AnnouncementRichTextFieldRow({
@@ -28,60 +24,12 @@ function AnnouncementRichTextFieldRow({
   const value = fieldValueAsString(values, field);
 
   return (
-    <div className="space-y-1.5 py-1">
-      <div className="flex items-center justify-between gap-2">
-        <label htmlFor={id} className="text-[13px] font-medium text-gray-800">
-          {field.label}
-        </label>
-        <button
-          type="button"
-          title="Connect dynamic source"
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
-        >
-          <CircleStackIcon className="h-4 w-4" />
-        </button>
-      </div>
-      <div className="overflow-hidden rounded-lg border border-[#c9cccf] bg-white shadow-sm focus-within:border-[#005bd3] focus-within:ring-1 focus-within:ring-[#005bd3]">
-        <div className="flex items-center gap-0.5 border-b border-[#e1e1e1] bg-[#f6f6f7] px-2 py-1">
-          <button
-            type="button"
-            className="rounded p-1 text-violet-600 hover:bg-[#ededed]"
-            title="Generate"
-            aria-label="Generate"
-          >
-            <SparklesIcon className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            className="rounded px-2 py-0.5 text-[12px] font-bold text-gray-700 hover:bg-[#ededed]"
-            title="Bold"
-          >
-            B
-          </button>
-          <button
-            type="button"
-            className="rounded px-2 py-0.5 text-[12px] italic text-gray-700 hover:bg-[#ededed]"
-            title="Italic"
-          >
-            I
-          </button>
-          <button
-            type="button"
-            className="rounded p-1 text-gray-600 hover:bg-[#ededed]"
-            title="Link"
-          >
-            <LinkIcon className="h-3.5 w-3.5" />
-          </button>
-        </div>
-        <textarea
-          id={id}
-          rows={3}
-          value={value}
-          onChange={(e) => onFieldChange(field.path, 'textarea', e.target.value)}
-          className="w-full resize-y border-0 px-3 py-2 text-[13px] text-gray-900 focus:outline-none"
-        />
-      </div>
-    </div>
+    <ThemeEditorRichTextField
+      id={id}
+      label={field.label}
+      value={value}
+      onChange={(html) => onFieldChange(field.path, 'textarea', html)}
+    />
   );
 }
 

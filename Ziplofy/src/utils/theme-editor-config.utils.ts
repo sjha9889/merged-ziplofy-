@@ -239,6 +239,32 @@ function resolveFieldTypeForPath(
   return undefined;
 }
 
+function getConfigAtPath(config: Record<string, unknown>, dotPath: string): unknown {
+  let cur: unknown = config;
+  for (const part of dotPath.split('.')) {
+    if (cur == null || typeof cur !== 'object') return undefined;
+    cur = (cur as Record<string, unknown>)[part];
+  }
+  return cur;
+}
+
+function syncHeroHeadingTextPathsForSection(
+  config: Record<string, unknown>,
+  sectionPrefix: string,
+  value: string | boolean | number
+): void {
+  setConfigAtPath(config, `${sectionPrefix}.settings.title`, value);
+  setConfigAtPath(config, `${sectionPrefix}.blocks.heading.settings.heading`, value);
+
+  const blocks = getConfigAtPath(config, `${sectionPrefix}.blocks`);
+  if (blocks && typeof blocks === 'object' && !Array.isArray(blocks)) {
+    for (const blockId of Object.keys(blocks as Record<string, unknown>)) {
+      if (!/^heading(?:_\d+)?$/.test(blockId)) continue;
+      setConfigAtPath(config, `${sectionPrefix}.blocks.${blockId}.settings.heading`, value);
+    }
+  }
+}
+
 /** Keep hero heading copy in sync between section `title` and block `heading` settings. */
 function syncHeroHeadingTextPaths(
   config: Record<string, unknown>,
@@ -247,12 +273,12 @@ function syncHeroHeadingTextPaths(
 ): void {
   const block = path.match(/^(.+)\.blocks\.([^.]+)\.settings\.heading$/);
   if (block) {
-    setConfigAtPath(config, `${block[1]}.settings.title`, value);
+    syncHeroHeadingTextPathsForSection(config, block[1]!, value);
     return;
   }
   const title = path.match(/^(.+)\.settings\.title$/);
   if (title) {
-    setConfigAtPath(config, `${title[1]}.blocks.heading.settings.heading`, value);
+    syncHeroHeadingTextPathsForSection(config, title[1]!, value);
   }
 }
 
