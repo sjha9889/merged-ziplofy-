@@ -24,20 +24,39 @@ const HEIGHT_PX: Record<string, number> = {
 
 export type HeroStyle = {
   scheme: HeroScheme;
-  minHeight: number;
+  minHeight: number | string;
   maxWidth: string | number;
   paddingTop: number;
   paddingBottom: number;
   paddingX: number;
+  /** Block flow inside the content area (heading, buttons, etc.). */
+  contentDirection: 'row' | 'column';
+  /** @deprecated Use contentDirection — kept for callers still reading `direction`. */
   direction: 'row' | 'column';
+  /** Vertical placement of the content group in the hero (top / center / bottom). */
+  sectionJustify: string;
+  /** Outer flex main-axis when blocks are grouped (not space-between). */
+  sectionOuterJustify: string;
+  /** Main-axis distribution inside the content column. */
+  contentColumnJustify: string;
+  /** When true the content column fills hero height (space-between blocks). */
+  contentColumnFill: boolean;
+  /** Main-axis distribution when content blocks flow horizontally. */
+  contentJustify: string;
+  /** Cross-axis alignment for content blocks. */
+  contentAlign: string;
   alignItems: string;
   justifyContent: string;
   alignTextBaseline: boolean;
+  verticalOnMobile: boolean;
   textAlign: 'left' | 'center' | 'right';
+  position: 'top' | 'center' | 'bottom' | 'space-between';
   gap: number;
   media1Url: string;
   media2Url: string;
   mobileImageUrl: string;
+  mobileMedia1Url: string;
+  mobileMedia2Url: string;
   mobileStackMedia: boolean;
   mobileDifferentMedia: boolean;
   mediaOverlay: boolean;
@@ -65,7 +84,11 @@ export function readHeroStyle(
     legacyAlign || 'center'
   );
   const textAlign: HeroStyle['textAlign'] =
-    layoutAlignment === 'left' ? 'left' : layoutAlignment === 'right' ? 'right' : 'center';
+    layoutAlignment === 'left'
+      ? 'left'
+      : layoutAlignment === 'right'
+        ? 'right'
+        : 'center';
 
   const fullWidthLegacy = cfgBool(config, `${settingsBase}.fullWidth`, false);
   const sectionWidth = cfgString(
@@ -76,21 +99,76 @@ export function readHeroStyle(
 
   const heightKey = cfgString(config, `${settingsBase}.height`, '');
   const legacyMin = cfgNumber(config, `${settingsBase}.minHeight`, 0);
-  const minHeight =
-    HEIGHT_PX[heightKey] ?? (legacyMin > 0 ? legacyMin : HEIGHT_PX.medium);
+  const customHeight = cfgNumber(config, `${settingsBase}.customHeight`, HEIGHT_PX.medium);
+  const minHeight: HeroStyle['minHeight'] =
+    heightKey === 'auto'
+      ? 'auto'
+      : heightKey === 'full'
+        ? '100vh'
+        : heightKey === 'custom'
+          ? customHeight
+          : HEIGHT_PX[heightKey] ?? (legacyMin > 0 ? legacyMin : HEIGHT_PX.medium);
 
-  const position = cfgString(config, `${settingsBase}.position`, 'center');
-  const alignItems =
+  const positionRaw = cfgString(config, `${settingsBase}.position`, 'center');
+  const position: HeroStyle['position'] =
+    positionRaw === 'top'
+      ? 'top'
+      : positionRaw === 'bottom'
+        ? 'bottom'
+        : positionRaw === 'space-between'
+          ? 'space-between'
+          : 'center';
+
+  const sectionJustify =
     position === 'top'
       ? 'flex-start'
-      : position === 'center' || position === 'space-between'
-        ? 'center'
-        : 'flex-end';
-  const justifyContent =
-    textAlign === 'left' ? 'flex-start' : textAlign === 'right' ? 'flex-end' : 'center';
+      : position === 'bottom'
+        ? 'flex-end'
+        : position === 'space-between'
+          ? 'space-between'
+          : 'center';
 
-  const direction = cfgString(config, `${settingsBase}.direction`, 'vertical');
-  const flexDirection: HeroStyle['direction'] = direction === 'horizontal' ? 'row' : 'column';
+  const directionRaw = cfgString(config, `${settingsBase}.direction`, 'vertical');
+  const contentDirection: HeroStyle['contentDirection'] =
+    directionRaw === 'horizontal' ? 'row' : 'column';
+
+  const contentJustify =
+    contentDirection === 'row'
+      ? layoutAlignment === 'space-between'
+        ? 'space-between'
+        : layoutAlignment === 'left'
+          ? 'flex-start'
+          : layoutAlignment === 'right'
+            ? 'flex-end'
+            : 'center'
+      : 'flex-start';
+
+  const contentAlign =
+    contentDirection === 'row'
+      ? position === 'top'
+        ? 'flex-start'
+        : position === 'bottom'
+          ? 'flex-end'
+          : 'center'
+      : layoutAlignment === 'left'
+        ? 'flex-start'
+        : layoutAlignment === 'right'
+          ? 'flex-end'
+          : 'center';
+
+  const isHorizontal = contentDirection === 'row';
+  const spreadVerticalBlocks =
+    contentDirection === 'column' && position === 'space-between';
+  /** Horizontal: position uses align-items inside a full-height row wrapper. */
+  const contentColumnFill = spreadVerticalBlocks || isHorizontal;
+  const sectionOuterJustify =
+    spreadVerticalBlocks || isHorizontal ? 'flex-start' : sectionJustify;
+  const contentColumnJustify =
+    contentDirection === 'column'
+      ? spreadVerticalBlocks
+        ? 'space-between'
+        : 'flex-start'
+      : contentJustify;
 
   return {
     scheme,
@@ -99,15 +177,28 @@ export function readHeroStyle(
     paddingTop: cfgNumber(config, `${settingsBase}.paddingTop`, 56),
     paddingBottom: cfgNumber(config, `${settingsBase}.paddingBottom`, 56),
     paddingX: 24,
-    direction: flexDirection,
-    alignItems,
-    justifyContent,
+    contentDirection,
+    direction: contentDirection,
+    sectionJustify,
+    sectionOuterJustify,
+    contentColumnJustify,
+    contentColumnFill,
+    contentJustify,
+    contentAlign,
+    alignItems: sectionJustify,
+    justifyContent: contentJustify,
+    position,
     alignTextBaseline: cfgBool(config, `${settingsBase}.alignTextBaseline`, false),
+    verticalOnMobile: cfgBool(config, `${settingsBase}.verticalOnMobile`, false),
     textAlign,
     gap: cfgNumber(config, `${settingsBase}.layoutGap`, 16),
     media1Url: cfgString(config, `${settingsBase}.media1ImageUrl`, ''),
     media2Url: cfgString(config, `${settingsBase}.media2ImageUrl`, ''),
     mobileImageUrl: cfgString(config, `${settingsBase}.mobileImageUrl`, ''),
+    mobileMedia1Url:
+      cfgString(config, `${settingsBase}.mobileMedia1ImageUrl`, '') ||
+      cfgString(config, `${settingsBase}.mobileImageUrl`, ''),
+    mobileMedia2Url: cfgString(config, `${settingsBase}.mobileMedia2ImageUrl`, ''),
     mobileStackMedia: cfgBool(config, `${settingsBase}.mobileStackMedia`, false),
     mobileDifferentMedia: cfgBool(config, `${settingsBase}.mobileDifferentMedia`, false),
     mediaOverlay: cfgBool(config, `${settingsBase}.mediaOverlay`, true),
@@ -147,6 +238,17 @@ export function heroResponsiveCss(
     css += `@media (max-width: 749px) { ${sel} .hero-media-1 { display: none; } ${sel} .hero-media-2 { display: none; } ${sel} .hero-media-mobile { display: block !important; flex: 1; min-height: 200px; } }`;
   }
   return css;
+}
+
+/** Stack horizontal content blocks vertically on small screens when enabled. */
+export function heroContentVerticalOnMobileCss(
+  sectionId: string,
+  verticalOnMobile: boolean,
+  isHorizontal: boolean
+): string {
+  if (!isHorizontal || !verticalOnMobile) return '';
+  const sel = `[data-ziplofy-section="${sectionId}"] .hero-content-blocks`;
+  return `@media (max-width: 749px) { ${sel} { flex-direction: column !important; align-items: stretch !important; } }`;
 }
 
 /** Stack dual hero media vertically on small screens when enabled in settings. */

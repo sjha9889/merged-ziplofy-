@@ -34,6 +34,26 @@ export const editing: CreateThemeEditing = {
       "type": "boolean"
     },
     {
+      "key": "mobileMedia1Type",
+      "label": "Type",
+      "type": "text"
+    },
+    {
+      "key": "mobileMedia1ImageUrl",
+      "label": "Image",
+      "type": "text"
+    },
+    {
+      "key": "mobileMedia2Type",
+      "label": "Type",
+      "type": "text"
+    },
+    {
+      "key": "mobileMedia2ImageUrl",
+      "label": "Image",
+      "type": "text"
+    },
+    {
       "key": "mobileImageUrl",
       "label": "Mobile image",
       "type": "text"
@@ -56,6 +76,11 @@ export const editing: CreateThemeEditing = {
     {
       "key": "alignTextBaseline",
       "label": "Align text baseline",
+      "type": "boolean"
+    },
+    {
+      "key": "verticalOnMobile",
+      "label": "Vertical on mobile",
       "type": "boolean"
     },
     {
@@ -82,6 +107,11 @@ export const editing: CreateThemeEditing = {
       "key": "height",
       "label": "Height",
       "type": "text"
+    },
+    {
+      "key": "customHeight",
+      "label": "Custom height",
+      "type": "number"
     },
     {
       "key": "colorScheme",

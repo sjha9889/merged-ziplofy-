@@ -24,6 +24,7 @@ import {
   isHeroSectionNodeId,
   isHeroSectionSettingsNode,
   isHeroSettingsPanelFields,
+  pickHeroMobileMediaSlotFields,
 } from './theme-editor-hero-panel.utils';
 import {
   groupHeadingPanelFields,
@@ -475,17 +476,22 @@ function HeroMediaSettingsGroup({
 
 function HeroMobileMediaGroup({
   fields,
+  allFields,
   values,
   onFieldChange,
 }: {
   fields: EditorFieldDef[];
+  allFields: EditorFieldDef[];
   values: Record<string, string | boolean>;
   onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
 }) {
   const stackField = fields.find((f) => f.path.endsWith('mobileStackMedia'));
   const differentField = fields.find((f) => f.path.endsWith('mobileDifferentMedia'));
-  const imageField = fields.find((f) => f.path.endsWith('mobileImageUrl'));
-  const showMobileImage = differentField ? Boolean(values[differentField.path]) : false;
+  const showMobileMedia = differentField ? Boolean(values[differentField.path]) : false;
+  const settingsBase =
+    differentField?.path.replace(/\.mobileDifferentMedia$/, '') ??
+    stackField?.path.replace(/\.mobileStackMedia$/, '') ??
+    '';
 
   return (
     <div className="px-1 py-3">
@@ -497,8 +503,21 @@ function HeroMobileMediaGroup({
         {differentField ? (
           <ToggleSwitchFieldRow field={differentField} values={values} onFieldChange={onFieldChange} />
         ) : null}
-        {showMobileImage && imageField ? (
-          <ImagePickerFieldRow field={imageField} values={values} onFieldChange={onFieldChange} />
+        {showMobileMedia && settingsBase ? (
+          <div className="space-y-3 border-t border-[#e1e1e1] pt-3">
+            <HeroMediaSettingsGroup
+              groupLabel="Mobile media 1"
+              fields={pickHeroMobileMediaSlotFields(allFields, settingsBase, 1)}
+              values={values}
+              onFieldChange={onFieldChange}
+            />
+            <HeroMediaSettingsGroup
+              groupLabel="Mobile media 2"
+              fields={pickHeroMobileMediaSlotFields(allFields, settingsBase, 2)}
+              values={values}
+              onFieldChange={onFieldChange}
+            />
+          </div>
         ) : null}
       </div>
     </div>
@@ -701,15 +720,42 @@ function HeroSectionLinkGroup({
   );
 }
 
-const HERO_LAYOUT_FIELD_ORDER = [
-  'direction',
-  'alignTextBaseline',
-  'layoutAlignment',
-  'position',
-  'layoutGap',
-  'sectionWidth',
-  'height',
-] as const;
+function heroLayoutField(
+  fields: EditorFieldDef[],
+  key: string
+): EditorFieldDef | undefined {
+  return fields.find((f) => f.path.split('.').pop() === key);
+}
+
+function HeroLayoutFieldRow({
+  field,
+  values,
+  onFieldChange,
+}: {
+  field: EditorFieldDef;
+  values: Record<string, string | boolean>;
+  onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
+}) {
+  const key = field.path.split('.').pop() ?? '';
+  if (field.widget === 'segmented') {
+    return (
+      <SegmentedFieldRow field={field} values={values} onFieldChange={onFieldChange} />
+    );
+  }
+  if (field.widget === 'toggle' || key === 'alignTextBaseline' || key === 'verticalOnMobile') {
+    return (
+      <ToggleSwitchFieldRow field={field} values={values} onFieldChange={onFieldChange} />
+    );
+  }
+  if (field.widget === 'slider') {
+    return (
+      <SliderFieldRow field={field} values={values} onFieldChange={onFieldChange} />
+    );
+  }
+  return (
+    <InlineSelectFieldRow field={field} values={values} onFieldChange={onFieldChange} />
+  );
+}
 
 function HeroLayoutSettingsGroup({
   fields,
@@ -720,42 +766,171 @@ function HeroLayoutSettingsGroup({
   values: Record<string, string | boolean>;
   onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
 }) {
-  const layoutRank = (path: string) => {
-    const key = path.split('.').pop() ?? '';
-    const idx = HERO_LAYOUT_FIELD_ORDER.indexOf(key as (typeof HERO_LAYOUT_FIELD_ORDER)[number]);
-    return idx >= 0 ? idx : 99;
-  };
-  const ordered = [...fields].sort((a, b) => layoutRank(a.path) - layoutRank(b.path));
+  const directionField = heroLayoutField(fields, 'direction');
+  const direction = directionField
+    ? fieldValueAsString(values, directionField) || 'vertical'
+    : 'vertical';
+  const isVertical = direction !== 'horizontal';
+
+  const layoutAlignmentField = heroLayoutField(fields, 'layoutAlignment');
+  const positionField = heroLayoutField(fields, 'position');
+
+  const verticalAlignmentField = layoutAlignmentField
+    ? {
+        ...layoutAlignmentField,
+        widget: 'segmented' as const,
+        options: (layoutAlignmentField.options ?? []).filter(
+          (option) => option.value !== 'space-between'
+        ),
+      }
+    : undefined;
+
+  const verticalPositionField = positionField
+    ? { ...positionField, widget: 'select-inline' as const }
+    : undefined;
+
+  const horizontalPositionField = positionField
+    ? {
+        ...positionField,
+        widget: 'segmented' as const,
+        options: (positionField.options ?? []).filter(
+          (option) => option.value !== 'space-between'
+        ),
+      }
+    : undefined;
+
+  const heightField = heroLayoutField(fields, 'height');
+  const customHeightField = heroLayoutField(fields, 'customHeight');
+  const heightMode = heightField ? fieldValueAsString(values, heightField) || 'medium' : 'medium';
+  const showCustomHeight = heightMode === 'custom';
+
+  const horizontalAlignmentField = layoutAlignmentField
+    ? { ...layoutAlignmentField, widget: 'select-inline' as const }
+    : undefined;
 
   return (
     <div className="px-1 py-3">
       <h3 className="mb-2 text-[13px] font-semibold text-gray-900">Layout</h3>
       <div className="space-y-1">
-        {ordered.map((field) => {
-          if (field.widget === 'segmented') {
-            return (
-              <SegmentedFieldRow
-                key={field.path}
-                field={field}
+        {directionField ? (
+          <HeroLayoutFieldRow
+            field={directionField}
+            values={values}
+            onFieldChange={onFieldChange}
+          />
+        ) : null}
+        {isVertical ? (
+          <>
+            {heroLayoutField(fields, 'alignTextBaseline') ? (
+              <HeroLayoutFieldRow
+                field={{ ...heroLayoutField(fields, 'alignTextBaseline')!, widget: 'toggle' }}
                 values={values}
                 onFieldChange={onFieldChange}
               />
-            );
-          }
-          if (field.widget === 'slider') {
-            return (
-              <SliderFieldRow key={field.path} field={field} values={values} onFieldChange={onFieldChange} />
-            );
-          }
-          return (
-            <InlineSelectFieldRow
-              key={field.path}
-              field={field}
-              values={values}
-              onFieldChange={onFieldChange}
-            />
-          );
-        })}
+            ) : null}
+            {verticalAlignmentField ? (
+              <HeroLayoutFieldRow
+                field={verticalAlignmentField}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            ) : null}
+            {verticalPositionField ? (
+              <HeroLayoutFieldRow
+                field={verticalPositionField}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            ) : null}
+            {heroLayoutField(fields, 'layoutGap') ? (
+              <HeroLayoutFieldRow
+                field={heroLayoutField(fields, 'layoutGap')!}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            ) : null}
+            {heroLayoutField(fields, 'sectionWidth') ? (
+              <HeroLayoutFieldRow
+                field={heroLayoutField(fields, 'sectionWidth')!}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            ) : null}
+            {heightField ? (
+              <HeroLayoutFieldRow
+                field={{ ...heightField, widget: 'select-inline' }}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            ) : null}
+            {showCustomHeight && customHeightField ? (
+              <HeroLayoutFieldRow
+                field={customHeightField}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            ) : null}
+          </>
+        ) : (
+          <>
+            {heroLayoutField(fields, 'verticalOnMobile') ? (
+              <HeroLayoutFieldRow
+                field={{ ...heroLayoutField(fields, 'verticalOnMobile')!, widget: 'toggle' }}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            ) : null}
+            {horizontalAlignmentField ? (
+              <HeroLayoutFieldRow
+                field={horizontalAlignmentField}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            ) : null}
+            {horizontalPositionField ? (
+              <HeroLayoutFieldRow
+                field={horizontalPositionField}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            ) : null}
+            {heroLayoutField(fields, 'alignTextBaseline') ? (
+              <HeroLayoutFieldRow
+                field={{ ...heroLayoutField(fields, 'alignTextBaseline')!, widget: 'toggle' }}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            ) : null}
+            {heroLayoutField(fields, 'layoutGap') ? (
+              <HeroLayoutFieldRow
+                field={heroLayoutField(fields, 'layoutGap')!}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            ) : null}
+            {heroLayoutField(fields, 'sectionWidth') ? (
+              <HeroLayoutFieldRow
+                field={heroLayoutField(fields, 'sectionWidth')!}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            ) : null}
+            {heightField ? (
+              <HeroLayoutFieldRow
+                field={{ ...heightField, widget: 'select-inline' }}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            ) : null}
+            {showCustomHeight && customHeightField ? (
+              <HeroLayoutFieldRow
+                field={customHeightField}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            ) : null}
+          </>
+        )}
       </div>
     </div>
   );
@@ -1346,6 +1521,7 @@ function HeroGroupedSettingsPanel({
             <HeroMobileMediaGroup
               key={label}
               fields={groupFields}
+              allFields={fields}
               values={values}
               onFieldChange={onFieldChange}
             />
@@ -6795,6 +6971,7 @@ function GroupedSettingsFields({
           <HeroMobileMediaGroup
             key={group.label}
             fields={group.fields}
+            allFields={fields}
             values={values}
             onFieldChange={onFieldChange}
           />

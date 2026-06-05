@@ -9010,6 +9010,58 @@
               "sidebar": false
             },
             {
+              "path": "templates.index.sections.hero_main.settings.mobileMedia1Type",
+              "type": "select",
+              "label": "Type",
+              "group": "Mobile media 1",
+              "widget": "segmented",
+              "sidebar": false,
+              "options": [
+                {
+                  "value": "image",
+                  "label": "Image"
+                },
+                {
+                  "value": "video",
+                  "label": "Video"
+                }
+              ]
+            },
+            {
+              "path": "templates.index.sections.hero_main.settings.mobileMedia1ImageUrl",
+              "type": "text",
+              "label": "Image",
+              "group": "Mobile media 1",
+              "sidebar": false,
+              "placeholder": "Paste image URL or upload"
+            },
+            {
+              "path": "templates.index.sections.hero_main.settings.mobileMedia2Type",
+              "type": "select",
+              "label": "Type",
+              "group": "Mobile media 2",
+              "widget": "segmented",
+              "sidebar": false,
+              "options": [
+                {
+                  "value": "image",
+                  "label": "Image"
+                },
+                {
+                  "value": "video",
+                  "label": "Video"
+                }
+              ]
+            },
+            {
+              "path": "templates.index.sections.hero_main.settings.mobileMedia2ImageUrl",
+              "type": "text",
+              "label": "Image",
+              "group": "Mobile media 2",
+              "sidebar": false,
+              "placeholder": "Paste image URL or upload"
+            },
+            {
               "path": "templates.index.sections.hero_main.settings.mobileImageUrl",
               "type": "text",
               "label": "Mobile image",
@@ -9059,11 +9111,18 @@
               "sidebar": false
             },
             {
+              "path": "templates.index.sections.hero_main.settings.verticalOnMobile",
+              "type": "boolean",
+              "label": "Vertical on mobile",
+              "group": "Layout",
+              "sidebar": false
+            },
+            {
               "path": "templates.index.sections.hero_main.settings.layoutAlignment",
               "type": "select",
               "label": "Alignment",
               "group": "Layout",
-              "widget": "segmented",
+              "widget": "select",
               "sidebar": false,
               "options": [
                 {
@@ -9077,6 +9136,10 @@
                 {
                   "value": "right",
                   "label": "Right"
+                },
+                {
+                  "value": "space-between",
+                  "label": "Space between"
                 }
               ]
             },
@@ -9099,6 +9162,10 @@
                 {
                   "value": "bottom",
                   "label": "Bottom"
+                },
+                {
+                  "value": "space-between",
+                  "label": "Space between"
                 }
               ]
             },
@@ -9141,6 +9208,10 @@
               "sidebar": false,
               "options": [
                 {
+                  "value": "auto",
+                  "label": "Auto"
+                },
+                {
                   "value": "small",
                   "label": "Small"
                 },
@@ -9155,8 +9226,24 @@
                 {
                   "value": "full",
                   "label": "Full screen"
+                },
+                {
+                  "value": "custom",
+                  "label": "Custom"
                 }
               ]
+            },
+            {
+              "path": "templates.index.sections.hero_main.settings.customHeight",
+              "type": "number",
+              "label": "Custom height",
+              "group": "Layout",
+              "widget": "slider",
+              "min": 200,
+              "max": 1200,
+              "step": 4,
+              "unit": "px",
+              "sidebar": false
             },
             {
               "path": "templates.index.sections.hero_main.settings.colorScheme",

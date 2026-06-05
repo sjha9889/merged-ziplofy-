@@ -24,7 +24,7 @@ const HEIGHT_PX: Record<string, number> = {
 
 export type HeroStyle = {
   scheme: HeroScheme;
-  minHeight: number;
+  minHeight: number | string;
   maxWidth: string | number;
   paddingTop: number;
   paddingBottom: number;
@@ -75,17 +75,25 @@ export function readHeroStyle(
 
   const heightKey = cfgString(config, `${settingsBase}.height`, '');
   const legacyMin = cfgNumber(config, `${settingsBase}.minHeight`, 0);
-  const minHeight =
-    HEIGHT_PX[heightKey] ??
-    (legacyMin > 0 ? legacyMin : HEIGHT_PX.medium);
+  const customHeight = cfgNumber(config, `${settingsBase}.customHeight`, HEIGHT_PX.medium);
+  const minHeight: HeroStyle['minHeight'] =
+    heightKey === 'auto'
+      ? 'auto'
+      : heightKey === 'full'
+        ? '100vh'
+        : heightKey === 'custom'
+          ? customHeight
+          : HEIGHT_PX[heightKey] ?? (legacyMin > 0 ? legacyMin : HEIGHT_PX.medium);
 
   const position = cfgString(config, `${settingsBase}.position`, 'bottom');
   const alignItems =
     position === 'top'
       ? 'flex-start'
-      : position === 'center' || position === 'space-between'
-        ? 'center'
-        : 'flex-end';
+      : position === 'bottom'
+        ? 'flex-end'
+        : position === 'space-between'
+          ? 'space-between'
+          : 'center';
   const justifyContent =
     textAlign === 'left' ? 'flex-start' : textAlign === 'right' ? 'flex-end' : 'center';
 

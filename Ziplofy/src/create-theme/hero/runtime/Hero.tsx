@@ -18,6 +18,7 @@ import {
   readHeroHeadingText,
 } from './heroHeadingStyles';
 import {
+  heroContentVerticalOnMobileCss,
   heroDualMediaResponsiveCss,
   heroResponsiveCss,
   readHeroStyle,
@@ -219,6 +220,11 @@ export function Hero({
     hasDualMedia && hero.mobileStackMedia
       ? heroDualMediaResponsiveCss(sectionId, true)
       : '';
+  const contentVerticalOnMobileCss = heroContentVerticalOnMobileCss(
+    sectionId,
+    hero.verticalOnMobile,
+    hero.contentDirection === 'row'
+  );
 
   if (isBottomAligned) {
     const bottomPaths = heroBottomAlignedPaths(blocksBase);
@@ -742,18 +748,14 @@ export function Hero({
   if (isClassicHero) {
     const hasMedia = Boolean(media1Url || media2Url);
     const classicOverlay = hero.mediaOverlay ? overlayBackground : undefined;
-    const useRowMediaLayout = hero.direction === 'row' && hasMedia;
-    /** Vertical + media uses full-bleed (or 50/50) backdrop; horizontal uses side-by-side panels. */
-    const useFullBleedBackdrop = hasMedia && hero.direction === 'column';
+    /** Full-bleed backdrop for image heroes; direction controls block flow inside content only. */
+    const useFullBleedBackdrop = hasMedia;
+    const useRowMediaLayout = hasMedia && !useFullBleedBackdrop && hero.contentDirection === 'row';
 
     const contentColumnAlign =
-      hero.alignTextBaseline && hero.direction === 'row'
+      hero.alignTextBaseline && hero.contentDirection === 'row'
         ? 'baseline'
-        : hero.textAlign === 'left'
-          ? 'flex-start'
-          : hero.textAlign === 'right'
-            ? 'flex-end'
-            : 'center';
+        : hero.contentAlign;
 
     const headingFillWidth = headingStyle.width === '100%';
     const classicHeadingStyle = {
@@ -782,7 +784,7 @@ export function Hero({
           className={className}
           style={{
             flex: 1,
-            minHeight: hero.direction === 'row' ? '100%' : 240,
+            minHeight: useRowMediaLayout ? '100%' : 240,
             background: `center/cover url(${url}) no-repeat`,
             filter: hero.blurredReflection ? 'blur(12px)' : undefined,
             transform: hero.blurredReflection ? 'scale(1.05)' : undefined,
@@ -882,31 +884,61 @@ export function Hero({
       return null;
     };
 
+    const isHorizontalRow = hero.contentDirection === 'row';
+    const horizontalUsesBaseline = isHorizontalRow && hero.alignTextBaseline;
+    const blockNodes = blockOrder.map((blockId) => (
+      <span key={blockId} style={{ display: 'contents' }}>
+        {renderClassicBlock(blockId)}
+      </span>
+    ));
+
     const contentColumn = (
       <div
+        className="hero-content-blocks"
         style={{
           position: 'relative',
           zIndex: 2,
-          flex: hero.direction === 'row' ? '0 0 42%' : undefined,
+          flex: useRowMediaLayout
+            ? '0 0 42%'
+            : hero.contentColumnFill
+              ? 1
+              : undefined,
+          alignSelf: hero.contentColumnFill ? 'stretch' : undefined,
+          minHeight: hero.contentColumnFill ? '100%' : undefined,
+          height: isHorizontalRow && hero.contentColumnFill ? '100%' : undefined,
           maxWidth:
-            hero.direction === 'column' && typeof hero.maxWidth === 'number'
+            hero.contentDirection === 'column' && typeof hero.maxWidth === 'number'
               ? hero.maxWidth
               : undefined,
-          width: hero.direction === 'column' ? '100%' : undefined,
-          margin: hero.direction === 'column' ? '0 auto' : undefined,
+          width: '100%',
+          margin: hero.contentDirection === 'column' ? '0 auto' : undefined,
           display: 'flex',
-          flexDirection: 'column',
-          alignItems: contentColumnAlign,
+          flexDirection: horizontalUsesBaseline ? 'column' : hero.contentDirection,
+          alignItems: horizontalUsesBaseline ? 'stretch' : contentColumnAlign,
+          justifyContent: horizontalUsesBaseline
+            ? hero.sectionJustify
+            : hero.contentColumnJustify,
           textAlign: hero.textAlign,
-          gap: hero.gap,
+          gap: hero.contentColumnFill && !isHorizontalRow ? 0 : horizontalUsesBaseline ? 0 : hero.gap,
           boxSizing: 'border-box',
         }}
       >
-        {blockOrder.map((blockId) => (
-          <span key={blockId} style={{ display: 'contents' }}>
-            {renderClassicBlock(blockId)}
-          </span>
-        ))}
+        {horizontalUsesBaseline ? (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'baseline',
+              justifyContent: hero.contentColumnJustify,
+              gap: hero.gap,
+              width: '100%',
+            }}
+          >
+            {blockNodes}
+          </div>
+        ) : (
+          blockNodes
+        )}
       </div>
     );
 
@@ -917,9 +949,10 @@ export function Hero({
           position: 'relative',
           zIndex: 2,
           display: 'flex',
-          flexDirection: hero.direction,
-          alignItems: hero.alignItems,
-          justifyContent: hero.justifyContent,
+          flex: 1,
+          flexDirection: useFullBleedBackdrop ? 'column' : hero.contentDirection,
+          alignItems: useFullBleedBackdrop ? 'stretch' : hero.contentAlign,
+          justifyContent: useFullBleedBackdrop ? hero.sectionOuterJustify : hero.contentJustify,
           gap: hero.gap,
           minHeight: hero.minHeight,
           width: '100%',
@@ -938,37 +971,59 @@ export function Hero({
         ) : (
           contentColumn
         )}
-        {hero.mobileDifferentMedia && hero.mobileImageUrl ? (
+        {hero.mobileDifferentMedia && hero.mobileMedia1Url ? (
           <div
-            className="hero-media-mobile"
+            className="hero-media-mobile hero-media-mobile-1"
             style={{
               display: 'none',
               flex: 1,
               minHeight: 200,
-              background: `center/cover url(${hero.mobileImageUrl}) no-repeat`,
+              background: `center/cover url(${hero.mobileMedia1Url}) no-repeat`,
+            }}
+          />
+        ) : null}
+        {hero.mobileDifferentMedia && hero.mobileMedia2Url ? (
+          <div
+            className="hero-media-mobile hero-media-mobile-2"
+            style={{
+              display: 'none',
+              flex: 1,
+              minHeight: 200,
+              background: `center/cover url(${hero.mobileMedia2Url}) no-repeat`,
             }}
           />
         ) : null}
       </div>
     );
 
+    const classicBodyShellStyle = {
+      position: 'relative' as const,
+      zIndex: 2,
+      display: 'flex',
+      flexDirection: 'column' as const,
+      flex: 1,
+      width: '100%',
+      minHeight: '100%',
+    };
+
     const classicBody = hero.sectionLink ? (
       <Link
         to={hero.sectionLink}
         target={hero.sectionLinkNewTab ? '_blank' : undefined}
         rel={hero.sectionLinkNewTab ? 'noopener noreferrer' : undefined}
-        style={{ textDecoration: 'none', color: 'inherit', display: 'block', width: '100%' }}
+        style={{ textDecoration: 'none', color: 'inherit', ...classicBodyShellStyle }}
       >
         {classicInner}
       </Link>
     ) : (
-      classicInner
+      <div style={classicBodyShellStyle}>{classicInner}</div>
     );
 
     return (
       <>
         {scopedCss ? <style>{scopedCss}</style> : null}
         {responsiveCss ? <style>{responsiveCss}</style> : null}
+        {contentVerticalOnMobileCss ? <style>{contentVerticalOnMobileCss}</style> : null}
         {dualMediaCss ? <style>{dualMediaCss}</style> : null}
         <EditorSection
           sectionId={sectionId}
@@ -977,6 +1032,8 @@ export function Hero({
           style={{
             position: 'relative',
             overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
             width: '100%',
             minHeight: hero.minHeight,
             padding: 0,
