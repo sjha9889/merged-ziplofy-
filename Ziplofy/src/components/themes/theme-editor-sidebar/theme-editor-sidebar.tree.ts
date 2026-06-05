@@ -25,7 +25,7 @@ import {
 } from '../../../utils/hero-banner-variants.util';
 import {
   heroBottomAlignedPaths,
-  isHeroBottomAlignedVariant,
+  isHeroBottomAlignedSectionConfig,
 } from '../../../utils/hero-bottom-aligned.util';
 import {
   listKeyBlockChildren,
@@ -252,6 +252,7 @@ import {
   isCollectionLinkBlockFieldsOnly,
   prepareCollectionLinkBlockSettingsNode,
 } from './theme-editor-collection-link-block-panel.utils';
+import { mapCollectionLinksSpotlightBlockNodes } from '../../../utils/collection-links-spotlight-sidebar.util';
 import {
   isCollectionTileBlockFieldsOnly,
   prepareCollectionTileBlockSettingsNode,
@@ -380,7 +381,7 @@ function iconForFieldLabel(label: string, path: string, type: string): SidebarIc
 function iconForBlockLabel(label: string): SidebarIcon {
   const l = label.toLowerCase();
   if (l === 'group') return 'group';
-  if (l === 'menu') return 'link';
+  if (l === 'menu' || l === 'collection') return 'link';
   if (l === 'logo') return 'section';
   if (l.includes('product card') || l.includes('product')) return 'product-card';
   if (l.includes('button')) return 'button';
@@ -1283,7 +1284,7 @@ function layoutHeroSectionNode(
   const blocksBase = `sections.${instanceId}.blocks`;
   const childrenListKey = listKeyLayoutSectionChildren(instanceId);
 
-  if (isHeroBottomAlignedVariant(config, settingsBase)) {
+  if (isHeroBottomAlignedSectionConfig(config, settingsBase, blocksBase)) {
     const children = mapBottomAlignedHeroSidebarNodes(
       prefix,
       blocksBase,
@@ -1397,7 +1398,7 @@ function sectionToNode(
   const isStorytellingCarousel = isStorytellingCarouselSectionType(sec.type, catalogVariantEarly);
   const isDividerSection = isDivider || isDividerSectionType(sec.type, catalogVariantEarly);
 
-  if (isHero && isHeroBottomAlignedVariant(config, settingsBase)) {
+  if (isHero && isHeroBottomAlignedSectionConfig(config, settingsBase, blocksBase)) {
     const children = mapBottomAlignedHeroSidebarNodes(
       prefix,
       blocksBase,
@@ -1511,22 +1512,34 @@ function sectionToNode(
     isSlideshowInset
       ? []
       : mapFieldNodes(remappedSectionFields, values);
-  const blockNodes = heroVisibleBlocks.length
-    ? isHero
-      ? mapHeroBlockNodes(heroVisibleBlocks, prefix, `${prefix}:add-block`, values, itemOrder, childrenListKey)
-      : mapBlockNodes(
-          heroVisibleBlocks,
-          prefix,
-          `${prefix}:add-block`,
-          values,
-          itemOrder,
-          childrenListKey,
-          isFeaturedCollection ? { innerAddBlockPlacement: 'top' } : undefined
-        )
-    : [];
+  const blockNodes = isCollectionLinksSpotlight
+    ? mapCollectionLinksSpotlightBlockNodes(
+        prefix,
+        blocksBase,
+        values,
+        itemOrder,
+        childrenListKey,
+        config,
+        tplId,
+        secId,
+        catalogVariant
+      )
+    : heroVisibleBlocks.length
+      ? isHero
+        ? mapHeroBlockNodes(heroVisibleBlocks, prefix, `${prefix}:add-block`, values, itemOrder, childrenListKey)
+        : mapBlockNodes(
+            heroVisibleBlocks,
+            prefix,
+            `${prefix}:add-block`,
+            values,
+            itemOrder,
+            childrenListKey,
+            isFeaturedCollection ? { innerAddBlockPlacement: 'top' } : undefined
+          )
+      : [];
 
   const children = reorderSidebarChildren(
-    isHero || isFaq || isIconsWithText || isMulticolumn
+    isHero || isFaq || isIconsWithText || isMulticolumn || isCollectionLinksSpotlight
       ? blockNodes
       : [...sectionFields, ...blockNodes],
     childrenListKey,
@@ -2096,7 +2109,12 @@ export function settingsNodeForSelection(
   }
 
   const catalogNode = settingsNodeFromCatalog(node);
-  if (catalogNode) return catalogNode;
+  if (catalogNode) {
+    if (isCollectionLinksSpotlightSettingsPanelFields(catalogNode.fields ?? [])) {
+      return prepareCollectionLinksSpotlightSettingsNode(catalogNode);
+    }
+    return catalogNode;
+  }
 
   const footerSection =
     node.kind === 'section' && isFooterLayoutNodeId(node.id)

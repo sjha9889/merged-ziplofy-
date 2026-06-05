@@ -1,4 +1,4 @@
-import { templateIdForPage } from '../../utils/theme-editor-insert-section';
+import { applyHeroCatalogPreset, templateIdForPage } from '../../utils/theme-editor-insert-section';
 import type { ThemePreviewPage } from '../chrome/CreateThemeLivePreview';
 import { getCreateThemeElement } from '../registry';
 import type { CreateThemeElement, CreateThemeInsertContext, CreateThemeInsertResult } from '../types';
@@ -156,7 +156,12 @@ export function insertCreateThemeLayoutSection(
       instanceId,
       insert.sectionType
     );
-    element.applyPreset?.(section);
+    const blocksPath = `sections.${instanceId}.blocks`;
+    if (insert.sectionType === 'hero' && element.id !== 'hero') {
+      applyHeroCatalogPreset(section, element.id, blocksPath);
+    } else {
+      element.applyPreset?.(section);
+    }
     sections[instanceId] = section;
   }
 
@@ -200,7 +205,12 @@ export function insertCreateThemeTemplateSection(
     instanceId,
     insert.sectionType
   );
-  element.applyPreset?.(section);
+  const blocksPath = `templates.${templateId}.sections.${instanceId}.blocks`;
+  if (insert.sectionType === 'hero' && element.id !== 'hero') {
+    applyHeroCatalogPreset(section, element.id, blocksPath);
+  } else {
+    element.applyPreset?.(section);
+  }
   tplSections[instanceId] = section;
   tpl.section_order = insertIntoTemplateOrder(
     (tpl.section_order as string[]) ?? [],

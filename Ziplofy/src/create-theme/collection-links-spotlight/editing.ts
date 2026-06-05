@@ -57,7 +57,7 @@ export const editing: CreateThemeEditing = {
   "blocks": [
     {
       "blockId": "collection_link",
-      "label": "Collection link",
+      "label": "Collection",
       "settingsOrder": [
         {
           "key": "title",
@@ -65,9 +65,9 @@ export const editing: CreateThemeEditing = {
           "type": "text"
         },
         {
-          "key": "productCount",
-          "label": "Product count",
-          "type": "number"
+          "key": "imageUrl",
+          "label": "Image",
+          "type": "text"
         }
       ]
     }

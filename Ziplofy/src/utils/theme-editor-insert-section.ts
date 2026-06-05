@@ -173,23 +173,7 @@ export function getLayoutOrder(config: Record<string, unknown> | null): LayoutOr
   return raw ?? {};
 }
 
-function footerLayoutSectionIds(config: Record<string, unknown>): Set<string> {
-  const sections = (config.sections ?? {}) as Record<string, unknown>;
-  const keys = new Set(Object.keys(sections));
-  const ids = new Set<string>();
-  for (const id of getLayoutOrder(config).footer ?? []) {
-    if (keys.has(id)) ids.add(id);
-  }
-  for (const id of keys) {
-    const bp = layoutBlueprintKey(id);
-    if (bp === 'footer' || bp === 'footer_utilities' || id === 'footer' || id === 'footer_utilities') {
-      ids.add(id);
-    }
-  }
-  return ids;
-}
-
-/** Section ids for sidebar: layout_order first, then any matching sections keys not listed yet. */
+/** Section ids for sidebar — only sections the user placed in `layout_order`. */
 export function existingLayoutSectionIds(
   config: Record<string, unknown> | null,
   group: 'header' | 'footer'
@@ -197,28 +181,51 @@ export function existingLayoutSectionIds(
   const sections = (config?.sections ?? {}) as Record<string, unknown>;
   const keys = new Set(Object.keys(sections));
   const layoutOrder = getLayoutOrder(config);
-  const ordered = (layoutOrder[group] ?? []).map(String).filter((id) => keys.has(id));
-  const seen = new Set<string>();
-  const out: string[] = [];
-  const add = (id: string) => {
-    if (!keys.has(id) || seen.has(id)) return;
-    seen.add(id);
-    out.push(id);
-  };
+  return (layoutOrder[group] ?? []).map(String).filter((id) => keys.has(id));
+}
 
-  if (group === 'footer') {
-    for (const id of ordered) add(id);
-    for (const id of footerLayoutSectionIds(config ?? {})) add(id);
-    return out;
+const CREATOR_LAYOUT_VERSION = 2;
+
+/**
+ * One-time cleanup: legacy sync auto-inserted the pack Footer + Utilities pair.
+ * Runs once per saved config (see `creatorLayoutVersion`).
+ */
+export function stripLegacyPackFooterDefaults(config: Record<string, unknown>): void {
+  const version = (config.creatorLayoutVersion as number) ?? 1;
+  if (version >= CREATOR_LAYOUT_VERSION) return;
+
+  const order = getLayoutOrder(config);
+  const footer = order.footer ?? [];
+  const isPackFooterPair =
+    footer.length === 2 && footer.includes('footer') && footer.includes('footer_utilities');
+
+  if (isPackFooterPair) {
+    const sections = (config.sections ?? {}) as Record<string, unknown>;
+    order.footer = [];
+    delete sections.footer;
+    delete sections.footer_utilities;
+    setNested(config, ['layout_order'], order);
   }
 
-  const footerIds = footerLayoutSectionIds(config ?? {});
-  for (const id of ordered) add(id);
-  for (const id of defaultHeaderSectionOrder(config ?? {})) add(id);
-  for (const id of keys) {
-    if (!footerIds.has(id)) add(id);
+  config.creatorLayoutVersion = CREATOR_LAYOUT_VERSION;
+}
+
+/**
+ * Theme Creator keeps pack blueprint clones in `packDefault`, not in saved `config.sections`.
+ * Drop every layout section that is not listed in `layout_order`.
+ */
+export function stripCreatorLayoutBlueprintClones(config: Record<string, unknown>): void {
+  const sections = (config.sections ?? {}) as Record<string, unknown>;
+  const order = getLayoutOrder(config);
+  const placed = new Set([...(order.header ?? []), ...(order.footer ?? [])]);
+
+  for (const id of Object.keys(sections)) {
+    if (!placed.has(id)) delete sections[id];
   }
-  return out;
+
+  order.header = (order.header ?? []).filter((id) => sections[id] != null);
+  order.footer = (order.footer ?? []).filter((id) => sections[id] != null);
+  setNested(config, ['layout_order'], order);
 }
 
 export function existingTemplateSectionIds(
@@ -325,12 +332,13 @@ export function ensureLayoutOrder(config: Record<string, unknown>): LayoutOrder 
   return getLayoutOrder(config);
 }
 
-/** Keep layout_order in sync with layout sections (e.g. header present in JSON but missing from order). */
+/** Prune layout_order entries that no longer exist in `sections` (never auto-expand). */
 export function syncLayoutOrderFromSections(config: Record<string, unknown>): void {
   ensureLayoutOrder(config);
   const order = getLayoutOrder(config);
-  order.header = existingLayoutSectionIds(config, 'header');
-  order.footer = existingLayoutSectionIds(config, 'footer');
+  const keys = new Set(Object.keys((config.sections ?? {}) as Record<string, unknown>));
+  order.header = (order.header ?? []).filter((id) => keys.has(id));
+  order.footer = (order.footer ?? []).filter((id) => keys.has(id));
   setNested(config, ['layout_order'], order);
 }
 
@@ -526,6 +534,7 @@ import { applyHeroBannerVariantPreset } from './hero-banner-variants.util';
 import {
   applyBottomAlignedHeroSection,
   buildBottomAlignedHeroBlocks,
+  seedBottomAlignedHeroValues,
 } from './hero-bottom-aligned.util';
 
 /** Shopify-style hero block tree (layout instances). */
@@ -1911,7 +1920,7 @@ export function extendValuesForLayoutInstance(
     }
   };
   walkBlocks(layout.blocks);
-  return next;
+  return seedBottomAlignedHeroValues(next, config);
 }
 
 /** Copy schema field paths from a template blueprint section to a new instance for `values` map. */
@@ -1949,7 +1958,7 @@ export function extendValuesForTemplateInstance(
     }
   };
   walkBlocks(sec.blocks);
-  return next;
+  return seedBottomAlignedHeroValues(next, config);
 }
 
 function metaFromTemplateCatalog(

@@ -250,23 +250,23 @@ export function Hero({
         : `${sectionNodePrefix}:block:content_group:nested:heading_group:nested:${blockId}`;
 
     const sectionMinHeight = hero.minHeight;
-    const sidePad = 40;
+    const sidePad = Math.max(hero.paddingX, 40);
     const bottomPad = Math.max(hero.paddingBottom, 48);
     const topPad = hero.paddingTop > 0 ? hero.paddingTop : 0;
-    const bottomHasMedia = Boolean(media1Url || media2Url);
-    const bottomOverlay =
-      hero.mediaOverlay && (bottomHasMedia || true) ? overlayBackground : undefined;
+    const bottomOverlay = hero.mediaOverlay ? overlayBackground : undefined;
     const textColor = '#ffffff';
+    const rowMaxWidth = typeof hero.maxWidth === 'number' ? hero.maxWidth : 1400;
 
     const bottomRow = (
       <div
+        className="hero-bottom-aligned-row"
         style={{
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'space-between',
           gap: Math.max(hero.gap, 32),
           width: '100%',
-          maxWidth: 1400,
+          maxWidth: rowMaxWidth,
           margin: '0 auto',
           boxSizing: 'border-box',
         }}
@@ -301,9 +301,9 @@ export function Hero({
                 style={{
                   margin: bottomIntro.trim() ? '8px 0 0' : 0,
                   fontFamily: fontHeading,
-                  fontSize: 'clamp(2.25rem, 4.5vw, 3.5rem)',
-                  fontWeight: 400,
-                  lineHeight: 1.08,
+                  fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+                  fontWeight: 600,
+                  lineHeight: 1.05,
                   letterSpacing: '-0.02em',
                   color: textColor,
                 }}
@@ -316,9 +316,10 @@ export function Hero({
         {bottomBodyText.trim() ? (
           <div
             style={{
-              flex: '0 1 42%',
-              maxWidth: 440,
-              textAlign: 'right',
+              flex: '0 1 40%',
+              maxWidth: 460,
+              minWidth: 200,
+              textAlign: 'left',
               alignSelf: 'flex-end',
             }}
           >
@@ -344,14 +345,16 @@ export function Hero({
 
     const bottomStack = (
       <div
+        className="hero-bottom-aligned-stack"
         style={{
           position: 'relative',
           zIndex: 2,
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'flex-end',
-          minHeight: sectionMinHeight,
+          flex: 1,
           width: '100%',
+          minHeight: '100%',
           padding: `${topPad}px ${sidePad}px ${bottomPad}px`,
           boxSizing: 'border-box',
         }}
@@ -360,17 +363,27 @@ export function Hero({
       </div>
     );
 
+    const bottomShellStyle = {
+      display: 'flex' as const,
+      flexDirection: 'column' as const,
+      flex: 1,
+      width: '100%',
+      minHeight: '100%',
+      textDecoration: 'none' as const,
+      color: 'inherit' as const,
+    };
+
     const bottomLinkedStack = hero.sectionLink ? (
       <Link
         to={hero.sectionLink}
         target={hero.sectionLinkNewTab ? '_blank' : undefined}
         rel={hero.sectionLinkNewTab ? 'noopener noreferrer' : undefined}
-        style={{ textDecoration: 'none', color: 'inherit', display: 'block', width: '100%' }}
+        style={bottomShellStyle}
       >
         {bottomStack}
       </Link>
     ) : (
-      bottomStack
+      <div style={bottomShellStyle}>{bottomStack}</div>
     );
 
     return (
@@ -384,6 +397,8 @@ export function Hero({
           style={{
             position: 'relative',
             overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
             width: '100%',
             minHeight: sectionMinHeight,
             padding: 0,

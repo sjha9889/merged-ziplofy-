@@ -35,6 +35,7 @@ export type CollectionLinkBlockSettings = {
   productCount: number;
   collectionHandle: string;
   href: string;
+  imageUrl: string;
 };
 
 export function collectionLinkBlocksFromCollections(
@@ -57,6 +58,7 @@ export function collectionLinkBlocksFromCollections(
         productCount: Math.max(0, Number(col.productCount ?? 0)),
         collectionHandle: handle,
         href,
+        imageUrl: '',
       },
     };
     block_order.push(id);
@@ -79,6 +81,7 @@ export function valuePathsForCollectionLinkBlocks(
     out[`${base}.productCount`] = String(settings.productCount);
     out[`${base}.collectionHandle`] = settings.collectionHandle;
     out[`${base}.href`] = settings.href;
+    out[`${base}.imageUrl`] = settings.imageUrl ?? '';
   }
   return out;
 }
@@ -118,6 +121,11 @@ export function applyCollectionLinksSelectionToConfig(
   setConfigAtPath(next, settingsPath, pickerValue);
 
   const { blocks, block_order } = collectionLinkBlocksFromCollections(collections);
+  for (const id of block_order) {
+    const settingsBase = `${sectionBase}.blocks.${id}.settings`;
+    const block = blocks[id] as Record<string, unknown>;
+    block.settings_field_order = [`${settingsBase}.title`, `${settingsBase}.imageUrl`];
+  }
   setConfigAtPath(next, `${sectionBase}.blocks`, blocks);
   setConfigAtPath(next, `${sectionBase}.block_order`, block_order);
 

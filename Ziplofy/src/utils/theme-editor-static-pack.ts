@@ -15,8 +15,11 @@ import {
 import {
   mergeTemplateSectionBlueprintsFromPack,
   sanitizeThemeConfigStructure,
+  stripCreatorLayoutBlueprintClones,
+  stripLegacyPackFooterDefaults,
   syncLayoutOrderFromSections,
 } from './theme-editor-insert-section';
+import { seedBottomAlignedHeroValues } from './hero-bottom-aligned.util';
 import { seedSectionEnabledValues } from './theme-editor-section-visibility.util';
 import { THEME_PAGE_REGISTRY } from '../create-theme/utils/theme-page-registry';
 
@@ -97,7 +100,7 @@ export function formValuesFromEditorConfig(
       values[field.path] = String(v);
     }
   }
-  return values;
+  return seedBottomAlignedHeroValues(values, config);
 }
 
 /** Merge pack default header settings into saved config (handles stale localStorage). */
@@ -302,6 +305,8 @@ export function creatorConfigHasSections(
 
 /** Drop orphan layout/template sections and sync order — use after load/save in Theme Creator. */
 export function normalizeCreatorThemeConfig(config: Record<string, unknown>): void {
+  stripLegacyPackFooterDefaults(config);
+  stripCreatorLayoutBlueprintClones(config);
   sanitizeThemeConfigStructure(config);
   syncLayoutOrderFromSections(config);
   sanitizeThemeConfigStructure(config);
@@ -358,6 +363,7 @@ export function createEmptyCreatorConfig(
     version: packDefault.version ?? '1.0.0',
     themeId: opts?.themeId ?? packDefault.themeId ?? 'custom-theme',
     themeName: opts?.themeName ?? packDefault.themeName ?? 'Creator Basic',
+    creatorLayoutVersion: 2,
     settings: JSON.parse(JSON.stringify(packDefault.settings ?? {})),
     sections: {},
     layout_order: { header: [], footer: [] },

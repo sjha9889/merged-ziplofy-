@@ -37,10 +37,17 @@ export function isCollectionLinksSpotlightSectionType(
   );
 }
 
+export function isCollectionLinksSpotlightPanelSectionSettingsPath(path: string): boolean {
+  return (
+    /^sections\.[^.]+\.settings\./.test(path) ||
+    /^templates\.[^.]+\.sections\.[^.]+\.settings\./.test(path)
+  );
+}
+
 export function isCollectionLinksSpotlightPanelField(field: EditorFieldDef): boolean {
   if (field.sidebar === false) return false;
   if (!field.group || !PANEL_GROUPS.has(field.group)) return false;
-  return /\.sections\.[^.]+\.settings\./.test(field.path);
+  return isCollectionLinksSpotlightPanelSectionSettingsPath(field.path);
 }
 
 export function sortCollectionLinksSpotlightPanelFields(fields: EditorFieldDef[]): EditorFieldDef[] {
@@ -62,7 +69,7 @@ export function groupCollectionLinksSpotlightPanelFields(
   fields: EditorFieldDef[]
 ): Map<string, EditorFieldDef[]> {
   const map = new Map<string, EditorFieldDef[]>();
-  for (const field of fields) {
+  for (const field of sortCollectionLinksSpotlightPanelFields(fields)) {
     const group = field.group && PANEL_GROUPS.has(field.group) ? field.group : 'Layout';
     const list = map.get(group) ?? [];
     list.push(field);

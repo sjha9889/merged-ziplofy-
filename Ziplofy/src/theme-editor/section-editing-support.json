@@ -7657,7 +7657,8 @@
           "type": "text",
           "label": "Image",
           "group": "Layout",
-          "widget": "image"
+          "widget": "image",
+          "sidebar": false
         },
         {
           "key": "colorScheme",
@@ -7716,7 +7717,7 @@
       ],
       "blocks": {
         "collection_link": {
-          "label": "Collection link",
+          "label": "Collection",
           "fields": [
             {
               "key": "title",
@@ -7747,7 +7748,6 @@
             "sectionWidth",
             "alignment",
             "imagePosition",
-            "imageUrl",
             "colorScheme",
             "paddingTop",
             "paddingBottom",
@@ -7847,7 +7847,8 @@
           "type": "text",
           "label": "Image",
           "group": "Layout",
-          "widget": "image"
+          "widget": "image",
+          "sidebar": false
         },
         {
           "key": "colorScheme",
@@ -7906,7 +7907,7 @@
       ],
       "blocks": {
         "collection_link": {
-          "label": "Collection link",
+          "label": "Collection",
           "fields": [
             {
               "key": "title",
@@ -7947,7 +7948,6 @@
             "sectionWidth",
             "alignment",
             "imagePosition",
-            "imageUrl",
             "colorScheme",
             "paddingTop",
             "paddingBottom",
@@ -17484,7 +17484,8 @@
           "type": "text",
           "label": "Image",
           "group": "Layout",
-          "widget": "image"
+          "widget": "image",
+          "sidebar": false
         },
         {
           "key": "colorScheme",
@@ -17543,7 +17544,7 @@
       ],
       "blocks": {
         "collection_link": {
-          "label": "Collection link",
+          "label": "Collection",
           "fields": [
             {
               "key": "title",
@@ -17574,7 +17575,6 @@
             "sectionWidth",
             "alignment",
             "imagePosition",
-            "imageUrl",
             "colorScheme",
             "paddingTop",
             "paddingBottom",

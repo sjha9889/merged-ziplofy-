@@ -288,10 +288,10 @@ const CreateThemePage: React.FC = () => {
         debouncedValuesForTree,
         previewPage,
         itemOrder,
-        JSON.parse(JSON.stringify(defaultConfig)) as Record<string, unknown>
+        JSON.parse(JSON.stringify(treeConfig)) as Record<string, unknown>
       )
     );
-  }, [editorSchema, debouncedValuesForTree, previewPage, itemOrder, defaultConfig, hasSections]);
+  }, [editorSchema, debouncedValuesForTree, previewPage, itemOrder, treeConfig, hasSections]);
 
   const themeSettingsTree = useMemo(
     () => (editorSchema ? buildThemeSettingsSidebarTree(editorSchema) : []),

@@ -21,18 +21,38 @@ export function heroBottomAlignedPaths(blocksBase: string): HeroBottomAlignedPat
   };
 }
 
+function readNested(config: Record<string, unknown>, path: string): unknown {
+  let cur: unknown = config;
+  for (const part of path.split('.')) {
+    if (cur == null || typeof cur !== 'object') return undefined;
+    cur = (cur as Record<string, unknown>)[part];
+  }
+  return cur;
+}
+
 export function isHeroBottomAlignedVariant(
   config: Record<string, unknown> | null,
   settingsBase: string
 ): boolean {
   if (!config) return false;
-  const parts = `${settingsBase}.catalogVariant`.split('.');
-  let cur: unknown = config;
-  for (const p of parts) {
-    if (cur == null || typeof cur !== 'object') return false;
-    cur = (cur as Record<string, unknown>)[p];
-  }
-  return cur === 'hero-bottom-aligned';
+  const variant = readNested(config, `${settingsBase}.catalogVariant`);
+  return variant === 'hero-bottom-aligned';
+}
+
+/** True when catalog flag is set or the bottom-aligned Group block tree is present. */
+export function isHeroBottomAlignedSectionConfig(
+  config: Record<string, unknown> | null,
+  settingsBase: string,
+  blocksBase: string
+): boolean {
+  if (isHeroBottomAlignedVariant(config, settingsBase)) return true;
+  if (!config) return false;
+  const blocks = readNested(config, blocksBase);
+  if (!blocks || typeof blocks !== 'object') return false;
+  if ('content_group' in (blocks as Record<string, unknown>)) return true;
+  const sectionBase = settingsBase.replace(/\.settings$/, '');
+  const blockOrder = readNested(config, `${sectionBase}.block_order`);
+  return Array.isArray(blockOrder) && blockOrder.includes('content_group');
 }
 
 export function buildBottomAlignedHeroBlocks(
@@ -97,6 +117,41 @@ export function bottomAlignedHeroStructureOrder(
       `${headingGroupPrefix}:inner-add-block`,
     ],
   };
+}
+
+/** Copy nested Group block text paths from config into the flat `values` map (not in schema). */
+export function seedBottomAlignedHeroValues(
+  values: Record<string, string | boolean>,
+  config: Record<string, unknown>
+): Record<string, string | boolean> {
+  const next = { ...values };
+
+  const seedSection = (blocksBase: string, settingsBase: string) => {
+    if (!isHeroBottomAlignedSectionConfig(config, settingsBase, blocksBase)) return;
+    for (const path of Object.values(heroBottomAlignedPaths(blocksBase))) {
+      const raw = readNested(config, path);
+      if (raw === undefined) continue;
+      next[path] = raw == null ? '' : String(raw);
+    }
+  };
+
+  for (const instanceId of Object.keys((config.sections ?? {}) as Record<string, unknown>)) {
+    seedSection(`sections.${instanceId}.blocks`, `sections.${instanceId}.settings`);
+  }
+
+  const templates = config.templates as
+    | Record<string, { sections?: Record<string, unknown> }>
+    | undefined;
+  for (const [tplId, tpl] of Object.entries(templates ?? {})) {
+    for (const secId of Object.keys(tpl.sections ?? {})) {
+      seedSection(
+        `templates.${tplId}.sections.${secId}.blocks`,
+        `templates.${tplId}.sections.${secId}.settings`
+      );
+    }
+  }
+
+  return next;
 }
 
 export function applyBottomAlignedHeroSection(section: Record<string, unknown>, blocksBase: string): void {

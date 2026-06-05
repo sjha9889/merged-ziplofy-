@@ -17,6 +17,7 @@ import { SPLIT_SHOWCASE_IMAGE_LEFT, SPLIT_SHOWCASE_IMAGE_RIGHT } from '../lib/sp
 import { layoutBlockOrder, templateBlockOrder } from '../lib/structureOrder';
 import { EditorBlock, EditorField, EditorSection } from '../lib/editorAttrs';
 import { layout, useThemeColors } from '../tokens';
+import { HERO_BOTTOM_ALIGNED_DEFAULT_IMAGE } from '../../../../../utils/hero-bottom-aligned.util';
 import { HeroLandscapeBackdrop } from './HeroLandscapeBackdrop';
 import { HeroMediaBackground } from './HeroMediaBackground';
 
@@ -551,8 +552,8 @@ export function HeroSection({
                 style={{
                   margin: eyebrow.trim() ? '8px 0 0' : 0,
                   fontFamily: fontHeading,
-                  fontSize: 'clamp(2.25rem, 4.5vw, 3.5rem)',
-                  fontWeight: 400,
+                  fontSize: 'clamp(2.5rem, 5vw, 4rem)',
+                  fontWeight: 600,
                   lineHeight: 1.08,
                   letterSpacing: '-0.02em',
                   color: bottomAlignedTextColor,
@@ -566,9 +567,10 @@ export function HeroSection({
         {bodyText.trim() ? (
           <div
             style={{
-              flex: '0 1 42%',
-              maxWidth: 440,
-              textAlign: 'right',
+              flex: '0 1 40%',
+              maxWidth: 460,
+              minWidth: 200,
+              textAlign: 'left',
               alignSelf: 'flex-end',
             }}
           >
@@ -790,8 +792,9 @@ export function HeroSection({
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'flex-end',
-          minHeight: sectionMinHeight,
+          flex: 1,
           width: '100%',
+          minHeight: '100%',
           padding: `${topPad}px ${sidePad}px ${bottomPad}px`,
           boxSizing: 'border-box',
         }}
@@ -800,17 +803,27 @@ export function HeroSection({
       </div>
     );
 
+    const bottomShellStyle = {
+      display: 'flex' as const,
+      flexDirection: 'column' as const,
+      flex: 1,
+      width: '100%',
+      minHeight: '100%',
+      textDecoration: 'none' as const,
+      color: 'inherit' as const,
+    };
+
     const bottomBody = hero.sectionLink ? (
       <Link
         to={hero.sectionLink}
         target={hero.sectionLinkNewTab ? '_blank' : undefined}
         rel={hero.sectionLinkNewTab ? 'noopener noreferrer' : undefined}
-        style={{ textDecoration: 'none', color: 'inherit', display: 'block', width: '100%' }}
+        style={bottomShellStyle}
       >
         {bottomStack}
       </Link>
     ) : (
-      bottomStack
+      <div style={bottomShellStyle}>{bottomStack}</div>
     );
 
     return (
@@ -825,6 +838,8 @@ export function HeroSection({
           style={{
             position: 'relative',
             overflow: 'hidden',
+            display: 'flex',
+            flexDirection: 'column',
             width: '100%',
             minHeight: sectionMinHeight,
             padding: 0,
@@ -834,7 +849,11 @@ export function HeroSection({
             boxSizing: 'border-box',
           }}
         >
-          <HeroMediaBackground media1Url={media1Url} media2Url={media2Url} />
+          <HeroMediaBackground
+            media1Url={media1Url}
+            media2Url={media2Url}
+            fallbackUrl={HERO_BOTTOM_ALIGNED_DEFAULT_IMAGE}
+          />
           {bottomOverlay ? (
             <div
               aria-hidden

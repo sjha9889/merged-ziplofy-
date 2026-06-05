@@ -1,5 +1,31 @@
 import type { ThemePreviewPage } from '../chrome/CreateThemeLivePreview';
+import {
+  collectionLinkBlockPaths,
+} from '../../utils/collection-links-spotlight-sidebar.util';
 import { bottomAlignedHeroStructureOrder } from '../../utils/hero-bottom-aligned.util';
+
+function collectionLinksSpotlightStructureOrder(
+  prefix: string,
+  blocksBase: string,
+  blockOrder: string[],
+  sectionChildrenListKey: string,
+  catalogVariant: string
+): Record<string, string[]> {
+  const isTextLayout = catalogVariant === 'collection-links-text';
+  const out: Record<string, string[]> = {
+    [sectionChildrenListKey]: blockOrder.map((id) => `${prefix}:block:${id}`),
+  };
+
+  for (const blockId of blockOrder) {
+    const blockPrefix = `${prefix}:block:${blockId}`;
+    const paths = collectionLinkBlockPaths(blocksBase, blockId);
+    const fieldIds = [`field:${paths.title}`];
+    if (!isTextLayout) fieldIds.push(`field:${paths.imageUrl}`);
+    out[listKeyBlockChildren(blockPrefix)] = fieldIds;
+  }
+
+  return out;
+}
 import { existingLayoutSectionIds } from '../../utils/theme-editor-insert-section';
 import { previewPageToTemplateId } from '../../utils/preview-page-template';
 import type { SidebarNode } from './create-theme-sidebar.types';
@@ -147,10 +173,33 @@ export function readStructureOrderFromConfig(
     const listKey = listKeySectionChildren(tplId, secId);
     const isHero = (sec as { type?: string }).type === 'hero';
     const catalogVariant = tplCfg?.sections?.[secId]?.settings?.catalogVariant;
-    if (isHero && catalogVariant === 'hero-bottom-aligned') {
+    const isBottomAlignedHero =
+      catalogVariant === 'hero-bottom-aligned' ||
+      sec.block_order?.includes('content_group');
+    if (isHero && isBottomAlignedHero) {
       Object.assign(
         out,
         bottomAlignedHeroStructureOrder(`template:${tplId}:${secId}`, listKey, listKeyBlockChildren)
+      );
+      continue;
+    }
+
+    const isCollectionLinks =
+      (sec as { type?: string }).type === 'collection-links-spotlight' ||
+      catalogVariant === 'collection-links-spotlight' ||
+      catalogVariant === 'collection-links-text';
+    if (isCollectionLinks && sec.block_order?.length) {
+      const sectionPrefix = `template:${tplId}:${secId}`;
+      const blocksBase = `templates.${tplId}.sections.${secId}.blocks`;
+      Object.assign(
+        out,
+        collectionLinksSpotlightStructureOrder(
+          sectionPrefix,
+          blocksBase,
+          sec.block_order,
+          listKey,
+          catalogVariant ?? 'collection-links-spotlight'
+        )
       );
       continue;
     }
@@ -194,7 +243,10 @@ export function readStructureOrderFromConfig(
     const isHero = secType === 'hero';
     const isAnnouncementBar = secType === 'announcement-bar';
     const catalogVariant = getNested(config, ['sections', layoutKey, 'settings', 'catalogVariant']);
-    if (isHero && catalogVariant === 'hero-bottom-aligned') {
+    const isBottomAlignedHero =
+      catalogVariant === 'hero-bottom-aligned' ||
+      layoutSec.block_order?.includes('content_group');
+    if (isHero && isBottomAlignedHero) {
       Object.assign(
         out,
         bottomAlignedHeroStructureOrder(`layout:${layoutKey}`, secListKey, listKeyBlockChildren)

@@ -2812,11 +2812,21 @@ function CollectionLinkBlockSettingsPanel({
   values: Record<string, string | boolean>;
   onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
 }) {
-  const prepared = prepareCollectionLinkBlockSettingsNode({ id: '', label: 'Collection link', kind: 'block', fields });
+  const prepared = prepareCollectionLinkBlockSettingsNode({ id: '', label: 'Collection', kind: 'block', fields });
 
   return (
     <div className="space-y-2 px-1 py-3">
       {(prepared.fields ?? []).map((field) => {
+        if (field.widget === 'image' || field.path.endsWith('.imageUrl')) {
+          return (
+            <ImagePickerFieldRow
+              key={field.path}
+              field={field}
+              values={values}
+              onFieldChange={onFieldChange}
+            />
+          );
+        }
         if (field.path.endsWith('.collectionHandle') || field.widget === 'collection') {
           return (
             <CollectionSelectFieldRow
@@ -7181,7 +7191,7 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
   const isSlideshowSlideBlockPanel =
     node.label === 'Slide' || isSlideshowSlideBlockFieldsOnly(fields);
   const isCollectionLinkBlockPanel =
-    node.label === 'Collection link' || isCollectionLinkBlockFieldsOnly(fields);
+    node.label === 'Collection' || node.label === 'Collection link' || isCollectionLinkBlockFieldsOnly(fields);
   const isCollectionTileBlockPanel =
     node.label === 'Collection' || isCollectionTileBlockFieldsOnly(fields);
   const isStorytellingCarouselPanel =

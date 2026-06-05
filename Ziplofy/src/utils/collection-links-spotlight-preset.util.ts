@@ -1,6 +1,6 @@
 /** Defaults for Collection links: Spotlight sections. */
 
-function makeLink(index: number) {
+function makeLink() {
   return {
     type: 'collection-link',
     settings: {
@@ -8,6 +8,7 @@ function makeLink(index: number) {
       productCount: 5,
       collectionHandle: '',
       href: '/collections/all',
+      imageUrl: '',
     },
   };
 }
@@ -39,7 +40,7 @@ export function applyCollectionLinksSpotlightPreset(section: Record<string, unkn
     const nextOrder: string[] = [];
     for (let i = 0; i < 4; i++) {
       const id = `link_${i + 1}`;
-      nextBlocks[id] = makeLink(i);
+      nextBlocks[id] = makeLink();
       nextOrder.push(id);
     }
     section.blocks = nextBlocks;
