@@ -20,6 +20,7 @@ export type CollectionLinkData = {
   title: string;
   productCount: number;
   href: string;
+  imageUrl: string;
 };
 
 export type CollectionLinksSpotlightLayout = {
@@ -99,6 +100,7 @@ export function readCollectionLinks(
       title: String(settings.title ?? 'Collection title'),
       productCount: Number(settings.productCount ?? 5),
       href,
+      imageUrl: String(settings.imageUrl ?? '').trim(),
     };
   });
 }
@@ -117,4 +119,131 @@ export function textAlignForAlignment(alignment: CollectionLinksSpotlightLayout[
   if (alignment === 'center') return 'center';
   if (alignment === 'right') return 'right';
   return 'left';
+}
+
+export type CollectionLinkTitleStyle = {
+  fontFamily: string;
+  fontSize: number;
+  fontWeight: number;
+  lineHeight: number;
+  letterSpacing: string;
+  textTransform: 'none' | 'uppercase';
+};
+
+export function readCollectionLinkTitleStyle(
+  config: Record<string, unknown> | null,
+  blockSettingsBase: string,
+  isTextLayout: boolean,
+  themeFonts?: { fontHeading: string; fontBody: string }
+): CollectionLinkTitleStyle {
+  const fontKey = cfgString(config, `${blockSettingsBase}.titleFont`, 'subheading');
+  const weightKey = cfgString(config, `${blockSettingsBase}.titleWeight`, 'default');
+  const lineHeightKey = cfgString(config, `${blockSettingsBase}.titleLineHeight`, 'normal');
+  const letterSpacingKey = cfgString(config, `${blockSettingsBase}.titleLetterSpacing`, 'normal');
+  const caseKey = cfgString(config, `${blockSettingsBase}.titleCase`, 'default');
+
+  const fontSizes: Record<string, number> = {
+    body: isTextLayout ? 12 : 18,
+    subheading: isTextLayout ? 12 : 20,
+    heading: isTextLayout ? 14 : 24,
+    accent: isTextLayout ? 12 : 22,
+  };
+  const weights: Record<string, number> = {
+    default: 500,
+    '300': 300,
+    '400': 400,
+    '500': 500,
+    '600': 600,
+    '700': 700,
+  };
+  const lineHeights: Record<string, number> = { normal: 1.25, tight: 1.1, loose: 1.4 };
+  const letterSpacings: Record<string, string> = {
+    normal: '0',
+    tight: '-0.02em',
+    wide: '0.04em',
+  };
+
+  const fontFamily =
+    fontKey === 'heading'
+      ? (themeFonts?.fontHeading ?? 'inherit')
+      : fontKey === 'accent'
+        ? (themeFonts?.fontBody ?? 'inherit')
+        : (themeFonts?.fontBody ?? 'inherit');
+
+  return {
+    fontFamily,
+    fontSize: fontSizes[fontKey] ?? (isTextLayout ? 12 : 22),
+    fontWeight: weights[weightKey] ?? 500,
+    lineHeight: lineHeights[lineHeightKey] ?? 1.25,
+    letterSpacing: letterSpacings[letterSpacingKey] ?? '0',
+    textTransform: caseKey === 'uppercase' ? 'uppercase' : 'none',
+  };
+}
+
+export type CollectionLinkImageStyle = {
+  maxHeight: number;
+  aspectRatio: string;
+  borderRadius: number;
+  objectFit: 'cover';
+};
+
+export function blockSettingsBaseForCollectionLink(
+  linkId: string,
+  templateId: string,
+  sectionId: string,
+  placement: 'layout' | 'template'
+): string {
+  return placement === 'template'
+    ? `templates.${templateId}.sections.${sectionId}.blocks.${linkId}.settings`
+    : `sections.${sectionId}.blocks.${linkId}.settings`;
+}
+
+export type CollectionLinkSpotlightMedia = {
+  linkId: string;
+  imageUrl: string;
+  imageStyle: CollectionLinkImageStyle;
+  imageFieldPath: string;
+};
+
+export function readCollectionLinkSpotlightMedia(
+  config: Record<string, unknown> | null,
+  link: CollectionLinkData | undefined,
+  layoutImageUrl: string,
+  templateId: string,
+  sectionId: string,
+  placement: 'layout' | 'template'
+): CollectionLinkSpotlightMedia | null {
+  if (!link) return null;
+  const blockBase = blockSettingsBaseForCollectionLink(link.id, templateId, sectionId, placement);
+  const imageUrl = link.imageUrl || layoutImageUrl;
+  if (!imageUrl) return null;
+  return {
+    linkId: link.id,
+    imageUrl,
+    imageStyle: readCollectionLinkImageStyle(config, blockBase),
+    imageFieldPath: `${blockBase}.imageUrl`,
+  };
+}
+
+export function readCollectionLinkImageStyle(
+  config: Record<string, unknown> | null,
+  blockSettingsBase: string
+): CollectionLinkImageStyle {
+  const heightKey = cfgString(config, `${blockSettingsBase}.imageHeight`, 'large');
+  const ratioKey = cfgString(config, `${blockSettingsBase}.imageRatio`, 'square');
+  const borderRadius = cfgNumber(config, `${blockSettingsBase}.imageCornerRadius`, 0);
+
+  const heights: Record<string, number> = { small: 160, medium: 200, large: 240 };
+  const ratios: Record<string, string> = {
+    square: '1 / 1',
+    portrait: '4 / 5',
+    landscape: '16 / 9',
+  };
+
+  return {
+    maxHeight: heights[heightKey] ?? 240,
+    aspectRatio: ratios[ratioKey] ?? '1 / 1',
+    borderRadius,
+    objectFit: 'cover',
+  };
 }

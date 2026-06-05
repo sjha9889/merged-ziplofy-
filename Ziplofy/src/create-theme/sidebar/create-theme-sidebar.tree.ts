@@ -254,6 +254,18 @@ import {
   isCollectionLinkBlockFieldsOnly,
   prepareCollectionLinkBlockSettingsNode,
 } from './theme-editor-collection-link-block-panel.utils';
+import {
+  collectionLinkTitleFieldDefsFromSchema,
+  isCollectionLinkTitleFieldNodeId,
+  isCollectionLinkTitlePanelField,
+  prepareCollectionLinkTitleSettingsNode,
+} from './theme-editor-collection-link-title-panel.utils';
+import {
+  collectionLinkImageFieldDefsFromSchema,
+  isCollectionLinkImageFieldNodeId,
+  isCollectionLinkImagePanelField,
+  prepareCollectionLinkImageSettingsNode,
+} from './theme-editor-collection-link-image-panel.utils';
 import { mapCollectionLinksSpotlightBlockNodes } from '../../utils/collection-links-spotlight-sidebar.util';
 import {
   isCollectionTileBlockFieldsOnly,
@@ -1663,9 +1675,9 @@ function sectionToNode(
                                                   )
                                                 : sec.label ?? blueprintId,
     kind: 'section',
-    icon: 'section',
+    icon: isCollectionLinksSpotlight ? 'link' : 'section',
     fields:
-      isHero
+      isHero || isCollectionLinksSpotlight
         ? undefined
         : remappedSectionFields.length
           ? remappedSectionFields
@@ -2305,6 +2317,25 @@ export function settingsNodeForSelection(
   if (node.fields?.length && isRecommendedProductsSettingsPanelFields(node.fields)) {
     return prepareRecommendedProductsSettingsNode(node);
   }
+  if (node.kind === 'field' && isCollectionLinkTitleFieldNodeId(node.id)) {
+    let fields = editorSchema ? collectionLinkTitleFieldDefsFromSchema(editorSchema, node.id) : [];
+    if (!fields.length) {
+      fields = (node.fields ?? []).filter(isCollectionLinkTitlePanelField);
+    }
+    if (fields.length) {
+      return prepareCollectionLinkTitleSettingsNode({ ...node, fields });
+    }
+  }
+  if (node.kind === 'field' && isCollectionLinkImageFieldNodeId(node.id)) {
+    let fields = editorSchema ? collectionLinkImageFieldDefsFromSchema(editorSchema, node.id) : [];
+    if (!fields.length) {
+      fields = (node.fields ?? []).filter(isCollectionLinkImagePanelField);
+    }
+    if (fields.length) {
+      return prepareCollectionLinkImageSettingsNode({ ...node, fields });
+    }
+  }
+
   if (node.fields?.length && isCollectionLinkBlockFieldsOnly(node.fields)) {
     return prepareCollectionLinkBlockSettingsNode(node);
   }

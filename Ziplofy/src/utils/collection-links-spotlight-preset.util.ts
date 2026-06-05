@@ -5,10 +5,18 @@ function makeLink() {
     type: 'collection-link',
     settings: {
       title: 'Collection title',
+      titleFont: 'subheading',
+      titleWeight: 'default',
+      titleLineHeight: 'normal',
+      titleLetterSpacing: 'normal',
+      titleCase: 'default',
       productCount: 5,
       collectionHandle: '',
       href: '/collections/all',
       imageUrl: '',
+      imageHeight: 'large',
+      imageRatio: 'square',
+      imageCornerRadius: 0,
     },
   };
 }
@@ -36,15 +44,8 @@ export function applyCollectionLinksSpotlightPreset(section: Record<string, unkn
   const order = Array.isArray(section.block_order) ? [...(section.block_order as string[])] : [];
 
   if (!order.length) {
-    const nextBlocks: Record<string, Record<string, unknown>> = {};
-    const nextOrder: string[] = [];
-    for (let i = 0; i < 4; i++) {
-      const id = `link_${i + 1}`;
-      nextBlocks[id] = makeLink();
-      nextOrder.push(id);
-    }
-    section.blocks = nextBlocks;
-    section.block_order = nextOrder;
+    section.blocks = { link_1: makeLink() };
+    section.block_order = ['link_1'];
     return;
   }
 

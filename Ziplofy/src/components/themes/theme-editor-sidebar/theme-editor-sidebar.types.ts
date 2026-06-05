@@ -11,6 +11,7 @@ export type SidebarNodeKind =
 export type SidebarIcon =
   | 'section'
   | 'text'
+  | 'title'
   | 'button'
   | 'image'
   | 'price'

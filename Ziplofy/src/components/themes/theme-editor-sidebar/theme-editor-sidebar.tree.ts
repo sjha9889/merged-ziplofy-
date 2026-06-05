@@ -1648,9 +1648,9 @@ function sectionToNode(
                                                   )
                                                 : sec.label ?? blueprintId,
     kind: 'section',
-    icon: 'section',
+    icon: isCollectionLinksSpotlight ? 'link' : 'section',
     fields:
-      isHero
+      isHero || isCollectionLinksSpotlight
         ? undefined
         : remappedSectionFields.length
           ? remappedSectionFields

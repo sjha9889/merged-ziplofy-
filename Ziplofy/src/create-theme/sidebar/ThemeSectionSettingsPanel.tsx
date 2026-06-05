@@ -234,6 +234,16 @@ import {
   prepareCollectionLinkBlockSettingsNode,
 } from './theme-editor-collection-link-block-panel.utils';
 import {
+  isCollectionLinkTitleFieldNodeId,
+  isCollectionLinkTitlePanelFields,
+  prepareCollectionLinkTitleSettingsNode,
+} from './theme-editor-collection-link-title-panel.utils';
+import {
+  isCollectionLinkImageFieldNodeId,
+  isCollectionLinkImagePanelFields,
+  prepareCollectionLinkImageSettingsNode,
+} from './theme-editor-collection-link-image-panel.utils';
+import {
   isCollectionTileBlockFieldsOnly,
   prepareCollectionTileBlockSettingsNode,
 } from './theme-editor-collection-tile-block-panel.utils';
@@ -2802,7 +2812,96 @@ function ProductHotspotsGroupedSettingsPanel({
   );
 }
 
-/** Collection link block: title, product count, collection. */
+/** Collection link Title field: typography only (title text comes from the collection). */
+function CollectionLinkTitleSettingsPanel({
+  fields,
+  values,
+  onFieldChange,
+}: {
+  fields: EditorFieldDef[];
+  values: Record<string, string | boolean>;
+  onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
+}) {
+  const prepared = prepareCollectionLinkTitleSettingsNode({
+    id: '',
+    label: 'Title',
+    kind: 'field',
+    fields,
+  });
+
+  return (
+    <div className="divide-y divide-[#e1e1e1]">
+      <p className="px-1 py-3 text-[13px] text-gray-600">Displays title from parent collection</p>
+      <div className="px-1 py-3">
+        <h3 className="mb-2 text-[13px] font-semibold text-gray-900">Typography</h3>
+        <div className="space-y-1">
+          {(prepared.fields ?? []).map((field) =>
+            field.widget === 'segmented' || field.path.endsWith('.titleCase') ? (
+              <SegmentedFieldRow
+                key={field.path}
+                field={field}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            ) : (
+              <InlineSelectFieldRow
+                key={field.path}
+                field={field}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            )
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Collection link Image field: layout only (image comes from the collection). */
+function CollectionLinkImageSettingsPanel({
+  fields,
+  values,
+  onFieldChange,
+}: {
+  fields: EditorFieldDef[];
+  values: Record<string, string | boolean>;
+  onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
+}) {
+  const prepared = prepareCollectionLinkImageSettingsNode({
+    id: '',
+    label: 'Image',
+    kind: 'field',
+    fields,
+  });
+
+  return (
+    <div className="divide-y divide-[#e1e1e1]">
+      <p className="px-1 py-3 text-[13px] text-gray-600">Displays image from parent collection</p>
+      <div className="space-y-1 px-1 py-3">
+        {(prepared.fields ?? []).map((field) =>
+          field.widget === 'slider' ? (
+            <SliderFieldRow
+              key={field.path}
+              field={field}
+              values={values}
+              onFieldChange={onFieldChange}
+            />
+          ) : (
+            <InlineSelectFieldRow
+              key={field.path}
+              field={field}
+              values={values}
+              onFieldChange={onFieldChange}
+            />
+          )
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Collection link block: collection handle only (title/image open from tree rows). */
 function CollectionLinkBlockSettingsPanel({
   fields,
   values,
@@ -2817,16 +2916,6 @@ function CollectionLinkBlockSettingsPanel({
   return (
     <div className="space-y-2 px-1 py-3">
       {(prepared.fields ?? []).map((field) => {
-        if (field.widget === 'image' || field.path.endsWith('.imageUrl')) {
-          return (
-            <ImagePickerFieldRow
-              key={field.path}
-              field={field}
-              values={values}
-              onFieldChange={onFieldChange}
-            />
-          );
-        }
         if (field.path.endsWith('.collectionHandle') || field.widget === 'collection') {
           return (
             <CollectionSelectFieldRow
@@ -7190,8 +7279,16 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
     node.label === 'Slideshow: Inset' || isSlideshowInsetSettingsPanelFields(fields);
   const isSlideshowSlideBlockPanel =
     node.label === 'Slide' || isSlideshowSlideBlockFieldsOnly(fields);
+  const isCollectionLinkTitlePanel =
+    node.label === 'Title' &&
+    (isCollectionLinkTitleFieldNodeId(node.id) || isCollectionLinkTitlePanelFields(fields));
+  const isCollectionLinkImagePanel =
+    node.label === 'Image' &&
+    (isCollectionLinkImageFieldNodeId(node.id) || isCollectionLinkImagePanelFields(fields));
   const isCollectionLinkBlockPanel =
-    node.label === 'Collection' || node.label === 'Collection link' || isCollectionLinkBlockFieldsOnly(fields);
+    !isCollectionLinkTitlePanel &&
+    !isCollectionLinkImagePanel &&
+    (node.label === 'Collection' || node.label === 'Collection link' || isCollectionLinkBlockFieldsOnly(fields));
   const isCollectionTileBlockPanel =
     node.label === 'Collection' || isCollectionTileBlockFieldsOnly(fields);
   const isStorytellingCarouselPanel =
@@ -7310,7 +7407,15 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
     <div className="flex h-full min-h-0 flex-col bg-white">
       <div className="flex shrink-0 items-center gap-2 border-b border-[#e1e1e1] bg-[#f6f6f7] px-2 py-2">
         <div className="flex min-w-0 flex-1 items-center gap-2 rounded-lg bg-[#005bd3] px-2 py-1.5 text-white">
-          <SectionIcon className="h-4 w-4 shrink-0 opacity-90" />
+          {isCollectionLinkTitlePanel ? (
+            <svg className="h-4 w-4 shrink-0 opacity-90" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
+              <text x="8" y="12" textAnchor="middle" fontSize="11" fontWeight="600" fontFamily="system-ui, sans-serif">
+                T
+              </text>
+            </svg>
+          ) : (
+            <SectionIcon className="h-4 w-4 shrink-0 opacity-90" />
+          )}
           <span className="truncate text-[13px] font-semibold">{node.label}</span>
         </div>
         <button
@@ -7538,6 +7643,18 @@ const ThemeSectionSettingsPanelInner: React.FC<ThemeSectionSettingsPanelProps> =
           />
         ) : isSlideshowSlideBlockPanel ? (
           <SlideshowSlideBlockSettingsPanel
+            fields={fields}
+            values={values}
+            onFieldChange={onFieldChange}
+          />
+        ) : isCollectionLinkTitlePanel ? (
+          <CollectionLinkTitleSettingsPanel
+            fields={fields}
+            values={values}
+            onFieldChange={onFieldChange}
+          />
+        ) : isCollectionLinkImagePanel ? (
+          <CollectionLinkImageSettingsPanel
             fields={fields}
             values={values}
             onFieldChange={onFieldChange}

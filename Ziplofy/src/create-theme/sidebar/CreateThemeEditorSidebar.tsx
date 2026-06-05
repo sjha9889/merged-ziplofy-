@@ -114,6 +114,14 @@ function SidebarRowIcon({ icon, muted }: { icon?: SidebarIcon; muted?: boolean }
       return <SectionIcon className={cls} />;
     case 'text':
       return <Bars3Icon className={cls} />;
+    case 'title':
+      return (
+        <svg className={cls} viewBox="0 0 16 16" fill="currentColor" aria-hidden>
+          <text x="8" y="12" textAnchor="middle" fontSize="11" fontWeight="600" fontFamily="system-ui, sans-serif">
+            T
+          </text>
+        </svg>
+      );
     case 'button':
       return <CursorArrowRaysIcon className={cls} />;
     case 'image':
@@ -377,7 +385,7 @@ function SidebarTreeRow({
   }
 
   const isAdd = node.kind === 'add-block' || node.kind === 'add-section';
-  const hasChildren = node.kind !== 'block' && Boolean(node.children?.length);
+  const hasChildren = Boolean(node.children?.length);
   const isOpen = expanded[node.id] === true;
   const isSelected = selectedNodeId === node.id;
   const isHidden = sidebarNodeIsHidden(node, hiddenNodes, visibilityValues);

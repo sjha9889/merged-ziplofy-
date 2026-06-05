@@ -32,14 +32,22 @@ export function serializeCollectionLinksPicker(handles: string[]): string {
 
 export type CollectionLinkBlockSettings = {
   title: string;
+  titleFont: string;
+  titleWeight: string;
+  titleLineHeight: string;
+  titleLetterSpacing: string;
+  titleCase: string;
   productCount: number;
   collectionHandle: string;
   href: string;
   imageUrl: string;
+  imageHeight: string;
+  imageRatio: string;
+  imageCornerRadius: number;
 };
 
 export function collectionLinkBlocksFromCollections(
-  collections: Pick<Collection, 'title' | 'urlHandle' | 'productCount'>[]
+  collections: Pick<Collection, 'title' | 'urlHandle' | 'productCount' | 'imageUrl'>[]
 ): {
   blocks: Record<string, { type: string; settings: CollectionLinkBlockSettings }>;
   block_order: string[];
@@ -55,10 +63,18 @@ export function collectionLinkBlocksFromCollections(
       type: 'collection-link',
       settings: {
         title: col.title?.trim() || 'Collection title',
+        titleFont: 'subheading',
+        titleWeight: 'default',
+        titleLineHeight: 'normal',
+        titleLetterSpacing: 'normal',
+        titleCase: 'default',
         productCount: Math.max(0, Number(col.productCount ?? 0)),
         collectionHandle: handle,
         href,
-        imageUrl: '',
+        imageUrl: col.imageUrl?.trim() || '',
+        imageHeight: 'large',
+        imageRatio: 'square',
+        imageCornerRadius: 0,
       },
     };
     block_order.push(id);
@@ -78,10 +94,18 @@ export function valuePathsForCollectionLinkBlocks(
     if (!settings) continue;
     const base = `${sectionBase}.blocks.${id}.settings`;
     out[`${base}.title`] = settings.title;
+    out[`${base}.titleFont`] = settings.titleFont;
+    out[`${base}.titleWeight`] = settings.titleWeight;
+    out[`${base}.titleLineHeight`] = settings.titleLineHeight;
+    out[`${base}.titleLetterSpacing`] = settings.titleLetterSpacing;
+    out[`${base}.titleCase`] = settings.titleCase;
     out[`${base}.productCount`] = String(settings.productCount);
     out[`${base}.collectionHandle`] = settings.collectionHandle;
     out[`${base}.href`] = settings.href;
     out[`${base}.imageUrl`] = settings.imageUrl ?? '';
+    out[`${base}.imageHeight`] = settings.imageHeight ?? 'large';
+    out[`${base}.imageRatio`] = settings.imageRatio ?? 'square';
+    out[`${base}.imageCornerRadius`] = String(settings.imageCornerRadius ?? 0);
   }
   return out;
 }
@@ -108,7 +132,7 @@ export function pruneCollectionLinkBlockValues(
 export function applyCollectionLinksSelectionToConfig(
   config: Record<string, unknown>,
   settingsPath: string,
-  collections: Pick<Collection, 'title' | 'urlHandle' | 'productCount'>[]
+  collections: Pick<Collection, 'title' | 'urlHandle' | 'productCount' | 'imageUrl'>[]
 ): { config: Record<string, unknown>; blockValuePaths: Record<string, string>; pickerValue: string } {
   const sectionBase = sectionBaseFromCollectionsPickerPath(settingsPath);
   if (!sectionBase) {

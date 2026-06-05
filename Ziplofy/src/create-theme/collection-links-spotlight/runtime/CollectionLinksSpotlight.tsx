@@ -1,4 +1,4 @@
-import { useMemo, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { useThemeConfig } from '@render-store/sdk';
 import { cfgString } from '../../runtime/shared/config';
@@ -7,8 +7,11 @@ import { layout, useThemeColors } from '../../runtime/shared/tokens';
 import type { SectionRuntimeProps } from '../../runtime/types';
 import { CollectionLinksSpotlightArt } from './CollectionLinksSpotlightArt';
 import {
+  blockSettingsBaseForCollectionLink,
   readCollectionLinks,
   readCollectionLinksSpotlightLayout,
+  readCollectionLinkSpotlightMedia,
+  readCollectionLinkTitleStyle,
   scopedCollectionLinksCss,
   textAlignForAlignment,
 } from './collectionLinksStyles';
@@ -19,7 +22,8 @@ export function CollectionLinksSpotlight({
   placement = 'template',
 }: SectionRuntimeProps) {
   const config = useThemeConfig();
-  const { fontBody } = useThemeColors();
+  const { fontBody, fontHeading } = useThemeColors();
+  const themeFonts = useMemo(() => ({ fontHeading, fontBody }), [fontHeading, fontBody]);
 
   const settingsBase =
     placement === 'template'
@@ -46,6 +50,30 @@ export function CollectionLinksSpotlight({
   const links = useMemo(
     () => readCollectionLinks(config, templateId, sectionId, placement),
     [config, templateId, sectionId, placement]
+  );
+
+  const [activeLinkId, setActiveLinkId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setActiveLinkId(links[0]?.id ?? null);
+  }, [links]);
+
+  const activeLink = useMemo(() => {
+    const id = activeLinkId ?? links[0]?.id;
+    return links.find((link) => link.id === id) ?? links[0];
+  }, [activeLinkId, links]);
+
+  const spotlightMedia = useMemo(
+    () =>
+      readCollectionLinkSpotlightMedia(
+        config,
+        activeLink,
+        layoutStyle.imageUrl,
+        templateId,
+        sectionId,
+        placement
+      ),
+    [activeLink, config, layoutStyle.imageUrl, placement, sectionId, templateId]
   );
 
   const customCss = scopedCollectionLinksCss(sectionId, layoutStyle.customCss);
@@ -95,8 +123,11 @@ export function CollectionLinksSpotlight({
     ? { marginLeft: 2, fontSize: 8, fontWeight: 400, color: layoutStyle.scheme.muted, verticalAlign: 'super' }
     : { marginLeft: 4, fontSize: '0.65em', fontWeight: 400, color: layoutStyle.scheme.muted };
 
+  const resetSpotlightToFirst = () => setActiveLinkId(links[0]?.id ?? null);
+
   const linksList = (
     <div
+      onMouseLeave={!isTextLayout ? resetSpotlightToFirst : undefined}
       style={
         isTextLayout
           ? {
@@ -128,20 +159,39 @@ export function CollectionLinksSpotlight({
       }
     >
       {links.map((link) => {
-        const blockBase =
-          placement === 'template'
-            ? `templates.${templateId}.sections.${sectionId}.blocks.${link.id}.settings`
-            : `sections.${sectionId}.blocks.${link.id}.settings`;
+        const blockBase = blockSettingsBaseForCollectionLink(
+          link.id,
+          templateId,
+          sectionId,
+          placement
+        );
         const blockNodeId =
           placement === 'template'
             ? `template:${templateId}:${sectionId}:block:${link.id}`
             : `layout:${sectionId}:block:${link.id}`;
 
         const to = link.href.startsWith('/') ? link.href : `/${link.href}`;
+        const titleStyle = readCollectionLinkTitleStyle(config, blockBase, isTextLayout, themeFonts);
+        const isActive = !isTextLayout && activeLink?.id === link.id;
 
         return (
           <EditorBlock key={link.id} nodeId={blockNodeId} label="Collection link">
-            <Link to={to} style={linkItemStyle}>
+            <Link
+              to={to}
+              onMouseEnter={!isTextLayout ? () => setActiveLinkId(link.id) : undefined}
+              onFocus={!isTextLayout ? () => setActiveLinkId(link.id) : undefined}
+              style={{
+                ...linkItemStyle,
+                fontFamily: titleStyle.fontFamily,
+                fontSize: titleStyle.fontSize,
+                fontWeight: isActive ? 600 : titleStyle.fontWeight,
+                lineHeight: titleStyle.lineHeight,
+                letterSpacing: titleStyle.letterSpacing,
+                textTransform: titleStyle.textTransform,
+                opacity: isActive ? 1 : 0.72,
+                transition: 'opacity 0.2s ease, font-weight 0.2s ease',
+              }}
+            >
               <EditorField fieldPath={`${blockBase}.title`} label="Title">
                 {link.title}
               </EditorField>
@@ -169,12 +219,23 @@ export function CollectionLinksSpotlight({
         padding: 24,
       }}
     >
-      {layoutStyle.imageUrl ? (
-        <img
-          src={layoutStyle.imageUrl}
-          alt=""
-          style={{ maxWidth: '100%', maxHeight: 240, objectFit: 'contain' }}
-        />
+      {spotlightMedia?.imageUrl ? (
+        <EditorField fieldPath={spotlightMedia.imageFieldPath} label="Image">
+          <img
+            key={spotlightMedia.imageUrl}
+            src={spotlightMedia.imageUrl}
+            alt=""
+            style={{
+              width: '100%',
+              maxWidth: '100%',
+              maxHeight: spotlightMedia.imageStyle.maxHeight,
+              aspectRatio: spotlightMedia.imageStyle.aspectRatio,
+              borderRadius: spotlightMedia.imageStyle.borderRadius,
+              objectFit: spotlightMedia.imageStyle.objectFit,
+              transition: 'opacity 0.25s ease',
+            }}
+          />
+        </EditorField>
       ) : (
         <CollectionLinksSpotlightArt />
       )}

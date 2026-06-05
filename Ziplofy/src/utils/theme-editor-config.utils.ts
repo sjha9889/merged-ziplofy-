@@ -10,6 +10,8 @@ import {
 export type SchemaFieldPath = { path: string; type: string; label: string };
 
 type BlockLike = {
+  id?: string;
+  type?: string;
   settingsFields?: EditorFieldDef[];
   blocks?: BlockLike[];
 };
@@ -117,6 +119,100 @@ function pushRemappedTemplateBlockFields(
   }
 }
 
+function settingKeyFromBlueprintFieldPath(path: string): string | null {
+  const m = path.match(/\.settings\.([^.]+)$/);
+  return m ? m[1] : null;
+}
+
+function schemaBlockForConfigBlock(
+  schemaBlocks: BlockLike[] | undefined,
+  blockInstanceId: string,
+  configBlock: { type?: unknown }
+): BlockLike | undefined {
+  if (!schemaBlocks?.length) return undefined;
+  const byId = schemaBlocks.find((b) => (b.id ?? '') === blockInstanceId);
+  if (byId) return byId;
+  const blockType = String(configBlock.type ?? '').trim();
+  if (!blockType) return undefined;
+  return schemaBlocks.find((b) => b.type === blockType || (b.id ?? '') === blockType);
+}
+
+function pushLayoutBlockInstanceFields(
+  instanceId: string,
+  sectionData: Record<string, unknown>,
+  schemaLayout: BlockLike,
+  out: SchemaFieldPath[],
+  seen: Set<string>
+): void {
+  const blocks = sectionData.blocks as Record<string, { type?: string }> | undefined;
+  if (!blocks || !schemaLayout.blocks?.length) return;
+  for (const [blockInstanceId, blockData] of Object.entries(blocks)) {
+    const schemaBlock = schemaBlockForConfigBlock(schemaLayout.blocks, blockInstanceId, blockData);
+    if (!schemaBlock?.settingsFields?.length) continue;
+    for (const field of schemaBlock.settingsFields) {
+      const key = settingKeyFromBlueprintFieldPath(field.path);
+      if (!key) continue;
+      const path = `sections.${instanceId}.blocks.${blockInstanceId}.settings.${key}`;
+      if (seen.has(path)) continue;
+      seen.add(path);
+      out.push({ path, type: field.type, label: field.label || path });
+    }
+  }
+}
+
+function pushTemplateBlockInstanceFields(
+  tplId: string,
+  instanceId: string,
+  sectionData: Record<string, unknown>,
+  schemaSection: BlockLike,
+  out: SchemaFieldPath[],
+  seen: Set<string>
+): void {
+  const blocks = sectionData.blocks as Record<string, { type?: string }> | undefined;
+  if (!blocks || !schemaSection.blocks?.length) return;
+  for (const [blockInstanceId, blockData] of Object.entries(blocks)) {
+    const schemaBlock = schemaBlockForConfigBlock(schemaSection.blocks, blockInstanceId, blockData);
+    if (!schemaBlock?.settingsFields?.length) continue;
+    for (const field of schemaBlock.settingsFields) {
+      const key = settingKeyFromBlueprintFieldPath(field.path);
+      if (!key) continue;
+      const path = `templates.${tplId}.sections.${instanceId}.blocks.${blockInstanceId}.settings.${key}`;
+      if (seen.has(path)) continue;
+      seen.add(path);
+      out.push({ path, type: field.type, label: field.label || path });
+    }
+  }
+}
+
+function resolveBlockInstanceFieldType(
+  path: string,
+  typeByPath: Map<string, string>
+): string | undefined {
+  const layoutBlock = path.match(/^sections\.([^.]+)\.blocks\.[^.]+\.settings\.([^.]+)$/);
+  if (layoutBlock) {
+    const [, sectionId, key] = layoutBlock;
+    const blueprint = layoutBlueprintKey(sectionId);
+    const prefix = `sections.${blueprint}.blocks.`;
+    for (const [p, type] of typeByPath) {
+      if (p.startsWith(prefix) && p.endsWith(`.settings.${key}`)) return type;
+    }
+  }
+
+  const tplBlock = path.match(
+    /^templates\.([^.]+)\.sections\.([^.]+)\.blocks\.[^.]+\.settings\.([^.]+)$/
+  );
+  if (tplBlock) {
+    const [, tplId, sectionId, key] = tplBlock;
+    const blueprint = templateBlueprintKey(sectionId);
+    const prefix = `templates.${tplId}.sections.${blueprint}.blocks.`;
+    for (const [p, type] of typeByPath) {
+      if (p.startsWith(prefix) && p.endsWith(`.settings.${key}`)) return type;
+    }
+  }
+
+  return undefined;
+}
+
 /**
  * Schema blueprint paths plus remapped paths for extra layout instances
  * (e.g. sections.announcement_bar_2.* added via "Add section").
@@ -151,6 +247,31 @@ export function collectEditableFieldPaths(
       if (!sec) continue;
       pushRemappedTemplateFields(sec.settingsFields, tplId, instanceId, out, seen);
       pushRemappedTemplateBlockFields(sec.blocks, tplId, instanceId, out, seen);
+    }
+  }
+
+  for (const [instanceId, sectionData] of Object.entries(sections)) {
+    const blueprint = layoutBlueprintKey(instanceId);
+    const layout = schema.layout?.[blueprint];
+    if (!layout || !sectionData || typeof sectionData !== 'object') continue;
+    pushLayoutBlockInstanceFields(instanceId, sectionData as Record<string, unknown>, layout, out, seen);
+  }
+
+  for (const [tplId, tpl] of Object.entries(templates ?? {})) {
+    const template = schema.templates?.find((t) => t.id === tplId);
+    if (!template?.sections?.length) continue;
+    for (const [instanceId, sectionData] of Object.entries(tpl.sections ?? {})) {
+      const blueprint = templateBlueprintKey(instanceId);
+      const sec = template.sections.find((s) => (s.id ?? '') === blueprint);
+      if (!sec || !sectionData || typeof sectionData !== 'object') continue;
+      pushTemplateBlockInstanceFields(
+        tplId,
+        instanceId,
+        sectionData as Record<string, unknown>,
+        sec,
+        out,
+        seen
+      );
     }
   }
 
@@ -235,6 +356,9 @@ function resolveFieldTypeForPath(
       'textarea'
     );
   }
+
+  const fromBlockInstance = resolveBlockInstanceFieldType(path, typeByPath);
+  if (fromBlockInstance) return fromBlockInstance;
 
   return undefined;
 }

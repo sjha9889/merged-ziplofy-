@@ -94,6 +94,14 @@ import {
   isAnnouncementBlockNodeId,
 } from './sidebar/theme-editor-announcement-block-panel.utils';
 import {
+  collectionLinkImageFieldDefsFromSchema,
+  isCollectionLinkImageFieldNodeId,
+} from './sidebar/theme-editor-collection-link-image-panel.utils';
+import {
+  collectionLinkTitleFieldDefsFromSchema,
+  isCollectionLinkTitleFieldNodeId,
+} from './sidebar/theme-editor-collection-link-title-panel.utils';
+import {
   headerMenuBlockFieldDefsFromSchema,
   instanceIdFromHeaderMenuBlockNodeId,
 } from './sidebar/theme-editor-header-menu-block-panel.utils';
@@ -393,6 +401,35 @@ const CreateThemePage: React.FC = () => {
       instanceId,
       blockInstanceId
     );
+    if (!defs.length) return;
+
+    setValues((prev) => {
+      const needsSeed = defs.some((f) => prev[f.path] === undefined);
+      if (!needsSeed) return prev;
+      const config = applyValuesToThemeConfig(defaultConfig, prev, editorSchema);
+      const fromConfig = formValuesFromEditorConfig(editorSchema, config);
+      const next = { ...prev };
+      let changed = false;
+      for (const f of defs) {
+        if (next[f.path] !== undefined) continue;
+        const seeded = fromConfig[f.path];
+        if (seeded === undefined) continue;
+        next[f.path] = seeded;
+        changed = true;
+      }
+      return changed ? next : prev;
+    });
+  }, [selectedNodeId, editorSchema, defaultConfig]);
+
+  /** Seed collection link Title/Image field paths (link_1.titleFont, etc.). */
+  useEffect(() => {
+    if (!editorSchema || !defaultConfig) return;
+    const isTitle = isCollectionLinkTitleFieldNodeId(selectedNodeId);
+    const isImage = isCollectionLinkImageFieldNodeId(selectedNodeId);
+    if (!isTitle && !isImage) return;
+    const defs = isTitle
+      ? collectionLinkTitleFieldDefsFromSchema(editorSchema, selectedNodeId)
+      : collectionLinkImageFieldDefsFromSchema(editorSchema, selectedNodeId);
     if (!defs.length) return;
 
     setValues((prev) => {
