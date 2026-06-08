@@ -1,7 +1,7 @@
 import type { EditorFieldDef, SidebarNode } from './create-theme-sidebar.types';
 import { filterSidebarSectionPanelFields } from './create-theme-field.utils';
 
-/** Shopify Horizon FAQ section settings order. */
+/** Shopify Horizon FAQ section settings order (matches theme editor screenshots). */
 export const FAQ_PANEL_GROUP_ORDER = [
   'Layout',
   'Size',
@@ -9,6 +9,25 @@ export const FAQ_PANEL_GROUP_ORDER = [
   'Padding',
   'Custom CSS',
 ] as const;
+
+export const FAQ_LAYOUT_FIELD_ORDER = [
+  'direction',
+  'layoutAlignment',
+  'position',
+  'layoutGap',
+] as const;
+
+export const FAQ_SIZE_FIELD_ORDER = ['sectionWidth', 'height'] as const;
+
+export const FAQ_APPEARANCE_FIELD_ORDER = [
+  'colorScheme',
+  'backgroundMedia',
+  'borderStyle',
+  'cornerRadius',
+  'backgroundOverlay',
+] as const;
+
+export const FAQ_PADDING_FIELD_ORDER = ['paddingTop', 'paddingBottom'] as const;
 
 const PANEL_GROUPS = new Set<string>(FAQ_PANEL_GROUP_ORDER);
 
@@ -64,6 +83,18 @@ export function sortFaqPanelFields(fields: EditorFieldDef[]): EditorFieldDef[] {
   });
 }
 
+export function sortFaqGroupFields(
+  fields: EditorFieldDef[],
+  order: readonly string[]
+): EditorFieldDef[] {
+  const rank = (path: string) => {
+    const key = path.split('.').pop() ?? '';
+    const idx = order.indexOf(key);
+    return idx >= 0 ? idx : 99;
+  };
+  return [...fields].sort((a, b) => rank(a.path) - rank(b.path));
+}
+
 export function groupFaqPanelFields(fields: EditorFieldDef[]): Map<string, EditorFieldDef[]> {
   const map = new Map<string, EditorFieldDef[]>();
   for (const field of fields) {
@@ -71,6 +102,15 @@ export function groupFaqPanelFields(fields: EditorFieldDef[]): Map<string, Edito
     const list = map.get(group) ?? [];
     list.push(field);
     map.set(group, list);
+  }
+  for (const [group, list] of map) {
+    if (group === 'Layout') map.set(group, sortFaqGroupFields(list, FAQ_LAYOUT_FIELD_ORDER));
+    else if (group === 'Size') map.set(group, sortFaqGroupFields(list, FAQ_SIZE_FIELD_ORDER));
+    else if (group === 'Appearance') {
+      map.set(group, sortFaqGroupFields(list, FAQ_APPEARANCE_FIELD_ORDER));
+    } else if (group === 'Padding') {
+      map.set(group, sortFaqGroupFields(list, FAQ_PADDING_FIELD_ORDER));
+    }
   }
   return map;
 }

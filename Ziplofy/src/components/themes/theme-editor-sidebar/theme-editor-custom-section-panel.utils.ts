@@ -1,5 +1,5 @@
-import type { EditorFieldDef, SidebarNode } from './create-theme-sidebar.types';
-import { filterSidebarSectionPanelFields } from './create-theme-field.utils';
+import type { EditorFieldDef, SidebarNode } from './theme-editor-sidebar.types';
+import { filterSidebarSectionPanelFields } from './theme-editor-field.utils';
 
 /** Shopify-style Custom section settings sheet order. */
 export const CUSTOM_SECTION_PANEL_GROUP_ORDER = [

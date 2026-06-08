@@ -5,6 +5,7 @@ import { Footer } from '../footer/runtime/Footer';
 import { Header } from '../header/runtime/Header';
 import { Hero } from '../hero/runtime/Hero';
 import { CollectionLinksSpotlight } from '../collection-links-spotlight/runtime/CollectionLinksSpotlight';
+import { Faq } from '../faq/runtime/Faq';
 import { ProductMain } from '../product-main/runtime/ProductMain';
 import { ProductHighlight } from '../product-highlight/runtime/ProductHighlight';
 /** Live UI components keyed by schema `section.type`. */
@@ -17,6 +18,7 @@ export const SECTION_RUNTIME_BY_TYPE: Record<string, SectionRuntimeComponent> = 
   'collection-links-spotlight': CollectionLinksSpotlight,
   'product-highlight': ProductHighlight,
   'product-main': ProductMain,
+  faq: Faq,
 };
 
 export function resolveRuntimeForSectionType(sectionType: string): SectionRuntimeComponent | null {

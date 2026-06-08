@@ -3,8 +3,8 @@ import {
   remapTemplateHeroSchemaPath,
   remapTemplateSchemaPath,
   templateBlueprintKey,
-} from '../../utils/theme-editor-insert-section';
-import type { EditorFieldDef, EditorSchemaDoc, SidebarNode } from './create-theme-sidebar.types';
+} from '../../../utils/theme-editor-insert-section';
+import type { EditorFieldDef, EditorSchemaDoc, SidebarNode } from './theme-editor-sidebar.types';
 
 export const HEADING_PANEL_GROUPS = new Set(['Text', 'Layout', 'Typography', 'Appearance', 'Padding']);
 

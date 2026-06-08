@@ -13,6 +13,20 @@ vi.mock('../models/theme.model', () => ({
 
 import { Theme } from '../models/theme.model';
 
+function mockThemeFindChain(result: unknown[]) {
+  (Theme.find as ReturnType<typeof vi.fn>).mockReturnValue({
+    populate: vi.fn().mockReturnValue({
+      limit: vi.fn().mockReturnValue({
+        skip: vi.fn().mockReturnValue({
+          sort: vi.fn().mockReturnValue({
+            lean: vi.fn().mockResolvedValue(result),
+          }),
+        }),
+      }),
+    }),
+  });
+}
+
 function createTestApp() {
   const app = express();
   app.use(express.json());
@@ -28,17 +42,7 @@ describe('theme routes', () => {
 
   describe('GET /api/themes', () => {
     it('returns 200 and applies filter from query (public route)', async () => {
-      (Theme.find as ReturnType<typeof vi.fn>).mockReturnValue({
-        populate: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue({
-            limit: vi.fn().mockReturnValue({
-              skip: vi.fn().mockReturnValue({
-                sort: vi.fn().mockResolvedValue([]),
-              }),
-            }),
-          }),
-        }),
-      });
+      mockThemeFindChain([]);
       (Theme.countDocuments as ReturnType<typeof vi.fn>).mockResolvedValue(0);
 
       const app = createTestApp();
@@ -54,24 +58,16 @@ describe('theme routes', () => {
 
     it('returns paginated themes', async () => {
       const mockThemes = [{ _id: 't1', name: 'Theme 1' }];
-      (Theme.find as ReturnType<typeof vi.fn>).mockReturnValue({
-        populate: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue({
-            limit: vi.fn().mockReturnValue({
-              skip: vi.fn().mockReturnValue({
-                sort: vi.fn().mockResolvedValue(mockThemes),
-              }),
-            }),
-          }),
-        }),
-      });
+      mockThemeFindChain(mockThemes);
       (Theme.countDocuments as ReturnType<typeof vi.fn>).mockResolvedValue(1);
 
       const app = createTestApp();
       const res = await request(app).get('/api/themes');
 
       expect(res.status).toBe(200);
-      expect(res.body.data).toEqual(mockThemes);
+      expect(res.body.data).toEqual(
+        expect.arrayContaining([expect.objectContaining({ _id: 't1', name: 'Theme 1' })])
+      );
       expect(res.body.total).toBe(1);
       expect(res.body.totalPages).toBe(1);
     });

@@ -1,4 +1,31 @@
-/** Shopify-style defaults for FAQ sections. */
+/** Shopify-style defaults for FAQ sections (Heading + Accordion rows). */
+
+import { FAQ_SECTION_BLOCK_ORDER } from './faq-sidebar.util';
+import { faqAccordionDefaultSettings } from '../create-theme/sidebar/theme-editor-faq-accordion-block-panel.utils';
+
+const DEFAULT_FAQ_HEADING_TEXT = 'Frequently asked questions';
+
+export const FAQ_HEADING_SECTION_STYLE_DEFAULTS: Record<string, string | number | boolean> = {
+  title: DEFAULT_FAQ_HEADING_TEXT,
+  headingWidth: 'fit',
+  headingMaxWidth: 'normal',
+  headingAlignment: 'left',
+  headingTypographyPreset: 'heading-2',
+  headingFont: 'body',
+  headingFontSize: '16px',
+  headingLineHeight: 'normal',
+  headingLetterSpacing: 'normal',
+  headingTextCase: 'default',
+  headingWrap: 'pretty',
+  headingColor: 'heading',
+  headingBackgroundEnabled: false,
+  headingBackgroundColor: '#00000026',
+  headingCornerRadius: 0,
+  headingPaddingTop: 0,
+  headingPaddingBottom: 0,
+  headingPaddingLeft: 0,
+  headingPaddingRight: 0,
+};
 
 const DEFAULT_FAQ_ITEMS: { question: string; answer: string }[] = [
   {
@@ -24,13 +51,133 @@ const DEFAULT_FAQ_ITEMS: { question: string; answer: string }[] = [
   },
 ];
 
+function faqHeadingBlockSettings(text = DEFAULT_FAQ_HEADING_TEXT): Record<string, string> {
+  return { heading: text };
+}
+
+export function faqSectionBlocks(): {
+  block_order: string[];
+  blocks: Record<string, unknown>;
+} {
+  const rowBlocks: Record<string, unknown> = {};
+  const rowOrder: string[] = [];
+  DEFAULT_FAQ_ITEMS.forEach((item, i) => {
+    const id = `row_${i + 1}`;
+    rowBlocks[id] = {
+      type: 'accordion-row',
+      settings: { question: item.question, answer: item.answer },
+    };
+    rowOrder.push(id);
+  });
+
+  return {
+    block_order: [...FAQ_SECTION_BLOCK_ORDER],
+    blocks: {
+      heading: {
+        type: 'heading',
+        settings: faqHeadingBlockSettings(),
+      },
+      accordion: {
+        type: 'group',
+        settings: { ...faqAccordionDefaultSettings() },
+        block_order: rowOrder,
+        blocks: rowBlocks,
+      },
+    },
+  };
+}
+
+function isLegacyFaqSection(blocks: Record<string, unknown> | undefined): boolean {
+  if (!blocks || typeof blocks !== 'object') return true;
+  if (blocks.heading && blocks.accordion) return false;
+  return Object.values(blocks).some((b) => {
+    const block = b as { type?: string };
+    return block.type === 'faq-item';
+  });
+}
+
+function migrateLegacyFaqBlocks(
+  section: Record<string, unknown>,
+  legacyHeading: string
+): boolean {
+  const blocks = (section.blocks ?? {}) as Record<string, Record<string, unknown>>;
+  const order = Array.isArray(section.block_order) ? [...section.block_order] : Object.keys(blocks);
+  const items = order
+    .map((id) => {
+      const block = blocks[id];
+      if (!block || block.type !== 'faq-item') return null;
+      const settings = (block.settings ?? {}) as Record<string, unknown>;
+      return {
+        id,
+        question: String(settings.question ?? ''),
+        answer: String(settings.answer ?? ''),
+      };
+    })
+    .filter((x): x is { id: string; question: string; answer: string } => x != null);
+
+  const rowBlocks: Record<string, unknown> = {};
+  const rowOrder: string[] = [];
+  items.forEach((item, i) => {
+    const rowId = `row_${i + 1}`;
+    rowBlocks[rowId] = {
+      type: 'accordion-row',
+      settings: { question: item.question, answer: item.answer },
+    };
+    rowOrder.push(rowId);
+  });
+
+  const preset = faqSectionBlocks();
+  const presetBlocks = preset.blocks as Record<string, Record<string, unknown>>;
+  const headingText = legacyHeading.trim() || DEFAULT_FAQ_HEADING_TEXT;
+  presetBlocks.heading.settings = faqHeadingBlockSettings(headingText);
+  if (rowOrder.length) {
+    presetBlocks.accordion.block_order = rowOrder;
+    presetBlocks.accordion.blocks = rowBlocks;
+  }
+
+  section.blocks = preset.blocks;
+  section.block_order = preset.block_order;
+  return true;
+}
+
+/** Sync FAQ heading onto shared heading block paths (`title` + `blocks.heading.settings.heading`). */
+function ensureFaqHeadingSettings(section: Record<string, unknown>): void {
+  const settings = (section.settings ?? {}) as Record<string, unknown>;
+  const blocks = (section.blocks ?? {}) as Record<string, Record<string, unknown>>;
+  const heading = (blocks.heading ?? { type: 'heading' }) as Record<string, unknown>;
+  const headingSettings = (heading.settings ?? {}) as Record<string, unknown>;
+
+  const legacyText = String(headingSettings.text ?? settings.heading ?? '').trim();
+  const title = String(settings.title ?? '').trim();
+  const blockHeading = String(headingSettings.heading ?? '').trim();
+  const canonical = title || blockHeading || legacyText || DEFAULT_FAQ_HEADING_TEXT;
+
+  settings.title = canonical;
+  heading.type = 'heading';
+  heading.settings = { ...headingSettings, heading: canonical };
+  delete (heading.settings as Record<string, unknown>).text;
+  blocks.heading = heading;
+
+  for (const [key, value] of Object.entries(FAQ_HEADING_SECTION_STYLE_DEFAULTS)) {
+    if (key === 'title') continue;
+    if (settings[key] === undefined) settings[key] = value;
+  }
+  if (!String(settings.title ?? '').trim()) {
+    settings.title = canonical;
+  }
+
+  section.settings = settings;
+  section.blocks = blocks;
+}
+
 export function applyFaqPreset(section: Record<string, unknown>): void {
   if (section.type !== 'faq') return;
 
   const settings = (section.settings ?? {}) as Record<string, unknown>;
+  const legacyHeading = String(settings.heading ?? '');
   settings.catalogVariant = 'faq';
-  settings.heading = settings.heading ?? 'Frequently asked questions';
-  settings.openFirstItem = settings.openFirstItem ?? false;
+  delete settings.heading;
+  delete settings.openFirstItem;
   settings.direction = settings.direction ?? 'vertical';
   settings.layoutAlignment = settings.layoutAlignment ?? settings.headingAlignment ?? 'left';
   settings.position = settings.position ?? 'center';
@@ -49,16 +196,58 @@ export function applyFaqPreset(section: Record<string, unknown>): void {
   delete settings.headingAlignment;
   section.settings = settings;
 
-  const blocks: Record<string, Record<string, unknown>> = {};
-  const block_order: string[] = [];
-  DEFAULT_FAQ_ITEMS.forEach((item, i) => {
-    const id = `faq_${i + 1}`;
-    blocks[id] = {
-      type: 'faq-item',
-      settings: { question: item.question, answer: item.answer },
-    };
-    block_order.push(id);
-  });
+  const blocks = section.blocks as Record<string, unknown> | undefined;
+  if (!blocks || isLegacyFaqSection(blocks)) {
+    if (isLegacyFaqSection(blocks) && blocks && Object.keys(blocks).length) {
+      migrateLegacyFaqBlocks(section, legacyHeading);
+    } else {
+      const preset = faqSectionBlocks();
+      section.blocks = preset.blocks;
+      section.block_order = preset.block_order;
+    }
+  }
+
+  ensureFaqHeadingSettings(section);
+  ensureFaqAccordionSettings(section);
+}
+
+function ensureFaqAccordionSettings(section: Record<string, unknown>): void {
+  const blocks = (section.blocks ?? {}) as Record<string, Record<string, unknown>>;
+  const accordion = (blocks.accordion ?? { type: 'group' }) as Record<string, unknown>;
+  const settings = (accordion.settings ?? {}) as Record<string, unknown>;
+  const defaults = faqAccordionDefaultSettings();
+
+  for (const [key, value] of Object.entries(defaults)) {
+    if (settings[key] === undefined) settings[key] = value;
+  }
+
+  accordion.type = 'group';
+  accordion.settings = settings;
+  blocks.accordion = accordion;
   section.blocks = blocks;
-  section.block_order = block_order;
+}
+
+export function ensureFaqSectionBlocks(config: Record<string, unknown>): boolean {
+  let changed = false;
+  const templates = config.templates as Record<string, { sections?: Record<string, unknown> }> | undefined;
+  if (templates) {
+    for (const tpl of Object.values(templates)) {
+      for (const sec of Object.values(tpl.sections ?? {})) {
+        if ((sec as { type?: string }).type !== 'faq') continue;
+        const before = JSON.stringify(sec);
+        applyFaqPreset(sec as Record<string, unknown>);
+        if (JSON.stringify(sec) !== before) changed = true;
+      }
+    }
+  }
+  const layoutSections = config.sections as Record<string, unknown> | undefined;
+  if (layoutSections) {
+    for (const sec of Object.values(layoutSections)) {
+      if ((sec as { type?: string }).type !== 'faq') continue;
+      const before = JSON.stringify(sec);
+      applyFaqPreset(sec as Record<string, unknown>);
+      if (JSON.stringify(sec) !== before) changed = true;
+    }
+  }
+  return changed;
 }

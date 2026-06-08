@@ -1,5 +1,5 @@
-import type { EditorFieldDef, SidebarNode } from './create-theme-sidebar.types';
-import { filterSidebarSectionPanelFields } from './create-theme-field.utils';
+import type { EditorFieldDef, SidebarNode } from './theme-editor-sidebar.types';
+import { filterSidebarSectionPanelFields } from './theme-editor-field.utils';
 
 /** Shopify-style Email signup section settings sheet order. */
 export const EMAIL_SIGNUP_PANEL_GROUP_ORDER = [

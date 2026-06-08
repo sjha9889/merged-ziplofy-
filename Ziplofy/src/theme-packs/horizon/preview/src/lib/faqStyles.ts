@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { getThemeConfigValue } from '@render-store/sdk';
 import { cfgBool, cfgNumber, cfgString } from './config';
 import { layoutBlockOrder, templateBlockOrder } from './structureOrder';
@@ -59,6 +60,11 @@ export function readFaqLayout(
     cfgString(config, `${settingsBase}.layoutAlignment`, '') ||
     cfgString(config, `${settingsBase}.headingAlignment`, 'left');
   const height = cfgString(config, `${settingsBase}.height`, 'auto');
+  const accordionBase = settingsBase.replace(/\.settings$/, '.blocks.accordion.settings');
+  const openFirstItem =
+    cfgBool(config, `${accordionBase}.openFirstItem`, false) ||
+    cfgBool(config, `${settingsBase}.openFirstItem`, false);
+
   return {
     scheme: SCHEMES[schemeKey] ?? SCHEMES['scheme-1'],
     direction: dir === 'horizontal' ? 'horizontal' : 'vertical',
@@ -66,7 +72,7 @@ export function readFaqLayout(
       alignRaw === 'center' || alignRaw === 'right' ? alignRaw : 'left',
     position: cfgString(config, `${settingsBase}.position`, 'center'),
     layoutGap: cfgNumber(config, `${settingsBase}.layoutGap`, 32),
-    openFirstItem: cfgBool(config, `${settingsBase}.openFirstItem`, false),
+    openFirstItem,
     sectionWidth: cfgString(config, `${settingsBase}.sectionWidth`, 'page') === 'full' ? 'full' : 'page',
     height,
     minHeightPx: HEIGHT_PX[height] ?? 0,
@@ -81,6 +87,111 @@ export function readFaqLayout(
   };
 }
 
+const ACCORDION_TYPOGRAPHY_PRESETS: Record<
+  string,
+  { fontSize: number; fontWeight: number; lineHeight: number; fontFamilyKey: 'heading' | 'body' }
+> = {
+  default: { fontSize: 16, fontWeight: 400, lineHeight: 1.4, fontFamilyKey: 'body' },
+  paragraph: { fontSize: 15, fontWeight: 400, lineHeight: 1.5, fontFamilyKey: 'body' },
+  body: { fontSize: 15, fontWeight: 400, lineHeight: 1.5, fontFamilyKey: 'body' },
+  'heading-1': { fontSize: 40, fontWeight: 700, lineHeight: 1.15, fontFamilyKey: 'heading' },
+  'heading-2': { fontSize: 32, fontWeight: 600, lineHeight: 1.2, fontFamilyKey: 'heading' },
+  'heading-3': { fontSize: 24, fontWeight: 600, lineHeight: 1.25, fontFamilyKey: 'heading' },
+  'heading-4': { fontSize: 20, fontWeight: 600, lineHeight: 1.3, fontFamilyKey: 'heading' },
+  'heading-5': { fontSize: 18, fontWeight: 600, lineHeight: 1.35, fontFamilyKey: 'heading' },
+  'heading-6': { fontSize: 14, fontWeight: 600, lineHeight: 1.4, fontFamilyKey: 'heading' },
+};
+
+export type FaqAccordionStyle = {
+  icon: 'caret' | 'plus';
+  dividers: boolean;
+  headingTypographyPreset: string;
+  inheritColorScheme: boolean;
+  borderStyle: string;
+  cornerRadius: number;
+  paddingTop: number;
+  paddingBottom: number;
+  paddingLeft: number;
+  paddingRight: number;
+  openFirstItem: boolean;
+};
+
+export function readFaqAccordionStyle(
+  config: Record<string, unknown> | null,
+  accordionSettingsBase: string
+): FaqAccordionStyle {
+  const iconRaw = cfgString(config, `${accordionSettingsBase}.icon`, 'caret');
+  return {
+    icon: iconRaw === 'plus' ? 'plus' : 'caret',
+    dividers: cfgBool(config, `${accordionSettingsBase}.dividers`, true),
+    headingTypographyPreset: cfgString(
+      config,
+      `${accordionSettingsBase}.headingTypographyPreset`,
+      'heading-5'
+    ),
+    inheritColorScheme: cfgBool(config, `${accordionSettingsBase}.inheritColorScheme`, false),
+    borderStyle: cfgString(config, `${accordionSettingsBase}.borderStyle`, 'none'),
+    cornerRadius: cfgNumber(config, `${accordionSettingsBase}.cornerRadius`, 0),
+    paddingTop: cfgNumber(config, `${accordionSettingsBase}.paddingTop`, 0),
+    paddingBottom: cfgNumber(config, `${accordionSettingsBase}.paddingBottom`, 0),
+    paddingLeft: cfgNumber(config, `${accordionSettingsBase}.paddingLeft`, 0),
+    paddingRight: cfgNumber(config, `${accordionSettingsBase}.paddingRight`, 0),
+    openFirstItem: cfgBool(config, `${accordionSettingsBase}.openFirstItem`, false),
+  };
+}
+
+export function accordionQuestionTypography(
+  preset: string,
+  themeFonts: { fontHeading: string; fontBody: string }
+): Pick<CSSProperties, 'fontSize' | 'fontWeight' | 'lineHeight' | 'fontFamily'> {
+  const typo = ACCORDION_TYPOGRAPHY_PRESETS[preset] ?? ACCORDION_TYPOGRAPHY_PRESETS['heading-5'];
+  return {
+    fontFamily: typo.fontFamilyKey === 'heading' ? themeFonts.fontHeading : themeFonts.fontBody,
+    fontSize: typo.fontSize,
+    fontWeight: typo.fontWeight,
+    lineHeight: typo.lineHeight,
+  };
+}
+
+export function readFaqHeading(
+  config: Record<string, unknown> | null,
+  sectionBase: string,
+  settingsBase: string
+): string {
+  const blocksBase = `${sectionBase}.blocks`;
+  const title = cfgString(config, `${settingsBase}.title`, '');
+  const blockHeading = cfgString(config, `${blocksBase}.heading.settings.heading`, '');
+  const legacyText = cfgString(config, `${blocksBase}.heading.settings.text`, '');
+  const legacySectionHeading = cfgString(config, `${settingsBase}.heading`, '');
+  if (title.trim()) return title;
+  if (blockHeading.trim()) return blockHeading;
+  if (legacyText.trim()) return legacyText;
+  if (legacySectionHeading.trim()) return legacySectionHeading;
+  return 'Frequently asked questions';
+}
+
+function readLegacyFaqItems(
+  config: Record<string, unknown> | null,
+  sectionBase: string,
+  order: string[]
+): FaqItem[] {
+  const blocksMap = getThemeConfigValue(config, `${sectionBase}.blocks`) as
+    | Record<string, Record<string, unknown>>
+    | null;
+  if (!blocksMap) return [];
+  const ids = order.length ? order : Object.keys(blocksMap);
+  return ids
+    .map((id) => {
+      const block = blocksMap[id];
+      if (!block || block.type !== 'faq-item') return null;
+      const settings = (block.settings ?? {}) as Record<string, unknown>;
+      const question = String(settings.question ?? '').trim();
+      if (!question) return null;
+      return { id, question, answer: String(settings.answer ?? '') };
+    })
+    .filter((x): x is FaqItem => x != null);
+}
+
 export function readFaqItems(
   config: Record<string, unknown> | null,
   templateId: string,
@@ -91,29 +202,34 @@ export function readFaqItems(
     placement === 'template'
       ? `templates.${templateId}.sections.${sectionId}`
       : `sections.${sectionId}`;
-  const blocksPath = `${sectionBase}.blocks`;
+
+  const sectionRecord = getThemeConfigValue(config, sectionBase) as Record<string, unknown> | null;
+  const blocksMap = (sectionRecord?.blocks ?? {}) as Record<string, Record<string, unknown>>;
+  const accordionBlock = blocksMap.accordion as
+    | { blocks?: Record<string, Record<string, unknown>>; block_order?: string[] }
+    | undefined;
+
+  if (accordionBlock?.blocks) {
+    const order = Array.isArray(accordionBlock.block_order)
+      ? accordionBlock.block_order
+      : Object.keys(accordionBlock.blocks);
+    return order
+      .map((id) => {
+        const block = accordionBlock.blocks?.[id];
+        if (!block) return null;
+        const settings = (block.settings ?? {}) as Record<string, unknown>;
+        const question = String(settings.question ?? '').trim();
+        if (!question) return null;
+        return { id, question, answer: String(settings.answer ?? '') };
+      })
+      .filter((x): x is FaqItem => x != null);
+  }
+
   const order =
     placement === 'template'
       ? templateBlockOrder(config, templateId, sectionId, [])
       : layoutBlockOrder(config, sectionId, []);
-  const blocksMap = getThemeConfigValue(config, blocksPath) as Record<string, Record<string, unknown>> | null;
-  if (!blocksMap || typeof blocksMap !== 'object') return [];
-
-  const ids = order.length ? order : Object.keys(blocksMap);
-  return ids
-    .map((id) => {
-      const block = blocksMap[id];
-      if (!block) return null;
-      const settings = (block.settings ?? {}) as Record<string, unknown>;
-      const question = String(settings.question ?? '').trim();
-      if (!question) return null;
-      return {
-        id,
-        question,
-        answer: String(settings.answer ?? ''),
-      };
-    })
-    .filter((x): x is FaqItem => x != null);
+  return readLegacyFaqItems(config, sectionBase, order);
 }
 
 export function scopedFaqCss(sectionId: string, customCss: string): string {

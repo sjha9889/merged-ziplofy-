@@ -2,7 +2,6 @@ import { useEffect, type CSSProperties } from 'react';
 import {
   prepareRichTextHtmlForPreview,
   richTextHasBlockMarkup,
-  sanitizeThemeRichTextHtml,
 } from '../../../utils/theme-editor-rich-text.util';
 import './theme-editor-rich-text.css';
 

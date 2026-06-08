@@ -186,6 +186,9 @@ import {
 import {
   groupFaqPanelFields,
   FAQ_PANEL_GROUP_ORDER,
+  FAQ_LAYOUT_FIELD_ORDER,
+  FAQ_APPEARANCE_FIELD_ORDER,
+  sortFaqGroupFields,
   isFaqSettingsPanelFields,
 } from './theme-editor-faq-panel.utils';
 import {
@@ -6532,6 +6535,131 @@ function IconsWithTextGroupedSettingsPanel({
   );
 }
 
+function FaqLayoutSettingsGroup({
+  fields,
+  values,
+  onFieldChange,
+}: {
+  fields: EditorFieldDef[];
+  values: Record<string, string | boolean>;
+  onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
+}) {
+  const ordered = sortFaqGroupFields(fields, FAQ_LAYOUT_FIELD_ORDER);
+
+  return (
+    <div className="px-1 py-3">
+      <h3 className="mb-2 text-[13px] font-semibold text-gray-900">Layout</h3>
+      <div className="space-y-1">
+        {ordered.map((field) => {
+          if (field.widget === 'segmented') {
+            return (
+              <SegmentedFieldRow
+                key={field.path}
+                field={field}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            );
+          }
+          if (field.widget === 'slider') {
+            return (
+              <SliderFieldRow key={field.path} field={field} values={values} onFieldChange={onFieldChange} />
+            );
+          }
+          return (
+            <InlineSelectFieldRow
+              key={field.path}
+              field={field}
+              values={values}
+              onFieldChange={onFieldChange}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function FaqAppearanceSettingsGroup({
+  fields,
+  values,
+  onFieldChange,
+}: {
+  fields: EditorFieldDef[];
+  values: Record<string, string | boolean>;
+  onFieldChange: (path: string, type: ThemeEditorFieldType, value: string | boolean) => void;
+}) {
+  const bgMediaField = fields.find((f) => f.path.endsWith('backgroundMedia'));
+  const bgImageField = fields.find((f) => f.path.endsWith('backgroundImageUrl'));
+  const bgMedia = bgMediaField ? fieldValueAsString(values, bgMediaField) || 'none' : 'none';
+  const ordered = sortFaqGroupFields(
+    fields.filter((f) => f.path.split('.').pop() !== 'backgroundImageUrl'),
+    FAQ_APPEARANCE_FIELD_ORDER
+  );
+
+  return (
+    <div className="px-1 py-3">
+      <h3 className="mb-2 text-[13px] font-semibold text-gray-900">Appearance</h3>
+      <div className="space-y-1">
+        {ordered.map((field) => {
+          const key = field.path.split('.').pop() ?? '';
+          if (key === 'backgroundOverlay') {
+            return (
+              <ToggleSwitchFieldRow
+                key={field.path}
+                field={field}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            );
+          }
+          if (field.widget === 'color-scheme') {
+            return (
+              <ColorSchemeFieldRow
+                key={field.path}
+                field={field}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            );
+          }
+          if (field.widget === 'segmented') {
+            return (
+              <SegmentedFieldRow
+                key={field.path}
+                field={field}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            );
+          }
+          if (field.widget === 'slider') {
+            return (
+              <SliderFieldRow key={field.path} field={field} values={values} onFieldChange={onFieldChange} />
+            );
+          }
+          if (field.widget === 'select-inline') {
+            return (
+              <InlineSelectFieldRow
+                key={field.path}
+                field={field}
+                values={values}
+                onFieldChange={onFieldChange}
+              />
+            );
+          }
+          return (
+            <SettingsFieldRow key={field.path} field={field} values={values} onFieldChange={onFieldChange} />
+          );
+        })}
+        {bgMedia === 'image' && bgImageField ? (
+          <ImagePickerFieldRow field={bgImageField} values={values} onFieldChange={onFieldChange} />
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 /** FAQ: Layout → Size → Appearance → Padding → Custom CSS. */
 function FaqGroupedSettingsPanel({
   fields,
@@ -6552,7 +6680,7 @@ function FaqGroupedSettingsPanel({
 
         if (label === 'Layout') {
           return (
-            <SplitShowcaseLayoutSettingsGroup
+            <FaqLayoutSettingsGroup
               key={label}
               fields={groupFields}
               values={values}
@@ -6574,7 +6702,7 @@ function FaqGroupedSettingsPanel({
 
         if (label === 'Appearance') {
           return (
-            <ContactFormAppearanceSettingsGroup
+            <FaqAppearanceSettingsGroup
               key={label}
               fields={groupFields}
               values={values}

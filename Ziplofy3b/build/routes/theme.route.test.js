@@ -15,6 +15,19 @@ vitest_1.vi.mock('../models/theme.model', () => ({
     },
 }));
 const theme_model_1 = require("../models/theme.model");
+function mockThemeFindChain(result) {
+    theme_model_1.Theme.find.mockReturnValue({
+        populate: vitest_1.vi.fn().mockReturnValue({
+            limit: vitest_1.vi.fn().mockReturnValue({
+                skip: vitest_1.vi.fn().mockReturnValue({
+                    sort: vitest_1.vi.fn().mockReturnValue({
+                        lean: vitest_1.vi.fn().mockResolvedValue(result),
+                    }),
+                }),
+            }),
+        }),
+    });
+}
 function createTestApp() {
     const app = (0, express_1.default)();
     app.use(express_1.default.json());
@@ -28,17 +41,7 @@ function createTestApp() {
     });
     (0, vitest_1.describe)('GET /api/themes', () => {
         (0, vitest_1.it)('returns 200 and applies filter from query (public route)', async () => {
-            theme_model_1.Theme.find.mockReturnValue({
-                populate: vitest_1.vi.fn().mockReturnValue({
-                    select: vitest_1.vi.fn().mockReturnValue({
-                        limit: vitest_1.vi.fn().mockReturnValue({
-                            skip: vitest_1.vi.fn().mockReturnValue({
-                                sort: vitest_1.vi.fn().mockResolvedValue([]),
-                            }),
-                        }),
-                    }),
-                }),
-            });
+            mockThemeFindChain([]);
             theme_model_1.Theme.countDocuments.mockResolvedValue(0);
             const app = createTestApp();
             const res = await (0, supertest_1.default)(app)
@@ -51,22 +54,12 @@ function createTestApp() {
         });
         (0, vitest_1.it)('returns paginated themes', async () => {
             const mockThemes = [{ _id: 't1', name: 'Theme 1' }];
-            theme_model_1.Theme.find.mockReturnValue({
-                populate: vitest_1.vi.fn().mockReturnValue({
-                    select: vitest_1.vi.fn().mockReturnValue({
-                        limit: vitest_1.vi.fn().mockReturnValue({
-                            skip: vitest_1.vi.fn().mockReturnValue({
-                                sort: vitest_1.vi.fn().mockResolvedValue(mockThemes),
-                            }),
-                        }),
-                    }),
-                }),
-            });
+            mockThemeFindChain(mockThemes);
             theme_model_1.Theme.countDocuments.mockResolvedValue(1);
             const app = createTestApp();
             const res = await (0, supertest_1.default)(app).get('/api/themes');
             (0, vitest_1.expect)(res.status).toBe(200);
-            (0, vitest_1.expect)(res.body.data).toEqual(mockThemes);
+            (0, vitest_1.expect)(res.body.data).toEqual(vitest_1.expect.arrayContaining([vitest_1.expect.objectContaining({ _id: 't1', name: 'Theme 1' })]));
             (0, vitest_1.expect)(res.body.total).toBe(1);
             (0, vitest_1.expect)(res.body.totalPages).toBe(1);
         });

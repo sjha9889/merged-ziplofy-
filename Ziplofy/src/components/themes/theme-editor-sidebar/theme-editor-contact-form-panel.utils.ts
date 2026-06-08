@@ -1,5 +1,5 @@
-import type { EditorFieldDef, SidebarNode } from './create-theme-sidebar.types';
-import { filterSidebarSectionPanelFields } from './create-theme-field.utils';
+import type { EditorFieldDef, SidebarNode } from './theme-editor-sidebar.types';
+import { filterSidebarSectionPanelFields } from './theme-editor-field.utils';
 
 /** Shopify-style Contact form section settings sheet order. */
 export const CONTACT_FORM_PANEL_GROUP_ORDER = [

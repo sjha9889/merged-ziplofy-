@@ -151,13 +151,7 @@ export function Hero({
   const isLargeLogo = catalogVariant === 'large-logo';
   const isClassicHero = !isBottomAligned && !isMarquee && !isLargeLogo;
 
-  const title = cfgString(
-    config,
-    `${settingsBase}.title`,
-    'Browse our latest products'
-  );
   const subtitle = cfgString(config, `${settingsBase}.subtitle`, '');
-  const eyebrow = cfgString(config, `${settingsBase}.eyebrow`, '');
 
   const hero = useMemo(
     () =>

@@ -83,6 +83,7 @@ import {
   normalizeCreatorThemeConfig,
 } from '../utils/theme-editor-static-pack';
 import { ensureFeaturedProductSectionBlocks } from '../utils/featured-product-preset.util';
+import { ensureFaqSectionBlocks } from '../utils/faq-preset.util';
 import { mergedConfigFromFormValues } from '../utils/theme-editor-static-save';
 import { fieldTypeFromSchema, type ThemeEditorFieldType } from './sidebar/create-theme-field.utils';
 import {
@@ -288,7 +289,7 @@ const CreateThemePage: React.FC = () => {
         }
 
         normalizeCreatorThemeConfig(config);
-        if (ensureFeaturedProductSectionBlocks(config)) {
+        if (ensureFeaturedProductSectionBlocks(config) || ensureFaqSectionBlocks(config)) {
           nextValues = {
             ...nextValues,
             ...formValuesFromEditorConfig(schema, config),
@@ -482,7 +483,7 @@ const CreateThemePage: React.FC = () => {
     setDefaultConfig((prev) => {
       if (!prev) return prev;
       const draft = JSON.parse(JSON.stringify(prev)) as Record<string, unknown>;
-      if (!ensureFeaturedProductSectionBlocks(draft)) return prev;
+      if (!ensureFeaturedProductSectionBlocks(draft) && !ensureFaqSectionBlocks(draft)) return prev;
       return draft;
     });
   }, [selectedNodeId]);

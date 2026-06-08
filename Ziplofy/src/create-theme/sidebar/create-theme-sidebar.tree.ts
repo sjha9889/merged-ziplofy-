@@ -213,8 +213,20 @@ import {
   isFaqSettingsPanelFields,
   isFaqBlockField,
   prepareFaqSettingsNode,
-  prepareFaqBlockSettingsNode,
 } from './theme-editor-faq-panel.utils';
+import {
+  faqAccordionFieldDefsFromNodeId,
+  faqAccordionFieldDefsFromSchema,
+  isFaqAccordionBlockNodeId,
+  prepareFaqAccordionSettingsNode,
+} from './theme-editor-faq-accordion-block-panel.utils';
+import {
+  faqAccordionRowFieldDefsFromNodeId,
+  faqAccordionRowFieldDefsFromSchema,
+  isFaqAccordionRowNestedNodeId,
+  isFaqAccordionRowField,
+  prepareFaqAccordionRowSettingsNode,
+} from './theme-editor-faq-accordion-row-panel.utils';
 import {
   isIconsWithTextSectionType,
   isIconsWithTextSettingsPanelFields,
@@ -332,6 +344,7 @@ import {
 } from './theme-editor-collection-link-image-panel.utils';
 import { mapCollectionLinksSpotlightBlockNodes } from '../../utils/collection-links-spotlight-sidebar.util';
 import { mapFeaturedProductBlockNodes } from '../../utils/featured-product-sidebar.util';
+import { mapFaqBlockNodes } from '../../utils/faq-sidebar.util';
 import {
   isCollectionTileBlockFieldsOnly,
   prepareCollectionTileBlockSettingsNode,
@@ -1244,7 +1257,27 @@ function layoutSectionNode(
         isFeaturedCollectionLayout ? { innerAddBlockPlacement: 'top' } : undefined
       )
     : [];
-  if ((isFaqLayout || isIconsWithTextLayout || isMulticolumnLayout) && remappedBlocks?.length) {
+  if (isFaqLayout) {
+    const blocksBase = `sections.${instanceId}.blocks`;
+    const addBlock: SidebarNode = { id: `${id}:add-block`, label: 'Add block', kind: 'add-block' };
+    blockNodes = reorderSidebarChildren(
+      [
+        addBlock,
+        ...mapFaqBlockNodes(
+          id,
+          blocksBase,
+          values,
+          itemOrder,
+          layoutChildrenKey,
+          config,
+          null,
+          instanceId
+        ),
+      ],
+      layoutChildrenKey,
+      itemOrder
+    );
+  } else if ((isIconsWithTextLayout || isMulticolumnLayout) && remappedBlocks?.length) {
     blockNodes = mapBlockNodes(
       remappedBlocks,
       id,
@@ -1632,6 +1665,21 @@ function sectionToNode(
           tplId,
           secId
         )
+      : isFaq
+        ? (() => {
+            const addBlock: SidebarNode = { id: `${prefix}:add-block`, label: 'Add block', kind: 'add-block' };
+            const nodes = mapFaqBlockNodes(
+              prefix,
+              blocksBase,
+              values,
+              itemOrder,
+              childrenListKey,
+              config,
+              tplId,
+              secId
+            );
+            return reorderSidebarChildren([addBlock, ...nodes], childrenListKey, itemOrder);
+          })()
       : heroVisibleBlocks.length
       ? isHero
         ? mapHeroBlockNodes(heroVisibleBlocks, prefix, `${prefix}:add-block`, values, itemOrder, childrenListKey)
@@ -2455,11 +2503,30 @@ export function settingsNodeForSelection(
   if (node.fields?.length && isFaqSettingsPanelFields(node.fields)) {
     return prepareFaqSettingsNode(node);
   }
+
+  if (isFaqAccordionBlockNodeId(node.id)) {
+    const fields = editorSchema
+      ? faqAccordionFieldDefsFromSchema(editorSchema, node.id)
+      : faqAccordionFieldDefsFromNodeId(node.id);
+    if (fields.length) {
+      return prepareFaqAccordionSettingsNode({ ...node, fields });
+    }
+  }
+
+  if (isFaqAccordionRowNestedNodeId(node.id)) {
+    const fields = editorSchema
+      ? faqAccordionRowFieldDefsFromSchema(editorSchema, node.id)
+      : faqAccordionRowFieldDefsFromNodeId(node.id);
+    if (fields.length) {
+      return prepareFaqAccordionRowSettingsNode({ ...node, fields });
+    }
+  }
+
   if (node.fields?.length && isIconsWithTextSettingsPanelFields(node.fields)) {
     return prepareIconsWithTextSettingsNode(node);
   }
-  if (node.fields?.length && node.fields.every(isFaqBlockField)) {
-    return prepareFaqBlockSettingsNode(node);
+  if (node.fields?.length && node.fields.every((f) => isFaqBlockField(f) || isFaqAccordionRowField(f))) {
+    return prepareFaqAccordionRowSettingsNode(node);
   }
   if (node.fields?.length && isAnnouncementBlockPanelFields(node.fields)) {
     return prepareAnnouncementBlockSettingsNode(node);

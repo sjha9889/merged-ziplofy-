@@ -4,9 +4,13 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packDir = path.join(__dirname, '../src/theme-packs/horizon');
+const previewDir = path.join(packDir, 'preview');
 const schemaPath = path.join(packDir, 'theme.schema.json');
+const previewSchemaPath = path.join(previewDir, 'theme.schema.json');
 const defaultPath = path.join(packDir, 'theme.default-config.json');
+const previewDefaultPath = path.join(previewDir, 'theme.default-config.json');
 const manifestPath = path.join(packDir, 'theme.manifest.json');
+const previewManifestPath = path.join(previewDir, 'theme.manifest.json');
 
 const COLOR_SCHEME_OPTIONS = [
   { value: 'scheme-1', label: 'Scheme 1' },
@@ -15,23 +19,9 @@ const COLOR_SCHEME_OPTIONS = [
   { value: 'scheme-4', label: 'Scheme 4' },
 ];
 
-/** Sidebar settings: Layout → Size → Appearance → Padding → Custom CSS (Horizon FAQ sheet). */
+/** Section settings: Layout → Size → Appearance → Padding → Custom CSS (heading lives in Heading block). */
 function sectionSettingsFields(prefix) {
   return [
-    {
-      path: `${prefix}.heading`,
-      type: 'text',
-      label: 'Heading',
-      group: 'General',
-      sidebar: false,
-    },
-    {
-      path: `${prefix}.openFirstItem`,
-      type: 'boolean',
-      label: 'Open first row',
-      group: 'General',
-      sidebar: false,
-    },
     {
       path: `${prefix}.direction`,
       type: 'select',
@@ -203,25 +193,160 @@ function sectionSettingsFields(prefix) {
   ];
 }
 
+function accordionBlockSettingsFields(prefix) {
+  const s = (key) => `${prefix}.blocks.accordion.settings.${key}`;
+  return [
+    {
+      path: s('icon'),
+      type: 'select',
+      label: 'Icon',
+      group: 'General',
+      widget: 'segmented',
+      options: [
+        { value: 'caret', label: 'Caret' },
+        { value: 'plus', label: 'Plus' },
+      ],
+      sidebar: true,
+    },
+    {
+      path: s('dividers'),
+      type: 'boolean',
+      label: 'Dividers',
+      group: 'General',
+      sidebar: true,
+    },
+    {
+      path: s('headingTypographyPreset'),
+      type: 'select',
+      label: 'Heading preset',
+      group: 'General',
+      widget: 'select',
+      description: 'Edit presets in theme settings',
+      options: [
+        { value: 'default', label: 'Default' },
+        { value: 'paragraph', label: 'Paragraph' },
+        { value: 'heading-1', label: 'Heading 1' },
+        { value: 'heading-2', label: 'Heading 2' },
+        { value: 'heading-3', label: 'Heading 3' },
+        { value: 'heading-4', label: 'Heading 4' },
+        { value: 'heading-5', label: 'Heading 5' },
+        { value: 'heading-6', label: 'Heading 6' },
+      ],
+      sidebar: true,
+    },
+    {
+      path: s('inheritColorScheme'),
+      type: 'boolean',
+      label: 'Inherit color scheme',
+      group: 'General',
+      sidebar: true,
+    },
+    {
+      path: s('borderStyle'),
+      type: 'select',
+      label: 'Style',
+      group: 'Borders',
+      widget: 'segmented',
+      options: [
+        { value: 'none', label: 'None' },
+        { value: 'solid', label: 'Solid' },
+      ],
+      sidebar: true,
+    },
+    {
+      path: s('cornerRadius'),
+      type: 'number',
+      label: 'Corner radius',
+      group: 'Borders',
+      widget: 'slider',
+      min: 0,
+      max: 40,
+      step: 1,
+      unit: 'px',
+      sidebar: true,
+    },
+    {
+      path: s('paddingTop'),
+      type: 'number',
+      label: 'Top',
+      group: 'Padding',
+      widget: 'slider',
+      min: 0,
+      max: 80,
+      step: 1,
+      unit: 'px',
+      sidebar: true,
+    },
+    {
+      path: s('paddingBottom'),
+      type: 'number',
+      label: 'Bottom',
+      group: 'Padding',
+      widget: 'slider',
+      min: 0,
+      max: 80,
+      step: 1,
+      unit: 'px',
+      sidebar: true,
+    },
+    {
+      path: s('paddingLeft'),
+      type: 'number',
+      label: 'Left',
+      group: 'Padding',
+      widget: 'slider',
+      min: 0,
+      max: 80,
+      step: 1,
+      unit: 'px',
+      sidebar: true,
+    },
+    {
+      path: s('paddingRight'),
+      type: 'number',
+      label: 'Right',
+      group: 'Padding',
+      widget: 'slider',
+      min: 0,
+      max: 80,
+      step: 1,
+      unit: 'px',
+      sidebar: true,
+    },
+  ];
+}
+
 function faqBlocks(prefix) {
   return [
     {
-      id: 'faq_item',
-      label: 'Question',
-      settingsFields: [
+      id: 'heading',
+      label: 'Heading',
+      settingsFields: [],
+    },
+    {
+      id: 'accordion',
+      label: 'Accordion',
+      settingsFields: accordionBlockSettingsFields(prefix),
+      blocks: [
         {
-          path: `${prefix}.blocks.faq_item.settings.question`,
-          type: 'text',
-          label: 'Question',
-          group: 'Content',
-          sidebar: true,
-        },
-        {
-          path: `${prefix}.blocks.faq_item.settings.answer`,
-          type: 'textarea',
-          label: 'Answer',
-          group: 'Content',
-          sidebar: true,
+          id: 'accordion_row',
+          label: 'Accordion row',
+          settingsFields: [
+            {
+              path: `${prefix}.blocks.accordion.blocks.accordion_row.settings.question`,
+              type: 'text',
+              label: 'Question',
+              group: 'Content',
+              sidebar: true,
+            },
+            {
+              path: `${prefix}.blocks.accordion.blocks.accordion_row.settings.answer`,
+              type: 'textarea',
+              label: 'Answer',
+              group: 'Content',
+              sidebar: true,
+            },
+          ],
         },
       ],
     },
@@ -244,70 +369,89 @@ const templateFaq = {
   blocks: faqBlocks('templates.index.sections.faq_section'),
 };
 
-const defaultFaqSection = {
-  type: 'faq',
-  enabled: true,
-  settings: {
-    catalogVariant: 'faq',
-    heading: 'Frequently asked questions',
-    openFirstItem: false,
-    direction: 'vertical',
-    layoutAlignment: 'left',
-    position: 'center',
-    layoutGap: 32,
-    sectionWidth: 'page',
-    height: 'auto',
-    colorScheme: 'scheme-1',
-    backgroundMedia: 'none',
-    backgroundImageUrl: '',
-    borderStyle: 'none',
-    cornerRadius: 0,
-    backgroundOverlay: false,
-    paddingTop: 48,
-    paddingBottom: 48,
-    customCss: '',
-  },
-  blocks: {
-    faq_1: {
-      type: 'faq-item',
-      settings: {
-        question: 'What is the return policy?',
-        answer:
-          'We offer a 30-day return policy on most items. Products must be unused and in original packaging.',
+const defaultRows = [
+  ['What is the return policy?', 'We offer a 30-day return policy on most items. Products must be unused and in original packaging.'],
+  ['Are any purchases final sale?', 'Yes, items marked final sale cannot be returned or exchanged.'],
+  ['When will I get my order?', 'Most orders ship within 2–3 business days. Delivery times vary by location.'],
+  ['Where are your products manufactured?', 'Our products are designed in-house and manufactured with trusted partners worldwide.'],
+  ['How much does shipping cost?', 'Shipping is calculated at checkout. Free shipping may apply on qualifying orders.'],
+];
+
+function buildDefaultFaqSection() {
+  const rowBlocks = {};
+  const rowOrder = [];
+  defaultRows.forEach(([question, answer], i) => {
+    const id = `row_${i + 1}`;
+    rowBlocks[id] = { type: 'accordion-row', settings: { question, answer } };
+    rowOrder.push(id);
+  });
+  return {
+    type: 'faq',
+    enabled: true,
+    settings: {
+      catalogVariant: 'faq',
+      direction: 'vertical',
+      layoutAlignment: 'left',
+      position: 'center',
+      layoutGap: 32,
+      sectionWidth: 'page',
+      height: 'auto',
+      colorScheme: 'scheme-1',
+      backgroundMedia: 'none',
+      backgroundImageUrl: '',
+      borderStyle: 'none',
+      cornerRadius: 0,
+      backgroundOverlay: false,
+      paddingTop: 48,
+      paddingBottom: 48,
+      customCss: '',
+      title: 'Frequently asked questions',
+      headingWidth: 'fit',
+      headingMaxWidth: 'normal',
+      headingAlignment: 'left',
+      headingTypographyPreset: 'heading-2',
+      headingFont: 'body',
+      headingFontSize: '16px',
+      headingLineHeight: 'normal',
+      headingLetterSpacing: 'normal',
+      headingTextCase: 'default',
+      headingWrap: 'pretty',
+      headingColor: 'heading',
+      headingBackgroundEnabled: false,
+      headingBackgroundColor: '#00000026',
+      headingCornerRadius: 0,
+      headingPaddingTop: 0,
+      headingPaddingBottom: 0,
+      headingPaddingLeft: 0,
+      headingPaddingRight: 0,
+    },
+    blocks: {
+      heading: {
+        type: 'heading',
+        settings: { heading: 'Frequently asked questions' },
+      },
+      accordion: {
+        type: 'group',
+        settings: {
+          icon: 'caret',
+          dividers: true,
+          headingTypographyPreset: 'heading-5',
+          inheritColorScheme: false,
+          borderStyle: 'none',
+          cornerRadius: 0,
+          paddingTop: 0,
+          paddingBottom: 0,
+          paddingLeft: 0,
+          paddingRight: 0,
+          openFirstItem: false,
+        },
+        blocks: rowBlocks,
+        block_order: rowOrder,
       },
     },
-    faq_2: {
-      type: 'faq-item',
-      settings: {
-        question: 'Are any purchases final sale?',
-        answer: 'Yes, items marked final sale cannot be returned or exchanged.',
-      },
-    },
-    faq_3: {
-      type: 'faq-item',
-      settings: {
-        question: 'When will I get my order?',
-        answer: 'Most orders ship within 2–3 business days. Delivery times vary by location.',
-      },
-    },
-    faq_4: {
-      type: 'faq-item',
-      settings: {
-        question: 'Where are your products manufactured?',
-        answer:
-          'Our products are designed in-house and manufactured with trusted partners worldwide.',
-      },
-    },
-    faq_5: {
-      type: 'faq-item',
-      settings: {
-        question: 'How much does shipping cost?',
-        answer: 'Shipping is calculated at checkout. Free shipping may apply on qualifying orders.',
-      },
-    },
-  },
-  block_order: ['faq_1', 'faq_2', 'faq_3', 'faq_4', 'faq_5'],
-};
+    block_order: ['heading', 'accordion'],
+  };
+}
 
 function patchSchema(schema) {
   schema.layout = schema.layout ?? {};
@@ -328,28 +472,20 @@ function patchSchema(schema) {
 function patchDefaultConfig(cfg) {
   const index = cfg.templates?.index;
   if (!index?.sections) throw new Error('templates.index missing');
-  index.sections.faq_section = defaultFaqSection;
+  index.sections.faq_section = buildDefaultFaqSection();
 }
 
 function patchManifest(manifest) {
   manifest.sectionBlocks = manifest.sectionBlocks ?? {};
-  manifest.sectionBlocks.faq = ['faq-item'];
+  manifest.sectionBlocks.faq = ['heading', 'accordion', 'accordion-row'];
 }
 
-for (const target of [schemaPath, defaultPath, manifestPath]) {
+for (const target of [schemaPath, previewSchemaPath, defaultPath, previewDefaultPath, manifestPath, previewManifestPath]) {
+  if (!fs.existsSync(target)) continue;
   const data = JSON.parse(fs.readFileSync(target, 'utf8'));
   if (target.endsWith('theme.schema.json')) patchSchema(data);
   else if (target.endsWith('theme.default-config.json')) patchDefaultConfig(data);
   else patchManifest(data);
   fs.writeFileSync(target, `${JSON.stringify(data, null, 2)}\n`);
   console.log('patched', target);
-}
-
-const z3b = path.join(__dirname, '../../Ziplofy3b/src/theme-packs/horizon');
-for (const name of ['theme.schema.json', 'theme.default-config.json', 'theme.manifest.json']) {
-  const dest = path.join(z3b, name);
-  if (fs.existsSync(path.dirname(dest))) {
-    fs.copyFileSync(path.join(packDir, name), dest);
-    console.log('copied to', dest);
-  }
 }

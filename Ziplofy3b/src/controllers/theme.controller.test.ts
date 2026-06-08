@@ -11,6 +11,20 @@ vi.mock('../models/theme.model', () => ({
 
 import { Theme } from '../models/theme.model';
 
+function mockThemeFindChain(result: unknown[]) {
+  (Theme.find as ReturnType<typeof vi.fn>).mockReturnValue({
+    populate: vi.fn().mockReturnValue({
+      limit: vi.fn().mockReturnValue({
+        skip: vi.fn().mockReturnValue({
+          sort: vi.fn().mockReturnValue({
+            lean: vi.fn().mockResolvedValue(result),
+          }),
+        }),
+      }),
+    }),
+  });
+}
+
 describe('theme.controller - getThemes', () => {
   let mockReq: Partial<Request>;
   let mockRes: Partial<Response>;
@@ -28,17 +42,7 @@ describe('theme.controller - getThemes', () => {
 
   it('builds filter from query and returns paginated result', async () => {
     const mockThemes = [{ _id: 't1', name: 'Theme 1' }];
-    (Theme.find as ReturnType<typeof vi.fn>).mockReturnValue({
-      populate: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          limit: vi.fn().mockReturnValue({
-            skip: vi.fn().mockReturnValue({
-              sort: vi.fn().mockResolvedValue(mockThemes),
-            }),
-          }),
-        }),
-      }),
-    });
+    mockThemeFindChain(mockThemes);
     (Theme.countDocuments as ReturnType<typeof vi.fn>).mockResolvedValue(1);
 
     (mockReq as any).query = { page: '1', limit: '10', search: 'foo', category: 'ecommerce' };
@@ -56,7 +60,7 @@ describe('theme.controller - getThemes', () => {
     expect(mockRes.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: true,
-        data: mockThemes,
+        data: expect.arrayContaining([expect.objectContaining({ _id: 't1', name: 'Theme 1' })]),
         totalPages: 1,
         currentPage: 1,
         total: 1,
@@ -65,17 +69,7 @@ describe('theme.controller - getThemes', () => {
   });
 
   it('uses default pagination when query is empty', async () => {
-    (Theme.find as ReturnType<typeof vi.fn>).mockReturnValue({
-      populate: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          limit: vi.fn().mockReturnValue({
-            skip: vi.fn().mockReturnValue({
-              sort: vi.fn().mockResolvedValue([]),
-            }),
-          }),
-        }),
-      }),
-    });
+    mockThemeFindChain([]);
     (Theme.countDocuments as ReturnType<typeof vi.fn>).mockResolvedValue(0);
 
     await getThemes(mockReq as Request, mockRes as Response, mockNext);

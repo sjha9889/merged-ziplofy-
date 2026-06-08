@@ -1851,8 +1851,6 @@
           "enabled": true,
           "settings": {
             "catalogVariant": "faq",
-            "heading": "Frequently asked questions",
-            "openFirstItem": false,
             "direction": "vertical",
             "layoutAlignment": "left",
             "position": "center",
@@ -1867,51 +1865,98 @@
             "backgroundOverlay": false,
             "paddingTop": 48,
             "paddingBottom": 48,
-            "customCss": ""
+            "customCss": "",
+            "title": "Frequently asked questions",
+            "headingWidth": "fit",
+            "headingMaxWidth": "normal",
+            "headingAlignment": "left",
+            "headingTypographyPreset": "heading-2",
+            "headingFont": "body",
+            "headingFontSize": "16px",
+            "headingLineHeight": "normal",
+            "headingLetterSpacing": "normal",
+            "headingTextCase": "default",
+            "headingWrap": "pretty",
+            "headingColor": "heading",
+            "headingBackgroundEnabled": false,
+            "headingBackgroundColor": "#00000026",
+            "headingCornerRadius": 0,
+            "headingPaddingTop": 0,
+            "headingPaddingBottom": 0,
+            "headingPaddingLeft": 0,
+            "headingPaddingRight": 0
           },
           "blocks": {
-            "faq_1": {
-              "type": "faq-item",
+            "heading": {
+              "type": "heading",
               "settings": {
-                "question": "What is the return policy?",
-                "answer": "We offer a 30-day return policy on most items. Products must be unused and in original packaging."
+                "heading": "Frequently asked questions"
               }
             },
-            "faq_2": {
-              "type": "faq-item",
+            "accordion": {
+              "type": "group",
               "settings": {
-                "question": "Are any purchases final sale?",
-                "answer": "Yes, items marked final sale cannot be returned or exchanged."
-              }
-            },
-            "faq_3": {
-              "type": "faq-item",
-              "settings": {
-                "question": "When will I get my order?",
-                "answer": "Most orders ship within 2–3 business days. Delivery times vary by location."
-              }
-            },
-            "faq_4": {
-              "type": "faq-item",
-              "settings": {
-                "question": "Where are your products manufactured?",
-                "answer": "Our products are designed in-house and manufactured with trusted partners worldwide."
-              }
-            },
-            "faq_5": {
-              "type": "faq-item",
-              "settings": {
-                "question": "How much does shipping cost?",
-                "answer": "Shipping is calculated at checkout. Free shipping may apply on qualifying orders."
-              }
+                "icon": "caret",
+                "dividers": true,
+                "headingTypographyPreset": "heading-5",
+                "inheritColorScheme": false,
+                "borderStyle": "none",
+                "cornerRadius": 0,
+                "paddingTop": 0,
+                "paddingBottom": 0,
+                "paddingLeft": 0,
+                "paddingRight": 0,
+                "openFirstItem": false
+              },
+              "blocks": {
+                "row_1": {
+                  "type": "accordion-row",
+                  "settings": {
+                    "question": "What is the return policy?",
+                    "answer": "We offer a 30-day return policy on most items. Products must be unused and in original packaging."
+                  }
+                },
+                "row_2": {
+                  "type": "accordion-row",
+                  "settings": {
+                    "question": "Are any purchases final sale?",
+                    "answer": "Yes, items marked final sale cannot be returned or exchanged."
+                  }
+                },
+                "row_3": {
+                  "type": "accordion-row",
+                  "settings": {
+                    "question": "When will I get my order?",
+                    "answer": "Most orders ship within 2–3 business days. Delivery times vary by location."
+                  }
+                },
+                "row_4": {
+                  "type": "accordion-row",
+                  "settings": {
+                    "question": "Where are your products manufactured?",
+                    "answer": "Our products are designed in-house and manufactured with trusted partners worldwide."
+                  }
+                },
+                "row_5": {
+                  "type": "accordion-row",
+                  "settings": {
+                    "question": "How much does shipping cost?",
+                    "answer": "Shipping is calculated at checkout. Free shipping may apply on qualifying orders."
+                  }
+                }
+              },
+              "block_order": [
+                "row_1",
+                "row_2",
+                "row_3",
+                "row_4",
+                "row_5"
+              ]
             }
           },
           "block_order": [
-            "faq_1",
-            "faq_2",
-            "faq_3",
-            "faq_4",
-            "faq_5"
+            "heading",
+            "accordion"
           ]
         },
         "icons_with_text": {

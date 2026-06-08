@@ -1,9 +1,16 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { useThemeConfig } from '@render-store/sdk';
-import { cfgString } from '../lib/config';
-import { EditorField, EditorSection } from '../lib/editorAttrs';
-import { readFaqItems, readFaqLayout, scopedFaqCss } from '../lib/faqStyles';
-import { layout } from '../tokens';
+import { EditorBlock, EditorField, EditorSection } from '../lib/editorAttrs';
+import { heroHeadingTypographyCss, readHeroHeadingStyle } from '../lib/heroHeadingStyles';
+import {
+  accordionQuestionTypography,
+  readFaqAccordionStyle,
+  readFaqHeading,
+  readFaqItems,
+  readFaqLayout,
+  scopedFaqCss,
+} from '../lib/faqStyles';
+import { layout, useThemeColors } from '../tokens';
 
 type Props = {
   sectionId?: string;
@@ -11,7 +18,19 @@ type Props = {
   placement?: 'layout' | 'template';
 };
 
-function Chevron({ open }: { open: boolean }) {
+function AccordionIcon({ kind, open }: { kind: 'caret' | 'plus'; open: boolean }) {
+  if (kind === 'plus') {
+    return (
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden style={{ flexShrink: 0 }}>
+        <path
+          d={open ? 'M4 8h8' : 'M8 4v8M4 8h8'}
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
   return (
     <svg
       width="16"
@@ -42,6 +61,7 @@ export function FaqSection({
   placement = 'template',
 }: Props) {
   const config = useThemeConfig();
+  const { text: themeText, fontHeading, fontBody } = useThemeColors();
   const settingsBase =
     placement === 'template'
       ? `templates.${templateId}.sections.${sectionId}.settings`
@@ -56,17 +76,40 @@ export function FaqSection({
     [config, templateId, sectionId, placement]
   );
 
-  const heading = cfgString(config, `${settingsBase}.heading`);
+  const sectionBase = settingsBase.replace(/\.settings$/, '');
+  const accordionSettingsBase = `${sectionBase}.blocks.accordion.settings`;
+  const accordionStyle = useMemo(
+    () => readFaqAccordionStyle(config, accordionSettingsBase),
+    [config, accordionSettingsBase]
+  );
+  const questionTypography = useMemo(
+    () => accordionQuestionTypography(accordionStyle.headingTypographyPreset, { fontHeading, fontBody }),
+    [accordionStyle.headingTypographyPreset, fontHeading, fontBody]
+  );
+  const heading = useMemo(
+    () => readFaqHeading(config, sectionBase, settingsBase),
+    [config, sectionBase, settingsBase]
+  );
   const [openIds, setOpenIds] = useState<Set<string>>(() => {
-    if (style.openFirstItem && items[0]) return new Set([items[0].id]);
+    if (accordionStyle.openFirstItem && items[0]) return new Set([items[0].id]);
     return new Set();
   });
 
   const scheme = style.scheme;
+  const questionColor = accordionStyle.inheritColorScheme ? scheme.color : themeText;
+  const answerColor = accordionStyle.inheritColorScheme ? scheme.muted : themeText;
   const horizontalPad = style.sectionWidth === 'full' ? 24 : layout.padX;
   const innerMaxWidth = style.sectionWidth === 'full' ? '100%' : layout.maxWidth;
   const scopeClass = `ziplofy-faq-${sectionId.replace(/[^a-z0-9_-]/gi, '-')}`;
-  const headingAlign = style.layoutAlignment;
+  const headingStyleTokens = useMemo(
+    () =>
+      readHeroHeadingStyle(config, settingsBase, { fontHeading, fontBody }, {
+        text: scheme.color,
+        heading: scheme.color,
+        link: scheme.color,
+      }),
+    [config, settingsBase, fontHeading, fontBody, scheme.color]
+  );
 
   const shell: CSSProperties = {
     position: 'relative',
@@ -107,13 +150,24 @@ export function FaqSection({
     gap: style.layoutGap,
   };
 
+  const headingFillWidth = headingStyleTokens.width === '100%';
   const headingStyle: CSSProperties = {
     margin: 0,
-    fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
-    fontWeight: 700,
-    lineHeight: 1.15,
-    letterSpacing: '-0.02em',
-    textAlign: headingAlign,
+    width: headingStyleTokens.width,
+    maxWidth: headingStyleTokens.maxWidth,
+    marginLeft: headingStyleTokens.marginLeft,
+    marginRight: headingStyleTokens.marginRight,
+    alignSelf: headingFillWidth ? 'stretch' : undefined,
+    boxSizing: 'border-box',
+    ...heroHeadingTypographyCss(headingStyleTokens),
+    color: headingStyleTokens.color,
+    textAlign: headingStyleTokens.textAlign ?? style.layoutAlignment,
+    background: headingStyleTokens.background,
+    paddingTop: headingStyleTokens.paddingTop,
+    paddingBottom: headingStyleTokens.paddingBottom,
+    paddingLeft: headingStyleTokens.paddingLeft,
+    paddingRight: headingStyleTokens.paddingRight,
+    borderRadius: headingStyleTokens.borderRadius,
     marginBottom: style.direction === 'horizontal' ? 0 : style.layoutGap,
     flex: style.direction === 'horizontal' ? '0 0 38%' : undefined,
   };
@@ -162,25 +216,52 @@ export function FaqSection({
         />
       ) : null}
       <div className={scopeClass} style={{ ...stage, position: 'relative', zIndex: 2 }}>
-        <EditorField fieldPath={`${settingsBase}.heading`} label="Heading" as="h2" style={headingStyle}>
-          {heading}
-        </EditorField>
+        <EditorBlock
+          nodeId={
+            placement === 'template'
+              ? `template:${templateId}:${sectionId}:block:heading`
+              : `layout:${sectionId}:block:heading`
+          }
+          label="Heading"
+        >
+          <EditorField
+            fieldPath={`${settingsBase}.title`}
+            label="Heading"
+            as="h2"
+            style={headingStyle}
+          >
+            {heading}
+          </EditorField>
+        </EditorBlock>
 
         <div
           role="list"
           style={{
             ...listStyle,
-            borderTop: `1px solid ${scheme.border}`,
+            borderTop: accordionStyle.dividers ? `1px solid ${scheme.border}` : undefined,
+            border:
+              accordionStyle.borderStyle === 'solid' ? `1px solid ${scheme.border}` : undefined,
+            borderRadius: accordionStyle.cornerRadius > 0 ? accordionStyle.cornerRadius : undefined,
+            overflow: accordionStyle.cornerRadius > 0 ? 'hidden' : undefined,
+            paddingTop: accordionStyle.paddingTop,
+            paddingBottom: accordionStyle.paddingBottom,
+            paddingLeft: accordionStyle.paddingLeft,
+            paddingRight: accordionStyle.paddingRight,
+            boxSizing: 'border-box',
           }}
         >
-          {items.map((item) => {
+          {items.map((item, index) => {
             const open = openIds.has(item.id);
+            const rowBorder =
+              accordionStyle.dividers && index < items.length - 1
+                ? `1px solid ${scheme.border}`
+                : undefined;
             const blockNodeId =
               placement === 'template'
-                ? `template:${templateId}:${sectionId}:block:${item.id}`
-                : `layout:${sectionId}:block:${item.id}`;
-            const questionPath = `${settingsBase.replace(/\.settings$/, '')}.blocks.${item.id}.settings.question`;
-            const answerPath = `${settingsBase.replace(/\.settings$/, '')}.blocks.${item.id}.settings.answer`;
+                ? `template:${templateId}:${sectionId}:block:accordion:nested:${item.id}`
+                : `layout:${sectionId}:block:accordion:nested:${item.id}`;
+            const questionPath = `${sectionBase}.blocks.accordion.blocks.${item.id}.settings.question`;
+            const answerPath = `${sectionBase}.blocks.accordion.blocks.${item.id}.settings.answer`;
 
             return (
               <div
@@ -189,7 +270,7 @@ export function FaqSection({
                 data-ziplofy-node={blockNodeId}
                 data-ziplofy-label={item.question}
                 data-ziplofy-kind="block"
-                style={{ borderBottom: `1px solid ${scheme.border}` }}
+                style={{ borderBottom: rowBorder }}
               >
                 <button
                   type="button"
@@ -215,22 +296,21 @@ export function FaqSection({
                     label="Question"
                     as="span"
                     style={{
-                      fontSize: '1rem',
-                      fontWeight: 400,
-                      lineHeight: 1.4,
+                      ...questionTypography,
+                      color: questionColor,
                       flex: 1,
                     }}
                   >
                     {item.question}
                   </EditorField>
-                  <Chevron open={open} />
+                  <AccordionIcon kind={accordionStyle.icon} open={open} />
                 </button>
                 {open ? (
                   <div
                     style={{
                       paddingBottom: 20,
                       paddingRight: 32,
-                      color: scheme.muted,
+                      color: answerColor,
                       fontSize: '0.9375rem',
                       lineHeight: 1.6,
                     }}

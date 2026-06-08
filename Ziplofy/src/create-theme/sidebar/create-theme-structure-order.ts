@@ -3,6 +3,7 @@ import {
   collectionLinkBlockPaths,
 } from '../../utils/collection-links-spotlight-sidebar.util';
 import { featuredProductStructureOrder } from '../../utils/featured-product-sidebar.util';
+import { faqLayoutStructureOrder, faqStructureOrder } from '../../utils/faq-sidebar.util';
 import { bottomAlignedHeroStructureOrder } from '../../utils/hero-bottom-aligned.util';
 
 function collectionLinksSpotlightStructureOrder(
@@ -215,6 +216,13 @@ export function readStructureOrderFromConfig(
       continue;
     }
 
+    const isFaq = (sec as { type?: string }).type === 'faq' || catalogVariant === 'faq';
+    if (isFaq) {
+      const sectionPrefix = `template:${tplId}:${secId}`;
+      Object.assign(out, faqStructureOrder(sectionPrefix, listKey, config, tplId, secId));
+      continue;
+    }
+
     const ids: string[] = [];
     if (isHero) {
       ids.push(`template:${tplId}:${secId}:add-block`);
@@ -261,6 +269,15 @@ export function readStructureOrderFromConfig(
       Object.assign(
         out,
         bottomAlignedHeroStructureOrder(`layout:${layoutKey}`, secListKey, listKeyBlockChildren)
+      );
+      continue;
+    }
+
+    const isFaq = secType === 'faq' || catalogVariant === 'faq';
+    if (isFaq) {
+      Object.assign(
+        out,
+        faqLayoutStructureOrder(`layout:${layoutKey}`, secListKey, config, layoutKey)
       );
       continue;
     }
