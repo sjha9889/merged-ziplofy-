@@ -49,6 +49,38 @@ export function sortCollectionLinkTitlePanelFields(fields: EditorFieldDef[]): Ed
   );
 }
 
+const COLLECTION_LINK_SECTION_BLUEPRINTS = ['collection_links_spotlight', 'collection_links_text'] as const;
+
+export function collectionLinkBlueprintSettingsFields(
+  editorSchema: EditorSchemaDoc,
+  preferredBlueprint: string,
+  placement: 'template' | 'layout',
+  tplId?: string
+): EditorFieldDef[] {
+  const tryBlueprints = [
+    preferredBlueprint,
+    ...COLLECTION_LINK_SECTION_BLUEPRINTS.filter((id) => id !== preferredBlueprint),
+  ];
+
+  if (placement === 'template' && tplId) {
+    const template = editorSchema.templates?.find((t) => t.id === tplId);
+    for (const blueprint of tryBlueprints) {
+      const sec = template?.sections?.find((s) => (s.id ?? '') === blueprint);
+      const block = sec?.blocks?.find((b) => (b.id ?? '') === 'collection_link');
+      if (block?.settingsFields?.length) return block.settingsFields;
+    }
+    return [];
+  }
+
+  for (const blueprint of tryBlueprints) {
+    const block = editorSchema.layout?.[blueprint]?.blocks?.find(
+      (b) => (b.id ?? '') === 'collection_link'
+    );
+    if (block?.settingsFields?.length) return block.settingsFields;
+  }
+  return [];
+}
+
 export function collectionLinkTitleFieldDefsFromSchema(
   editorSchema: EditorSchemaDoc,
   fieldNodeId: string
@@ -61,12 +93,15 @@ export function collectionLinkTitleFieldDefsFromSchema(
   if (tplMatch) {
     const [, tplId, secId, blockId] = tplMatch;
     const blueprint = templateBlueprintKey(secId);
-    const template = editorSchema.templates?.find((t) => t.id === tplId);
-    const sec = template?.sections?.find((s) => (s.id ?? '') === blueprint);
-    const block = sec?.blocks?.find((b) => (b.id ?? '') === 'collection_link');
-    if (!block?.settingsFields?.length) return [];
+    const settingsFields = collectionLinkBlueprintSettingsFields(
+      editorSchema,
+      blueprint,
+      'template',
+      tplId
+    );
+    if (!settingsFields.length) return [];
     return sortCollectionLinkTitlePanelFields(
-      block.settingsFields
+      settingsFields
         .filter((f) => TYPOGRAPHY_KEY_SET.has(f.path.split('.').pop() ?? ''))
         .map((f) => ({
           ...f,
@@ -82,12 +117,10 @@ export function collectionLinkTitleFieldDefsFromSchema(
   if (layoutMatch) {
     const [, secId, blockId] = layoutMatch;
     const blueprint = layoutBlueprintKey(secId);
-    const block = editorSchema.layout?.[blueprint]?.blocks?.find(
-      (b) => (b.id ?? '') === 'collection_link'
-    );
-    if (!block?.settingsFields?.length) return [];
+    const settingsFields = collectionLinkBlueprintSettingsFields(editorSchema, blueprint, 'layout');
+    if (!settingsFields.length) return [];
     return sortCollectionLinkTitlePanelFields(
-      block.settingsFields
+      settingsFields
         .filter((f) => TYPOGRAPHY_KEY_SET.has(f.path.split('.').pop() ?? ''))
         .map((f) => ({
           ...f,

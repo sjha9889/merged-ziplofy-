@@ -80,9 +80,8 @@ export function mapCollectionLinksSpotlightBlockNodes(
   config: Record<string, unknown> | null,
   tplId: string,
   secId: string,
-  catalogVariant: string
+  _catalogVariant: string
 ): SidebarNode[] {
-  const isTextLayout = catalogVariant === 'collection-links-text';
   const blockOrder = readTemplateBlockOrder(config, tplId, secId);
 
   const blockNodes: SidebarNode[] = blockOrder.map((blockId) => {
@@ -110,18 +109,15 @@ export function mapCollectionLinksSpotlightBlockNodes(
         fields: [titleField],
         preview: fieldPreview(titleField, values),
       },
-    ];
-
-    if (!isTextLayout) {
-      childNodes.push({
+      {
         id: `field:${paths.imageUrl}`,
         label: 'Image',
         kind: 'field',
         icon: 'image',
         fields: [imageField],
         preview: fieldPreview(imageField, values),
-      });
-    }
+      },
+    ];
 
     return {
       id: blockPrefix,

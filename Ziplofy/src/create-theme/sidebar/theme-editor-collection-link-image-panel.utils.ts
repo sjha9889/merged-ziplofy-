@@ -4,6 +4,7 @@ import {
   remapTemplateSchemaPath,
   templateBlueprintKey,
 } from '../../utils/theme-editor-insert-section';
+import { collectionLinkBlueprintSettingsFields } from './theme-editor-collection-link-title-panel.utils';
 
 export const COLLECTION_LINK_IMAGE_KEYS = [
   'imageHeight',
@@ -57,12 +58,15 @@ export function collectionLinkImageFieldDefsFromSchema(
   if (tplMatch) {
     const [, tplId, secId, blockId] = tplMatch;
     const blueprint = templateBlueprintKey(secId);
-    const template = editorSchema.templates?.find((t) => t.id === tplId);
-    const sec = template?.sections?.find((s) => (s.id ?? '') === blueprint);
-    const block = sec?.blocks?.find((b) => (b.id ?? '') === 'collection_link');
-    if (!block?.settingsFields?.length) return [];
+    const settingsFields = collectionLinkBlueprintSettingsFields(
+      editorSchema,
+      blueprint,
+      'template',
+      tplId
+    );
+    if (!settingsFields.length) return [];
     return sortCollectionLinkImagePanelFields(
-      block.settingsFields
+      settingsFields
         .filter((f) => IMAGE_KEY_SET.has(f.path.split('.').pop() ?? ''))
         .map((f) => ({
           ...f,
@@ -78,12 +82,10 @@ export function collectionLinkImageFieldDefsFromSchema(
   if (layoutMatch) {
     const [, secId, blockId] = layoutMatch;
     const blueprint = layoutBlueprintKey(secId);
-    const block = editorSchema.layout?.[blueprint]?.blocks?.find(
-      (b) => (b.id ?? '') === 'collection_link'
-    );
-    if (!block?.settingsFields?.length) return [];
+    const settingsFields = collectionLinkBlueprintSettingsFields(editorSchema, blueprint, 'layout');
+    if (!settingsFields.length) return [];
     return sortCollectionLinkImagePanelFields(
-      block.settingsFields
+      settingsFields
         .filter((f) => IMAGE_KEY_SET.has(f.path.split('.').pop() ?? ''))
         .map((f) => ({
           ...f,

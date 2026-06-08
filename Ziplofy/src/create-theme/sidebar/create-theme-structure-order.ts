@@ -2,6 +2,7 @@ import type { ThemePreviewPage } from '../chrome/CreateThemeLivePreview';
 import {
   collectionLinkBlockPaths,
 } from '../../utils/collection-links-spotlight-sidebar.util';
+import { featuredProductStructureOrder } from '../../utils/featured-product-sidebar.util';
 import { bottomAlignedHeroStructureOrder } from '../../utils/hero-bottom-aligned.util';
 
 function collectionLinksSpotlightStructureOrder(
@@ -9,9 +10,8 @@ function collectionLinksSpotlightStructureOrder(
   blocksBase: string,
   blockOrder: string[],
   sectionChildrenListKey: string,
-  catalogVariant: string
+  _catalogVariant: string
 ): Record<string, string[]> {
-  const isTextLayout = catalogVariant === 'collection-links-text';
   const out: Record<string, string[]> = {
     [sectionChildrenListKey]: blockOrder.map((id) => `${prefix}:block:${id}`),
   };
@@ -19,9 +19,10 @@ function collectionLinksSpotlightStructureOrder(
   for (const blockId of blockOrder) {
     const blockPrefix = `${prefix}:block:${blockId}`;
     const paths = collectionLinkBlockPaths(blocksBase, blockId);
-    const fieldIds = [`field:${paths.title}`];
-    if (!isTextLayout) fieldIds.push(`field:${paths.imageUrl}`);
-    out[listKeyBlockChildren(blockPrefix)] = fieldIds;
+    out[listKeyBlockChildren(blockPrefix)] = [
+      `field:${paths.title}`,
+      `field:${paths.imageUrl}`,
+    ];
   }
 
   return out;
@@ -200,6 +201,16 @@ export function readStructureOrderFromConfig(
           listKey,
           catalogVariant ?? 'collection-links-spotlight'
         )
+      );
+      continue;
+    }
+
+    const isFeaturedProduct = catalogVariant === 'featured-product';
+    if (isFeaturedProduct) {
+      const sectionPrefix = `template:${tplId}:${secId}`;
+      Object.assign(
+        out,
+        featuredProductStructureOrder(sectionPrefix, listKey, config, tplId, secId)
       );
       continue;
     }

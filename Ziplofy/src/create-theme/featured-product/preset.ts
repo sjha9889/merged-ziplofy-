@@ -1,2 +1,5 @@
-/** Defaults applied after pack blueprint clone (extend in place as needed). */
-export function applyPreset(_section: Record<string, unknown>): void {}
+import { applyFeaturedProductPreset } from '../../utils/featured-product-preset.util';
+
+export function applyPreset(section: Record<string, unknown>): void {
+  applyFeaturedProductPreset(section);
+}

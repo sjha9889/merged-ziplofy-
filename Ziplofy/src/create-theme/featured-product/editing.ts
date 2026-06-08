@@ -1,7 +1,7 @@
 import type { CreateThemeEditing } from '../types';
 
 export const editing: CreateThemeEditing = {
-  "sectionLabel": "Product highlight",
+  "sectionLabel": "Featured product",
   "sectionSettingsOrder": [
     {
       "key": "productId",

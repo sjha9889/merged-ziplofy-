@@ -59,7 +59,7 @@ export function FeaturedProductSection({
   const cachedPrice = cfgString(config, `${settingsBase}.price`);
   const cachedImageUrl = cfgString(config, `${settingsBase}.productImageUrl`, '');
   const mediaPosition = cfgString(config, `${settingsBase}.mediaPosition`, 'left');
-  const showRating = cfgBool(config, `${settingsBase}.showRating`, true);
+  const showRating = cfgBool(config, `${settingsBase}.showRating`, false);
   const rating = cfgNumber(config, `${settingsBase}.rating`, 4.5);
   const reviewCount = cfgNumber(config, `${settingsBase}.reviewCount`, 3);
   const showTaxNote = cfgBool(config, `${settingsBase}.showTaxNote`, true);
@@ -144,14 +144,6 @@ export function FeaturedProductSection({
     boxSizing: 'border-box',
   };
 
-  const titleRow: CSSProperties = {
-    display: 'flex',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    gap: 16,
-    width: '100%',
-  };
-
   const titleStyle: CSSProperties = {
     margin: 0,
     fontFamily: fontHeading,
@@ -159,16 +151,13 @@ export function FeaturedProductSection({
     fontWeight: 400,
     lineHeight: 1.25,
     color: scheme.color,
-    flex: 1,
-    minWidth: 0,
   };
 
   const priceStyle: CSSProperties = {
-    margin: 0,
+    margin: '8px 0 0',
     fontSize: 16,
     fontWeight: 400,
     color: scheme.color,
-    whiteSpace: 'nowrap',
   };
 
   const taxStyle: CSSProperties = {
@@ -180,7 +169,6 @@ export function FeaturedProductSection({
   const buttonStyle: CSSProperties = {
     marginTop: 24,
     width: '100%',
-    maxWidth: 360,
     padding: '14px 24px',
     border: 'none',
     borderRadius: 999,
@@ -211,26 +199,24 @@ export function FeaturedProductSection({
             )}
           </div>
           <div style={detailsPanel}>
-            <div style={titleRow}>
-              <EditorField
-                nodeId={editorNodeId}
-                fieldPath={`${settingsBase}.productTitle`}
-                label="Product title"
-                as="h2"
-                style={titleStyle}
-              >
-                {productTitle}
-              </EditorField>
-              <EditorField
-                nodeId={editorNodeId}
-                fieldPath={`${settingsBase}.price`}
-                label="Price"
-                as="span"
-                style={priceStyle}
-              >
-                {price}
-              </EditorField>
-            </div>
+            <EditorField
+              nodeId={editorNodeId}
+              fieldPath={`${settingsBase}.productTitle`}
+              label="Product title"
+              as="h2"
+              style={titleStyle}
+            >
+              {productTitle}
+            </EditorField>
+            <EditorField
+              nodeId={editorNodeId}
+              fieldPath={`${settingsBase}.price`}
+              label="Price"
+              as="p"
+              style={priceStyle}
+            >
+              {price}
+            </EditorField>
             {showTaxNote ? (
               <EditorField nodeId={editorNodeId} fieldPath={`${settingsBase}.taxNote`} label="Tax note" as="p" style={taxStyle}>
                 {taxNote}

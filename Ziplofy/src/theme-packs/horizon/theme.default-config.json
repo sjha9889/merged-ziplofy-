@@ -839,36 +839,72 @@
           "type": "collection-link",
           "settings": {
             "title": "Collection title",
+            "titleFont": "subheading",
+            "titleWeight": "default",
+            "titleLineHeight": "normal",
+            "titleLetterSpacing": "normal",
+            "titleCase": "default",
             "productCount": 5,
             "collectionHandle": "",
-            "href": "/collections/all"
+            "href": "/collections/all",
+            "imageUrl": "",
+            "imageHeight": "large",
+            "imageRatio": "square",
+            "imageCornerRadius": 0
           }
         },
         "link_2": {
           "type": "collection-link",
           "settings": {
             "title": "Collection title",
+            "titleFont": "subheading",
+            "titleWeight": "default",
+            "titleLineHeight": "normal",
+            "titleLetterSpacing": "normal",
+            "titleCase": "default",
             "productCount": 5,
             "collectionHandle": "",
-            "href": "/collections/all"
+            "href": "/collections/all",
+            "imageUrl": "",
+            "imageHeight": "large",
+            "imageRatio": "square",
+            "imageCornerRadius": 0
           }
         },
         "link_3": {
           "type": "collection-link",
           "settings": {
             "title": "Collection title",
+            "titleFont": "subheading",
+            "titleWeight": "default",
+            "titleLineHeight": "normal",
+            "titleLetterSpacing": "normal",
+            "titleCase": "default",
             "productCount": 5,
             "collectionHandle": "",
-            "href": "/collections/all"
+            "href": "/collections/all",
+            "imageUrl": "",
+            "imageHeight": "large",
+            "imageRatio": "square",
+            "imageCornerRadius": 0
           }
         },
         "link_4": {
           "type": "collection-link",
           "settings": {
             "title": "Collection title",
+            "titleFont": "subheading",
+            "titleWeight": "default",
+            "titleLineHeight": "normal",
+            "titleLetterSpacing": "normal",
+            "titleCase": "default",
             "productCount": 5,
             "collectionHandle": "",
-            "href": "/collections/all"
+            "href": "/collections/all",
+            "imageUrl": "",
+            "imageHeight": "large",
+            "imageRatio": "square",
+            "imageCornerRadius": 0
           }
         }
       },
@@ -2544,36 +2580,72 @@
               "type": "collection-link",
               "settings": {
                 "title": "Collection title",
+                "titleFont": "subheading",
+                "titleWeight": "default",
+                "titleLineHeight": "normal",
+                "titleLetterSpacing": "normal",
+                "titleCase": "default",
                 "productCount": 5,
                 "collectionHandle": "",
-                "href": "/collections/all"
+                "href": "/collections/all",
+                "imageUrl": "",
+                "imageHeight": "large",
+                "imageRatio": "square",
+                "imageCornerRadius": 0
               }
             },
             "link_2": {
               "type": "collection-link",
               "settings": {
                 "title": "Collection title",
+                "titleFont": "subheading",
+                "titleWeight": "default",
+                "titleLineHeight": "normal",
+                "titleLetterSpacing": "normal",
+                "titleCase": "default",
                 "productCount": 5,
                 "collectionHandle": "",
-                "href": "/collections/all"
+                "href": "/collections/all",
+                "imageUrl": "",
+                "imageHeight": "large",
+                "imageRatio": "square",
+                "imageCornerRadius": 0
               }
             },
             "link_3": {
               "type": "collection-link",
               "settings": {
                 "title": "Collection title",
+                "titleFont": "subheading",
+                "titleWeight": "default",
+                "titleLineHeight": "normal",
+                "titleLetterSpacing": "normal",
+                "titleCase": "default",
                 "productCount": 5,
                 "collectionHandle": "",
-                "href": "/collections/all"
+                "href": "/collections/all",
+                "imageUrl": "",
+                "imageHeight": "large",
+                "imageRatio": "square",
+                "imageCornerRadius": 0
               }
             },
             "link_4": {
               "type": "collection-link",
               "settings": {
                 "title": "Collection title",
+                "titleFont": "subheading",
+                "titleWeight": "default",
+                "titleLineHeight": "normal",
+                "titleLetterSpacing": "normal",
+                "titleCase": "default",
                 "productCount": 5,
                 "collectionHandle": "",
-                "href": "/collections/all"
+                "href": "/collections/all",
+                "imageUrl": "",
+                "imageHeight": "large",
+                "imageRatio": "square",
+                "imageCornerRadius": 0
               }
             }
           },

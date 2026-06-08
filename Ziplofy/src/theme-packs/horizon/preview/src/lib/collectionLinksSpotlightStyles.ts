@@ -109,3 +109,11 @@ export function textAlignForAlignment(alignment: CollectionLinksSpotlightLayout[
   if (alignment === 'right') return 'right';
   return 'left';
 }
+
+export function textLinksFlexJustifyForAlignment(
+  alignment: CollectionLinksSpotlightLayout['alignment']
+): 'flex-start' | 'center' | 'flex-end' {
+  if (alignment === 'center') return 'center';
+  if (alignment === 'right') return 'flex-end';
+  return 'flex-start';
+}

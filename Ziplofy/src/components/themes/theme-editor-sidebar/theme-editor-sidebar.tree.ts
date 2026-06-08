@@ -113,6 +113,70 @@ import {
   prepareFeaturedProductSettingsNode,
 } from './theme-editor-featured-product-panel.utils';
 import {
+  featuredProductMediaFieldDefsFromNodeId,
+  featuredProductMediaFieldDefsFromSchema,
+  isFeaturedProductMediaBlockNodeId,
+  isFeaturedProductMediaPanelFields,
+  prepareFeaturedProductMediaSettingsNode,
+} from './theme-editor-featured-product-media-block-panel.utils';
+import {
+  featuredProductDetailsFieldDefsFromNodeId,
+  featuredProductDetailsFieldDefsFromSchema,
+  isFeaturedProductDetailsBlockNodeId,
+  isFeaturedProductDetailsPanelFields,
+  prepareFeaturedProductDetailsSettingsNode,
+} from './theme-editor-featured-product-details-block-panel.utils';
+import {
+  featuredProductHeaderFieldDefsFromNodeId,
+  featuredProductHeaderFieldDefsFromSchema,
+  isFeaturedProductHeaderBlockNodeId,
+  prepareFeaturedProductHeaderSettingsNode,
+} from './theme-editor-featured-product-header-block-panel.utils';
+import {
+  isFeaturedProductAcceleratedCheckoutNestedNodeId,
+  prepareFeaturedProductAcceleratedCheckoutSettingsNode,
+} from './theme-editor-featured-product-accelerated-checkout-panel.utils';
+import {
+  isFeaturedProductQuantityNestedNodeId,
+  prepareFeaturedProductQuantitySettingsNode,
+} from './theme-editor-featured-product-quantity-panel.utils';
+import {
+  featuredProductAddToCartFieldDefsFromNodeId,
+  featuredProductAddToCartFieldDefsFromSchema,
+  isFeaturedProductAddToCartNestedNodeId,
+  prepareFeaturedProductAddToCartSettingsNode,
+} from './theme-editor-featured-product-add-to-cart-panel.utils';
+import {
+  featuredProductBuyButtonsFieldDefsFromNodeId,
+  featuredProductBuyButtonsFieldDefsFromSchema,
+  isFeaturedProductBuyButtonsBlockNodeId,
+  prepareFeaturedProductBuyButtonsSettingsNode,
+} from './theme-editor-featured-product-buy-buttons-block-panel.utils';
+import {
+  featuredProductReviewStarsFieldDefsFromNodeId,
+  featuredProductReviewStarsFieldDefsFromSchema,
+  isFeaturedProductReviewStarsBlockNodeId,
+  prepareFeaturedProductReviewStarsSettingsNode,
+} from './theme-editor-featured-product-review-stars-block-panel.utils';
+import {
+  featuredProductVariantPickerFieldDefsFromNodeId,
+  featuredProductVariantPickerFieldDefsFromSchema,
+  isFeaturedProductVariantPickerBlockNodeId,
+  prepareFeaturedProductVariantPickerSettingsNode,
+} from './theme-editor-featured-product-variant-picker-block-panel.utils';
+import {
+  featuredProductHeaderPriceFieldDefsFromNodeId,
+  featuredProductHeaderPriceFieldDefsFromSchema,
+  isFeaturedProductHeaderPriceNestedNodeId,
+  prepareFeaturedProductHeaderPriceSettingsNode,
+} from './theme-editor-featured-product-header-price-panel.utils';
+import {
+  featuredProductHeaderTitleFieldDefsFromNodeId,
+  featuredProductHeaderTitleFieldDefsFromSchema,
+  isFeaturedProductHeaderTitleNestedNodeId,
+  prepareFeaturedProductHeaderTitleSettingsNode,
+} from './theme-editor-featured-product-header-title-panel.utils';
+import {
   isEditorialSectionType,
   isEditorialSettingsPanelFields,
   prepareEditorialSettingsNode,
@@ -253,6 +317,7 @@ import {
   prepareCollectionLinkBlockSettingsNode,
 } from './theme-editor-collection-link-block-panel.utils';
 import { mapCollectionLinksSpotlightBlockNodes } from '../../../utils/collection-links-spotlight-sidebar.util';
+import { mapFeaturedProductBlockNodes } from '../../../utils/featured-product-sidebar.util';
 import {
   isCollectionTileBlockFieldsOnly,
   prepareCollectionTileBlockSettingsNode,
@@ -1524,7 +1589,18 @@ function sectionToNode(
         secId,
         catalogVariant
       )
-    : heroVisibleBlocks.length
+    : isFeaturedProduct
+      ? mapFeaturedProductBlockNodes(
+          prefix,
+          blocksBase,
+          values,
+          itemOrder,
+          childrenListKey,
+          config,
+          tplId,
+          secId
+        )
+      : heroVisibleBlocks.length
       ? isHero
         ? mapHeroBlockNodes(heroVisibleBlocks, prefix, `${prefix}:add-block`, values, itemOrder, childrenListKey)
         : mapBlockNodes(
@@ -1539,7 +1615,12 @@ function sectionToNode(
       : [];
 
   const children = reorderSidebarChildren(
-    isHero || isFaq || isIconsWithText || isMulticolumn || isCollectionLinksSpotlight
+    isHero ||
+      isFaq ||
+      isIconsWithText ||
+      isMulticolumn ||
+      isCollectionLinksSpotlight ||
+      isFeaturedProduct
       ? blockNodes
       : [...sectionFields, ...blockNodes],
     childrenListKey,
@@ -2210,6 +2291,100 @@ export function settingsNodeForSelection(
 
   if (node.fields?.length && isDividerSettingsPanelFields(node.fields)) {
     return prepareDividerSettingsNode(node);
+  }
+
+  if (isFeaturedProductMediaBlockNodeId(node.id)) {
+    const fields =
+      node.fields?.length && isFeaturedProductMediaPanelFields(node.fields)
+        ? node.fields
+        : editorSchema
+          ? featuredProductMediaFieldDefsFromSchema(editorSchema, node.id)
+          : featuredProductMediaFieldDefsFromNodeId(node.id);
+    if (fields.length) {
+      return prepareFeaturedProductMediaSettingsNode({ ...node, fields });
+    }
+  }
+
+  if (isFeaturedProductHeaderBlockNodeId(node.id)) {
+    const fields = editorSchema
+      ? featuredProductHeaderFieldDefsFromSchema(editorSchema, node.id)
+      : featuredProductHeaderFieldDefsFromNodeId(node.id);
+    if (fields.length) {
+      return prepareFeaturedProductHeaderSettingsNode({ ...node, fields });
+    }
+  }
+
+  if (isFeaturedProductHeaderTitleNestedNodeId(node.id)) {
+    const fields = editorSchema
+      ? featuredProductHeaderTitleFieldDefsFromSchema(editorSchema, node.id)
+      : featuredProductHeaderTitleFieldDefsFromNodeId(node.id);
+    if (fields.length) {
+      return prepareFeaturedProductHeaderTitleSettingsNode({ ...node, fields });
+    }
+  }
+
+  if (isFeaturedProductHeaderPriceNestedNodeId(node.id)) {
+    const fields = editorSchema
+      ? featuredProductHeaderPriceFieldDefsFromSchema(editorSchema, node.id)
+      : featuredProductHeaderPriceFieldDefsFromNodeId(node.id);
+    if (fields.length) {
+      return prepareFeaturedProductHeaderPriceSettingsNode({ ...node, fields });
+    }
+  }
+
+  if (isFeaturedProductReviewStarsBlockNodeId(node.id)) {
+    const fields = editorSchema
+      ? featuredProductReviewStarsFieldDefsFromSchema(editorSchema, node.id)
+      : featuredProductReviewStarsFieldDefsFromNodeId(node.id);
+    if (fields.length) {
+      return prepareFeaturedProductReviewStarsSettingsNode({ ...node, fields });
+    }
+  }
+
+  if (isFeaturedProductVariantPickerBlockNodeId(node.id)) {
+    const fields = editorSchema
+      ? featuredProductVariantPickerFieldDefsFromSchema(editorSchema, node.id)
+      : featuredProductVariantPickerFieldDefsFromNodeId(node.id);
+    if (fields.length) {
+      return prepareFeaturedProductVariantPickerSettingsNode({ ...node, fields });
+    }
+  }
+
+  if (isFeaturedProductAddToCartNestedNodeId(node.id)) {
+    const fields = editorSchema
+      ? featuredProductAddToCartFieldDefsFromSchema(editorSchema, node.id)
+      : featuredProductAddToCartFieldDefsFromNodeId(node.id);
+    if (fields.length) {
+      return prepareFeaturedProductAddToCartSettingsNode({ ...node, fields });
+    }
+  }
+
+  if (isFeaturedProductQuantityNestedNodeId(node.id)) {
+    return prepareFeaturedProductQuantitySettingsNode(node);
+  }
+
+  if (isFeaturedProductAcceleratedCheckoutNestedNodeId(node.id)) {
+    return prepareFeaturedProductAcceleratedCheckoutSettingsNode(node);
+  }
+
+  if (isFeaturedProductBuyButtonsBlockNodeId(node.id)) {
+    const fields = editorSchema
+      ? featuredProductBuyButtonsFieldDefsFromSchema(editorSchema, node.id)
+      : featuredProductBuyButtonsFieldDefsFromNodeId(node.id);
+    if (fields.length) {
+      return prepareFeaturedProductBuyButtonsSettingsNode({ ...node, fields });
+    }
+  }
+
+  if (isFeaturedProductDetailsBlockNodeId(node.id)) {
+    const fields = editorSchema
+      ? featuredProductDetailsFieldDefsFromSchema(editorSchema, node.id)
+      : node.fields?.length && isFeaturedProductDetailsPanelFields(node.fields)
+        ? node.fields
+        : featuredProductDetailsFieldDefsFromNodeId(node.id);
+    if (fields.length) {
+      return prepareFeaturedProductDetailsSettingsNode({ ...node, fields });
+    }
   }
 
   if (node.fields?.length && isFeaturedProductSettingsPanelFields(node.fields)) {

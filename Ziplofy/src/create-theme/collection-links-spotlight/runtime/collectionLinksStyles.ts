@@ -121,6 +121,15 @@ export function textAlignForAlignment(alignment: CollectionLinksSpotlightLayout[
   return 'left';
 }
 
+/** Flex main-axis alignment for text-layout collection links (wraps by available width). */
+export function textLinksFlexJustifyForAlignment(
+  alignment: CollectionLinksSpotlightLayout['alignment']
+): 'flex-start' | 'center' | 'flex-end' {
+  if (alignment === 'center') return 'center';
+  if (alignment === 'right') return 'flex-end';
+  return 'flex-start';
+}
+
 export type CollectionLinkTitleStyle = {
   fontFamily: string;
   fontSize: number;
@@ -143,10 +152,10 @@ export function readCollectionLinkTitleStyle(
   const caseKey = cfgString(config, `${blockSettingsBase}.titleCase`, 'default');
 
   const fontSizes: Record<string, number> = {
-    body: isTextLayout ? 12 : 18,
-    subheading: isTextLayout ? 12 : 20,
-    heading: isTextLayout ? 14 : 24,
-    accent: isTextLayout ? 12 : 22,
+    body: isTextLayout ? 28 : 18,
+    subheading: isTextLayout ? 32 : 20,
+    heading: isTextLayout ? 40 : 24,
+    accent: isTextLayout ? 30 : 22,
   };
   const weights: Record<string, number> = {
     default: 500,
@@ -172,7 +181,7 @@ export function readCollectionLinkTitleStyle(
 
   return {
     fontFamily,
-    fontSize: fontSizes[fontKey] ?? (isTextLayout ? 12 : 22),
+    fontSize: fontSizes[fontKey] ?? (isTextLayout ? 18 : 22),
     fontWeight: weights[weightKey] ?? 500,
     lineHeight: lineHeights[lineHeightKey] ?? 1.25,
     letterSpacing: letterSpacings[letterSpacingKey] ?? '0',
@@ -182,6 +191,7 @@ export function readCollectionLinkTitleStyle(
 
 export type CollectionLinkImageStyle = {
   maxHeight: number;
+  width: number;
   aspectRatio: string;
   borderRadius: number;
   objectFit: 'cover';
@@ -233,15 +243,24 @@ export function readCollectionLinkImageStyle(
   const ratioKey = cfgString(config, `${blockSettingsBase}.imageRatio`, 'square');
   const borderRadius = cfgNumber(config, `${blockSettingsBase}.imageCornerRadius`, 0);
 
-  const heights: Record<string, number> = { small: 160, medium: 200, large: 240 };
+  const heights: Record<string, number> = { small: 140, medium: 180, large: 220 };
   const ratios: Record<string, string> = {
     square: '1 / 1',
     portrait: '4 / 5',
     landscape: '16 / 9',
   };
+  const ratioParts: Record<string, [number, number]> = {
+    square: [1, 1],
+    portrait: [4, 5],
+    landscape: [16, 9],
+  };
+  const maxHeight = heights[heightKey] ?? 220;
+  const [rw, rh] = ratioParts[ratioKey] ?? [1, 1];
+  const width = Math.round(maxHeight * (rw / rh));
 
   return {
-    maxHeight: heights[heightKey] ?? 240,
+    maxHeight,
+    width,
     aspectRatio: ratios[ratioKey] ?? '1 / 1',
     borderRadius,
     objectFit: 'cover',

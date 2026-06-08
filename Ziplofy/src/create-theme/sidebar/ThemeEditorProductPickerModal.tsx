@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { MagnifyingGlassIcon, PlusIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useProducts, type Product } from '../../contexts/product.context';
 import { useStore } from '../../contexts/store.context';
 import { THEME_EDITOR_STATIC_CONFIG } from '../../config/theme-editor-static.config';
+import { ThemeEditorCreateProductSheet } from './ThemeEditorCreateProductSheet';
 
 export type ThemeEditorProductPickerModalProps = {
   open: boolean;
@@ -28,6 +29,7 @@ export const ThemeEditorProductPickerModal: React.FC<ThemeEditorProductPickerMod
 
   const [mounted, setMounted] = useState(false);
   const [search, setSearch] = useState('');
+  const [createSheetOpen, setCreateSheetOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -45,9 +47,11 @@ export const ThemeEditorProductPickerModal: React.FC<ThemeEditorProductPickerMod
     return products.filter((p) => p.title.toLowerCase().includes(q) || p.sku?.toLowerCase().includes(q));
   }, [products, search]);
 
-  if (!mounted || !open) return null;
+  if (!mounted) return null;
 
   return createPortal(
+    <>
+    {open ? (
     <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/40 p-4">
       <div
         className="flex max-h-[min(640px,90vh)] w-full max-w-[480px] flex-col overflow-hidden rounded-xl bg-white shadow-xl"
@@ -124,8 +128,32 @@ export const ThemeEditorProductPickerModal: React.FC<ThemeEditorProductPickerMod
             </ul>
           )}
         </div>
+
+        <div className="shrink-0 border-t border-[#e1e1e1] px-4 py-3">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#2c6ecb] hover:underline"
+            onClick={() => {
+              onClose();
+              setCreateSheetOpen(true);
+            }}
+          >
+            <PlusIcon className="h-4 w-4" />
+            Create product
+          </button>
+        </div>
       </div>
-    </div>,
+    </div>
+    ) : null}
+    <ThemeEditorCreateProductSheet
+      open={createSheetOpen}
+      onClose={() => setCreateSheetOpen(false)}
+      onCreated={(product) => {
+        onSelect(product);
+        setCreateSheetOpen(false);
+      }}
+    />
+    </>,
     document.body
   );
 };

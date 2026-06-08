@@ -8,6 +8,7 @@ import {
   readCollectionLinksSpotlightLayout,
   scopedCollectionLinksSpotlightCss,
   textAlignForAlignment,
+  textLinksFlexJustifyForAlignment,
 } from '../lib/collectionLinksSpotlightStyles';
 import { EditorBlock, EditorField, EditorSection } from '../lib/editorAttrs';
 import { layout, useThemeColors } from '../tokens';
@@ -53,29 +54,31 @@ export function CollectionLinksSpotlightSection({
   const scopeClass = `ziplofy-collection-links-${sectionId.replace(/[^a-z0-9_-]/gi, '-')}`;
   const customCss = scopedCollectionLinksSpotlightCss(sectionId, layoutStyle.customCss);
   const textAlign = textAlignForAlignment(layoutStyle.alignment);
-  const isTextLayout = layoutStyle.layoutMode === 'text';
+  const isTextLayout =
+    layoutStyle.layoutMode === 'text' || catalogVariant === 'collection-links-text';
+
+  const horizontalPad = layoutStyle.sectionWidth === 'full' ? 24 : layout.padX;
 
   const outerStyle: CSSProperties = {
     paddingTop: layoutStyle.paddingTop,
     paddingBottom: layoutStyle.paddingBottom,
+    paddingLeft: horizontalPad,
+    paddingRight: horizontalPad,
     background: layoutStyle.scheme.background,
     color: layoutStyle.scheme.color,
     fontFamily: fontBody,
+    boxSizing: 'border-box',
+    width: '100%',
   };
 
   const innerStyle: CSSProperties =
     layoutStyle.sectionWidth === 'full'
-      ? { maxWidth: '100%', paddingLeft: 0, paddingRight: 0 }
-      : {
-          maxWidth: layout.contentMaxWidth,
-          margin: '0 auto',
-          paddingLeft: 24,
-          paddingRight: 24,
-        };
+      ? { maxWidth: '100%', width: '100%' }
+      : { maxWidth: layout.contentMaxWidth, margin: '0 auto', width: '100%' };
 
   const linkItemStyle: CSSProperties = {
     margin: 0,
-    fontSize: isTextLayout ? 18 : 22,
+    fontSize: isTextLayout ? undefined : 22,
     fontWeight: 500,
     lineHeight: 1.25,
     color: layoutStyle.scheme.color,
@@ -88,18 +91,12 @@ export function CollectionLinksSpotlightSection({
       style={
         isTextLayout
           ? {
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-              columnGap: 48,
-              rowGap: 24,
-              maxWidth: 560,
-              margin: '0 auto',
-              justifyItems:
-                layoutStyle.alignment === 'center'
-                  ? 'center'
-                  : layoutStyle.alignment === 'right'
-                    ? 'end'
-                    : 'start',
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: 'clamp(12px, 1vw, 24px) 48px',
+              width: '100%',
+              justifyContent: textLinksFlexJustifyForAlignment(layoutStyle.alignment),
             }
           : {
               display: 'flex',

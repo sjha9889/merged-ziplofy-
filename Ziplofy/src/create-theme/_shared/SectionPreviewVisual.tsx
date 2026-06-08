@@ -1194,7 +1194,7 @@ export function SectionPreviewVisual({ variant }: { variant: SectionPreviewVaria
   if (variant === 'featured-product') {
     return (
       <div className="relative mx-auto flex w-full max-w-[400px] overflow-hidden rounded-lg border border-white bg-white shadow-[0_2px_14px_rgba(0,0,0,0.1)]">
-        <div className="flex aspect-square w-[46%] shrink-0 items-center justify-center bg-[#f4f4f4]">
+        <div className="flex aspect-square w-[46%] shrink-0 items-center justify-center bg-[#ececec]">
           <div className="relative h-[72px] w-[60px]" aria-hidden>
             <div className="absolute inset-x-0 bottom-0 top-4 rounded-t-xl bg-[#d45454] shadow-sm">
               <div className="absolute inset-x-2 top-0 h-2.5 rounded-b-sm bg-[#e8c547]" />
@@ -1203,7 +1203,7 @@ export function SectionPreviewVisual({ variant }: { variant: SectionPreviewVaria
             </div>
           </div>
         </div>
-        <div className="flex min-w-0 flex-1 flex-col justify-center px-5 py-5">
+        <div className="flex min-w-0 flex-1 flex-col justify-center px-4 py-5">
           <p className="text-[0.65rem] font-normal text-gray-900">Product title</p>
           <p className="mt-2 text-[0.6rem] text-gray-900">Rs. 19.99</p>
           <p className="mt-0.5 text-[0.48rem] text-gray-500">Taxes included.</p>
@@ -1218,8 +1218,16 @@ export function SectionPreviewVisual({ variant }: { variant: SectionPreviewVaria
             ))}
             <span className="ml-1 text-[0.48rem] text-gray-600">3 reviews</span>
           </div>
-          <span className="mt-4 flex w-full items-center justify-center rounded-full bg-gray-600 py-2 text-[0.58rem] font-medium text-white">
-            Sold out
+          <div
+            className="mt-3 flex w-[4.5rem] items-center justify-between rounded border border-gray-300 px-2 py-1 text-[0.55rem] text-gray-700"
+            aria-hidden
+          >
+            <span>−</span>
+            <span>1</span>
+            <span>+</span>
+          </div>
+          <span className="mt-3 flex w-full items-center justify-center rounded-full border border-gray-400 py-2 text-[0.58rem] font-medium text-gray-500">
+            Unavailable
           </span>
         </div>
       </div>

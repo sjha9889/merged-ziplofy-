@@ -82,8 +82,7 @@ import {
   loadCreatorThemeEditorPack,
   normalizeCreatorThemeConfig,
 } from '../utils/theme-editor-static-pack';
-import {
-} from '../utils/theme-editor-insert-section';
+import { ensureFeaturedProductSectionBlocks } from '../utils/featured-product-preset.util';
 import { mergedConfigFromFormValues } from '../utils/theme-editor-static-save';
 import { fieldTypeFromSchema, type ThemeEditorFieldType } from './sidebar/create-theme-field.utils';
 import {
@@ -106,6 +105,51 @@ import {
   instanceIdFromHeaderMenuBlockNodeId,
 } from './sidebar/theme-editor-header-menu-block-panel.utils';
 import { isHeaderMenuBlockNodeId } from './sidebar/theme-editor-header-panel.utils';
+import {
+  extendFeaturedProductDetailsBlockValues,
+  featuredProductDetailsFieldDefsFromSchema,
+  isFeaturedProductDetailsBlockNodeId,
+} from './sidebar/theme-editor-featured-product-details-block-panel.utils';
+import {
+  extendFeaturedProductHeaderBlockValues,
+  featuredProductHeaderFieldDefsFromSchema,
+  isFeaturedProductHeaderBlockNodeId,
+} from './sidebar/theme-editor-featured-product-header-block-panel.utils';
+import {
+  extendFeaturedProductAddToCartBlockValues,
+  featuredProductAddToCartFieldDefsFromSchema,
+  isFeaturedProductAddToCartNestedNodeId,
+} from './sidebar/theme-editor-featured-product-add-to-cart-panel.utils';
+import {
+  extendFeaturedProductBuyButtonsBlockValues,
+  featuredProductBuyButtonsFieldDefsFromSchema,
+  isFeaturedProductBuyButtonsBlockNodeId,
+} from './sidebar/theme-editor-featured-product-buy-buttons-block-panel.utils';
+import {
+  extendFeaturedProductHeaderPriceBlockValues,
+  featuredProductHeaderPriceFieldDefsFromSchema,
+  isFeaturedProductHeaderPriceNestedNodeId,
+} from './sidebar/theme-editor-featured-product-header-price-panel.utils';
+import {
+  extendFeaturedProductHeaderTitleBlockValues,
+  featuredProductHeaderTitleFieldDefsFromSchema,
+  isFeaturedProductHeaderTitleNestedNodeId,
+} from './sidebar/theme-editor-featured-product-header-title-panel.utils';
+import {
+  extendFeaturedProductReviewStarsBlockValues,
+  featuredProductReviewStarsFieldDefsFromSchema,
+  isFeaturedProductReviewStarsBlockNodeId,
+} from './sidebar/theme-editor-featured-product-review-stars-block-panel.utils';
+import {
+  extendFeaturedProductVariantPickerBlockValues,
+  featuredProductVariantPickerFieldDefsFromSchema,
+  isFeaturedProductVariantPickerBlockNodeId,
+} from './sidebar/theme-editor-featured-product-variant-picker-block-panel.utils';
+import {
+  extendFeaturedProductMediaBlockValues,
+  featuredProductMediaFieldDefsFromSchema,
+  isFeaturedProductMediaBlockNodeId,
+} from './sidebar/theme-editor-featured-product-media-block-panel.utils';
 import {
   seedSectionEnabledValues,
   sectionEnabledPathFromNodeId,
@@ -244,6 +288,12 @@ const CreateThemePage: React.FC = () => {
         }
 
         normalizeCreatorThemeConfig(config);
+        if (ensureFeaturedProductSectionBlocks(config)) {
+          nextValues = {
+            ...nextValues,
+            ...formValuesFromEditorConfig(schema, config),
+          };
+        }
         ensureRegistryTemplatesInConfig(config);
 
         setEditorSchema(schema);
@@ -421,6 +471,166 @@ const CreateThemePage: React.FC = () => {
     });
   }, [selectedNodeId, editorSchema, defaultConfig]);
 
+  /** Ensure featured-product sections have block hierarchy when opening block panels. */
+  useEffect(() => {
+    if (
+      !isFeaturedProductMediaBlockNodeId(selectedNodeId) &&
+      !isFeaturedProductDetailsBlockNodeId(selectedNodeId)
+    ) {
+      return;
+    }
+    setDefaultConfig((prev) => {
+      if (!prev) return prev;
+      const draft = JSON.parse(JSON.stringify(prev)) as Record<string, unknown>;
+      if (!ensureFeaturedProductSectionBlocks(draft)) return prev;
+      return draft;
+    });
+  }, [selectedNodeId]);
+
+  /** Seed Product media block field paths (aspect ratio, carousel, padding, etc.). */
+  useEffect(() => {
+    if (!editorSchema || !defaultConfig || !isFeaturedProductMediaBlockNodeId(selectedNodeId)) return;
+    const defs = featuredProductMediaFieldDefsFromSchema(editorSchema, selectedNodeId);
+    if (!defs.length) return;
+
+    setValues((prev) => {
+      const needsSeed = defs.some((f) => prev[f.path] === undefined);
+      if (!needsSeed) return prev;
+      const draft = JSON.parse(JSON.stringify(defaultConfig)) as Record<string, unknown>;
+      ensureFeaturedProductSectionBlocks(draft);
+      const config = applyValuesToThemeConfig(draft, prev, editorSchema);
+      return extendFeaturedProductMediaBlockValues(prev, defs, config);
+    });
+  }, [selectedNodeId, editorSchema, defaultConfig]);
+
+  /** Seed Details block field paths (size, layout, appearance, padding). */
+  useEffect(() => {
+    if (!editorSchema || !defaultConfig || !isFeaturedProductDetailsBlockNodeId(selectedNodeId)) return;
+    const defs = featuredProductDetailsFieldDefsFromSchema(editorSchema, selectedNodeId);
+    if (!defs.length) return;
+
+    setValues((prev) => {
+      const needsSeed = defs.some((f) => prev[f.path] === undefined);
+      if (!needsSeed) return prev;
+      const draft = JSON.parse(JSON.stringify(defaultConfig)) as Record<string, unknown>;
+      ensureFeaturedProductSectionBlocks(draft);
+      const config = applyValuesToThemeConfig(draft, prev, editorSchema);
+      return extendFeaturedProductDetailsBlockValues(prev, defs, config);
+    });
+  }, [selectedNodeId, editorSchema, defaultConfig]);
+
+  /** Seed Header block field paths (layout, size, appearance, block link, padding). */
+  useEffect(() => {
+    if (!editorSchema || !defaultConfig || !isFeaturedProductHeaderBlockNodeId(selectedNodeId)) return;
+    const defs = featuredProductHeaderFieldDefsFromSchema(editorSchema, selectedNodeId);
+    if (!defs.length) return;
+
+    setValues((prev) => {
+      const needsSeed = defs.some((f) => prev[f.path] === undefined);
+      if (!needsSeed) return prev;
+      const draft = JSON.parse(JSON.stringify(defaultConfig)) as Record<string, unknown>;
+      ensureFeaturedProductSectionBlocks(draft);
+      const config = applyValuesToThemeConfig(draft, prev, editorSchema);
+      return extendFeaturedProductHeaderBlockValues(prev, defs, config);
+    });
+  }, [selectedNodeId, editorSchema, defaultConfig]);
+
+  /** Seed Header → Title block field paths (layout, typography, appearance, padding). */
+  useEffect(() => {
+    if (!editorSchema || !defaultConfig || !isFeaturedProductHeaderTitleNestedNodeId(selectedNodeId)) return;
+    const defs = featuredProductHeaderTitleFieldDefsFromSchema(editorSchema, selectedNodeId);
+    if (!defs.length) return;
+
+    setValues((prev) => {
+      const needsSeed = defs.some((f) => prev[f.path] === undefined);
+      if (!needsSeed) return prev;
+      const draft = JSON.parse(JSON.stringify(defaultConfig)) as Record<string, unknown>;
+      ensureFeaturedProductSectionBlocks(draft);
+      const config = applyValuesToThemeConfig(draft, prev, editorSchema);
+      return extendFeaturedProductHeaderTitleBlockValues(prev, defs, config);
+    });
+  }, [selectedNodeId, editorSchema, defaultConfig]);
+
+  /** Seed Review stars block field paths (style, review count, color, typography). */
+  useEffect(() => {
+    if (!editorSchema || !defaultConfig || !isFeaturedProductReviewStarsBlockNodeId(selectedNodeId)) return;
+    const defs = featuredProductReviewStarsFieldDefsFromSchema(editorSchema, selectedNodeId);
+    if (!defs.length) return;
+
+    setValues((prev) => {
+      const needsSeed = defs.some((f) => prev[f.path] === undefined);
+      if (!needsSeed) return prev;
+      const draft = JSON.parse(JSON.stringify(defaultConfig)) as Record<string, unknown>;
+      ensureFeaturedProductSectionBlocks(draft);
+      const config = applyValuesToThemeConfig(draft, prev, editorSchema);
+      return extendFeaturedProductReviewStarsBlockValues(prev, defs, config);
+    });
+  }, [selectedNodeId, editorSchema, defaultConfig]);
+
+  /** Seed Variant picker block field paths (style, swatches, alignment, padding). */
+  useEffect(() => {
+    if (!editorSchema || !defaultConfig || !isFeaturedProductVariantPickerBlockNodeId(selectedNodeId)) return;
+    const defs = featuredProductVariantPickerFieldDefsFromSchema(editorSchema, selectedNodeId);
+    if (!defs.length) return;
+
+    setValues((prev) => {
+      const needsSeed = defs.some((f) => prev[f.path] === undefined);
+      if (!needsSeed) return prev;
+      const draft = JSON.parse(JSON.stringify(defaultConfig)) as Record<string, unknown>;
+      ensureFeaturedProductSectionBlocks(draft);
+      const config = applyValuesToThemeConfig(draft, prev, editorSchema);
+      return extendFeaturedProductVariantPickerBlockValues(prev, defs, config);
+    });
+  }, [selectedNodeId, editorSchema, defaultConfig]);
+
+  /** Seed Buy buttons → Add to cart block field paths (style). */
+  useEffect(() => {
+    if (!editorSchema || !defaultConfig || !isFeaturedProductAddToCartNestedNodeId(selectedNodeId)) return;
+    const defs = featuredProductAddToCartFieldDefsFromSchema(editorSchema, selectedNodeId);
+    if (!defs.length) return;
+
+    setValues((prev) => {
+      const needsSeed = defs.some((f) => prev[f.path] === undefined);
+      if (!needsSeed) return prev;
+      const draft = JSON.parse(JSON.stringify(defaultConfig)) as Record<string, unknown>;
+      ensureFeaturedProductSectionBlocks(draft);
+      const config = applyValuesToThemeConfig(draft, prev, editorSchema);
+      return extendFeaturedProductAddToCartBlockValues(prev, defs, config);
+    });
+  }, [selectedNodeId, editorSchema, defaultConfig]);
+
+  /** Seed Buy buttons block field paths (general toggles and padding). */
+  useEffect(() => {
+    if (!editorSchema || !defaultConfig || !isFeaturedProductBuyButtonsBlockNodeId(selectedNodeId)) return;
+    const defs = featuredProductBuyButtonsFieldDefsFromSchema(editorSchema, selectedNodeId);
+    if (!defs.length) return;
+
+    setValues((prev) => {
+      const needsSeed = defs.some((f) => prev[f.path] === undefined);
+      if (!needsSeed) return prev;
+      const draft = JSON.parse(JSON.stringify(defaultConfig)) as Record<string, unknown>;
+      ensureFeaturedProductSectionBlocks(draft);
+      const config = applyValuesToThemeConfig(draft, prev, editorSchema);
+      return extendFeaturedProductBuyButtonsBlockValues(prev, defs, config);
+    });
+  }, [selectedNodeId, editorSchema, defaultConfig]);
+
+  /** Seed Header → Price block field paths (general, typography, padding). */
+  useEffect(() => {
+    if (!editorSchema || !defaultConfig || !isFeaturedProductHeaderPriceNestedNodeId(selectedNodeId)) return;
+    const defs = featuredProductHeaderPriceFieldDefsFromSchema(editorSchema, selectedNodeId);
+    if (!defs.length) return;
+
+    setValues((prev) => {
+      const needsSeed = defs.some((f) => prev[f.path] === undefined);
+      if (!needsSeed) return prev;
+      const draft = JSON.parse(JSON.stringify(defaultConfig)) as Record<string, unknown>;
+      ensureFeaturedProductSectionBlocks(draft);
+      const config = applyValuesToThemeConfig(draft, prev, editorSchema);
+      return extendFeaturedProductHeaderPriceBlockValues(prev, defs, config);
+    });
+  }, [selectedNodeId, editorSchema, defaultConfig]);
+
   /** Seed collection link Title/Image field paths (link_1.titleFont, etc.). */
   useEffect(() => {
     if (!editorSchema || !defaultConfig) return;
@@ -437,11 +647,26 @@ const CreateThemePage: React.FC = () => {
       if (!needsSeed) return prev;
       const config = applyValuesToThemeConfig(defaultConfig, prev, editorSchema);
       const fromConfig = formValuesFromEditorConfig(editorSchema, config);
+      const imageDefaults: Record<string, string> = {
+        imageHeight: 'large',
+        imageRatio: 'square',
+        imageCornerRadius: '0',
+      };
+      const titleDefaults: Record<string, string> = {
+        titleFont: 'subheading',
+        titleWeight: 'default',
+        titleLineHeight: 'normal',
+        titleLetterSpacing: 'normal',
+        titleCase: 'default',
+      };
       const next = { ...prev };
       let changed = false;
       for (const f of defs) {
         if (next[f.path] !== undefined) continue;
-        const seeded = fromConfig[f.path];
+        const key = f.path.split('.').pop() ?? '';
+        const seeded =
+          fromConfig[f.path] ??
+          (isImage ? imageDefaults[key] : isTitle ? titleDefaults[key] : undefined);
         if (seeded === undefined) continue;
         next[f.path] = seeded;
         changed = true;

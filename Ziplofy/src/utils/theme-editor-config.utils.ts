@@ -278,6 +278,134 @@ export function collectEditableFieldPaths(
   return out;
 }
 
+const FEATURED_PRODUCT_DETAILS_SETTING_TYPES: Record<string, string> = {
+  width: 'select',
+  customWidth: 'number',
+  mobileWidth: 'select',
+  mobileCustomWidth: 'number',
+  height: 'select',
+  layoutGap: 'number',
+  position: 'select',
+  stickyOnDesktop: 'boolean',
+  inheritColorScheme: 'boolean',
+  backgroundMedia: 'select',
+  backgroundImageUrl: 'text',
+  backgroundImagePosition: 'select',
+  borderStyle: 'select',
+  borderThickness: 'number',
+  borderOpacity: 'number',
+  cornerRadius: 'number',
+  paddingTop: 'number',
+  paddingBottom: 'number',
+  paddingLeft: 'number',
+  paddingRight: 'number',
+};
+
+const FEATURED_PRODUCT_REVIEW_STARS_SETTING_TYPES: Record<string, string> = {
+  style: 'select',
+  reviewCount: 'boolean',
+  color: 'select',
+  typographyPreset: 'select',
+  width: 'select',
+  alignment: 'select',
+};
+
+const FEATURED_PRODUCT_VARIANT_PICKER_SETTING_TYPES: Record<string, string> = {
+  style: 'select',
+  swatches: 'boolean',
+  alignment: 'select',
+  paddingTop: 'number',
+  paddingBottom: 'number',
+  paddingLeft: 'number',
+  paddingRight: 'number',
+};
+
+const FEATURED_PRODUCT_ADD_TO_CART_SETTING_TYPES: Record<string, string> = {
+  style: 'select',
+  buttonLabel: 'text',
+};
+
+const FEATURED_PRODUCT_BUY_BUTTONS_SETTING_TYPES: Record<string, string> = {
+  alwaysStackButtons: 'boolean',
+  showPickupAvailability: 'boolean',
+  giftCardForm: 'boolean',
+  paddingTop: 'number',
+  paddingBottom: 'number',
+  paddingLeft: 'number',
+  paddingRight: 'number',
+};
+
+const FEATURED_PRODUCT_HEADER_BLOCK_SETTING_TYPES: Record<string, string> = {
+  direction: 'select',
+  alignment: 'select',
+  position: 'select',
+  layoutGap: 'number',
+  width: 'select',
+  customWidth: 'number',
+  mobileWidth: 'select',
+  mobileCustomWidth: 'number',
+  height: 'select',
+  customHeight: 'number',
+  inheritColorScheme: 'boolean',
+  backgroundMedia: 'select',
+  backgroundImageUrl: 'text',
+  backgroundImagePosition: 'select',
+  borderStyle: 'select',
+  borderThickness: 'number',
+  borderOpacity: 'number',
+  cornerRadius: 'number',
+  backgroundOverlay: 'boolean',
+  linkUrl: 'text',
+  openLinkInNewTab: 'boolean',
+  paddingTop: 'number',
+  paddingBottom: 'number',
+  paddingLeft: 'number',
+  paddingRight: 'number',
+};
+
+const FEATURED_PRODUCT_HEADER_PRICE_SETTING_TYPES: Record<string, string> = {
+  showSalePriceFirst: 'boolean',
+  installments: 'boolean',
+  taxInformation: 'boolean',
+  typographyPreset: 'select',
+  width: 'select',
+  alignment: 'select',
+  color: 'select',
+  paddingTop: 'number',
+  paddingBottom: 'number',
+  paddingLeft: 'number',
+  paddingRight: 'number',
+};
+
+const FEATURED_PRODUCT_HEADER_TITLE_SETTING_TYPES: Record<string, string> = {
+  width: 'select',
+  maxWidth: 'select',
+  typographyPreset: 'select',
+  backgroundEnabled: 'boolean',
+  paddingTop: 'number',
+  paddingBottom: 'number',
+  paddingLeft: 'number',
+  paddingRight: 'number',
+};
+
+const FEATURED_PRODUCT_MEDIA_SETTING_TYPES: Record<string, string> = {
+  aspectRatio: 'select',
+  constrainToScreenHeight: 'boolean',
+  mediaFit: 'select',
+  cornerRadius: 'number',
+  extendMediaToScreenEdge: 'boolean',
+  enableZoom: 'boolean',
+  videoLooping: 'boolean',
+  hideUnselectedVariantMedia: 'boolean',
+  carouselIcons: 'select',
+  carouselPagination: 'select',
+  carouselMobilePagination: 'select',
+  paddingTop: 'number',
+  paddingBottom: 'number',
+  paddingLeft: 'number',
+  paddingRight: 'number',
+};
+
 const HEADER_MENU_BLOCK_SETTING_TYPES: Record<string, string> = {
   menu: 'select',
   colorScheme: 'select',
@@ -303,6 +431,78 @@ function resolveFieldTypeForPath(
   const menuSetting = path.match(/^sections\.[^.]+\.blocks\.menu\.settings\.([^.]+)$/);
   if (menuSetting) {
     const inferred = HEADER_MENU_BLOCK_SETTING_TYPES[menuSetting[1]];
+    if (inferred) return inferred;
+  }
+
+  const productMediaSetting = path.match(
+    /^templates\.[^.]+\.sections\.[^.]+\.blocks\.product_media\.settings\.([^.]+)$/
+  );
+  if (productMediaSetting) {
+    const inferred = FEATURED_PRODUCT_MEDIA_SETTING_TYPES[productMediaSetting[1]];
+    if (inferred) return inferred;
+  }
+
+  const productDetailsSetting = path.match(
+    /^templates\.[^.]+\.sections\.[^.]+\.blocks\.details\.settings\.([^.]+)$/
+  );
+  if (productDetailsSetting) {
+    const inferred = FEATURED_PRODUCT_DETAILS_SETTING_TYPES[productDetailsSetting[1]];
+    if (inferred) return inferred;
+  }
+
+  const headerTitleSetting = path.match(
+    /^templates\.[^.]+\.sections\.[^.]+\.blocks\.details\.blocks\.header\.blocks\.title\.settings\.([^.]+)$/
+  );
+  if (headerTitleSetting) {
+    const inferred = FEATURED_PRODUCT_HEADER_TITLE_SETTING_TYPES[headerTitleSetting[1]];
+    if (inferred) return inferred;
+  }
+
+  const reviewStarsSetting = path.match(
+    /^templates\.[^.]+\.sections\.[^.]+\.blocks\.details\.blocks\.review_stars\.settings\.([^.]+)$/
+  );
+  if (reviewStarsSetting) {
+    const inferred = FEATURED_PRODUCT_REVIEW_STARS_SETTING_TYPES[reviewStarsSetting[1]];
+    if (inferred) return inferred;
+  }
+
+  const variantPickerSetting = path.match(
+    /^templates\.[^.]+\.sections\.[^.]+\.blocks\.details\.blocks\.variant_picker\.settings\.([^.]+)$/
+  );
+  if (variantPickerSetting) {
+    const inferred = FEATURED_PRODUCT_VARIANT_PICKER_SETTING_TYPES[variantPickerSetting[1]];
+    if (inferred) return inferred;
+  }
+
+  const addToCartSetting = path.match(
+    /^templates\.[^.]+\.sections\.[^.]+\.blocks\.details\.blocks\.buy_buttons\.blocks\.add_to_cart\.settings\.([^.]+)$/
+  );
+  if (addToCartSetting) {
+    const inferred = FEATURED_PRODUCT_ADD_TO_CART_SETTING_TYPES[addToCartSetting[1]];
+    if (inferred) return inferred;
+  }
+
+  const buyButtonsSetting = path.match(
+    /^templates\.[^.]+\.sections\.[^.]+\.blocks\.details\.blocks\.buy_buttons\.settings\.([^.]+)$/
+  );
+  if (buyButtonsSetting) {
+    const inferred = FEATURED_PRODUCT_BUY_BUTTONS_SETTING_TYPES[buyButtonsSetting[1]];
+    if (inferred) return inferred;
+  }
+
+  const headerBlockSetting = path.match(
+    /^templates\.[^.]+\.sections\.[^.]+\.blocks\.details\.blocks\.header\.settings\.([^.]+)$/
+  );
+  if (headerBlockSetting) {
+    const inferred = FEATURED_PRODUCT_HEADER_BLOCK_SETTING_TYPES[headerBlockSetting[1]];
+    if (inferred) return inferred;
+  }
+
+  const headerPriceSetting = path.match(
+    /^templates\.[^.]+\.sections\.[^.]+\.blocks\.details\.blocks\.header\.blocks\.price\.settings\.([^.]+)$/
+  );
+  if (headerPriceSetting) {
+    const inferred = FEATURED_PRODUCT_HEADER_PRICE_SETTING_TYPES[headerPriceSetting[1]];
     if (inferred) return inferred;
   }
 

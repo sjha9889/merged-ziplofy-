@@ -6,6 +6,7 @@ import { Header } from '../header/runtime/Header';
 import { Hero } from '../hero/runtime/Hero';
 import { CollectionLinksSpotlight } from '../collection-links-spotlight/runtime/CollectionLinksSpotlight';
 import { ProductMain } from '../product-main/runtime/ProductMain';
+import { ProductHighlight } from '../product-highlight/runtime/ProductHighlight';
 /** Live UI components keyed by schema `section.type`. */
 export const SECTION_RUNTIME_BY_TYPE: Record<string, SectionRuntimeComponent> = {
   header: Header,
@@ -14,6 +15,7 @@ export const SECTION_RUNTIME_BY_TYPE: Record<string, SectionRuntimeComponent> = 
   footer: Footer,
   divider: Divider,
   'collection-links-spotlight': CollectionLinksSpotlight,
+  'product-highlight': ProductHighlight,
   'product-main': ProductMain,
 };
 
@@ -32,6 +34,7 @@ export function blueprintIdFromInstanceId(instanceId: string): string {
     'featured_collection',
     'collection_links_spotlight',
     'collection_links_text',
+    'product_highlight',
     'product_main',
   ];
   for (const base of known) {

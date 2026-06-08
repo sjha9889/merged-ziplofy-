@@ -5,6 +5,7 @@ export const FEATURED_PRODUCT_PANEL_GROUP_ORDER = [
   'Product',
   'Layout',
   'Padding',
+  'Theme Settings',
   'Custom CSS',
 ] as const;
 
@@ -59,13 +60,22 @@ export function groupFeaturedProductPanelFields(
     list.push(field);
     map.set(group, list);
   }
+  for (const [group, list] of map) {
+    map.set(
+      group,
+      [...list].sort((a, b) => fieldSortKey(a.path) - fieldSortKey(b.path))
+    );
+  }
   return map;
 }
 
 export function isFeaturedProductSettingsPanelFields(fields: EditorFieldDef[]): boolean {
   if (!fields.length) return false;
   const keys = new Set(fields.map((f) => f.path.split('.').pop() ?? ''));
-  return keys.has('productId') && keys.has('sectionWidth');
+  return (
+    keys.has('productId') &&
+    (keys.has('sectionWidth') || keys.has('equalColumns') || keys.has('layoutGap'))
+  );
 }
 
 export function sortFeaturedProductPanelFields(fields: EditorFieldDef[]): EditorFieldDef[] {
@@ -73,7 +83,8 @@ export function sortFeaturedProductPanelFields(fields: EditorFieldDef[]): Editor
     Product: 0,
     Layout: 1,
     Padding: 2,
-    'Custom CSS': 3,
+    'Theme Settings': 3,
+    'Custom CSS': 4,
   };
   return [...fields].sort((a, b) => {
     const ga = groupRank[a.group ?? ''] ?? 9;

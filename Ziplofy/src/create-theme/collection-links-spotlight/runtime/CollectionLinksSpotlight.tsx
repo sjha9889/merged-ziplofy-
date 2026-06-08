@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useThemeConfig } from '@render-store/sdk';
 import { cfgString } from '../../runtime/shared/config';
@@ -6,6 +6,7 @@ import { EditorBlock, EditorField, EditorSection } from '../../runtime/shared/ed
 import { layout, useThemeColors } from '../../runtime/shared/tokens';
 import type { SectionRuntimeProps } from '../../runtime/types';
 import { CollectionLinksSpotlightArt } from './CollectionLinksSpotlightArt';
+import { CollectionLinksTextHoverPreview } from './CollectionLinksTextHoverPreview';
 import {
   blockSettingsBaseForCollectionLink,
   readCollectionLinks,
@@ -14,6 +15,7 @@ import {
   readCollectionLinkTitleStyle,
   scopedCollectionLinksCss,
   textAlignForAlignment,
+  textLinksFlexJustifyForAlignment,
 } from './collectionLinksStyles';
 
 export function CollectionLinksSpotlight({
@@ -52,16 +54,49 @@ export function CollectionLinksSpotlight({
     [config, templateId, sectionId, placement]
   );
 
-  const [activeLinkId, setActiveLinkId] = useState<string | null>(null);
+  const [spotlightActiveLinkId, setSpotlightActiveLinkId] = useState<string | null>(null);
+  const [textHover, setTextHover] = useState<{ linkId: string; x: number; y: number } | null>(null);
 
   useEffect(() => {
-    setActiveLinkId(links[0]?.id ?? null);
-  }, [links]);
+    if (!isTextLayout) {
+      setSpotlightActiveLinkId(links[0]?.id ?? null);
+    } else {
+      setTextHover(null);
+    }
+  }, [links, isTextLayout]);
 
   const activeLink = useMemo(() => {
-    const id = activeLinkId ?? links[0]?.id;
+    const id = spotlightActiveLinkId ?? links[0]?.id;
     return links.find((link) => link.id === id) ?? links[0];
-  }, [activeLinkId, links]);
+  }, [spotlightActiveLinkId, links]);
+
+  const textHoverLink = useMemo(
+    () => (textHover ? links.find((link) => link.id === textHover.linkId) : undefined),
+    [textHover, links]
+  );
+
+  const textHoverMedia = useMemo(
+    () =>
+      readCollectionLinkSpotlightMedia(
+        config,
+        textHoverLink,
+        layoutStyle.imageUrl,
+        templateId,
+        sectionId,
+        placement
+      ),
+    [textHoverLink, config, layoutStyle.imageUrl, placement, sectionId, templateId]
+  );
+
+  const handleTextLinkHover = useCallback((linkId: string, event: MouseEvent<HTMLElement>) => {
+    setTextHover({ linkId, x: event.clientX, y: event.clientY });
+  }, []);
+
+  const handleTextLinkMove = useCallback((linkId: string, event: MouseEvent<HTMLElement>) => {
+    setTextHover({ linkId, x: event.clientX, y: event.clientY });
+  }, []);
+
+  const clearTextHover = useCallback(() => setTextHover(null), []);
 
   const spotlightMedia = useMemo(
     () =>
@@ -98,51 +133,38 @@ export function CollectionLinksSpotlight({
       ? { maxWidth: '100%', width: '100%' }
       : { maxWidth: layout.maxWidth, margin: '0 auto', width: '100%' };
 
-  const linkItemStyle: CSSProperties = isTextLayout
-    ? {
-        margin: 0,
-        fontSize: 12,
-        fontWeight: 500,
-        lineHeight: 1.25,
-        color: layoutStyle.scheme.color,
-        textDecoration: 'none',
-        textAlign,
-        display: 'inline-block',
-      }
-    : {
-        margin: 0,
-        fontSize: 22,
-        fontWeight: 500,
-        lineHeight: 1.25,
-        color: layoutStyle.scheme.color,
-        textDecoration: 'none',
-        textAlign,
-      };
+  const linkItemStyle: CSSProperties = {
+    margin: 0,
+    fontSize: isTextLayout ? undefined : 22,
+    fontWeight: 500,
+    lineHeight: 1.25,
+    color: layoutStyle.scheme.color,
+    textDecoration: 'none',
+    textAlign,
+  };
 
-  const countStyle: CSSProperties = isTextLayout
-    ? { marginLeft: 2, fontSize: 8, fontWeight: 400, color: layoutStyle.scheme.muted, verticalAlign: 'super' }
-    : { marginLeft: 4, fontSize: '0.65em', fontWeight: 400, color: layoutStyle.scheme.muted };
+  const countStyle: CSSProperties = {
+    marginLeft: 4,
+    fontSize: '0.65em',
+    fontWeight: 400,
+    color: layoutStyle.scheme.muted,
+    verticalAlign: 'super',
+  };
 
-  const resetSpotlightToFirst = () => setActiveLinkId(links[0]?.id ?? null);
+  const resetSpotlightToFirst = () => setSpotlightActiveLinkId(links[0]?.id ?? null);
 
   const linksList = (
     <div
-      onMouseLeave={!isTextLayout ? resetSpotlightToFirst : undefined}
+      onMouseLeave={isTextLayout ? clearTextHover : resetSpotlightToFirst}
       style={
         isTextLayout
           ? {
-              display: 'grid',
-              gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-              columnGap: 24,
-              rowGap: 20,
-              maxWidth: 560,
-              margin: '0 auto',
-              justifyItems:
-                layoutStyle.alignment === 'center'
-                  ? 'center'
-                  : layoutStyle.alignment === 'right'
-                    ? 'end'
-                    : 'start',
+              display: 'flex',
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: 'clamp(12px, 1vw, 24px) 48px',
+              width: '100%',
+              justifyContent: textLinksFlexJustifyForAlignment(layoutStyle.alignment),
             }
           : {
               display: 'flex',
@@ -172,24 +194,46 @@ export function CollectionLinksSpotlight({
 
         const to = link.href.startsWith('/') ? link.href : `/${link.href}`;
         const titleStyle = readCollectionLinkTitleStyle(config, blockBase, isTextLayout, themeFonts);
-        const isActive = !isTextLayout && activeLink?.id === link.id;
+        const isSpotlightActive = !isTextLayout && activeLink?.id === link.id;
+        const isTextActive = isTextLayout && textHover?.linkId === link.id;
 
         return (
-          <EditorBlock key={link.id} nodeId={blockNodeId} label="Collection link">
+          <EditorBlock
+            key={link.id}
+            nodeId={blockNodeId}
+            label="Collection link"
+            style={isTextLayout ? { flex: '0 0 auto', maxWidth: '100%' } : undefined}
+          >
             <Link
               to={to}
-              onMouseEnter={!isTextLayout ? () => setActiveLinkId(link.id) : undefined}
-              onFocus={!isTextLayout ? () => setActiveLinkId(link.id) : undefined}
+              onMouseEnter={
+                isTextLayout
+                  ? (e) => handleTextLinkHover(link.id, e)
+                  : () => setSpotlightActiveLinkId(link.id)
+              }
+              onMouseMove={isTextLayout ? (e) => handleTextLinkMove(link.id, e) : undefined}
+              onFocus={
+                isTextLayout
+                  ? undefined
+                  : () => setSpotlightActiveLinkId(link.id)
+              }
               style={{
                 ...linkItemStyle,
                 fontFamily: titleStyle.fontFamily,
                 fontSize: titleStyle.fontSize,
-                fontWeight: isActive ? 600 : titleStyle.fontWeight,
+                fontWeight: isSpotlightActive ? 600 : titleStyle.fontWeight,
                 lineHeight: titleStyle.lineHeight,
                 letterSpacing: titleStyle.letterSpacing,
                 textTransform: titleStyle.textTransform,
-                opacity: isActive ? 1 : 0.72,
-                transition: 'opacity 0.2s ease, font-weight 0.2s ease',
+                ...(isTextLayout
+                  ? {
+                      color: isTextActive ? layoutStyle.scheme.color : layoutStyle.scheme.muted,
+                      transition: 'color 0.15s ease',
+                    }
+                  : {
+                      opacity: isSpotlightActive ? 1 : 0.72,
+                      transition: 'opacity 0.2s ease, font-weight 0.2s ease',
+                    }),
               }}
             >
               <EditorField fieldPath={`${blockBase}.title`} label="Title">
@@ -268,7 +312,10 @@ export function CollectionLinksSpotlight({
       {customCss ? <style>{customCss}</style> : null}
       <div style={innerStyle}>
         {isTextLayout ? (
-          linksList
+          <>
+            {linksList}
+            <CollectionLinksTextHoverPreview hover={textHover} media={textHoverMedia} />
+          </>
         ) : (
           <div
             style={{
